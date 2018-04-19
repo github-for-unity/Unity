@@ -14,7 +14,13 @@ namespace UnitTests
         public string Path { get; set; }
         public string Label { get; set; }
         public int Level { get; set; }
+
+        public bool IsContainer { get; set; }
+
         public bool IsFolder { get; set; }
+
+        public bool IsFolderOrContainer => IsFolder || IsContainer;
+
         public bool IsCollapsed { get; set; }
         public bool IsHidden { get; set; }
         public bool IsActive { get; set; }
@@ -53,6 +59,7 @@ namespace UnitTests
         bool IsSelectable { get; set; }
         bool IsCheckable { get; set; }
         string PathSeparator { get; set; }
+        bool PromoteMetaFiles { get; set; }
     }
 
     public class TestTree : TreeBase<TestTreeNode, TestTreeData>
@@ -106,8 +113,7 @@ namespace UnitTests
             TestTreeListener.AddCheckedNode(node);
         }
 
-        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder,
-            bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData)
+        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData, bool isContainer)
         {
             if (traceLogging)
             {
@@ -137,13 +143,14 @@ namespace UnitTests
             return testTreeNode;
         }
 
-        protected override void OnClear()
+        protected override void Clear()
         {
             if (traceLogging)
             {
                 Logger.Trace("OnClear");
             }
             TestTreeListener.OnClear();
+            base.Clear();
         }
 
         protected override void SetNodeIcon(TestTreeNode node)
@@ -288,6 +295,18 @@ namespace UnitTests
                     Logger.Trace("Property Set PathSeparator");
                 }
                 TestTreeListener.PathSeparator = value;
+            }
+        }
+
+        protected override bool PromoteMetaFiles
+        {
+            get
+            {
+                if (traceLogging)
+                {
+                    Logger.Trace("Property Get PromoteMetaFiles");
+                }
+                return TestTreeListener.PromoteMetaFiles;
             }
         }
     }
@@ -471,7 +490,6 @@ namespace UnitTests
             });
         }
 
-
         [Test]
         public void ShouldPopulateTreeWithTwoEntriesInPath()
         {
@@ -524,6 +542,124 @@ namespace UnitTests
                 new TestTreeNode {
                     Path = "Folder\\test2.txt",
                     Label = "test2.txt",
+                    Level = 2,
+                    TreeData = testTreeData[1]
+                }
+            });
+        }
+
+        [Test]
+        public void ShouldPopulateTreeWithSingleEntryWithMetaInPath()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(true);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+            testTreeListener.PromoteMetaFiles.Returns(true);
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity"
+                },
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity.meta"
+                }
+            };
+            testTree.Load(testTreeData);
+
+            testTreeListener.Received(1).OnClear();
+            testTreeListener.Received(1).SelectedNode = null;
+
+            testTreeListener.Received(4).CreateTreeNode(Args.String, Args.String, Args.Int, Args.Bool, Args.Bool, Args.Bool, Args.Bool, Args.Bool, Arg.Any<TestTreeData?>());
+            testTreeListener.Received(4).SetNodeIcon(Arg.Any<TestTreeNode>());
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder",
+                    Label = "Folder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity",
+                    Label = "Default Scene.unity",
+                    Level = 2,
+                    TreeData = testTreeData[0],
+                    IsContainer = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity.meta",
+                    Label = "Default Scene.unity.meta",
+                    Level = 3,
+                    TreeData = testTreeData[1]
+                }
+            });
+        }
+        [Test]
+        public void ShouldPopulateTreeWithSingleEntryWithNonPromotedMetaInPath()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(true);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+            testTreeListener.PromoteMetaFiles.Returns(true);
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity"
+                },
+                new TestTreeData {
+                    Path = "Folder\\Default Scene2.unity.meta"
+                }
+            };
+            testTree.Load(testTreeData);
+
+            testTreeListener.Received(1).OnClear();
+            testTreeListener.Received(1).SelectedNode = null;
+
+            testTreeListener.Received(4).CreateTreeNode(Args.String, Args.String, Args.Int, Args.Bool, Args.Bool, Args.Bool, Args.Bool, Args.Bool, Arg.Any<TestTreeData?>());
+            testTreeListener.Received(4).SetNodeIcon(Arg.Any<TestTreeNode>());
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder",
+                    Label = "Folder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity",
+                    Label = "Default Scene.unity",
+                    Level = 2,
+                    TreeData = testTreeData[0],
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene2.unity.meta",
+                    Label = "Default Scene2.unity.meta",
                     Level = 2,
                     TreeData = testTreeData[1]
                 }

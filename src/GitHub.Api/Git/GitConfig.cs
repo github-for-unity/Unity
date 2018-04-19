@@ -20,6 +20,48 @@ namespace GitHub.Unity
             this.url = url;
         }
 
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (name?.GetHashCode() ?? 0);
+            hash = hash * 23 + (url?.GetHashCode() ?? 0);
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is ConfigRemote)
+                return Equals((ConfigRemote)other);
+            return false;
+        }
+
+        public bool Equals(ConfigRemote other)
+        {
+            return
+                String.Equals(name, other.name) &&
+                String.Equals(url, other.url)
+                ;
+        }
+
+        public static bool operator ==(ConfigRemote lhs, ConfigRemote rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(ConfigRemote lhs, ConfigRemote rhs)
+        {
+            return !(lhs == rhs);
+        }
+
         public string Name => name;
 
         public string Url => url;
@@ -37,22 +79,68 @@ namespace GitHub.Unity
 
         public string name;
         public ConfigRemote remote;
+        public string trackingBranch;
 
         public ConfigBranch(string name)
         {
             this.name = name;
+            this.trackingBranch = null;
             remote = ConfigRemote.Default;
         }
 
-        public ConfigBranch(string name, ConfigRemote? remote)
+        public ConfigBranch(string name, ConfigRemote? remote, string trackingBranch)
         {
             this.name = name;
             this.remote = remote ?? ConfigRemote.Default;
+            this.trackingBranch = trackingBranch != null && trackingBranch.StartsWith("refs/heads") ? trackingBranch.Substring("refs/heads".Length + 1) : null;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (name?.GetHashCode() ?? 0);
+            hash = hash * 23 + remote.GetHashCode();
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is ConfigBranch)
+                return Equals((ConfigBranch)other);
+            return false;
+        }
+
+        public bool Equals(ConfigBranch other)
+        {
+            return
+                String.Equals(name, other.name) &&
+                remote.Equals(other.remote)
+                ;
+        }
+
+        public static bool operator ==(ConfigBranch lhs, ConfigBranch rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(ConfigBranch lhs, ConfigBranch rhs)
+        {
+            return !(lhs == rhs);
         }
 
         public bool IsTracking => Remote.HasValue;
 
         public string Name => name;
+        public string TrackingBranch => trackingBranch;
 
         public ConfigRemote? Remote => Equals(remote, ConfigRemote.Default) ? (ConfigRemote?) null : remote;
 
@@ -105,7 +193,7 @@ namespace GitHub.Unity
             return groups
                 .Where(x => x.Key == "branch")
                 .SelectMany(x => x.Value)
-                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote"))));
+                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote")), x.Value.TryGetString("merge")));
         }
 
         public IEnumerable<ConfigRemote> GetRemotes()
@@ -133,7 +221,7 @@ namespace GitHub.Unity
                 .Where(x => x.Key == "branch")
                 .SelectMany(x => x.Value)
                 .Where(x => x.Key == branch)
-                .Select(x => new ConfigBranch(x.Key,GetRemote(x.Value.TryGetString("remote"))) as ConfigBranch?)
+                .Select(x => new ConfigBranch(x.Key, GetRemote(x.Value.TryGetString("remote")), x.Value.TryGetString("merge")) as ConfigBranch?)
                 .FirstOrDefault();
         }
 

@@ -13,37 +13,35 @@ namespace GitHub.Unity
     [Serializable]
     public class ChangesTreeNode : TreeNode
     {
-        public string projectPath;
-        public GitFileStatus gitFileStatus;
-        public bool isLocked;
-
-        public string ProjectPath
-        {
-            get { return projectPath; }
-            set { projectPath = value; }
-        }
-
-        public GitFileStatus GitFileStatus
-        {
-            get { return gitFileStatus; }
-            set { gitFileStatus = value; }
-        }
+        [SerializeField] private bool isLocked;
+        [SerializeField] private GitStatusEntry gitStatusEntry;
 
         public bool IsLocked
         {
             get { return isLocked; }
             set { isLocked = value; }
         }
+
+        public GitStatusEntry GitStatusEntry
+        {
+            get { return gitStatusEntry; }
+            set { gitStatusEntry = value; }
+        }
+
+        public string ProjectPath { get { return GitStatusEntry.projectPath; } }
+        public GitFileStatus GitFileStatus { get { return GitStatusEntry.status; } }
     }
 
     [Serializable]
     public class ChangesTree : Tree<ChangesTreeNode, GitStatusEntryTreeData>
     {
+        [NonSerialized] public Texture2D FolderIcon;
+        [NonSerialized] private bool viewHasFocus;
+        [NonSerialized] private Object lastActivatedObject;
+
         [SerializeField] public ChangesTreeNodeDictionary assets = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary folders = new ChangesTreeNodeDictionary();
         [SerializeField] public ChangesTreeNodeDictionary checkedFileNodes = new ChangesTreeNodeDictionary();
-
-        [NonSerialized] public Texture2D FolderIcon;
         [SerializeField] public string title = string.Empty;
         [SerializeField] public string pathSeparator = "/";
         [SerializeField] public bool displayRootNode = true;
@@ -52,8 +50,6 @@ namespace GitHub.Unity
         [SerializeField] public bool isUsingGlobalSelection = false;
         [SerializeField] private List<ChangesTreeNode> nodes = new List<ChangesTreeNode>();
         [SerializeField] private ChangesTreeNode selectedNode = null;
-        [NonSerialized] private bool viewHasFocus;
-        [NonSerialized] private Object lastActivatedObject;
 
         public override string Title
         {
@@ -83,6 +79,11 @@ namespace GitHub.Unity
         {
             get { return pathSeparator; }
             set { pathSeparator = value; }
+        }
+
+        protected override bool PromoteMetaFiles
+        {
+            get { return true; }
         }
 
         public override ChangesTreeNode SelectedNode
@@ -189,17 +190,15 @@ namespace GitHub.Unity
             return Styles.GetFileStatusIcon(gitFileStatus, node.IsLocked);
         }
 
-        protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitStatusEntryTreeData? treeData)
+        protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitStatusEntryTreeData? treeData, bool isContainer)
         {
-            var gitFileStatus = GitFileStatus.None;
-            var projectPath = (string) null;
+            var gitStatusEntry = GitStatusEntry.Default;
             var isLocked = false;
 
             if (treeData.HasValue)
             {
                 isLocked = treeData.Value.IsLocked;
-                gitFileStatus = treeData.Value.FileStatus;
-                projectPath = treeData.Value.ProjectPath;
+                gitStatusEntry = treeData.Value.GitStatusEntry;
             }
 
             var node = new ChangesTreeNode
@@ -213,8 +212,7 @@ namespace GitHub.Unity
                 IsCollapsed = isCollapsed,
                 TreeIsCheckable = IsCheckable,
                 CheckState = isChecked ? CheckState.Checked : CheckState.Empty,
-                GitFileStatus = gitFileStatus,
-                ProjectPath = projectPath,
+                GitStatusEntry = gitStatusEntry,
                 IsLocked = isLocked,
             };
 
@@ -239,11 +237,12 @@ namespace GitHub.Unity
             return node;
         }
 
-        protected override void OnClear()
+        protected override void Clear()
         {
             assets.Clear();
             folders.Clear();
             checkedFileNodes.Clear();
+            base.Clear();
         }
 
         protected override IEnumerable<string> GetCollapsedFolders()

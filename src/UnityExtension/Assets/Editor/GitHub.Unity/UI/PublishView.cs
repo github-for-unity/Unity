@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Octokit;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,7 +52,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    client = ApiClient.Create(host, Platform.Keychain);
+                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
                 }
 
                 return client;
@@ -98,11 +97,11 @@ namespace GitHub.Unity
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
             username = keychainConnections.First().Username;
 
-            Logger.Trace("Loading Owners");
+            //Logger.Trace("Loading Owners");
 
             Client.GetOrganizations(orgs =>
             {
-                Logger.Trace("Loaded {0} Owners", orgs.Length);
+                //Logger.Trace("Loaded {0} Owners", orgs.Length);
 
                 publishOwners = orgs
                     .OrderBy(organization => organization.Login)
@@ -121,7 +120,7 @@ namespace GitHub.Unity
                 var keychainEmptyException = exception as KeychainEmptyException;
                 if (keychainEmptyException != null)
                 {
-                    Logger.Trace("Keychain empty");
+                    //Logger.Trace("Keychain empty");
                     PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
                     return;
                 }
@@ -161,13 +160,9 @@ namespace GitHub.Unity
                         var organization = owners[selectedOwner] == username ? null : owners[selectedOwner];
 
                         var cleanRepoDescription = repoDescription.Trim();
-                        cleanRepoDescription = cleanRepoDescription == string.Empty ? null : cleanRepoDescription;
+                        cleanRepoDescription = string.IsNullOrEmpty(cleanRepoDescription) ? null : cleanRepoDescription;
 
-                        Client.CreateRepository(new NewRepository(repoName)
-                        {
-                            Private = togglePrivate,
-                            Description = cleanRepoDescription
-                        }, (repository, ex) =>
+                        Client.CreateRepository(repoName, cleanRepoDescription, togglePrivate, (repository, ex) =>
                         {
                             if (ex != null)
                             {
@@ -187,10 +182,11 @@ namespace GitHub.Unity
 
                             Logger.Trace("Repository Created");
 
-                            GitClient.RemoteAdd("origin", repository.CloneUrl)
-                                     .Then(GitClient.Push("origin", Repository.CurrentBranch.Value.Name))
-                                     .ThenInUI(Finish)
-                                     .Start();
+                            Repository.RemoteAdd("origin", repository.CloneUrl)
+                                .Then(Repository.Push("origin"))
+                                .ThenInUI(Finish)
+                                .Start();
+
                         }, organization);
                     }
                     EditorGUI.EndDisabledGroup();

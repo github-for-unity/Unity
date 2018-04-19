@@ -240,7 +240,7 @@ namespace GitHub.Unity
                     }
                     else if (directionX > 0)
                     {
-                        if (currentNode.IsFolder && currentNode.IsCollapsed)
+                        if (currentNode.IsFolderOrContainer && currentNode.IsCollapsed)
                         {
                             ToggleNodeVisibility(index, currentNode);
                         }
@@ -251,7 +251,7 @@ namespace GitHub.Unity
                     }
                     else if (directionX < 0)
                     {
-                        if (currentNode.IsFolder && !currentNode.IsCollapsed)
+                        if (currentNode.IsFolderOrContainer && !currentNode.IsCollapsed)
                         {
                             ToggleNodeVisibility(index, currentNode);
                         }
@@ -274,13 +274,13 @@ namespace GitHub.Unity
             return requiresRepaint;
         }
 
-        private int SelectNext(int index, bool foldersOnly)
+        private int SelectNext(int index, bool foldersOrContainersOnly)
         {
             for (index++; index < Nodes.Count; index++)
             {
                 if (Nodes[index].IsHidden)
                     continue;
-                if (!Nodes[index].IsFolder && foldersOnly)
+                if (!Nodes[index].IsFolderOrContainer && foldersOrContainersOnly)
                     continue;
                 break;
             }
@@ -296,13 +296,13 @@ namespace GitHub.Unity
             return index;
         }
 
-        private int SelectPrevious(int index, bool foldersOnly)
+        private int SelectPrevious(int index, bool foldersOrContainersOnly)
         {
             for (index--; index >= 0; index--)
             {
                 if (Nodes[index].IsHidden)
                     continue;
-                if (!Nodes[index].IsFolder && foldersOnly)
+                if (!Nodes[index].IsFolderOrContainer && foldersOrContainersOnly)
                     continue;
                 break;
             }
@@ -344,6 +344,7 @@ namespace GitHub.Unity
         public string label;
         public int level;
         public bool isFolder;
+        public bool isContainer;
         public bool isCollapsed;
         public bool isHidden;
         public bool isActive;
@@ -372,10 +373,21 @@ namespace GitHub.Unity
             set { level = value; }
         }
 
+        public bool IsContainer
+        {
+            get { return isContainer; }
+            set { isContainer = value; }
+        }
+
         public bool IsFolder
         {
             get { return isFolder; }
             set { isFolder = value; }
+        }
+
+        public bool IsFolderOrContainer
+        {
+            get { return IsFolder || IsContainer; }
         }
 
         public bool IsCollapsed
@@ -453,17 +465,17 @@ namespace GitHub.Unity
 
             var contentStyle = IsActive ? activeNodeStyle : nodeStyle;
 
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 contentStyle.Draw(fillRect, GUIContent.none, false, false, false, isSelected);
             }
 
             var styleOn = false;
-            if (IsFolder)
+            if (IsFolderOrContainer)
             {
                 styleOn = !IsCollapsed;
 
-                if (Event.current.type == EventType.repaint)
+                if (Event.current.type == EventType.Repaint)
                 {
                     toggleStyle.Draw(toggleRect, GUIContent.none, false, false, styleOn, isSelected);
                 }
@@ -502,7 +514,7 @@ namespace GitHub.Unity
                 }
             }
 
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 contentStyle.Draw(iconRect, content, false, false, false, isSelected);
             }
@@ -577,6 +589,11 @@ namespace GitHub.Unity
             set { pathSeparator = value; }
         }
 
+        protected override bool PromoteMetaFiles
+        {
+            get { return false; }
+        }
+
         public override TreeNode SelectedNode
         {
             get
@@ -643,13 +660,14 @@ namespace GitHub.Unity
             return nodeIcon;
         }
 
-        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitBranchTreeData? treeData)
+        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitBranchTreeData? treeData, bool isContainer)
         {
             var node = new TreeNode {
                 Path = path,
                 Label = label,
                 Level = level,
                 IsFolder = isFolder,
+                IsContainer = isContainer,
                 IsActive = isActive,
                 IsHidden = isHidden,
                 IsCollapsed = isCollapsed,
@@ -665,10 +683,11 @@ namespace GitHub.Unity
             return node;
         }
 
-        protected override void OnClear()
+        protected override void Clear()
         {
             folders.Clear();
             checkedFileNodes.Clear();
+            base.Clear();
         }
 
         protected override IEnumerable<string> GetCollapsedFolders()

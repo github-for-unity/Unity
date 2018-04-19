@@ -5,7 +5,7 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitLock
     {
-        public static GitLock Default = new GitLock { ID = -1 };
+        public static GitLock Default = new GitLock();
 
         public int ID;
         public string Path;

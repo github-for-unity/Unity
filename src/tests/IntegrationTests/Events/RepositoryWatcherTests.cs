@@ -6,6 +6,7 @@ using NSubstitute;
 using NUnit.Framework;
 using TestUtils;
 using System.Threading.Tasks;
+using GitHub.Logging;
 
 namespace IntegrationTests
 {
@@ -19,7 +20,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -117,7 +118,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -174,7 +175,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -229,7 +230,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -305,7 +306,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -381,7 +382,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanSynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -435,7 +436,7 @@ namespace IntegrationTests
 
             try
             {
-                await Initialize(TestRepoMasterCleanUnsynchronized, initializeRepository: false);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
                 {
@@ -498,7 +499,7 @@ namespace IntegrationTests
     {
         public static void AttachListener(this IRepositoryWatcherListener listener, IRepositoryWatcher repositoryWatcher, RepositoryWatcherAutoResetEvent autoResetEvent = null, bool trace = false)
         {
-            var logger = trace ? Logging.GetLogger<IRepositoryWatcherListener>() : null;
+            var logger = trace ? LogHelper.GetLogger<IRepositoryWatcherListener>() : null;
 
             repositoryWatcher.HeadChanged += () =>
             {

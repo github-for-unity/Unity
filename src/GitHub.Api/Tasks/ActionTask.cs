@@ -72,22 +72,42 @@ namespace GitHub.Unity
         protected Action<bool, T> Callback { get; }
         protected Action<bool, Exception, T> CallbackWithException { get; }
 
-        public ActionTask(CancellationToken token, Action<bool, T> action)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="action"></param>
+        /// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
+        public ActionTask(CancellationToken token, Action<bool, T> action, Func<T> getPreviousResult = null)
             : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
-            Task = new Task(() => Run(DependsOn.Successful, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T)),
+            Task = new Task(() => Run(DependsOn?.Successful ?? true,
+                // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
+                // otherwise if there's a method to retrieve the value, call that
+                // otherwise use the PreviousResult property
+                (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : getPreviousResult != null ? getPreviousResult() : PreviousResult),
                 Token, TaskCreationOptions.None);
             Name = $"ActionTask<{typeof(T)}>";
         }
 
-        public ActionTask(CancellationToken token, Action<bool, Exception, T> action)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="action"></param>
+        /// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
+        public ActionTask(CancellationToken token, Action<bool, Exception, T> action, Func<T> getPreviousResult = null)
             : base(token)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
-            Task = new Task(() => Run(DependsOn.Successful, DependsOn.Successful ? ((ITask<T>)DependsOn).Result : default(T)),
+            Task = new Task(() => Run(DependsOn?.Successful ?? true,
+                // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
+                // otherwise if there's a method to retrieve the value, call that
+                // otherwise use the PreviousResult property
+                (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : getPreviousResult != null ? getPreviousResult() : PreviousResult),
                 Token, TaskCreationOptions.None);
             Name = $"ActionTask<Exception, {typeof(T)}>";
         }
@@ -124,6 +144,8 @@ namespace GitHub.Unity
                 RaiseOnEnd();
             }
         }
+
+        public T PreviousResult { get; set; } = default(T);
     }
 
     class FuncTask<T> : TaskBase<T>
@@ -258,6 +280,7 @@ namespace GitHub.Unity
     class FuncListTask<T> : DataTaskBase<T, List<T>>
     {
         protected Func<bool, List<T>> Callback { get; }
+        protected Func<bool, FuncListTask<T>, List<T>> CallbackWithSelf { get; }
         protected Func<bool, Exception, List<T>> CallbackWithException { get; }
 
         public FuncListTask(CancellationToken token, Func<bool, List<T>> action)
@@ -272,6 +295,13 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
+        }
+
+        public FuncListTask(CancellationToken token, Func<bool, FuncListTask<T>, List<T>> action)
+            : base(token)
+        {
+            Guard.ArgumentNotNull(action, "action");
+            this.CallbackWithSelf = action;
         }
 
         public FuncListTask(Task<List<T>> task)
@@ -290,11 +320,22 @@ namespace GitHub.Unity
                 {
                     result = Callback(success);
                 }
+                else if (CallbackWithSelf != null)
+                {
+                    result = CallbackWithSelf(success, this);
+                }
                 else if (CallbackWithException != null)
                 {
                     var thrown = GetThrownException();
                     result = CallbackWithException(success, thrown);
                 }
+            }
+            catch (AggregateException ex)
+            {
+                var e = ex.GetBaseException();
+                Errors = e.Message;
+                if (!RaiseFaultHandlers(e))
+                    throw e;
             }
             catch (Exception ex)
             {

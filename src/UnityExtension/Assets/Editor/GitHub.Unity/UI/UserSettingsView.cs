@@ -7,9 +7,6 @@ namespace GitHub.Unity
     [Serializable]
     class UserSettingsView : Subview
     {
-        private static readonly Vector2 viewSize = new Vector2(325, 125);
-        private const string WindowTitle = "User Settings";
-
         private const string GitConfigTitle = "Git Configuration";
         private const string GitConfigNameLabel = "Name";
         private const string GitConfigEmailLabel = "Email";
@@ -24,12 +21,12 @@ namespace GitHub.Unity
 
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool userHasChanges;
+        [NonSerialized] private bool gitExecutableIsSet;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            Title = WindowTitle;
-            Size = viewSize;
+            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
         public override void OnDataUpdate()
@@ -42,7 +39,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
+            EditorGUI.BeginDisabledGroup(!gitExecutableIsSet || IsBusy || Parent.IsBusy);
             {
                 EditorGUI.BeginChangeCheck();
                 {
@@ -92,15 +89,11 @@ namespace GitHub.Unity
 
         private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            Logger.Trace("UserOnChanged");
-
-            if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastCheckUserChangedEvent = cacheUpdateEvent;
-                userHasChanges = true;
-                isBusy = false;
-                Redraw();
-            }
+            //Logger.Trace("UserOnChanged");
+            lastCheckUserChangedEvent = cacheUpdateEvent;
+            userHasChanges = true;
+            isBusy = false;
+            Redraw();
         }
 
         private void DetachHandlers()

@@ -12,7 +12,7 @@ namespace UnitTests
 
         public static async Task<IEnumerable<GitBranch>> GetGitBranches(this ProcessManager processManager,
             NPath workingDirectory,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var processor = new BranchListOutputProcessor();
             NPath path = gitPath ?? defaultGitPath;
@@ -29,7 +29,7 @@ namespace UnitTests
             NPath workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
             int? logCount = null,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
@@ -55,10 +55,10 @@ namespace UnitTests
         public static async Task<GitStatus> GetGitStatus(this ProcessManager processManager,
             NPath workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
-            var processor = new StatusOutputProcessor(gitStatusEntryFactory);
+            var processor = new GitStatusOutputProcessor(gitStatusEntryFactory);
 
             NPath path = gitPath ?? defaultGitPath;
 
@@ -72,7 +72,7 @@ namespace UnitTests
  
         public static async Task<List<GitRemote>> GetGitRemoteEntries(this ProcessManager processManager,
             NPath workingDirectory,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var processor = new RemoteListOutputProcessor();
 
@@ -88,7 +88,7 @@ namespace UnitTests
         public static async Task<string> GetGitCreds(this ProcessManager processManager,
             NPath workingDirectory,
             IEnvironment environment, IFileSystem filesystem, IProcessEnvironment gitEnvironment,
-            NPath gitPath = null)
+            NPath? gitPath = null)
         {
             var processor = new FirstNonNullLineOutputProcessor();
 

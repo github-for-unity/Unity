@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    public interface ITaskScheduler
+    {
+        Queue<Task> Tasks { get; }
+        void ExecuteTask(Task task);
+    }
+
     class TaskSchedulerExcludingThread : TaskScheduler
     {
         private static ParameterizedThreadStart longRunningThreadWork = new ParameterizedThreadStart(LongRunningThreadWork);
@@ -91,7 +98,7 @@ namespace GitHub.Unity
         /// <summary>Synchronizes all activity in this type and its generated schedulers.</summary>
         private readonly object internalLock;
         /// <summary>The scheduler used to queue and execute "reader" tasks that may run concurrently with other readers.</summary>
-        private readonly ConcurrentExclusiveTaskScheduler concurrentTaskScheduler;
+        private readonly ITaskScheduler concurrentTaskScheduler;
         /// <summary>Whether the exclusive processing of a task should include all of its children as well.</summary>
         private readonly bool exclusiveProcessingIncludesChildren;
         /// <summary>The scheduler used to queue and execute "writer" tasks that must run exclusively while no other tasks for this interleave are running.</summary>
@@ -121,7 +128,8 @@ namespace GitHub.Unity
             // Create the state for this interleave
             internalLock = new object();
             this.exclusiveProcessingIncludesChildren = exclusiveProcessingIncludesChildren;
-            concurrentTaskScheduler = new ConcurrentExclusiveTaskScheduler(this, new Queue<Task>(), interleaveTaskScheduler.MaximumConcurrencyLevel);
+            //concurrentTaskScheduler = new ConcurrentExclusiveTaskScheduler(this, new Queue<Task>(), interleaveTaskScheduler.MaximumConcurrencyLevel);
+            concurrentTaskScheduler = new ThreadPerTaskScheduler();
             exclusiveTaskScheduler = new ConcurrentExclusiveTaskScheduler(this, new Queue<Task>(), 1);
         }
 
@@ -262,7 +270,7 @@ namespace GitHub.Unity
         /// Gets a TaskScheduler that can be used to schedule tasks to this interleave
         /// that may run concurrently with other tasks on this interleave.
         /// </summary>
-        public TaskScheduler ConcurrentTaskScheduler
+        public ITaskScheduler ConcurrentTaskScheduler
         {
             get { return concurrentTaskScheduler; }
         }
@@ -330,7 +338,7 @@ namespace GitHub.Unity
         /// <summary>
         /// A scheduler shim used to queue tasks to the interleave and execute those tasks on request of the interleave.
         /// </summary>
-        private class ConcurrentExclusiveTaskScheduler : TaskScheduler
+        private class ConcurrentExclusiveTaskScheduler : TaskScheduler, ITaskScheduler
         {
             /// <summary>The parent interleave.</summary>
             private readonly ConcurrentExclusiveInterleave interleave;
@@ -389,7 +397,7 @@ namespace GitHub.Unity
 
             /// <summary>Executes a task on this scheduler.</summary>
             /// <param name="task">The task to be executed.</param>
-            internal void ExecuteTask(Task task)
+            public void ExecuteTask(Task task)
             {
                 var isProcessingTaskOnCurrentThread = this.processingTaskOnCurrentThread.Value;
                 if (!isProcessingTaskOnCurrentThread) this.processingTaskOnCurrentThread.Value = true;
@@ -399,7 +407,7 @@ namespace GitHub.Unity
                 //}
                 //catch(Exception ex)
                 //{
-                //    Logging.Error(ex);
+                //    LogHelper.Error(ex);
                 //    throw;
                 //}
 
@@ -413,7 +421,37 @@ namespace GitHub.Unity
             }
 
             /// <summary>Gets the queue of tasks for this scheduler.</summary>
-            internal Queue<Task> Tasks { get; }
+            public Queue<Task> Tasks { get; }
+        }
+    }
+
+    /// <summary>Provides a task scheduler that dedicates a thread per task.</summary>
+    public class ThreadPerTaskScheduler : TaskScheduler, ITaskScheduler
+    {
+        /// <summary>Gets the tasks currently scheduled to this scheduler.</summary>
+        /// <remarks>This will always return an empty enumerable, as tasks are launched as soon as they're queued.</remarks>
+        protected override IEnumerable<Task> GetScheduledTasks() { return Enumerable.Empty<Task>(); }
+        public Queue<Task> Tasks { get; } = new Queue<Task>();
+
+        /// <summary>Starts a new thread to process the provided task.</summary>
+        /// <param name="task">The task to be executed.</param>
+        protected override void QueueTask(Task task)
+        {
+            new Thread(() => TryExecuteTask(task)) { IsBackground = true }.Start();
+        }
+
+        /// <summary>Runs the provided task on the current thread.</summary>
+        /// <param name="task">The task to be executed.</param>
+        /// <param name="taskWasPreviouslyQueued">Ignored.</param>
+        /// <returns>Whether the task could be executed on the current thread.</returns>
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            return TryExecuteTask(task);
+        }
+
+        public void ExecuteTask(Task task)
+        {
+            TryExecuteTask(task);
         }
     }
 }

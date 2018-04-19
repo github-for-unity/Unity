@@ -1,6 +1,8 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,8 +14,10 @@ namespace GitHub.Unity
         private const string GitRepositoryTitle = "Repository Configuration";
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
+        private const string GeneralSettingsTitle = "General";
         private const string DebugSettingsTitle = "Debug";
         private const string PrivacyTitle = "Privacy";
+        private const string WebTimeoutLabel = "Timeout of web requests";
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
@@ -36,6 +40,7 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteUrl;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
+        [SerializeField] private int webTimeout;
 
         public override void InitializeView(IView parent)
         {
@@ -53,12 +58,12 @@ namespace GitHub.Unity
 
             if (Repository != null)
             {
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-                Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+                ValidateCachedData(Repository);
             }
 
             metricsHasChanged = true;
         }
+
 
         public override void OnDisable()
         {
@@ -105,6 +110,7 @@ namespace GitHub.Unity
 
                 gitPathView.OnGUI();
                 OnPrivacyGui();
+                OnGeneralSettingsGui();
                 OnLoggingSettingsGui();
             }
 
@@ -150,11 +156,17 @@ namespace GitHub.Unity
             }
         }
 
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+        }
+
         private void MaybeUpdateData()
         {
             if (metricsHasChanged)
             {
-                metricsEnabled = Manager.UsageTracker.Enabled;
+                metricsEnabled = Manager.UsageTracker != null ? Manager.UsageTracker.Enabled : false;
                 metricsHasChanged = false;
             }
 
@@ -299,7 +311,7 @@ namespace GitHub.Unity
         {
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(IsBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy && Manager.UsageTracker != null);
             {
                 
                 EditorGUI.BeginChangeCheck();
@@ -308,7 +320,8 @@ namespace GitHub.Unity
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Manager.UsageTracker.Enabled = metricsEnabled;
+                    if (Manager.UsageTracker != null)
+                        Manager.UsageTracker.Enabled = metricsEnabled;
                 }
             }
             EditorGUI.EndDisabledGroup();
@@ -320,7 +333,7 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy);
             {
-                var traceLogging = Logging.TracingEnabled;
+                var traceLogging = LogHelper.TracingEnabled;
 
                 EditorGUI.BeginChangeCheck();
                 {
@@ -328,12 +341,33 @@ namespace GitHub.Unity
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Logging.TracingEnabled = traceLogging;
+                    LogHelper.TracingEnabled = traceLogging;
                     Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
                 }
             }
             EditorGUI.EndDisabledGroup();
         }
+
+        private void OnGeneralSettingsGui()
+        {
+            GUILayout.Label(GeneralSettingsTitle, EditorStyles.boldLabel);
+
+            EditorGUI.BeginDisabledGroup(IsBusy);
+            {
+                webTimeout = ApplicationConfiguration.WebTimeout;
+                EditorGUI.BeginChangeCheck();
+                {
+                    webTimeout = EditorGUILayout.IntField(WebTimeoutLabel, webTimeout);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    ApplicationConfiguration.WebTimeout = webTimeout;
+                    Manager.UserSettings.Set(Constants.WebTimeoutKey, webTimeout);
+                }
+            }
+            EditorGUI.EndDisabledGroup();
+        }
+
 
         public override bool IsBusy
         {

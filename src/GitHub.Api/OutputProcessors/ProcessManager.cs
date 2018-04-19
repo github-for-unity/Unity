@@ -1,4 +1,6 @@
-﻿using System;
+﻿using GitHub.Logging;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,7 +11,7 @@ namespace GitHub.Unity
 {
     class ProcessManager : IProcessManager
     {
-        private static readonly ILogging logger = Logging.GetLogger<ProcessManager>();
+        private static readonly ILogging logger = LogHelper.GetLogger<ProcessManager>();
 
         private readonly IEnvironment environment;
         private readonly IProcessEnvironment gitEnvironment;
@@ -22,7 +24,10 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public T Configure<T>(T processTask, NPath executable = null, string arguments = null, NPath workingDirectory = null, bool withInput = false)
+        public T Configure<T>(T processTask, NPath? executable = null, string arguments = null,
+            NPath? workingDirectory = null,
+            bool withInput = false,
+            bool dontSetupGit = false)
              where T : IProcess
         {
             executable = executable ?? processTask.ProcessName?.ToNPath() ?? environment.GitExecutablePath;
@@ -41,12 +46,12 @@ namespace GitHub.Unity
                 StandardErrorEncoding = Encoding.UTF8
             };
 
-            gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath);
+            gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath, dontSetupGit);
 
-            if (executable.IsRelative)
+            if (executable.Value.IsRelative)
             {
-                executable = executable.FileName.ToNPath();
-                executable = FindExecutableInPath(executable, startInfo.EnvironmentVariables["PATH"]) ?? executable;
+                executable = executable.Value.FileName.ToNPath();
+                executable = FindExecutableInPath(executable.Value, startInfo.EnvironmentVariables["PATH"]) ?? executable;
             }
             startInfo.FileName = executable;
             startInfo.Arguments = arguments ?? processTask.ProcessArguments;
@@ -82,8 +87,8 @@ namespace GitHub.Unity
 
                 var envVars = startInfo.EnvironmentVariables;
                 var scriptContents = new[] {
-                    $"cd {envVars["GHU_WORKINGDIR"]}",
-                    $"PATH={envVars["GHU_FULLPATH"]}:$PATH /bin/bash"
+                    $"cd \"{envVars["GHU_WORKINGDIR"]}\"",
+                    $"PATH=\"{envVars["GHU_FULLPATH"]}\" /bin/bash"
                 };
                 environment.FileSystem.WriteAllLines(envVarFile, scriptContents);
                 Mono.Unix.Native.Syscall.chmod(envVarFile, (Mono.Unix.Native.FilePermissions)493); // -rwxr-xr-x mode (0755)
@@ -108,7 +113,7 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        private NPath FindExecutableInPath(NPath executable, string searchPaths = null)
+        private NPath? FindExecutableInPath(NPath executable, string searchPaths = null)
         {
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
@@ -128,11 +133,11 @@ namespace GitHub.Unity
                     catch (Exception e)
                     {
                         logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
-                        return null;
+                        return new NPath?();
                     }
                 })
                 .Where(x => x != null)
-                .FirstOrDefault(x => x.FileExists());
+                .FirstOrDefault(x => x.Value.FileExists());
 
             return executablePath;
         }

@@ -4,8 +4,6 @@ namespace GitHub.Unity
 {
     public interface IProcessEnvironment
     {
-        void Configure(ProcessStartInfo psi, NPath workingDirectory);
-
-        NPath FindRoot(NPath path);
+        void Configure(ProcessStartInfo psi, NPath workingDirectory, bool dontSetupGit = false);
     }
 }

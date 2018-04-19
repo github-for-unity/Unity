@@ -8,14 +8,20 @@ using GitHub.Unity;
 using System.Threading.Tasks.Schedulers;
 using System.IO;
 using NSubstitute;
+using GitHub.Logging;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using FluentAssertions;
 
 namespace IntegrationTests
 {
     class BaseTest
     {
+        protected const int Timeout = 30000;
+
         public BaseTest()
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
         }
 
         protected ILogging Logger { get; }
@@ -30,14 +36,14 @@ namespace IntegrationTests
         public void OneTimeSetup()
         {
             GitHub.Unity.Guard.InUnitTestRunner = true;
-            Logging.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
-            //Logging.TracingEnabled = true;
+            LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter($"..\\{DateTime.UtcNow.ToString("yyyyMMddHHmmss")}-tasksystem-tests.log"));
+            //LogHelper.TracingEnabled = true;
             TaskManager = new TaskManager();
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
 
             var env = new DefaultEnvironment();
-            TestBasePath = NPath.CreateTempDirectory("integration-tests");
+            TestBasePath = NPath.CreateTempDirectory("integration tests");
             env.FileSystem.SetCurrentDirectory(TestBasePath);
 
             var repo = Substitute.For<IRepository>();
@@ -50,7 +56,7 @@ namespace IntegrationTests
             var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())
                 .Configure(ProcessManager, env.IsWindows ? "where" : "which", "git")
                 .Start().Result;
-            env.GitExecutablePath = path ?? "git".ToNPath();
+            env.GitExecutablePath = path.IsInitialized ? path : "git".ToNPath();
         }
 
         [TestFixtureTearDown]
@@ -72,6 +78,27 @@ namespace IntegrationTests
         [TearDown]
         public void Teardown()
         {
+        }
+
+        protected void StartTest(out Stopwatch watch, out ILogging logger, [CallerMemberName] string testName = "test")
+        {
+            watch = new Stopwatch();
+            logger = LogHelper.GetLogger(testName);
+            logger.Trace("Starting test");
+        }
+
+        protected void StartTrackTime(Stopwatch watch, ILogging logger = null, string message = "")
+        {
+            if (!String.IsNullOrEmpty(message))
+                logger.Trace(message);
+            watch.Reset();
+            watch.Start();
+        }
+
+        protected void StopTrackTimeAndLog(Stopwatch watch, ILogging logger)
+        {
+            watch.Stop();
+            logger.Trace($"Time: {watch.ElapsedMilliseconds}");
         }
     }
 
@@ -101,7 +128,7 @@ namespace IntegrationTests
             };
 
             var chain = procTask
-                .Finally((s, e, d) => d);
+                .Finally((s, e, d) => d, TaskAffinity.Concurrent);
 
             var output = await chain.StartAsAsync();
 
@@ -134,7 +161,7 @@ namespace IntegrationTests
                 values.Add("OnStart");
             };
 
-            combinedTask.OnEnd += task => {
+            combinedTask.OnEnd += (task, success, ex) => {
                 values.Add("OnEnd");
             };
 
@@ -160,7 +187,7 @@ namespace IntegrationTests
                 .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-e kaboom -r -1").Configure(ProcessManager))
                 .Catch(ex => thrown = ex)
                 .Then((s, d) => output.Add(d))
-                .Finally((s, e) => success = s);
+                .Finally((s, e) => success = s, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -179,13 +206,17 @@ namespace IntegrationTests
 
             await new ActionTask(Token, _ => {
                 results.Add("BeforeProcess");
-            }).Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-s 1000 -d ""ok""")
-                .Configure(ProcessManager).Then(new FuncTask<int>(Token, (b, i) => {
-                    results.Add("ProcessOutput");
-                    return 1234;
-                })).Finally((b, exception) => {
-                    results.Add("ProcessFinally");
-                })).StartAsAsync();
+            })
+                .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-s 1000 -d ""ok""")
+                    .Configure(ProcessManager)
+                    .Then(new FuncTask<int>(Token, (b, i) => {
+                        results.Add("ProcessOutput");
+                        return 1234;
+                    }))
+                    .Finally((b, exception) => {
+                        results.Add("ProcessFinally");
+                    }, TaskAffinity.Concurrent))
+                .StartAsAsync();
 
             CollectionAssert.AreEqual(expected, results);
         }
@@ -214,7 +245,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.Concurrent, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             //Console.WriteLine(String.Join(",", runningOrder.Select(x => x.ToString()).ToArray()));
             Assert.AreEqual(10, runningOrder.Count);
@@ -232,38 +264,40 @@ namespace IntegrationTests
             var runningOrder = new List<int>();
             var rand = new Randomizer();
             var startTasks = new List<ActionTask>();
-            var i = 1;
-            for (var start = i; i < start + count; i++)
+            for (var i = 0; i < count; i++)
             {
-                startTasks.Add(GetTask(TaskAffinity.Concurrent, i,
+                startTasks.Add(GetTask(TaskAffinity.Concurrent, i + 1,
                     id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
             var midTasks = new List<ActionTask>();
-            for (var start = i; i < start + count; i++)
+            for (var i = 0; i < count; i++)
             {
-                midTasks.Add(startTasks[i - 4].Then(
-                        GetTask(TaskAffinity.Concurrent, i,
-                            id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }))
-                    );;
+                var previousTask = startTasks[i];
+                midTasks.Add(previousTask.Then(GetTask(TaskAffinity.Concurrent, i + 11,
+                    id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }))
+                );;
             }
 
             var endTasks = new List<ActionTask>();
-            for (var start = i; i < start + count; i++)
+            for (var i = 0; i < count; i++)
             {
-                endTasks.Add(midTasks[i - 7].Then(
-                    GetTask(TaskAffinity.Concurrent, i,
-                        id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }
-                    )));
+                var previousTask = midTasks[i];
+                endTasks.Add(previousTask.Then(GetTask(TaskAffinity.Concurrent, i + 21,
+                    id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }))
+                );
             }
 
             foreach (var t in endTasks)
                 t.Start();
             Task.WaitAll(endTasks.Select(x => x.Task).ToArray());
 
-            CollectionAssert.AreEquivalent(Enumerable.Range(1, 3), runningOrder.Take(3));
-            CollectionAssert.AreEquivalent(Enumerable.Range(4, 3), runningOrder.Skip(3).Take(3));
-            CollectionAssert.AreEquivalent(Enumerable.Range(7, 3), runningOrder.Skip(6).Take(3));
+            Assert.True(runningOrder.IndexOf(21) > runningOrder.IndexOf(11));
+            Assert.True(runningOrder.IndexOf(11) > runningOrder.IndexOf(1));
+            Assert.True(runningOrder.IndexOf(22) > runningOrder.IndexOf(12));
+            Assert.True(runningOrder.IndexOf(12) > runningOrder.IndexOf(2));
+            Assert.True(runningOrder.IndexOf(23) > runningOrder.IndexOf(13));
+            Assert.True(runningOrder.IndexOf(13) > runningOrder.IndexOf(3));
         }
 
         [Test]
@@ -277,7 +311,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.Exclusive, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
         }
@@ -293,7 +328,8 @@ namespace IntegrationTests
                 tasks.Add(GetTask(TaskAffinity.UI, i, id => { new ManualResetEventSlim().Wait(rand.Next(100, 200)); lock (runningOrder) runningOrder.Add(id); }));
             }
 
-            TaskManager.Schedule(tasks.Cast<ITask>().ToArray());
+            foreach (var task in tasks)
+                TaskManager.Schedule(task);
             Task.WaitAll(tasks.Select(x => x.Task).ToArray());
             Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
         }
@@ -377,7 +413,7 @@ namespace IntegrationTests
                 {
                     success = s;
                     finallyException = e;
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -404,7 +440,7 @@ namespace IntegrationTests
                 {
                     success = s;
                     finallyException = e;
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -451,7 +487,7 @@ namespace IntegrationTests
                         runOrder.Add("finally");
                     }
                     return d;
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAndSwallowException();
 
@@ -478,7 +514,7 @@ namespace IntegrationTests
                 .Then(_ => { throw new Exception("an exception"); })
                 .Then(new FuncTask<string>(Token, _ => "another name") { Affinity = TaskAffinity.Exclusive })
                 .ThenInUI((s, d) => output.Add(d))
-                .Finally((_, __) => { })
+                .Finally((_, __) => { }, TaskAffinity.Concurrent)
                 .Catch(ex => { exception = ex; });
 
             await task.Start().Task;
@@ -525,7 +561,7 @@ namespace IntegrationTests
                         runOrder.Add("finally");
                     }
                     return d;
-                })
+                }, TaskAffinity.Concurrent)
                 .ThenInUI((s, d) =>
                 {
                     lock (runOrder)
@@ -572,7 +608,7 @@ namespace IntegrationTests
                         finallyException = e;
                         runOrder.Add("finally");
                     }
-                });
+                }, TaskAffinity.Concurrent);
 
             await task.StartAsAsync();
 
@@ -591,11 +627,14 @@ namespace IntegrationTests
         public async Task StartAndEndAreAlwaysRaised()
         {
             var runOrder = new List<string>();
-            var task = new ActionTask(Token, _ => { throw new Exception(); });
+            ITask task = new ActionTask(Token, _ => { throw new Exception(); });
             task.OnStart += _ => runOrder.Add("start");
-            task.OnEnd += _ => runOrder.Add("end");
+            task.OnEnd += (_, __, ___) => runOrder.Add("end");
+            // we want to run a Finally on a new task (and not in-thread) so that the StartAndSwallowException handler runs after this
+            // one, proving that the exception is propagated after everything is done
+            task = task.Finally((_, __) => {}, TaskAffinity.Concurrent);
 
-            await task.Finally((s, d) => { }).StartAndSwallowException();
+            await task.StartAndSwallowException();
             CollectionAssert.AreEqual(new string[] { "start", "end" }, runOrder);
         }
 
@@ -609,10 +648,45 @@ namespace IntegrationTests
         }
 
         [Test]
+        public async Task AllFinallyHandlersAreCalledOnException()
+        {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
+            var task = new FuncTask<string>(TaskManager.Token, () => { throw new InvalidOperationException(); });
+            bool exceptionThrown1, exceptionThrown2;
+            exceptionThrown1 = exceptionThrown2 = false;
+
+            task.Finally(success => exceptionThrown1 = !success);
+            task.Finally((success, _) => exceptionThrown2 = !success);
+
+            StartTrackTime(watch);
+            var waitTask = task.Start().Task;
+            var ret = await TaskEx.WhenAny(waitTask, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(ret, waitTask);
+
+            exceptionThrown1.Should().BeTrue();
+            exceptionThrown2.Should().BeTrue();
+        }
+
+        [Test]
         public async Task StartAsyncWorks()
         {
+            Stopwatch watch;
+            ILogging logger;
+            StartTest(out watch, out logger);
+
             var task = new FuncTask<int>(Token, _ => 1);
-            var ret = await task.StartAsAsync();
+
+            StartTrackTime(watch);
+            var waitTask = task.StartAsAsync();
+            var retTask = await TaskEx.WhenAny(waitTask, TaskEx.Delay(Timeout));
+            StopTrackTimeAndLog(watch, logger);
+            Assert.AreEqual(retTask, waitTask);
+            var ret = await waitTask;
+
             Assert.AreEqual(1, ret);
         }
 
@@ -627,7 +701,7 @@ namespace IntegrationTests
                 .Catch(e => { runOrder.Add("2"); exceptions.Add(e); })
                 .Then(_ => { throw new ArgumentNullException(); })
                 .Catch(e => { runOrder.Add("3"); exceptions.Add(e); })
-                .Finally((s, e) => { });
+                .Finally((b, e) => { }, TaskAffinity.Concurrent);
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(
                 new string[] { typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name, typeof(InvalidOperationException).Name },
@@ -648,7 +722,7 @@ namespace IntegrationTests
                 .Catch(e => { runOrder.Add("2"); exceptions.Add(e); return true; })
                 .Then(_ => { throw new ArgumentNullException(); })
                 .Catch(e => { runOrder.Add("3"); exceptions.Add(e); return true; })
-                .Finally((s, e) => { });
+                .Finally((s, e) => { }, TaskAffinity.Concurrent);
             await task.StartAndSwallowException();
             CollectionAssert.AreEqual(
                 new string[] { typeof(InvalidOperationException).Name, typeof(InvalidCastException).Name, typeof(ArgumentNullException).Name },
@@ -664,6 +738,27 @@ namespace IntegrationTests
             var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
                 .Catch(_ => { });
             await task.StartAwait(_ => { });
+        }
+
+        [Test]
+        public async Task TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain()
+        {
+            var runOrder = new List<string>();
+            var exceptions = new List<Exception>();
+            var task = new ActionTask(Token, _ => { throw new InvalidOperationException(); })
+                .Then(_ => { runOrder.Add("1"); })
+                .Catch(ex => exceptions.Add(ex))
+                .Then(() => runOrder.Add("OnFailure"), runOptions: TaskRunOptions.OnFailure)
+                .Finally((s, e) => { }, TaskAffinity.Concurrent);
+
+            await task.StartAndSwallowException();
+
+            CollectionAssert.AreEqual(
+                new string[] { typeof(InvalidOperationException).Name },
+                exceptions.Select(x => x.GetType().Name).ToArray());
+            CollectionAssert.AreEqual(
+                new string[] { "OnFailure" },
+                runOrder);
         }
     }
 
@@ -705,7 +800,7 @@ namespace IntegrationTests
                 .Then(TaskEx.FromResult(20f), TaskAffinity.Exclusive)
                 .Then((_, n) => n + 1)
                 .Then((_, n) => runOrder.Add(n.ToString()))
-                .Finally((_, t) => runOrder.Add("done"))
+                .Finally((s, _) => runOrder.Add("done"), TaskAffinity.Concurrent)
             ;
             await act.StartAsAsync();
             CollectionAssert.AreEqual(new string[] { "started", "2", "21", "done" }, runOrder);
@@ -777,7 +872,7 @@ namespace IntegrationTests
                 {
                     callOrder.Add("chain2 Finally");
                     return d;
-                });
+                }, TaskAffinity.Concurrent);
 
 
             var outerChainTask1 = new FuncTask<int>(Token, _ =>
@@ -791,7 +886,7 @@ namespace IntegrationTests
                 .Finally((s, e) =>
                 {
                     callOrder.Add("chain1 Finally");
-                });
+                }, TaskAffinity.Concurrent);
 
             await outerChainTask3.StartAwait();
 
@@ -811,6 +906,48 @@ namespace IntegrationTests
                 "chain2 FuncTask<string>",
                 "chain2 Finally",
                 "chain1 Finally"
+            }, callOrder);
+        }
+
+        [Test]
+        public async Task RunningDifferentTasksDependingOnPreviousResult()
+        {
+            var callOrder = new List<string>();
+
+            var taskEnd = new ActionTask(Token, () => callOrder.Add("chain completed")) { Name = "Chain Completed" };
+            var final = taskEnd.Finally((_, __) => { }, TaskAffinity.Concurrent);
+
+            var taskStart = new FuncTask<bool>(Token, _ =>
+                {
+                    callOrder.Add("chain start");
+                    return false;
+                }) { Name = "Chain Start" }
+                .Then(new ActionTask<bool>(Token, (_, __) =>
+                {
+                    callOrder.Add("failing");
+                    throw new InvalidOperationException();
+                }) { Name = "Failing" });
+
+            taskStart.Then(new ActionTask(Token, () =>
+            {
+                callOrder.Add("on failure");
+            }) { Name = "On Failure" }, runOptions: TaskRunOptions.OnFailure)
+            .Then(taskEnd, taskIsTopOfChain: true);
+
+            taskStart.Then(new ActionTask(Token, () =>
+            {
+                callOrder.Add("on success");
+            }) { Name = "On Success" }, runOptions: TaskRunOptions.OnSuccess)
+            .Then(taskEnd, taskIsTopOfChain: true);
+
+            await final.StartAndSwallowException();
+
+            Console.WriteLine(String.Join(",", callOrder.ToArray()));
+            CollectionAssert.AreEqual(new string[] {
+                "chain start",
+                "failing",
+                "on failure",
+                "chain completed"
             }, callOrder);
         }
 
@@ -834,10 +971,10 @@ namespace IntegrationTests
         public static Task<T> StartAndSwallowException<T>(this ITask<T> task)
         {
             var tcs = new TaskCompletionSource<T>();
-            task.Then((s, d) =>
+            task.Then((success, result) =>
             {
-                tcs.SetResult(d);
-            });
+                tcs.SetResult(result);
+            }, TaskAffinity.Concurrent);
             task.Start();
             return tcs.Task;
         }
@@ -845,7 +982,7 @@ namespace IntegrationTests
         public static Task StartAndSwallowException(this ITask task)
         {
             var tcs = new TaskCompletionSource<bool>();
-            task.Then(tcs.SetResult);
+            task.Then(s => { tcs.SetResult(s); });
             task.Start();
             return tcs.Task;
         }

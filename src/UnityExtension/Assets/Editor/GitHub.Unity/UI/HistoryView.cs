@@ -346,7 +346,7 @@ namespace GitHub.Unity
         
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastAheadBehindChangedEvent;
 
         public override void OnEnable()
         {
@@ -359,13 +359,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-
-            if (Repository != null)
-            {
-                Repository.CheckLogChangedEvent(lastLogChangedEvent);
-                Repository.CheckStatusChangedEvent(lastTrackingStatusChangedEvent);
-                Repository.CheckCurrentRemoteChangedEvent(lastCurrentRemoteChangedEvent);
-            }
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -504,7 +498,7 @@ namespace GitHub.Unity
                     {
                         var borderLeft = Styles.Label.margin.left;
                         var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
-                        var treeRect = Rect.zero;
+                        var treeRect = new Rect(0f, 0f, 0f, 0f);
                         if (treeChanges != null)
                         {
                             treeChanges.FolderStyle = Styles.Foldout;
@@ -554,9 +548,9 @@ namespace GitHub.Unity
 
         private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!lastTrackingStatusChangedEvent.Equals(cacheUpdateEvent))
+            if (!lastAheadBehindChangedEvent.Equals(cacheUpdateEvent))
             {
-                lastTrackingStatusChangedEvent = cacheUpdateEvent;
+                lastAheadBehindChangedEvent = cacheUpdateEvent;
                 currentTrackingStatusHasUpdate = true;
                 Redraw();
             }
@@ -604,6 +598,13 @@ namespace GitHub.Unity
             repository.TrackingStatusChanged -= RepositoryTrackingOnStatusChanged;
             repository.LogChanged -= RepositoryOnLogChanged;
             repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastAheadBehindChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -677,7 +678,7 @@ namespace GitHub.Unity
                             // whether pull triggered a merge or a rebase, and abort the operation accordingly
                             // (either git rebase --abort or git merge --abort)
                         }
-                    }, true)
+                    }, runOptions: TaskRunOptions.OnAlways)
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
@@ -742,11 +743,6 @@ namespace GitHub.Unity
             treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
-        }
-
-        public override bool IsBusy
-        {
-            get { return false; }
         }
     }
 }

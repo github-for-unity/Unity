@@ -23,6 +23,8 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool isBusy;
 
+        [NonSerialized] private GUIContent discardGuiContent;
+
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
@@ -50,9 +52,7 @@ namespace GitHub.Unity
             }
 
             AttachHandlers(Repository);
-            Repository.CheckCurrentBranchChangedEvent(lastCurrentBranchChangedEvent);
-            Repository.CheckStatusEntriesChangedEvent(lastStatusEntriesChangedEvent);
-            Repository.CheckLocksChangedEvent(lastLocksChangedEvent);
+            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -143,13 +143,46 @@ namespace GitHub.Unity
                 var treeRenderRect = treeChanges.Render(rect, treeScroll, 
                     node => { }, 
                     node => { },
-                    node => { });
+                    node => {
+                        var menu = CreateContextMenu(node);
+                        menu.ShowAsContext();
+                    });
 
                 if (treeChanges.RequiresRepaint)
                     Redraw();
 
                 GUILayout.Space(treeRenderRect.y - rect.y);
             }
+        }
+
+        private GenericMenu CreateContextMenu(ChangesTreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+
+            if (discardGuiContent == null)
+            {
+                discardGuiContent = new GUIContent("Discard");
+            }
+
+            genericMenu.AddItem(discardGuiContent, false, () => {
+                GitStatusEntry[] discardEntries;
+                if (node.isFolder)
+                {
+                    discardEntries = treeChanges
+                        .GetLeafNodes(node)
+                        .Select(treeNode => treeNode.GitStatusEntry)
+                        .ToArray();
+                }
+                else
+                {
+                    discardEntries = new [] { node.GitStatusEntry };
+                }
+
+                Repository.DiscardChanges(discardEntries)
+                          .Start();
+            });
+
+            return genericMenu;
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -204,6 +237,13 @@ namespace GitHub.Unity
             repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
             repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
             repository.LocksChanged -= RepositoryOnLocksChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -300,9 +340,6 @@ namespace GitHub.Unity
 
         private void Commit()
         {
-            // Do not allow new commits before we have received one successful update
-            SetBusy(true);
-
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
 
@@ -325,19 +362,7 @@ namespace GitHub.Unity
 
                         commitMessage = "";
                         commitBody = "";
-                        SetBusy(false);
                     }).Start();
-        }
-
-        private void SetBusy(bool value)
-        {
-            treeChanges.IsBusy = value;
-            isBusy = value;
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

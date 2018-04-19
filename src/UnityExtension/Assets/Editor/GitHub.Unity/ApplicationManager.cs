@@ -28,9 +28,11 @@ namespace GitHub.Unity
 
         protected override void InitializeUI()
         {
-            Logger.Trace("Restarted {0}", Environment.Repository);
+            Logger.Trace("Restarted {0}", Environment.Repository != null ? Environment.Repository.LocalPath : "null");
             EnvironmentCache.Instance.Flush();
 
+            isBusy = false;
+            LfsLocksModificationProcessor.Initialize(Environment, Platform);
             ProjectWindowInterface.Initialize(Environment.Repository);
             var window = Window.GetWindow();
             if (window != null)
@@ -39,7 +41,7 @@ namespace GitHub.Unity
 
         protected override void SetProjectToTextSerialization()
         {
-            Logger.Trace("SetProjectToTextSerialization");
+            //Logger.Trace("SetProjectToTextSerialization");
             EditorSettings.serializationMode = SerializationMode.ForceText;
         }
 
@@ -86,12 +88,12 @@ namespace GitHub.Unity
         {
             if (disposing)
             {
-                base.Dispose(disposing);
                 if (!disposed)
                 {
                     disposed = true;
                 }
             }
+            base.Dispose(disposing);
         }
 
         public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }

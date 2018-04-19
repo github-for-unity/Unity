@@ -6,23 +6,25 @@ using System.Timers;
 using System.Globalization;
 using System.Threading;
 using Timer = System.Threading.Timer;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
     class UsageTracker : IUsageTracker
     {
-        private static ILogging Logger { get; } = Logging.GetLogger<UsageTracker>();
-        private static IMetricsService metricsService;
+        private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
 
         private readonly NPath storePath;
         private readonly ISettings userSettings;
+        private readonly IMetricsService metricsService;
         private readonly string guid;
         private readonly string unityVersion;
         private Timer timer;
 
-        public UsageTracker(ISettings userSettings, NPath storePath, string guid, string unityVersion)
+        public UsageTracker(IMetricsService metricsService, ISettings userSettings, NPath storePath, string guid, string unityVersion)
         {
             this.userSettings = userSettings;
+            this.metricsService = metricsService;
             this.guid = guid;
             this.storePath = storePath;
             this.unityVersion = unityVersion;
@@ -101,8 +103,6 @@ namespace GitHub.Unity
 
         private async Task SendUsage()
         {
-            Logger.Trace("SendUsage");
-
             var usageStore = LoadUsage();
 
             if (metricsService == null)
@@ -279,12 +279,6 @@ namespace GitHub.Unity
             Logger.Trace("NumberOfAuthentications:{0} Date:{1}", usage.NumberOfAuthentications, usage.Date);
 
             SaveUsage(usageStore);
-        }
-
-        public static void SetMetricsService(IMetricsService instance)
-        {
-            Logger.Trace("SetMetricsService instance:{0}", instance?.ToString() ?? "Null");
-            metricsService = instance;
         }
 
         public bool Enabled

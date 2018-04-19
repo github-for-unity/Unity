@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GitHub.Unity;
 using NSubstitute;
 using System.Threading;
+using GitHub.Logging;
 
 namespace TestUtils
 {
@@ -37,7 +38,7 @@ namespace TestUtils
 
             var fileSystem = Substitute.For<IFileSystem>();
             var realFileSystem = new FileSystem();
-            var logger = Logging.GetLogger("TestFileSystem");
+            var logger = LogHelper.GetLogger("TestFileSystem");
 
             fileSystem.DirectorySeparatorChar.Returns(realFileSystem.DirectorySeparatorChar);
             fileSystem.GetCurrentDirectory().Returns(createFileSystemOptions.CurrentDirectory);
@@ -334,7 +335,6 @@ namespace TestUtils
         public IProcessEnvironment CreateProcessEnvironment(NPath root)
         {
             var processEnvironment = Substitute.For<IProcessEnvironment>();
-            processEnvironment.FindRoot(Arg.Any<NPath>()).Returns(root);
             return processEnvironment;
         }
 
@@ -346,7 +346,7 @@ namespace TestUtils
         public IGitClient CreateRepositoryProcessRunner(
             CreateRepositoryProcessRunnerOptions options = null)
         {
-            var logger = Logging.GetLogger("TestRepositoryProcessRunner");
+            var logger = LogHelper.GetLogger("TestRepositoryProcessRunner");
 
             options = options ?? new CreateRepositoryProcessRunnerOptions();
 

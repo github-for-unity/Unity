@@ -15,8 +15,15 @@ namespace GitHub.Unity
 
         [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
 
-        [NonSerialized] private bool isBusy;
         [NonSerialized] private bool userHasChanges;
+        [NonSerialized] private bool gitExecutableIsSet;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
+            Redraw();
+        }
 
         public override void OnEnable()
         {
@@ -54,14 +61,11 @@ namespace GitHub.Unity
                 {
                     GUILayout.FlexibleSpace();
 
-                    EditorGUI.BeginDisabledGroup(IsBusy || !isUserDataPresent);
+                    EditorGUI.BeginDisabledGroup(!gitExecutableIsSet || IsBusy || !isUserDataPresent);
                     {
                         if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                         {
-                            isBusy = true;
-                            Manager.InitializeRepository()
-                                   .FinallyInUI(() => isBusy = false)
-                                   .Start();
+                            Manager.InitializeRepository().Start();
                         }
                     }
                     EditorGUI.EndDisabledGroup();
@@ -70,7 +74,7 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                if (hasCompletedInitialCheck && !isUserDataPresent)
+                if (gitExecutableIsSet && hasCompletedInitialCheck && !isUserDataPresent)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.HelpBox(NoUserOrEmailError, MessageType.Error);
@@ -116,11 +120,6 @@ namespace GitHub.Unity
                     && !string.IsNullOrEmpty(User.Email);
                 hasCompletedInitialCheck = true;
             }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy;  }
         }
     }
 }

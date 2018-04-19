@@ -1,7 +1,7 @@
+using GitHub.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
-using System.Text;
 
 namespace GitHub.Unity
 {
@@ -12,87 +12,90 @@ namespace GitHub.Unity
 
         public ProcessEnvironment(IEnvironment environment)
         {
-            Logger = Logging.GetLogger(GetType());
+            Logger = LogHelper.GetLogger(GetType());
             Environment = environment;
         }
 
-        public NPath FindRoot(NPath path)
-        {
-            if (path == null)
-            {
-                return null;
-            }
-            
-            if (path.FileExists())
-                path = path.Parent;
-
-            if (path.Combine(".git").DirectoryExists())
-            {
-                return path;
-            }
-
-            if (path.IsEmpty)
-                return null;
-
-            return FindRoot(path.Parent);
-        }
-
-        public void Configure(ProcessStartInfo psi, NPath workingDirectory)
+        public void Configure(ProcessStartInfo psi, NPath workingDirectory, bool dontSetupGit = false)
         {
             psi.WorkingDirectory = workingDirectory;
             psi.EnvironmentVariables["HOME"] = NPath.HomeDirectory;
             psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = NPath.SystemTemp;
 
-            // if we don't know where git is, then there's nothing else to configure
-            if (Environment.GitInstallPath == null)
-                return;
+            var path = Environment.Path;
+            psi.EnvironmentVariables["GHU_WORKINGDIR"] = workingDirectory;
 
+            if (dontSetupGit)
+            {
+                psi.EnvironmentVariables["GHU_FULLPATH"] = path;
+                psi.EnvironmentVariables["PATH"] = path;
+                return;
+            }
 
             Guard.ArgumentNotNull(psi, "psi");
 
-            // We need to essentially fake up what git-cmd.bat does
+            var pathEntries = new List<string>();
+            string separator = Environment.IsWindows ? ";" : ":";
 
-            var gitPathRoot = Environment.GitInstallPath;
-            var gitLfsPath = Environment.GitInstallPath;
-            var gitExecutableDir = Environment.GitExecutablePath.Parent; // original path to git (might be different from install path if it's a symlink)
+            if (Environment.GitInstallPath.IsInitialized)
+            {
+                var gitPathRoot = Environment.GitInstallPath;
+                var gitExecutableDir = Environment.GitExecutablePath.Parent; // original path to git (might be different from install path if it's a symlink)
 
-            // Paths to developer tools such as msbuild.exe
-            //var developerPaths = StringExtensions.JoinForAppending(";", developerEnvironment.GetPaths());
-            var developerPaths = "";
+                var baseExecPath = gitPathRoot;
+                var binPath = baseExecPath;
+                if (Environment.IsWindows)
+                {
+                    if (baseExecPath.DirectoryExists("mingw32"))
+                        baseExecPath = baseExecPath.Combine("mingw32");
+                    else
+                        baseExecPath = baseExecPath.Combine("mingw64");
+                    binPath = baseExecPath.Combine("bin");
+                }
+
+                var execPath = baseExecPath.Combine("libexec", "git-core");
+                if (!execPath.DirectoryExists())
+                    execPath = NPath.Default;
+
+                if (Environment.IsWindows)
+                {
+                    pathEntries.AddRange(new[] { gitPathRoot.Combine("cmd").ToString(), gitPathRoot.Combine("usr", "bin") });
+                }
+                else
+                {
+                    pathEntries.Add(gitExecutableDir.ToString());
+                }
+
+                if (execPath.IsInitialized)
+                    pathEntries.Add(execPath);
+                pathEntries.Add(binPath);
+
+                // we can only set this env var if there is a libexec/git-core. git will bypass internally bundled tools if this env var
+                // is set, which will break Apple's system git on certain tools (like osx-credentialmanager)
+                if (execPath.IsInitialized)
+                    psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
+            }
+
+            if (Environment.GitLfsInstallPath.IsInitialized && Environment.GitInstallPath != Environment.GitLfsInstallPath)
+            {
+                pathEntries.Add(Environment.GitLfsInstallPath);
+            }
+
+            pathEntries.Add("END");
+
+            path = String.Join(separator, pathEntries.ToArray()) + separator + path;
+
+            psi.EnvironmentVariables["GHU_FULLPATH"] = path;
+            psi.EnvironmentVariables["PATH"] = path;
 
             //TODO: Remove with Git LFS Locking becomes standard
             psi.EnvironmentVariables["GITLFSLOCKSENABLED"] = "1";
 
-            string path;
-            var baseExecPath = gitPathRoot;
-            var binPath = baseExecPath;
             if (Environment.IsWindows)
             {
-                if (baseExecPath.DirectoryExists("mingw32"))
-                    baseExecPath = baseExecPath.Combine("mingw32");
-                else
-                    baseExecPath = baseExecPath.Combine("mingw64");
-                binPath = baseExecPath.Combine("bin");
+                psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
+                psi.EnvironmentVariables["TERM"] = "msys";
             }
-            var execPath = baseExecPath.Combine("libexec", "git-core");
-
-            if (Environment.IsWindows)
-            {
-                var userPath = @"C:\windows\system32;C:\windows";
-                path = $"{gitPathRoot}\\cmd;{gitPathRoot}\\usr\\bin;{execPath};{binPath};{gitLfsPath};{userPath}{developerPaths}";
-            }
-            else
-            {
-                path = $"{gitExecutableDir}:{binPath}:{execPath}:{gitLfsPath}:{Environment.Path}:{developerPaths}";
-            }
-            psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
-
-            psi.EnvironmentVariables["PATH"] = path;
-            psi.EnvironmentVariables["GHU_FULLPATH"] = path;
-            psi.EnvironmentVariables["GHU_WORKINGDIR"] = workingDirectory;
-
-            psi.EnvironmentVariables["PLINK_PROTOCOL"] = "ssh";
-            psi.EnvironmentVariables["TERM"] = "msys";
 
             var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
             if (!String.IsNullOrEmpty(httpProxy))

@@ -24,12 +24,6 @@ namespace GitHub.Unity
 
         public event Action<bool> OnClose;
 
-        [MenuItem("GitHub/Authenticate")]
-        public static void Launch()
-        {
-            OpenWindow(PopupViewType.AuthenticationView);
-        }
-
         public static PopupWindow OpenWindow(PopupViewType popupViewType, Action<bool> onClose = null)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
@@ -119,27 +113,27 @@ namespace GitHub.Unity
             OnClose.SafeInvoke(false);
             OnClose = null;
 
-            Logger.Trace("OpenView: {0}", popupViewType.ToString());
+            //Logger.Trace("OpenView: {0}", popupViewType.ToString());
 
             var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
             if (viewNeedsAuthentication)
             {
-                Logger.Trace("Validating to open view");
+                //Logger.Trace("Validating to open view");
 
-                Client.ValidateCurrentUser(() => {
+                Client.GetCurrentUser(user => {
 
-                    Logger.Trace("User validated opening view");
+                    //Logger.Trace("User validated opening view");
 
                     OpenInternal(popupViewType, onClose);
                     shouldCloseOnFinish = true;
 
                 }, exception => {
-                    Logger.Trace("User required validation opening AuthenticationView");
+                    //Logger.Trace("User required validation opening AuthenticationView");
                     authenticationView.Initialize(exception);
                     OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
                         if (completedAuthentication)
                         {
-                            Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
+                            //Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
 
                             Open(popupViewType, onClose);
                         }
@@ -198,7 +192,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    client = ApiClient.Create(host, Platform.Keychain);
+                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
                 }
 
                 return client;

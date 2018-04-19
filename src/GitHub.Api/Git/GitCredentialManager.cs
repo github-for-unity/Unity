@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,7 +7,7 @@ namespace GitHub.Unity
 {
     class GitCredentialManager : ICredentialManager
     {
-        private static ILogging Logger { get; } = Logging.GetLogger<GitCredentialManager>();
+        private static ILogging Logger { get; } = LogHelper.GetLogger<GitCredentialManager>();
 
         private ICredential credential;
         private string credHelper = null;
@@ -30,7 +31,7 @@ namespace GitHub.Unity
 
         public async Task Delete(UriString host)
         {
-            Logger.Trace("Delete: {0}", host);
+            //Logger.Trace("Delete: {0}", host);
 
             if (!await LoadCredentialHelper())
                 return;
@@ -46,7 +47,7 @@ namespace GitHub.Unity
 
         public async Task<ICredential> Load(UriString host)
         {
-            Logger.Trace("Load: {0}", host);
+            //Logger.Trace("Load: {0}", host);
 
             if (credential == null)
             {
@@ -99,7 +100,7 @@ namespace GitHub.Unity
         {
             this.credential = cred;
 
-            Logger.Trace("Save: {0}", credential.Host);
+            //Logger.Trace("Save: {0}", credential.Host);
 
             if (!await LoadCredentialHelper())
                 return;
@@ -125,13 +126,13 @@ namespace GitHub.Unity
             if (credHelper != null)
                 return true;
 
-            Logger.Trace("Loading Credential Helper");
+            //Logger.Trace("Loading Credential Helper");
 
             credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
                 .Configure(processManager)
                 .StartAwait();
 
-            Logger.Trace("Loaded Credential Helper: {0}", credHelper);
+            //Logger.Trace("Loaded Credential Helper: {0}", credHelper);
 
             if (credHelper != null)
             {
@@ -144,7 +145,7 @@ namespace GitHub.Unity
 
         private ITask<string> RunCredentialHelper(string action, string[] lines)
         {
-            Logger.Trace("RunCredentialHelper helper:\"{0}\" action:\"{1}\"", credHelper, action);
+            //Logger.Trace("RunCredentialHelper helper:\"{0}\" action:\"{1}\"", credHelper, action);
 
             SimpleProcessTask task;
             if (credHelper.StartsWith('!'))

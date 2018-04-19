@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,13 +19,13 @@ namespace GitHub.Unity
         private static IRepository repository;
         private static bool isBusy = false;
         private static ILogging logger;
-        private static ILogging Logger { get { return logger = logger ?? Logging.GetLogger<ProjectWindowInterface>(); } }
+        private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
 
         public static void Initialize(IRepository repo)
         {
-            Logger.Trace("Initialize HasRepository:{0}", repo != null);
+            //Logger.Trace("Initialize HasRepository:{0}", repo != null);
 
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
@@ -33,15 +34,18 @@ namespace GitHub.Unity
 
             if (repository != null)
             {
-                repository.TrackingStatusChanged += RepositoryOnStatusChanged;
+                repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
-
-                repository.CheckStatusChangedEvent(lastRepositoryStatusChangedEvent);
-                repository.CheckLocksChangedEvent(lastLocksChangedEvent);
             }
         }
 
-        private static void RepositoryOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        private static void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastRepositoryStatusChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+        }
+
+        private static void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
             {
@@ -179,24 +183,7 @@ namespace GitHub.Unity
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
-                var gitStatusEntry = entries[index];
-
-                var path = gitStatusEntry.ProjectPath;
-                if (gitStatusEntry.Status == GitFileStatus.Ignored)
-                {
-                    continue;
-                }
-
-                if (!path.StartsWith("Assets", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (path.EndsWith(".meta", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    continue;
-                }
-
+                var path = entries[index].ProjectPath;
                 var guid = AssetDatabase.AssetPathToGUID(path);
                 guids.Add(guid);
             }

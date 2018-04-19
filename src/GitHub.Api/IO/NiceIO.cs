@@ -1,7 +1,8 @@
 ﻿//The MIT License(MIT)
 //=====================
 //
-//Copyright © 2015-2017 Lucas Meijer
+//Copyright © `2015-2017` `Lucas Meijer`
+//Copyright © `2017-2018` `Andreia Gaita`
 //
 //Permission is hereby granted, free of charge, to any person
 //obtaining a copy of this software and associated documentation
@@ -24,38 +25,23 @@
 //FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //OTHER DEALINGS IN THE SOFTWARE.
 
-
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace
-#if NICEIO
-NiceIO
-#else
-GitHub.Unity
-#endif
+namespace GitHub.Unity
 {
-#if NICEIO
-    public
-#endif
-    public class NPath : IEquatable<NPath>, IComparable
+    [Serializable]
+    public struct NPath : IEquatable<NPath>, IComparable
     {
-        private static StringComparison? pathStringComparison;
-        private static StringComparison PathStringComparison
-        {
-            get
-            {
-                if (!pathStringComparison.HasValue)
-                    pathStringComparison = IsLinux ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                return pathStringComparison.Value;
-            }
-        }
+        public static NPath Default;
 
         private readonly string[] _elements;
         private readonly bool _isRelative;
         private readonly string _driveLetter;
+        private readonly bool _isInitialized;
 
         #region construction
 
@@ -63,6 +49,8 @@ GitHub.Unity
         {
             if (path == null)
                 throw new ArgumentNullException("path");
+
+            _isInitialized = true;
 
             path = ParseDriveLetter(path, out _driveLetter);
 
@@ -77,7 +65,7 @@ GitHub.Unity
 
                 _isRelative = _driveLetter == null && IsRelativeFromSplitString(split);
 
-                _elements = ParseSplitStringIntoElements(split.Where(s => s.Length > 0).ToArray());
+                _elements = ParseSplitStringIntoElements(split.Where(s => s.Length > 0).ToArray(), _isRelative);
             }
         }
 
@@ -86,9 +74,10 @@ GitHub.Unity
             _elements = elements;
             _isRelative = isRelative;
             _driveLetter = driveLetter;
+            _isInitialized = true;
         }
 
-        private string[] ParseSplitStringIntoElements(IEnumerable<string> inputs)
+        private static string[] ParseSplitStringIntoElements(IEnumerable<string> inputs, bool isRelative)
         {
             var stack = new List<string>();
 
@@ -106,7 +95,7 @@ GitHub.Unity
                         stack.RemoveAt(stack.Count - 1);
                         continue;
                     }
-                    if (!_isRelative)
+                    if (!isRelative)
                         throw new ArgumentException("You cannot create a path that tries to .. past the root");
                 }
                 stack.Add(input);
@@ -119,7 +108,7 @@ GitHub.Unity
             return stack.Count > 0 && stack[stack.Count - 1] != "..";
         }
 
-        private string ParseDriveLetter(string path, out string driveLetter)
+        private static string ParseDriveLetter(string path, out string driveLetter)
         {
             if (path.Length >= 2 && path[1] == ':')
             {
@@ -146,16 +135,20 @@ GitHub.Unity
 
         public NPath Combine(params NPath[] append)
         {
+            ThrowIfNotInitialized();
+
             if (!append.All(p => p.IsRelative))
                 throw new ArgumentException("You cannot .Combine a non-relative path");
 
-            return new NPath(ParseSplitStringIntoElements(_elements.Concat(append.SelectMany(p => p._elements))), _isRelative, _driveLetter);
+            return new NPath(ParseSplitStringIntoElements(_elements.Concat(append.SelectMany(p => p._elements)), _isRelative), _isRelative, _driveLetter);
         }
 
         public NPath Parent
         {
             get
             {
+                ThrowIfNotInitialized();
+
                 if (_elements.Length == 0)
                     throw new InvalidOperationException("Parent is called on an empty path");
 
@@ -167,21 +160,23 @@ GitHub.Unity
 
         public NPath RelativeTo(NPath path)
         {
+            ThrowIfNotInitialized();
+
             if (!IsChildOf(path))
             {
                 if (!IsRelative && !path.IsRelative && _driveLetter != path._driveLetter)
                     throw new ArgumentException("Path.RelativeTo() was invoked with two paths that are on different volumes. invoked on: " + ToString() + " asked to be made relative to: " + path);
 
-                NPath commonParent = null;
+                NPath commonParent = Default;
                 foreach (var parent in RecursiveParents)
                 {
                     commonParent = path.RecursiveParents.FirstOrDefault(otherParent => otherParent == parent);
 
-                    if (commonParent != null)
+                    if (commonParent.IsInitialized)
                         break;
                 }
 
-                if (commonParent == null)
+                if (!commonParent.IsInitialized)
                     throw new ArgumentException("Path.RelativeTo() was unable to find a common parent between " + ToString() + " and " + path);
 
                 if (IsRelative && path.IsRelative && commonParent.IsEmpty)
@@ -196,21 +191,23 @@ GitHub.Unity
 
         public NPath GetCommonParent(NPath path)
         {
+            ThrowIfNotInitialized();
+
             if (!IsChildOf(path))
             {
                 if (!IsRelative && !path.IsRelative && _driveLetter != path._driveLetter)
-                    return null;
+                    return Default;
 
-                NPath commonParent = null;
+                NPath commonParent = Default;
                 foreach (var parent in new List<NPath> { this }.Concat(RecursiveParents))
                 {
                     commonParent = path.RecursiveParents.FirstOrDefault(otherParent => otherParent == parent);
-                    if (commonParent != null)
+                    if (commonParent.IsInitialized)
                         break;
                 }
 
-                if (IsRelative && path.IsRelative && commonParent.IsEmpty)
-                    return null;
+                if (IsRelative && path.IsRelative && (!commonParent.IsInitialized || commonParent.IsEmpty))
+                    return Default;
                 return commonParent;
             }
             return path;
@@ -218,6 +215,7 @@ GitHub.Unity
 
         public NPath ChangeExtension(string extension)
         {
+            ThrowIfNotInitialized();
             ThrowIfRoot();
 
             var newElements = (string[])_elements.Clone();
@@ -239,6 +237,7 @@ GitHub.Unity
         {
             get
             {
+                ThrowIfNotInitialized();
                 ThrowIfRoot();
 
                 return _elements.Last();
@@ -247,58 +246,102 @@ GitHub.Unity
 
         public string FileNameWithoutExtension
         {
-            get { return FileSystem.GetFileNameWithoutExtension(FileName); }
+            get
+            {
+                ThrowIfNotInitialized();
+
+                return FileSystem.GetFileNameWithoutExtension(FileName);
+            }
         }
 
         public IEnumerable<string> Elements
         {
-            get { return _elements; }
+            get
+            {
+                ThrowIfNotInitialized();
+                return _elements;
+            }
         }
 
         public int Depth
         {
-            get { return _elements.Length; }
+            get
+            {
+                ThrowIfNotInitialized();
+                return _elements.Length;
+            }
         }
 
-        public bool Exists(string append = "")
+        public bool IsInitialized
         {
+            get { return _isInitialized; }
+        }
+
+        public bool Exists()
+        {
+            ThrowIfNotInitialized();
+            return FileExists() || DirectoryExists();
+        }
+
+        public bool Exists(string append)
+        {
+            ThrowIfNotInitialized();
             if (String.IsNullOrEmpty(append))
             {
-                return FileExists() || DirectoryExists();
+                return Exists();
             }
             return Exists(new NPath(append));
         }
 
         public bool Exists(NPath append)
         {
+            ThrowIfNotInitialized();
+            if (!append.IsInitialized)
+                return Exists();
             return FileExists(append) || DirectoryExists(append);
         }
 
-        public bool DirectoryExists(string append = "")
+        public bool DirectoryExists()
         {
+            ThrowIfNotInitialized();
+            return FileSystem.DirectoryExists(ToString());
+        }
+
+        public bool DirectoryExists(string append)
+        {
+            ThrowIfNotInitialized();
             if (String.IsNullOrEmpty(append))
-                return FileSystem.DirectoryExists(ToString());
+                return DirectoryExists();
             return DirectoryExists(new NPath(append));
         }
 
         public bool DirectoryExists(NPath append)
         {
-            if (append == null)
-                return FileSystem.DirectoryExists(ToString());
+            ThrowIfNotInitialized();
+            if (!append.IsInitialized)
+                return DirectoryExists();
             return FileSystem.DirectoryExists(Combine(append).ToString());
         }
 
-        public bool FileExists(string append = "")
+        public bool FileExists()
         {
+            ThrowIfNotInitialized();
+            return FileSystem.FileExists(ToString());
+        }
+
+        public bool FileExists(string append)
+        {
+            ThrowIfNotInitialized();
             if (String.IsNullOrEmpty(append))
-                return FileSystem.FileExists(ToString());
+                return FileExists();
             return FileExists(new NPath(append));
         }
 
         public bool FileExists(NPath append)
         {
-            if (append == null)
-                return FileSystem.FileExists(ToString());
+            ThrowIfNotInitialized();
+            if (!append.IsInitialized)
+                return FileExists();
             return FileSystem.FileExists(Combine(append).ToString());
         }
 
@@ -306,6 +349,7 @@ GitHub.Unity
         {
             get
             {
+                ThrowIfNotInitialized();
                 if (IsRoot)
                     throw new ArgumentException("A root directory does not have an extension");
 
@@ -333,6 +377,9 @@ GitHub.Unity
 
         public string ToString(SlashMode slashMode)
         {
+            if (!_isInitialized)
+                return String.Empty;
+
             // Check if it's linux root /
             if (IsRoot && string.IsNullOrEmpty(_driveLetter))
                 return Slash(slashMode).ToString();
@@ -362,8 +409,6 @@ GitHub.Unity
 
         public static implicit operator string(NPath path)
         {
-            if (path == null)
-                return null;
             return path.ToString();
         }
 
@@ -380,29 +425,24 @@ GitHub.Unity
             }
         }
 
-        public static char DirectorySeparatorChar
+        public override bool Equals(Object other)
         {
-            get
+            if (other is NPath)
             {
-                return FileSystem.DirectorySeparatorChar;
+                return Equals((NPath)other);
             }
-        }
-
-        public override bool Equals(Object obj)
-        {
-            if (obj == null)
-                return false;
-
-            // If parameter cannot be cast to Point return false.
-            var p = obj as NPath;
-            if ((Object)p == null)
-                return false;
-
-            return Equals(p);
+            return false;
         }
 
         public bool Equals(NPath p)
         {
+            if (p._isInitialized != _isInitialized)
+                return false;
+
+            // return early if we're comparing two NPath.Default instances
+            if (!_isInitialized)
+                return true;
+
             if (p._isRelative != _isRelative)
                 return false;
 
@@ -419,18 +459,9 @@ GitHub.Unity
             return true;
         }
 
-        public static bool operator ==(NPath a, NPath b)
+        public static bool operator ==(NPath lhs, NPath rhs)
         {
-            // If both are null, or both are same instance, return true.
-            if (ReferenceEquals(a, b))
-                return true;
-
-            // If one is null, but not both, return false.
-            if (((object)a == null) || ((object)b == null))
-                return false;
-
-            // Return true if the fields match:
-            return a.Equals(b);
+            return lhs.Equals(rhs);
         }
 
         public override int GetHashCode()
@@ -439,6 +470,7 @@ GitHub.Unity
             {
                 int hash = 17;
                 // Suitable nullity checks etc, of course :)
+                hash = hash * 23 + _isInitialized.GetHashCode();
                 hash = hash * 23 + _isRelative.GetHashCode();
                 foreach (var element in _elements)
                     hash = hash * 23 + (IsLinux ? element : element.ToUpperInvariant()).GetHashCode();
@@ -448,21 +480,22 @@ GitHub.Unity
             }
         }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object other)
         {
-            if (obj == null)
+            if (!(other is NPath))
                 return -1;
 
-            return this.ToString().CompareTo(((NPath)obj).ToString());
+            return ToString().CompareTo(((NPath)other).ToString());
         }
 
-        public static bool operator !=(NPath a, NPath b)
+        public static bool operator !=(NPath lhs, NPath rhs)
         {
-            return !(a == b);
+            return !(lhs.Equals(rhs));
         }
 
         public bool HasExtension(params string[] extensions)
         {
+            ThrowIfNotInitialized();
             var extensionWithDotLower = ExtensionWithDot.ToLower();
             return extensions.Any(e => WithDot(e).ToLower() == extensionWithDotLower);
         }
@@ -474,12 +507,20 @@ GitHub.Unity
 
         public bool IsEmpty
         {
-            get { return _elements.Length == 0; }
+            get
+            {
+                ThrowIfNotInitialized();
+                return _elements.Length == 0;
+            }
         }
 
         public bool IsRoot
         {
-            get { return _elements.Length == 0 && !_isRelative; }
+            get
+            {
+                ThrowIfNotInitialized();
+                return _elements.Length == 0 && !_isRelative;
+            }
         }
 
         #endregion inspection
@@ -488,7 +529,7 @@ GitHub.Unity
 
         public IEnumerable<NPath> Files(string filter, bool recurse = false)
         {
-            return FileSystem.GetFiles(ToString(), filter, recurse ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
+            return FileSystem.GetFiles(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
         }
 
         public IEnumerable<NPath> Files(bool recurse = false)
@@ -508,7 +549,7 @@ GitHub.Unity
 
         public IEnumerable<NPath> Directories(string filter, bool recurse = false)
         {
-            return FileSystem.GetDirectories(ToString(), filter, recurse ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
+            return FileSystem.GetDirectories(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
         }
 
         public IEnumerable<NPath> Directories(bool recurse = false)
@@ -521,6 +562,7 @@ GitHub.Unity
         #region filesystem writing operations
         public NPath CreateFile()
         {
+            ThrowIfNotInitialized();
             ThrowIfRelative();
             ThrowIfRoot();
             EnsureParentDirectoryExists();
@@ -535,6 +577,7 @@ GitHub.Unity
 
         public NPath CreateFile(NPath file)
         {
+            ThrowIfNotInitialized();
             if (!file.IsRelative)
                 throw new ArgumentException("You cannot call CreateFile() on an existing path with a non relative argument");
             return Combine(file).CreateFile();
@@ -542,12 +585,13 @@ GitHub.Unity
 
         public NPath CreateDirectory()
         {
+            ThrowIfNotInitialized();
             ThrowIfRelative();
 
             if (IsRoot)
                 throw new NotSupportedException("CreateDirectory is not supported on a root level directory because it would be dangerous:" + ToString());
 
-            FileSystem.CreateDirectory(ToString());
+            FileSystem.DirectoryCreate(ToString());
             return this;
         }
 
@@ -558,6 +602,7 @@ GitHub.Unity
 
         public NPath CreateDirectory(NPath directory)
         {
+            ThrowIfNotInitialized();
             if (!directory.IsRelative)
                 throw new ArgumentException("Cannot call CreateDirectory with an absolute argument");
 
@@ -581,7 +626,10 @@ GitHub.Unity
 
         public NPath Copy(NPath dest, Func<NPath, bool> fileFilter)
         {
+            ThrowIfNotInitialized();
             ThrowIfRelative();
+            ThrowIfNotInitialized(dest);
+
             if (dest.IsRelative)
                 dest = Parent.Combine(dest);
 
@@ -593,6 +641,8 @@ GitHub.Unity
 
         public NPath MakeAbsolute()
         {
+            ThrowIfNotInitialized();
+
             if (!IsRelative)
                 return this;
 
@@ -607,7 +657,7 @@ GitHub.Unity
             if (FileExists())
             {
                 if (!fileFilter(absoluteDestination))
-                    return null;
+                    return Default;
 
                 absoluteDestination.EnsureParentDirectoryExists();
 
@@ -628,6 +678,7 @@ GitHub.Unity
 
         public void Delete(DeleteMode deleteMode = DeleteMode.Normal)
         {
+            ThrowIfNotInitialized();
             ThrowIfRelative();
 
             if (IsRoot)
@@ -640,7 +691,7 @@ GitHub.Unity
                 {
                     FileSystem.DirectoryDelete(ToString(), true);
                 }
-                catch (System.IO.IOException)
+                catch (IOException)
                 {
                     if (deleteMode == DeleteMode.Normal)
                         throw;
@@ -651,6 +702,7 @@ GitHub.Unity
 
         public void DeleteIfExists(DeleteMode deleteMode = DeleteMode.Normal)
         {
+            ThrowIfNotInitialized();
             ThrowIfRelative();
 
             if (FileExists() || DirectoryExists())
@@ -659,6 +711,7 @@ GitHub.Unity
 
         public NPath DeleteContents()
         {
+            ThrowIfNotInitialized();
             ThrowIfRelative();
 
             if (IsRoot)
@@ -674,7 +727,7 @@ GitHub.Unity
                     Files().Delete();
                     Directories().Delete();
                 }
-                catch (System.IO.IOException)
+                catch (IOException)
                 {
                     if (Files(true).Any())
                         throw;
@@ -716,6 +769,8 @@ GitHub.Unity
 
         public NPath Move(NPath dest)
         {
+            ThrowIfNotInitialized();
+            ThrowIfNotInitialized(dest);
             ThrowIfRelative();
 
             if (IsRoot)
@@ -743,6 +798,102 @@ GitHub.Unity
             throw new ArgumentException("Move() called on a path that doesn't exist: " + ToString());
         }
 
+        public NPath WriteAllText(string contents)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            FileSystem.WriteAllText(ToString(), contents);
+            return this;
+        }
+
+        public string ReadAllText()
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            return FileSystem.ReadAllText(ToString());
+        }
+
+        public NPath WriteAllText(string contents, Encoding encoding)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            FileSystem.WriteAllText(ToString(), contents, encoding);
+            return this;
+        }
+
+        public string ReadAllText(Encoding encoding)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            return FileSystem.ReadAllText(ToString(), encoding);
+        }
+
+        public NPath WriteLines(string[] contents)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            FileSystem.WriteLines(ToString(), contents);
+            return this;
+        }
+
+        public NPath WriteAllLines(string[] contents)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            FileSystem.WriteAllLines(ToString(), contents);
+            return this;
+        }
+
+        public string[] ReadAllLines()
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            return FileSystem.ReadAllLines(ToString());
+        }
+
+        public NPath WriteAllBytes(byte[] contents)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            EnsureParentDirectoryExists();
+            FileSystem.WriteAllBytes(ToString(), contents);
+            return this;
+        }
+
+        public byte[] ReadAllBytes()
+        {
+            ThrowIfNotInitialized();
+            ThrowIfRelative();
+            return FileSystem.ReadAllBytes(ToString());
+        }
+
+
+        public IEnumerable<NPath> CopyFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfNotInitialized(destination);
+
+            destination.EnsureDirectoryExists();
+            var _this = this;
+            return Files(recurse).Where(fileFilter ?? AlwaysTrue).Select(file => file.Copy(destination.Combine(file.RelativeTo(_this)))).ToArray();
+        }
+
+        public IEnumerable<NPath> MoveFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)
+        {
+            ThrowIfNotInitialized();
+            ThrowIfNotInitialized(destination);
+
+            if (IsRoot)
+                throw new NotSupportedException("MoveFiles is not supported on this directory because it would be dangerous:" + ToString());
+
+            destination.EnsureDirectoryExists();
+            var _this = this;
+            return Files(recurse).Where(fileFilter ?? AlwaysTrue).Select(file => file.Move(destination.Combine(file.RelativeTo(_this)))).ToArray();
+        }
         #endregion
 
         #region special paths
@@ -770,7 +921,7 @@ GitHub.Unity
         {
             get
             {
-                if (systemTemp == null)
+                if (!systemTemp.IsInitialized)
                     systemTemp = new NPath(FileSystem.GetTempPath());
                 return systemTemp;
             }
@@ -790,8 +941,21 @@ GitHub.Unity
                 throw new ArgumentException("You are attempting an operation that is not valid on a root level directory");
         }
 
+        private void ThrowIfNotInitialized()
+        {
+            if (!_isInitialized)
+                throw new InvalidOperationException("You are attemping an operation on an null path");
+        }
+
+        private static void ThrowIfNotInitialized(NPath path)
+        {
+            path.ThrowIfNotInitialized();
+        }
+
         public NPath EnsureDirectoryExists(string append = "")
         {
+            ThrowIfNotInitialized();
+
             if (String.IsNullOrEmpty(append))
             {
                 if (DirectoryExists())
@@ -805,6 +969,9 @@ GitHub.Unity
 
         public NPath EnsureDirectoryExists(NPath append)
         {
+            ThrowIfNotInitialized();
+            ThrowIfNotInitialized(append);
+
             var combined = Combine(append);
             if (combined.DirectoryExists())
                 return combined;
@@ -815,6 +982,8 @@ GitHub.Unity
 
         public NPath EnsureParentDirectoryExists()
         {
+            ThrowIfNotInitialized();
+
             var parent = Parent;
             parent.EnsureDirectoryExists();
             return parent;
@@ -822,16 +991,20 @@ GitHub.Unity
 
         public NPath FileMustExist()
         {
+            ThrowIfNotInitialized();
+
             if (!FileExists())
-                throw new System.IO.FileNotFoundException("File was expected to exist : " + ToString());
+                throw new FileNotFoundException("File was expected to exist : " + ToString());
 
             return this;
         }
 
         public NPath DirectoryMustExist()
         {
+            ThrowIfNotInitialized();
+
             if (!DirectoryExists())
-                throw new System.IO.DirectoryNotFoundException("Expected directory to exist : " + ToString());
+                throw new DirectoryNotFoundException("Expected directory to exist : " + ToString());
 
             return this;
         }
@@ -843,6 +1016,9 @@ GitHub.Unity
 
         public bool IsChildOf(NPath potentialBasePath)
         {
+            ThrowIfNotInitialized();
+            ThrowIfNotInitialized(potentialBasePath);
+
             if ((IsRelative && !potentialBasePath.IsRelative) || !IsRelative && potentialBasePath.IsRelative)
                 throw new ArgumentException("You can only call IsChildOf with two relative paths, or with two absolute paths");
 
@@ -867,6 +1043,7 @@ GitHub.Unity
         {
             get
             {
+                ThrowIfNotInitialized();
                 var candidate = this;
                 while (true)
                 {
@@ -886,90 +1063,16 @@ GitHub.Unity
 
         public NPath ParentContaining(NPath needle)
         {
+            ThrowIfNotInitialized();
+            ThrowIfNotInitialized(needle);
             ThrowIfRelative();
 
             return RecursiveParents.FirstOrDefault(p => p.Exists(needle));
         }
 
-        public NPath WriteAllText(string contents)
-        {
-            ThrowIfRelative();
-            EnsureParentDirectoryExists();
-            FileSystem.WriteAllText(ToString(), contents);
-            return this;
-        }
-
-        public NPath WriteAllText(string contents, Encoding encoding)
-        {
-            ThrowIfRelative();
-            EnsureParentDirectoryExists();
-            FileSystem.WriteAllText(ToString(), contents, encoding);
-            return this;
-        }
-
-        public string ReadAllText()
-        {
-            ThrowIfRelative();
-            return FileSystem.ReadAllText(ToString());
-        }
-
-        public string ReadAllText(Encoding encoding)
-        {
-            ThrowIfRelative();
-            return FileSystem.ReadAllText(ToString(), encoding);
-        }
-
-        public NPath WriteAllLines(string[] contents)
-        {
-            ThrowIfRelative();
-            EnsureParentDirectoryExists();
-            FileSystem.WriteAllLines(ToString(), contents);
-            return this;
-        }
-
-        public string[] ReadAllLines()
-        {
-            ThrowIfRelative();
-            return FileSystem.ReadAllLines(ToString());
-        }
-
-        public NPath WriteAllBytes(byte[] contents)
-        {
-            ThrowIfRelative();
-            EnsureParentDirectoryExists();
-            FileSystem.WriteAllBytes(ToString(), contents);
-            return this;
-        }
-
-        public IEnumerable<NPath> CopyFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)
-        {
-            destination.EnsureDirectoryExists();
-            return Files(recurse).Where(fileFilter ?? AlwaysTrue).Select(file => file.Copy(destination.Combine(file.RelativeTo(this)))).ToArray();
-        }
-
-        public IEnumerable<NPath> MoveFiles(NPath destination, bool recurse, Func<NPath, bool> fileFilter = null)
-        {
-            if (IsRoot)
-                throw new NotSupportedException("MoveFiles is not supported on this directory because it would be dangerous:" + ToString());
-
-            destination.EnsureDirectoryExists();
-            return Files(recurse).Where(fileFilter ?? AlwaysTrue).Select(file => file.Move(destination.Combine(file.RelativeTo(this)))).ToArray();
-        }
-
         static bool AlwaysTrue(NPath p)
         {
             return true;
-        }
-
-        private static bool? isLinux;
-        private static bool IsLinux
-        {
-            get
-            {
-                if (!isLinux.HasValue)
-                    isLinux = FileSystem.DirectoryExists("/proc");
-                return isLinux.Value;
-            }
         }
 
         private static IFileSystem _fileSystem;
@@ -978,7 +1081,11 @@ GitHub.Unity
             get
             {
                 if (_fileSystem == null)
-                    _fileSystem = new FileSystem();
+#if UNITY_4 || UNITY_5 || UNITY_5_3_OR_NEWER
+                    _fileSystem = new FileSystem(UnityEngine.Application.dataPath);
+#else
+                    _fileSystem = new FileSystem(Directory.GetCurrentDirectory());
+#endif
                 return _fileSystem;
             }
             set
@@ -986,12 +1093,33 @@ GitHub.Unity
                 _fileSystem = value;
             }
         }
+
+        private static bool? _isLinux;
+        internal static bool IsLinux
+        {
+            get
+            {
+                if (!_isLinux.HasValue)
+                    _isLinux = FileSystem.DirectoryExists("/proc");
+                return _isLinux.Value;
+            }
+        }
+
+        private static StringComparison? _pathStringComparison;
+        private static StringComparison PathStringComparison
+        {
+            get
+            {
+                // this is lazily evaluated because IsLinux uses the FileSystem object and that can be set
+                // after static constructors happen here
+                if (!_pathStringComparison.HasValue)
+                    _pathStringComparison = IsLinux ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                return _pathStringComparison.Value;
+            }
+        }
     }
 
-#if NICEIO
-    public
-#endif
-    static class Extensions
+    public static class Extensions
     {
         public static IEnumerable<NPath> Copy(this IEnumerable<NPath> self, string dest)
         {
@@ -1034,16 +1162,25 @@ GitHub.Unity
         public static NPath ToNPath(this string path)
         {
             if (path == null)
-                return null;
+                return NPath.Default;
             return new NPath(path);
         }
 
         public static NPath Resolve(this NPath path)
         {
-            if (path == null || DefaultEnvironment.OnWindows || path.IsRelative || !path.FileExists())
-                return path;
+            // Add a reference to Mono.Posix with an .rsp file in the Assets folder with the line "-r:Mono.Posix.dll" for this to work
+#if ENABLE_MONO
+			if (!path.IsInitialized || !NPath.IsLinux /* nothing to resolve on windows */ || path.IsRelative || !path.FileExists())
+				return path;
+			return new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path.ToString()));
+#else
+            return path;
+#endif
+        }
 
-            return new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path.ToString()));
+        public static string CalculateMD5(this NPath path)
+        {
+            return NPath.FileSystem.CalculateFileMD5(path);
         }
     }
 

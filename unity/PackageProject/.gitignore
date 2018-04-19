@@ -5,6 +5,7 @@
 *.xml
 *.local.json
 *.zip
+*.md5
 *.dylib
 *.so
 *.bundle

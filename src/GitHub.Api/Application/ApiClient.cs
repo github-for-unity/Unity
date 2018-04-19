@@ -2,42 +2,42 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Octokit;
+using GitHub.Logging;
+using System.Runtime.Serialization;
+using System.Text;
 
 namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {
-        public static IApiClient Create(UriString repositoryUrl, IKeychain keychain)
-        {
-            logger.Trace("Creating ApiClient: {0}", repositoryUrl);
-
-            var credentialStore = keychain.Connect(repositoryUrl);
-            var hostAddress = HostAddress.Create(repositoryUrl);
-
-            return new ApiClient(repositoryUrl, keychain,
-                new GitHubClient(AppConfiguration.ProductHeader, credentialStore, hostAddress.ApiUri));
-        }
-
-        private static readonly ILogging logger = Logging.GetLogger<ApiClient>();
+        private static readonly ILogging logger = LogHelper.GetLogger<ApiClient>();
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
         private readonly IKeychain keychain;
-        private readonly IGitHubClient githubClient;
+        private readonly IProcessManager processManager;
+        private readonly ITaskManager taskManager;
+        private readonly NPath nodeJsExecutablePath;
+        private readonly NPath octorunScriptPath;
         private readonly ILoginManager loginManager;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, IGitHubClient githubClient)
+        public ApiClient(UriString hostUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
         {
             Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
-            Guard.ArgumentNotNull(githubClient, nameof(githubClient));
 
             HostAddress = HostAddress.Create(hostUrl);
             OriginalUrl = hostUrl;
             this.keychain = keychain;
-            this.githubClient = githubClient;
-            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
+            this.processManager = processManager;
+            this.taskManager = taskManager;
+            this.nodeJsExecutablePath = nodeJsExecutablePath;
+            this.octorunScriptPath = octorunScriptPath;
+            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret,
+                processManager: processManager,
+                taskManager: taskManager,
+                nodeJsExecutablePath: nodeJsExecutablePath,
+                octorunScript: octorunScriptPath);
         }
 
         public async Task Logout(UriString host)
@@ -50,12 +50,12 @@ namespace GitHub.Unity
             await loginManager.Logout(host);
         }
 
-        public async Task CreateRepository(NewRepository newRepository, Action<GitHubRepository, Exception> callback, string organization = null)
+        public async Task CreateRepository(string name, string description, bool isPrivate, Action<GitHubRepository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
             try
             {
-                var repository = await CreateRepositoryInternal(newRepository, organization);
+                var repository = await CreateRepositoryInternal(name, organization, description, isPrivate);
                 callback(repository, null);
             }
             catch (Exception e)
@@ -70,25 +70,18 @@ namespace GitHub.Unity
             await GetOrganizationInternal(onSuccess, onError);
         }
 
-        public async Task ValidateCurrentUser(Action onSuccess, Action<Exception> onError = null)
+        public async Task GetCurrentUser(Action<GitHubUser> onSuccess, Action<Exception> onError = null)
         {
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             try
             {
-                await ValidateCurrentUserInternal();
-                onSuccess();
+                var user = await GetCurrentUser();
+                onSuccess(user);
             }
             catch (Exception e)
             {
                 onError?.Invoke(e);
             }
-        }
-
-        public async Task GetCurrentUser(Action<GitHubUser> callback)
-        {
-            Guard.ArgumentNotNull(callback, "callback");
-            var user = await GetCurrentUserInternal();
-            callback(user);
         }
 
         public async Task Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
@@ -99,7 +92,7 @@ namespace GitHub.Unity
             LoginResultData res = null;
             try
             {
-                res = await loginManager.Login(OriginalUrl, githubClient, username, password);
+                res = await loginManager.Login(OriginalUrl, username, password);
             }
             catch (Exception ex)
             {
@@ -145,7 +138,7 @@ namespace GitHub.Unity
             LoginResultData res = null;
             try
             {
-                res = await loginManager.Login(OriginalUrl, githubClient, username, password);
+                res = await loginManager.Login(OriginalUrl, username, password);
             }
             catch (Exception)
             {
@@ -187,31 +180,72 @@ namespace GitHub.Unity
             return result.Code == LoginResultCodes.Success;
         }
 
-        private async Task<GitHubRepository> CreateRepositoryInternal(NewRepository newRepository, string organization)
+        private async Task<GitHubUser> GetCurrentUser()
+        {
+            //TODO: ONE_USER_LOGIN This assumes we only support one login
+            var keychainConnection = keychain.Connections.FirstOrDefault();
+            if (keychainConnection == null)
+                throw new KeychainEmptyException();
+
+            var keychainAdapter = await GetValidatedKeychainAdapter(keychainConnection);
+
+            // we can't trust that the system keychain has the username filled out correctly.
+            // if it doesn't, we need to grab the username from the server and check it
+            // unfortunately this means that things will be slower when the keychain doesn't have all the info
+            if (keychainConnection.User == null || keychainAdapter.Credential.Username != keychainConnection.Username)
+            {
+                keychainConnection.User = await GetValidatedGitHubUser(keychainConnection, keychainAdapter);
+            }
+            return keychainConnection.User;
+        }
+
+        private async Task<GitHubRepository> CreateRepositoryInternal(string repositoryName, string organization, string description, bool isPrivate)
         {
             try
             {
                 logger.Trace("Creating repository");
 
-                await ValidateKeychain();
-                await ValidateCurrentUserInternal();
+                var user = await GetCurrentUser();
+                var keychainAdapter = keychain.Connect(OriginalUrl);
 
-                GitHubRepository repository;
+                var command = new StringBuilder("publish -r \"");
+                command.Append(repositoryName);
+                command.Append("\"");
+
+                if (!string.IsNullOrEmpty(description))
+                {
+                    command.Append(" -d \"");
+                    command.Append(description);
+                    command.Append("\"");
+                }
+
                 if (!string.IsNullOrEmpty(organization))
                 {
-                    logger.Trace("Creating repository for organization");
-
-                    repository = (await githubClient.Repository.Create(organization, newRepository)).ToGitHubRepository();
+                    command.Append(" -o \"");
+                    command.Append(organization);
+                    command.Append("\"");
                 }
-                else
+
+                if (isPrivate)
                 {
-                    logger.Trace("Creating repository for user");
-
-                    repository = (await githubClient.Repository.Create(newRepository)).ToGitHubRepository();
+                    command.Append(" -p");
                 }
 
-                logger.Trace("Created Repository");
-                return repository;
+                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, command.ToString(),
+                    user: user.Login, userToken: keychainAdapter.Credential.Token)
+                    .Configure(processManager);
+
+                var ret = await octorunTask.StartAwait();
+                if (ret.IsSuccess && ret.Output.Length == 2)
+                {
+                    return new GitHubRepository
+                    {
+                        Name = ret.Output[0],
+                        CloneUrl = ret.Output[1]
+                    };
+                }
+
+                throw new ApiClientException(ret.GetApiErrorMessage() ?? "Publish failed");
             }
             catch (Exception ex)
             {
@@ -226,37 +260,86 @@ namespace GitHub.Unity
             {
                 logger.Trace("Getting Organizations");
 
-                await ValidateKeychain();
-                await ValidateCurrentUserInternal();
+                var user = await GetCurrentUser();
+                var keychainAdapter = keychain.Connect(OriginalUrl);
 
-                var organizations = await githubClient.Organization.GetAllForCurrent();
+                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "organizations",
+                        user: user.Login, userToken: keychainAdapter.Credential.Token)
+                    .Configure(processManager);
 
-                logger.Trace("Obtained {0} Organizations", organizations?.Count.ToString() ?? "NULL");
-
-                if (organizations != null)
+                var ret = await octorunTask.StartAsAsync();
+                if (ret.IsSuccess)
                 {
-                    var array = organizations.Select(organization => new Organization() {
-                        Name = organization.Name,
-                        Login = organization.Login
-                    }).ToArray();
-                    onSuccess(array);
+                    var organizations = new List<Organization>();
+                    for (var i = 0; i < ret.Output.Length; i = i + 2)
+                    {
+                        organizations.Add(new Organization
+                        {
+                            Name = ret.Output[i],
+                            Login = ret.Output[i + 1]
+                        });
+                    }
+
+                    onSuccess(organizations.ToArray());
+                    return;
                 }
+
+                throw new ApiClientException(ret.GetApiErrorMessage() ?? "Error getting organizations");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Error(ex, "Error Getting Organizations");
                 onError?.Invoke(ex);
             }
         }
 
-        private async Task<GitHubUser> GetCurrentUserInternal()
+        private async Task<IKeychainAdapter> GetValidatedKeychainAdapter(Connection keychainConnection)
+        {
+            var keychainAdapter = await keychain.Load(keychainConnection.Host);
+            if (keychainAdapter == null)
+                throw new KeychainEmptyException();
+
+            if (string.IsNullOrEmpty(keychainAdapter.Credential?.Username))
+            {
+                logger.Warning("LoadKeychainInternal: Username is empty");
+                throw new TokenUsernameMismatchException(keychainConnection.Username);
+            }
+
+            if (keychainAdapter.Credential.Username != keychainConnection.Username)
+            {
+                logger.Warning("LoadKeychainInternal: Token username does not match");
+            }
+
+            return keychainAdapter;
+        }
+
+        private async Task<GitHubUser> GetValidatedGitHubUser(Connection keychainConnection, IKeychainAdapter keychainAdapter)
         {
             try
             {
-                logger.Trace("Getting Current User");
-                await ValidateKeychain();
+                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "validate",
+                        user: keychainConnection.Username, userToken: keychainAdapter.Credential.Token)
+                    .Configure(processManager);
 
-                return (await githubClient.User.Current()).ToGitHubUser();
+                var ret = await octorunTask.StartAsAsync();
+                if (ret.IsSuccess)
+                {
+                    var login = ret.Output[1];
+
+                    if (login != keychainConnection.Username)
+                    {
+                        logger.Trace("LoadKeychainInternal: Api username does not match");
+                        throw new TokenUsernameMismatchException(keychainConnection.Username, login);
+                    }
+
+                    return new GitHubUser
+                    {
+                        Name = ret.Output[0],
+                        Login = login
+                    };
+                }
+
+                throw new ApiClientException(ret.GetApiErrorMessage() ?? "Error validating current user");
             }
             catch (KeychainEmptyException)
             {
@@ -267,55 +350,6 @@ namespace GitHub.Unity
             {
                 logger.Error(ex, "Error Getting Current User");
                 throw;
-            }
-        }
-
-        private async Task ValidateCurrentUserInternal()
-        {
-            logger.Trace("Validating User");
-
-            var apiUser = await GetCurrentUserInternal();
-            var apiUsername = apiUser.Login;
-
-            var cachedUsername = keychain.Connections.First().Username;
-
-            if (apiUsername != cachedUsername)
-            {
-                throw new TokenUsernameMismatchException(cachedUsername, apiUsername);
-            }
-        }
-
-        private async Task<bool> LoadKeychainInternal()
-        {
-            if (keychain.HasKeys)
-            {
-                if (!keychain.NeedsLoad)
-                {
-                    logger.Trace("LoadKeychainInternal: Previously Loaded");
-                    return true;
-                }
-
-                logger.Trace("LoadKeychainInternal: Loading");
-
-                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                var uriString = keychain.Connections.First().Host;
-                var keychainAdapter = await keychain.Load(uriString);
-
-                logger.Trace("LoadKeychainInternal: Loaded");
-
-                return keychainAdapter.OctokitCredentials != Credentials.Anonymous;
-            }
-
-            logger.Trace("LoadKeychainInternal: No keys to load");
-
-            return false;
-        }
-
-        private async Task ValidateKeychain()
-        {
-            if (!await LoadKeychainInternal())
-            {
-                throw new KeychainEmptyException();
             }
         }
     }
@@ -332,7 +366,8 @@ namespace GitHub.Unity
         public string CloneUrl { get; set; }
     }
 
-    class ApiClientException : Exception
+    [Serializable]
+    public class ApiClientException : Exception
     {
         public ApiClientException()
         { }
@@ -342,23 +377,34 @@ namespace GitHub.Unity
 
         public ApiClientException(string message, Exception innerException) : base(message, innerException)
         { }
+
+        protected ApiClientException(SerializationInfo info, StreamingContext context) : base(info, context)
+        { }
     }
 
+    [Serializable]
     class TokenUsernameMismatchException : ApiClientException
     {
         public string CachedUsername { get; }
         public string CurrentUsername { get; }
 
-        public TokenUsernameMismatchException(string cachedUsername, string currentUsername)
+        public TokenUsernameMismatchException(string cachedUsername, string currentUsername = null)
         {
             CachedUsername = cachedUsername;
             CurrentUsername = currentUsername;
         }
+        protected TokenUsernameMismatchException(SerializationInfo info, StreamingContext context) : base(info, context)
+        { }
     }
 
+    [Serializable]
     class KeychainEmptyException : ApiClientException
     {
         public KeychainEmptyException()
+        {
+        }
+
+        protected KeychainEmptyException(SerializationInfo info, StreamingContext context) : base(info, context)
         { }
     }
 }

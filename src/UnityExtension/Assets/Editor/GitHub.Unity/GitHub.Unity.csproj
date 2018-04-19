@@ -22,9 +22,10 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>..\..\..\..\..\common\codeanalysis-small.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,7 +33,11 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>4</LangVersion>
     <BuildConfid>Release</BuildConfid>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'dev|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -41,18 +46,15 @@
     <DefineConstants>DEBUG;TRACE;DEVELOPER_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>$(SolutionDir)common\GitHub.ruleset</CodeAnalysisRuleSet>
     <LangVersion>4</LangVersion>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\lib\Mono.Security.dll</HintPath>
-    </Reference>
-    <Reference Include="Rackspace.Threading, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bb62785d398726f0, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\TunnelVisionLabs.Threading.2.0.0-unity\lib\net35-client\Rackspace.Threading.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -76,8 +78,6 @@
   <ItemGroup>
     <Compile Include="ApplicationCache.cs" />
     <Compile Include="ApplicationManager.cs" />
-    <Compile Include="CacheContainer.cs" />
-    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="RunLocationShim.cs" />
     <Compile Include="ScriptObjectSingleton.cs" />
     <Compile Include="SerializableDictionary.cs" />
@@ -88,6 +88,7 @@
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="UI\BaseWindow.cs" />
     <Compile Include="UI\ChangesTreeControl.cs" />
+    <Compile Include="UI\LfsLocksModificationProcessor.cs" />
     <Compile Include="UI\PopupWindow.cs" />
     <Compile Include="UI\ProjectWindowInterface.cs" />
     <Compile Include="Misc\Styles.cs" />
@@ -102,6 +103,7 @@
     <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
     <Compile Include="UI\InitProjectView.cs" />
+    <Compile Include="UI\Spinner.cs" />
     <Compile Include="UI\TreeControl.cs" />
     <Compile Include="UI\UserSettingsView.cs" />
     <Compile Include="UI\GitPathView.cs" />
@@ -110,13 +112,7 @@
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <Choose>
-    <When Condition="$(Buildtype) == 'Internal'">
-      <ItemGroup>
-        <Compile Include="$(SolutionDir)\script\src\MetricsInitialization.cs">
-          <Link>Metrics\MetricsInitialization.cs</Link>
-        </Compile>
-      </ItemGroup>
-    </When>
+    <When Condition="$(Buildtype) == 'Internal'" />
   </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
@@ -210,6 +206,23 @@
   <ItemGroup>
     <EmbeddedResource Include="IconsAndLogos\globe%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\globe.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\spinner-inside%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-inside.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-outside%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-outside.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\code%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\code.png" />
+    <EmbeddedResource Include="IconsAndLogos\merge%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\merge.png" />
+    <EmbeddedResource Include="IconsAndLogos\rocket%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\rocket.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\common\nativelibraries.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

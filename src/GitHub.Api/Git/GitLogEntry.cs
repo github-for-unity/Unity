@@ -128,6 +128,68 @@ namespace GitHub.Unity
             }
         }
 
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (commitID?.GetHashCode() ?? 0);
+            hash = hash * 23 + (mergeA?.GetHashCode() ?? 0);
+            hash = hash * 23 + (mergeB?.GetHashCode() ?? 0);
+            hash = hash * 23 + (authorName?.GetHashCode() ?? 0);
+            hash = hash * 23 + (authorEmail?.GetHashCode() ?? 0);
+            hash = hash * 23 + (commitEmail?.GetHashCode() ?? 0);
+            hash = hash * 23 + (commitName?.GetHashCode() ?? 0);
+            hash = hash * 23 + (summary?.GetHashCode() ?? 0);
+            hash = hash * 23 + (description?.GetHashCode() ?? 0);
+            hash = hash * 23 + (timeString?.GetHashCode() ?? 0);
+            hash = hash * 23 + (commitTimeString?.GetHashCode() ?? 0);
+            hash = hash * 23 + (changes?.GetHashCode() ?? 0);
+            return hash;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is GitLogEntry)
+                return Equals((GitLogEntry)other);
+            return false;
+        }
+
+        public bool Equals(GitLogEntry other)
+        {
+            return
+                String.Equals(commitID, other.commitID) &&
+                String.Equals(mergeA, other.mergeA) &&
+                String.Equals(mergeB, other.mergeB) &&
+                String.Equals(authorName, other.authorName) &&
+                String.Equals(authorEmail, other.authorEmail) &&
+                String.Equals(commitEmail, other.commitEmail) &&
+                String.Equals(commitName, other.commitName) &&
+                String.Equals(summary, other.summary) &&
+                String.Equals(description, other.description) &&
+                String.Equals(timeString, other.timeString) &&
+                String.Equals(commitTimeString, other.commitTimeString) &&
+                object.Equals(changes, other.changes)
+                ;
+        }
+
+        public static bool operator ==(GitLogEntry lhs, GitLogEntry rhs)
+        {
+            // If both are null, or both are same instance, return true.
+            if (ReferenceEquals(lhs, rhs))
+                return true;
+
+            // If one is null, but not both, return false.
+            if (((object)lhs == null) || ((object)rhs == null))
+                return false;
+
+            // Return true if the fields match:
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(GitLogEntry lhs, GitLogEntry rhs)
+        {
+            return !(lhs == rhs);
+        }
+
         public string ShortID => CommitID.Length < 7 ? CommitID : CommitID.Substring(0, 7);
 
         public string CommitID => commitID;

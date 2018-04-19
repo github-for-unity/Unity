@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Linq;
 using UnityEditorInternal;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [AttributeUsage(AttributeTargets.Class)]
-    class LocationAttribute : Attribute
+    sealed class LocationAttribute : Attribute
     {
         public enum Location { PreferencesFolder, ProjectFolder, LibraryFolder, UserFolder }
         public string filepath { get; set; }
@@ -29,27 +30,6 @@ namespace GitHub.Unity
 
     class ScriptObjectSingleton<T> : ScriptableObject where T : ScriptableObject
     {
-        private string filePath = null;
-        private NPath nFilePath = null;
-        private NPath FilePath
-        {
-            get
-            {
-                if (nFilePath == null)
-                {
-                    if (filePath == "")
-                        return null;
-                    if (filePath == null)
-                        filePath = GetFilePath();
-                    if (filePath == null)
-                        filePath = "";
-                    else
-                        nFilePath = filePath.ToNPath();
-                }
-                return nFilePath;
-            }
-        }
-
         private static T instance;
         public static T Instance
         {
@@ -65,7 +45,7 @@ namespace GitHub.Unity
         {
             if (instance != null)
             {
-                Logging.Instance.Error("Singleton already exists!");
+                LogHelper.Instance.Error("Singleton already exists!");
             }
             else
             {
@@ -98,26 +78,28 @@ namespace GitHub.Unity
         {
             if (instance == null)
             {
-                Logging.Instance.Error("Cannot save singleton, no instance!");
+                LogHelper.Instance.Error("Cannot save singleton, no instance!");
                 return;
             }
 
-            NPath filePath = GetFilePath();
-            if (filePath != null)
+            NPath? locationFilePath = GetFilePath();
+            if (locationFilePath != null)
             {
-                filePath.Parent.EnsureDirectoryExists();
-                InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, filePath, saveAsText);
+                locationFilePath.Value.Parent.EnsureDirectoryExists();
+                InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, locationFilePath, saveAsText);
             }
         }
 
-        private static NPath GetFilePath()
+        private static NPath? GetFilePath()
         {
             var attr = typeof(T).GetCustomAttributes(true)
                                 .Select(t => t as LocationAttribute)
                                 .FirstOrDefault(t => t != null);
-            //Logging.Instance.Debug("FilePath {0}", attr != null ? attr.filepath : null);
-
-            return attr != null ? attr.filepath.ToNPath() : null;
+            //LogHelper.Instance.Debug("FilePath {0}", attr != null ? attr.filepath : null);
+            
+            if (attr == null)
+                return null;
+            return attr.filepath.ToNPath();
         }
     }
 }

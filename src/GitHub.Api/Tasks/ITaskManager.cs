@@ -11,11 +11,8 @@ namespace GitHub.Unity
         TaskScheduler UIScheduler { get; set; }
         CancellationToken Token { get; }
 
-        void Schedule(params ITask[] tasks);
         T Schedule<T>(T task) where T : ITask;
-        T ScheduleConcurrent<T>(T task) where T : ITask;
-        T ScheduleExclusive<T>(T task) where T : ITask;
-        T ScheduleUI<T>(T task) where T : ITask;
         Task Wait();
+        ITask RunInUI(Action action);
     }
 }

@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.IO;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace GitHub.Unity
 
             if (loadImage == null)
             {
-                Logging.Error("Could not find ImageConversion.LoadImage method");
+                LogHelper.Error("Could not find ImageConversion.LoadImage method");
             }
         }
 
@@ -112,6 +113,22 @@ namespace GitHub.Unity
                 tex = invokeLoadImage(tex, ms);
                 return tex;
             }
+        }
+
+        public static void InvertColors(this Texture2D texture)
+        {
+            for (var m = 0; m < texture.mipmapCount; m++)
+            {
+                var c = texture.GetPixels(m);
+                for (var i = 0; i < c.Length; i++)
+                {
+                    c[i].r = 1 - c[i].r;
+                    c[i].g = 1 - c[i].g;
+                    c[i].b = 1 - c[i].b;
+                }
+                texture.SetPixels(c, m);
+            }
+            texture.Apply();
         }
     }
 }

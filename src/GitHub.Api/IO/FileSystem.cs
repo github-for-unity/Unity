@@ -1,18 +1,60 @@
-using GitHub.Unity;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
 namespace GitHub.Unity
 {
-    class FileSystem : IFileSystem
+    public interface IFileSystem
+    {
+        string ChangeExtension(string path, string extension);
+        string Combine(string path1, string path2);
+        string Combine(string path1, string path2, string path3);
+        void DirectoryCreate(string path);
+        void DirectoryDelete(string path, bool recursive);
+        bool DirectoryExists(string path);
+        void DirectoryMove(string toString, string s);
+        bool ExistingPathIsDirectory(string path);
+        void FileCopy(string sourceFileName, string destFileName, bool overwrite);
+        void FileDelete(string path);
+        bool FileExists(string path);
+        void FileMove(string sourceFileName, string s);
+        string GetCurrentDirectory();
+        IEnumerable<string> GetDirectories(string path);
+        IEnumerable<string> GetDirectories(string path, string pattern);
+        IEnumerable<string> GetDirectories(string path, string pattern, SearchOption searchOption);
+        string GetDirectoryName(string path);
+        string GetFileNameWithoutExtension(string fileName);
+        IEnumerable<string> GetFiles(string path);
+        IEnumerable<string> GetFiles(string path, string pattern);
+        IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption);
+        string GetFullPath(string path);
+        string GetParentDirectory(string path);
+        string GetRandomFileName();
+        string GetTempPath();
+        Stream OpenRead(string path);
+        Stream OpenWrite(string path, FileMode mode);
+        byte[] ReadAllBytes(string path);
+        string[] ReadAllLines(string path);
+        string ReadAllText(string path);
+        string ReadAllText(string path, Encoding encoding);
+        void SetCurrentDirectory(string currentDirectory);
+        void WriteAllBytes(string path, byte[] bytes);
+        void WriteAllLines(string path, string[] contents);
+        void WriteAllText(string path, string contents);
+        void WriteAllText(string path, string contents, Encoding encoding);
+        void WriteLines(string path, string[] contents);
+
+        char DirectorySeparatorChar { get; }
+    }
+
+
+    public class FileSystem : IFileSystem
     {
         private string currentDirectory;
 
         public FileSystem()
-        {
-        }
+        { }
 
         /// <summary>
         /// Initialize the filesystem object with the path passed in set as the current directory
@@ -20,13 +62,14 @@ namespace GitHub.Unity
         /// <param name="directory">Current directory</param>
         public FileSystem(string directory)
         {
-            this.currentDirectory = directory;
+            currentDirectory = directory;
         }
 
         public void SetCurrentDirectory(string directory)
         {
-            Debug.Assert(Path.IsPathRooted(directory));
-            this.currentDirectory = directory;
+            if (!Path.IsPathRooted(directory))
+                throw new ArgumentException("SetCurrentDirectory requires a rooted path", "directory");
+            currentDirectory = directory;
         }
 
         public bool FileExists(string filename)
@@ -115,12 +158,17 @@ namespace GitHub.Unity
             return Directory.GetFiles(path, pattern, searchOption);
         }
 
+        public byte[] ReadAllBytes(string path)
+        {
+            return File.ReadAllBytes(path);
+        }
+
         public void WriteAllBytes(string path, byte[] bytes)
         {
             File.WriteAllBytes(path, bytes);
         }
 
-        public void CreateDirectory(string toString)
+        public void DirectoryCreate(string toString)
         {
             Directory.CreateDirectory(toString);
         }
@@ -187,9 +235,13 @@ namespace GitHub.Unity
             return File.ReadAllLines(path);
         }
 
-        public char DirectorySeparatorChar
+        public void WriteLines(string path, string[] contents)
         {
-            get { return Path.DirectorySeparatorChar; }
+            using (var fs = File.AppendText(path))
+            {
+                foreach (var line in contents)
+                    fs.WriteLine(line);
+            }
         }
 
         public string GetRandomFileName()
@@ -200,6 +252,16 @@ namespace GitHub.Unity
         public Stream OpenRead(string path)
         {
             return File.OpenRead(path);
+        }
+
+        public Stream OpenWrite(string path, FileMode mode)
+        {
+            return new FileStream(path, mode);
+        }
+
+        public char DirectorySeparatorChar
+        {
+            get { return Path.DirectorySeparatorChar; }
         }
     }
 }

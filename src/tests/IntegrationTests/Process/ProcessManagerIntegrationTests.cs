@@ -15,7 +15,7 @@ namespace IntegrationTests
         [Test]
         public async Task BranchListTest()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
 
             IEnumerable<GitBranch> gitBranches = null;
             gitBranches = await ProcessManager
@@ -23,14 +23,14 @@ namespace IntegrationTests
                 .StartAsAsync();
 
             gitBranches.Should().BeEquivalentTo(
-                new GitBranch("master", "origin/master: behind 1", true),
-                new GitBranch("feature/document", "origin/feature/document", false));
+                new GitBranch("master", "origin/master: behind 1"),
+                new GitBranch("feature/document", "origin/feature/document"));
         }
 
         [Test]
         public async Task LogEntriesTest()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
@@ -71,7 +71,7 @@ namespace IntegrationTests
         [Test]
         public async Task RussianLogEntriesTest()
         {
-            await Initialize(TestRepoMasterCleanUnsynchronizedRussianLanguage);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronizedRussianLanguage);
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
@@ -99,7 +99,7 @@ namespace IntegrationTests
         [Test]
         public async Task RemoteListTest()
         {
-            await Initialize(TestRepoMasterCleanSynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
             List<GitRemote> gitRemotes = null;
             gitRemotes = await ProcessManager
@@ -112,7 +112,7 @@ namespace IntegrationTests
         [Test]
         public async Task StatusTest()
         {
-            await Initialize(TestRepoMasterDirtyUnsynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterDirtyUnsynchronized);
 
             GitStatus? gitStatus = null;
             gitStatus = await ProcessManager
@@ -147,7 +147,7 @@ namespace IntegrationTests
         [Test]
         public async Task CredentialHelperGetTest()
         {
-            await Initialize(TestRepoMasterCleanSynchronized);
+            InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
             await ProcessManager
                 .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)

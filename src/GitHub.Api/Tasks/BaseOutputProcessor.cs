@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -33,7 +34,7 @@ namespace GitHub.Unity
         public virtual T Result { get; protected set; }
 
         private ILogging logger;
-        protected ILogging Logger { get { return logger = logger ?? Logging.GetLogger(GetType()); } }
+        protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
     }
 
     public abstract class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
@@ -118,7 +119,7 @@ namespace GitHub.Unity
     {
         protected override bool ProcessLine(string line, out NPath result)
         {
-            result = null;
+            result = NPath.Default;
             if (String.IsNullOrEmpty(line))
                 return false;
             result = line.ToNPath();
