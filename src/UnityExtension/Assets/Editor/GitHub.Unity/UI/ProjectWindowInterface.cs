@@ -183,24 +183,7 @@ namespace GitHub.Unity
             guids.Clear();
             for (var index = 0; index < entries.Count; ++index)
             {
-                var gitStatusEntry = entries[index];
-
-                var path = gitStatusEntry.ProjectPath;
-                if (gitStatusEntry.Status == GitFileStatus.Ignored)
-                {
-                    continue;
-                }
-
-                if (!path.StartsWith("Assets", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (path.EndsWith(".meta", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    continue;
-                }
-
+                var path = entries[index].ProjectPath;
                 var guid = AssetDatabase.AssetPathToGUID(path);
                 guids.Add(guid);
             }

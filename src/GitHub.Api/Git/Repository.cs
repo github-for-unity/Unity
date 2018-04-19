@@ -92,7 +92,7 @@ namespace GitHub.Unity
         {
             foreach (var cacheType in cacheInvalidationRequests)
             {
-                RefreshCache(cacheType);
+                CacheHasBeenInvalidated(cacheType);
             }
         }
 
