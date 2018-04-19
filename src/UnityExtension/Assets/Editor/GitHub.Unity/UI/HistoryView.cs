@@ -459,8 +459,13 @@ namespace GitHub.Unity
                         selectedEntry = entry;
                         BuildTree();
                     },
-                    entry => { },
-                    entry => { });
+                    entry => { }, entry => {
+                        GenericMenu menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
+                        menu.ShowAsContext();
+
+                        Event.current.Use();
+                    });
 
                 if (requiresRepaint)
                     Redraw();
@@ -544,6 +549,26 @@ namespace GitHub.Unity
 
             GUILayout.Space(3);
             GUILayout.EndVertical();
+        }
+
+        private void RevertCommit()
+        {
+            var dialogTitle = "Revert commit";
+            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", selectedEntry.Summary);
+
+            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
+            {
+                Repository
+                    .Revert(selectedEntry.CommitID)
+                    .FinallyInUI((success, e) => {
+                        if (!success)
+                        {
+                            EditorUtility.DisplayDialog(dialogTitle,
+                                "Error reverting commit: " + e.Message, Localization.Cancel);
+                        }
+                    })
+                    .Start();
+            }
         }
 
         private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
