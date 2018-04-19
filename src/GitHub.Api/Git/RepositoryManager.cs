@@ -184,8 +184,7 @@ namespace GitHub.Unity
 
         public ITask CommitAllFiles(string message, string body)
         {
-            var tempFilename = NPath.GetTempFilename();
-            fileSystem.WriteAllLines(tempFilename, new []{message, Environment.NewLine, body});
+            var tempFilename = WriteCommitMessageToTempFile(message, body);
 
             var task = GitClient.AddAll()
                 .Then(GitClient.Commit(tempFilename));
@@ -195,8 +194,7 @@ namespace GitHub.Unity
 
         public ITask CommitFiles(List<string> files, string message, string body)
         {
-            var tempFilename = NPath.GetTempFilename();
-            fileSystem.WriteAllLines(tempFilename, new[] { message, Environment.NewLine, body });
+            var tempFilename = WriteCommitMessageToTempFile(message, body);
 
             var task = GitClient.Add(files)
                 .Then(GitClient.Commit(tempFilename));
@@ -599,6 +597,13 @@ namespace GitHub.Unity
             RemoteBranchesUpdated?.Invoke(remotes, remoteBranches);
 
             UpdateGitAheadBehindStatus();
+        }
+
+        private NPath WriteCommitMessageToTempFile(string message, string body)
+        {
+            var tempFilename = NPath.GetTempFilename();
+            fileSystem.WriteAllLines(tempFilename, new[] { message, Environment.NewLine, body });
+            return tempFilename;
         }
 
         private bool disposed;
