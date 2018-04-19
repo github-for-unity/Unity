@@ -61,7 +61,7 @@ namespace GitHub.Unity
         ITask<string> RemoteChange(string remote, string url,
             IOutputProcessor<string> processor = null);
 
-        ITask<string> Commit(string messageFile,
+        ITask<string> Commit(NPath messageFile,
             IOutputProcessor<string> processor = null);
 
         ITask<string> Add(IList<string> files,
@@ -77,7 +77,7 @@ namespace GitHub.Unity
         ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null);
 
-        ITask<string> AddAndCommit(IList<string> files, string messageFile,
+        ITask<string> AddAndCommit(IList<string> files, NPath messageFile,
             IOutputProcessor<string> processor = null);
 
         ITask<string> Lock(string file,
@@ -333,7 +333,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> Commit(string messageFile,
+        public ITask<string> Commit(NPath messageFile, 
             IOutputProcessor<string> processor = null)
         {
             //Logger.Trace("Commit");
@@ -413,7 +413,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> AddAndCommit(IList<string> files, string messageFile,
+        public ITask<string> AddAndCommit(IList<string> files, NPath messageFile, 
             IOutputProcessor<string> processor = null)
         {
             //Logger.Trace("AddAndCommit");

@@ -8,7 +8,7 @@ namespace GitHub.Unity
         private const string TaskName = "git commit";
         private readonly string arguments;
 
-        public GitCommitTask(string messageFile,
+        public GitCommitTask(NPath messageFile,
             CancellationToken token, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
