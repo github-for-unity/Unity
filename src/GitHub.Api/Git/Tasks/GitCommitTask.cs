@@ -12,7 +12,7 @@ namespace GitHub.Unity
             CancellationToken token, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
-            Guard.ArgumentNotNullOrWhiteSpace(messageFile, "messageFile");
+            Guard.ArgumentNotNullOrWhiteSpace(messageFile, nameof(messageFile));
 
             Name = TaskName;
             arguments = $"-c i18n.commitencoding=utf8 commit --file \"{messageFile}\"";
