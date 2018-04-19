@@ -15,8 +15,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(messageFile, "messageFile");
 
             Name = TaskName;
-            arguments = "-c i18n.commitencoding=utf8 commit ";
-            arguments += String.Format(" --file \"{0}\"", messageFile);
+            arguments = $"-c i18n.commitencoding=utf8 commit --file \"{messageFile}\"";
         }
 
         public override string ProcessArguments { get { return arguments; } }
