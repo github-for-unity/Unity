@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class StatusOutputProcessor : BaseOutputProcessor<GitStatus>
+    class GitStatusOutputProcessor : BaseOutputProcessor<GitStatus>
     {
         private static readonly Regex branchTrackedAndDelta = new Regex(@"(.*)\.\.\.(.*)\s\[(.*)\]",
             RegexOptions.Compiled);
@@ -13,7 +13,7 @@ namespace GitHub.Unity
         private readonly IGitObjectFactory gitObjectFactory;
         GitStatus gitStatus;
         
-        public StatusOutputProcessor(IGitObjectFactory gitObjectFactory)
+        public GitStatusOutputProcessor(IGitObjectFactory gitObjectFactory)
         {
             Guard.ArgumentNotNull(gitObjectFactory, "gitObjectFactory");
             this.gitObjectFactory = gitObjectFactory;
@@ -189,6 +189,10 @@ namespace GitHub.Unity
         {
             if (gitStatus.Entries == null)
                 return;
+
+            gitStatus.Entries = gitStatus.Entries
+                                         .OrderBy(entry => entry.Path)
+                                         .ToList();
 
             RaiseOnEntry(gitStatus);
 
