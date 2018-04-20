@@ -147,9 +147,6 @@ namespace GitHub.Unity
 
             var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-            var commitPath = NPath.GetTempFilename();
-            commitPath.WriteAllLines(new[] { "Initial commit", String.Empty, String.Empty });
-
             var task = 
                 GitClient.Init()
                 .Then(GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local))
@@ -163,15 +160,13 @@ namespace GitHub.Unity
                     assetsGitignore.CreateFile();
                 }))
                 .Then(GitClient.Add(filesForInitialCommit))
-                .Then(GitClient.Commit(commitPath))
+                .Then(GitClient.Commit("Initial commit", null))
                 .Then(_ =>
                 {
                     Environment.InitializeRepository();
                     RestartRepository();
                 })
-                .ThenInUI(InitializeUI)
-                .Finally(_ => commitPath.DeleteIfExists());
-
+                .ThenInUI(InitializeUI);
             return task;
         }
 
