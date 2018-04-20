@@ -123,17 +123,8 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
-                            user: username, userToken: loginResultData.Token)
-                        .Configure(processManager);
-
-                    var validateResult = await octorunTask.StartAsAsync();
-                    if (!validateResult.IsSuccess)
-                    {
-                        throw new InvalidOperationException("Authentication validation failed");
-                    }
-
-                    keychain.SetToken(host, loginResultData.Token, validateResult.Output[1]);
+                    username = await RetrieveUsername(loginResultData, username);
+                    keychain.SetToken(host, loginResultData.Token, username);
                     await keychain.Save(host);
 
                     return loginResultData;
@@ -208,6 +199,25 @@ namespace GitHub.Unity
             }
 
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
+        }
+
+        private async Task<string> RetrieveUsername(LoginResultData loginResultData, string username)
+        {
+            if (!username.Contains("@"))
+            {
+                return username;
+            }
+
+            var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
+                user: username, userToken: loginResultData.Token).Configure(processManager);
+
+            var validateResult = await octorunTask.StartAsAsync();
+            if (!validateResult.IsSuccess)
+            {
+                throw new InvalidOperationException("Authentication validation failed");
+            }
+
+            return validateResult.Output[1];
         }
     }
 
