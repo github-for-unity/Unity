@@ -33,7 +33,7 @@ namespace GitHub.Unity
             this.taskManager = taskManager;
             this.nodeJsExecutablePath = nodeJsExecutablePath;
             this.octorunScriptPath = octorunScriptPath;
-            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret,
+            loginManager = new LoginManager(keychain,
                 processManager: processManager,
                 taskManager: taskManager,
                 nodeJsExecutablePath: nodeJsExecutablePath,

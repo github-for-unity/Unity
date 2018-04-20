@@ -16,9 +16,10 @@ namespace GitHub.Unity
             this.Token = token;
         }
 
-        public void UpdateToken(string token)
+        public void UpdateToken(string token, string username)
         {
             this.Token = token;
+            this.Username = username;
         }
 
         public UriString Host { get; private set; }

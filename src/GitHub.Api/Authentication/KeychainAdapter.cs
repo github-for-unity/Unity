@@ -9,9 +9,9 @@
             Credential = credential;
         }
 
-        public void UpdateToken(string token)
+        public void UpdateToken(string token, string username)
         {
-            Credential.UpdateToken(token);
+            Credential.UpdateToken(token, username);
         }
 
         public void Clear()
