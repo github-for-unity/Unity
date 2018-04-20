@@ -84,7 +84,8 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    keychain.SetToken(host, loginResultData.Token, null);
+                    username = await RetrieveUsername(loginResultData, username);
+                    keychain.SetToken(host, loginResultData.Token, username);
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
