@@ -85,7 +85,11 @@ namespace GitHub.Unity
                     }
 
                     keychain.SetToken(host, loginResultData.Token);
-                    await keychain.Save(host);
+
+                    if (loginResultData.Code == LoginResultCodes.Success)
+                    {
+                        await keychain.Save(host);
+                    }
 
                     return loginResultData;
                 }
