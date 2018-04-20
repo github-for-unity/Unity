@@ -35,8 +35,8 @@ namespace GitHub.Unity
 
         protected override void RaiseOnEnd()
         {
-            base.RaiseOnEnd();
             tempFile.DeleteIfExists();
+            base.RaiseOnEnd();
         }
 
         public override string ProcessArguments { get { return arguments; } }
