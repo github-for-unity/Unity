@@ -9,7 +9,7 @@
             Credential = credential;
         }
 
-        public void UpdateToken(string token, string username = null)
+        public void UpdateToken(string token, string username)
         {
             Credential.UpdateToken(token, username);
         }

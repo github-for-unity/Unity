@@ -8,7 +8,7 @@ namespace GitHub.Unity
         UriString Host { get; }
         string Username { get; }
         string Token { get; }
-        void UpdateToken(string token, string username = null);
+        void UpdateToken(string token, string username);
     }
 
     public interface ICredentialManager
