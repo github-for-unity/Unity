@@ -155,8 +155,8 @@ namespace GitHub.Unity
         private Usage GetCurrentUsage(UsageStore usageStore)
         {
             var usage = usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion);
-            usage.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
-            usage.CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag;
+            usage.Dimensions.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
+            usage.Dimensions.CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag;
             return usage;
         }
 
@@ -165,8 +165,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfStartups++;
-            Logger.Trace("NumberOfStartups:{0} Date:{1}", usage.NumberOfStartups, usage.Date);
+            usage.Measures.NumberOfStartups++;
+            Logger.Trace("NumberOfStartups:{0} Date:{1}", usage.Measures.NumberOfStartups, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -176,8 +176,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfCommits++;
-            Logger.Trace("NumberOfCommits:{0} Date:{1}", usage.NumberOfCommits, usage.Date);
+            usage.Measures.NumberOfCommits++;
+            Logger.Trace("NumberOfCommits:{0} Date:{1}", usage.Measures.NumberOfCommits, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -187,8 +187,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfFetches++;
-            Logger.Trace("NumberOfFetches:{0} Date:{1}", usage.NumberOfFetches, usage.Date);
+            usage.Measures.NumberOfFetches++;
+            Logger.Trace("NumberOfFetches:{0} Date:{1}", usage.Measures.NumberOfFetches, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -198,8 +198,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfPushes++;
-            Logger.Trace("NumberOfPushes:{0} Date:{1}", usage.NumberOfPushes, usage.Date);
+            usage.Measures.NumberOfPushes++;
+            Logger.Trace("NumberOfPushes:{0} Date:{1}", usage.Measures.NumberOfPushes, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -209,8 +209,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfProjectsInitialized++;
-            Logger.Trace("NumberOfProjectsInitialized:{0} Date:{1}", usage.NumberOfProjectsInitialized, usage.Date);
+            usage.Measures.NumberOfProjectsInitialized++;
+            Logger.Trace("NumberOfProjectsInitialized:{0} Date:{1}", usage.Measures.NumberOfProjectsInitialized, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -220,8 +220,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfLocalBranchCreations++;
-            Logger.Trace("NumberOfLocalBranchCreations:{0} Date:{1}", usage.NumberOfLocalBranchCreations, usage.Date);
+            usage.Measures.NumberOfLocalBranchCreations++;
+            Logger.Trace("NumberOfLocalBranchCreations:{0} Date:{1}", usage.Measures.NumberOfLocalBranchCreations, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -231,8 +231,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfLocalBranchDeletion++;
-            Logger.Trace("NumberOfLocalBranchDeletion:{0} Date:{1}", usage.NumberOfLocalBranchDeletion, usage.Date);
+            usage.Measures.NumberOfLocalBranchDeletion++;
+            Logger.Trace("NumberOfLocalBranchDeletion:{0} Date:{1}", usage.Measures.NumberOfLocalBranchDeletion, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -242,8 +242,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfLocalBranchCheckouts++;
-            Logger.Trace("NumberOfLocalBranchCheckouts:{0} Date:{1}", usage.NumberOfLocalBranchCheckouts, usage.Date);
+            usage.Measures.NumberOfLocalBranchCheckouts++;
+            Logger.Trace("NumberOfLocalBranchCheckouts:{0} Date:{1}", usage.Measures.NumberOfLocalBranchCheckouts, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -253,8 +253,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfRemoteBranchCheckouts++;
-            Logger.Trace("NumberOfRemoteBranchCheckouts:{0} Date:{1}", usage.NumberOfRemoteBranchCheckouts, usage.Date);
+            usage.Measures.NumberOfRemoteBranchCheckouts++;
+            Logger.Trace("NumberOfRemoteBranchCheckouts:{0} Date:{1}", usage.Measures.NumberOfRemoteBranchCheckouts, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -264,8 +264,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfPulls++;
-            Logger.Trace("NumberOfPulls:{0} Date:{1}", usage.NumberOfPulls, usage.Date);
+            usage.Measures.NumberOfPulls++;
+            Logger.Trace("NumberOfPulls:{0} Date:{1}", usage.Measures.NumberOfPulls, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -275,8 +275,8 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.NumberOfAuthentications++;
-            Logger.Trace("NumberOfAuthentications:{0} Date:{1}", usage.NumberOfAuthentications, usage.Date);
+            usage.Measures.NumberOfAuthentications++;
+            Logger.Trace("NumberOfAuthentications:{0} Date:{1}", usage.Measures.NumberOfAuthentications, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
