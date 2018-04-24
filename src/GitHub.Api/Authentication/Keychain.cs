@@ -152,9 +152,10 @@ namespace GitHub.Unity
 
             Guard.ArgumentNotNull(host, nameof(host));
         
+            RemoveConnection(host);
+
             //clear octokit credentials
             await RemoveCredential(host, deleteFromCredentialManager);
-            RemoveConnection(host);
         }
 
         public async Task Save(UriString host)
