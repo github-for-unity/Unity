@@ -409,7 +409,10 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(client, nameof(client));
             gitClient = client;
             if (needsRefresh)
-                cacheContainer.GitUserCache.InvalidateData();
+            {
+                needsRefresh = false;
+                GitUserCacheOnCacheInvalidated();
+            }
         }
 
         public void SetNameAndEmail(string name, string email)
