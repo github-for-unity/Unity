@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "src\tests\TestAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebServer", "src\tests\TestWebServer\TestWebServer.csproj", "{3DD3451C-30FA-4294-A3A9-1E080342F867}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityTests", "src\UnityExtension\Assets\Editor\UnityTests\UnityTests.csproj", "{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +104,12 @@ Global
 		{3DD3451C-30FA-4294-A3A9-1E080342F867}.dev|Any CPU.Build.0 = Debug|Any CPU
 		{3DD3451C-30FA-4294-A3A9-1E080342F867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DD3451C-30FA-4294-A3A9-1E080342F867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}.dev|Any CPU.ActiveCfg = Debug|Any CPU
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}.dev|Any CPU.Build.0 = Debug|Any CPU
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,5 +123,6 @@ Global
 		{1A382F40-FD9E-43E1-89C1-320073F35CE9} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
 		{08B87D2A-8CF1-4211-B7AA-5209F00F72F8} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
 		{3DD3451C-30FA-4294-A3A9-1E080342F867} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
+		{462CDBD4-0DDA-4854-1B13-CFDACBFB66F5} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
 	EndGlobalSection
 EndGlobal

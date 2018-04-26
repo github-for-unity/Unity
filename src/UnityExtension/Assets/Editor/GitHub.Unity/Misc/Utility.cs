@@ -26,7 +26,7 @@ namespace GitHub.Unity
             }
             else
             {
-                var iconPath = EntryPoint.Environment.ExtensionInstallPath.Combine("IconsAndLogos", filename).ToString(SlashMode.Forward);
+                var iconPath = "Assets/Editor/GitHubUnity/IconsAndLogos/" + filename;
                 texture2D = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
             }
 
