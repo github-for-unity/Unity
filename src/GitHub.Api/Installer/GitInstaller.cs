@@ -304,14 +304,11 @@ namespace GitHub.Unity
             public const string DefaultGitLfsZipMd5Url = "https://ghfvs-installer.github.com/unity/git/windows/git-lfs.zip.md5";
             public const string DefaultGitLfsZipUrl = "https://ghfvs-installer.github.com/unity/git/windows/git-lfs.zip";
 
-            public const string GitExtractedMD5 = "e6cfc0c294a2312042f27f893dfc9c0a";
-            public const string GitLfsExtractedMD5 = "36e3ae968b69fbf42dff72311040d24a";
-
             public const string WindowsGitExecutableMD5 = "50570ed932559f294d1a1361801740b9";
             public const string MacGitExecutableMD5 = "";
 
-            public const string WindowsGitLfsExecutableMD5 = "177bb14d0c08f665a24f0d5516c3b080";
-            public const string MacGitLfsExecutableMD5 = "f81a1a065a26a4123193e8fd96c561ad";
+            public const string WindowsGitLfsExecutableMD5 = "4294df6cbb467b8133553570450757c7";
+            public const string MacGitLfsExecutableMD5 = "d0d59164a4b7b35685502d7c5f747f2f";
 
             private const string PackageVersion = "f02737a78695063deace08e96d5042710d3e32db";
             private const string PackageName = "PortableGit";

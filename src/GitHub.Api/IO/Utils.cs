@@ -82,7 +82,7 @@ namespace GitHub.Unity
         }
         public static bool VerifyFileIntegrity(NPath file, NPath md5file)
         {
-            var expected = md5file.ReadAllText();
+            var expected = md5file.ReadAllText().Trim();
             var actual = file.CalculateMD5();
             return expected.Equals(actual, StringComparison.InvariantCultureIgnoreCase);
         }

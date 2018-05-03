@@ -47,7 +47,7 @@ namespace IntegrationTests
             Assert.AreEqual(task.Task, taskDone);
             var result = await task.Task;
 
-            var expected = new Version(2,3,4);
+            var expected = new Version(2,4,0);
             result.Should().Be(expected);
         }
     }
