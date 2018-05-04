@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace GitHub.Unity
 {
     public class Usage
     {
+        public string InstanceId { get; set; }
         public Dimensions Dimensions { get; set; } = new Dimensions();
         public Measures Measures { get; set; } = new Measures();
     }
@@ -42,7 +44,7 @@ namespace GitHub.Unity
 
         private Usage currentUsage;
 
-        public Usage GetCurrentUsage(string appVersion, string unityVersion)
+        public Usage GetCurrentUsage(string appVersion, string unityVersion, string instanceId)
         {
             Guard.ArgumentNotNullOrWhiteSpace(appVersion, "appVersion");
             Guard.ArgumentNotNullOrWhiteSpace(unityVersion, "unityVersion");
@@ -51,26 +53,21 @@ namespace GitHub.Unity
             if (currentUsage == null)
             {
                 currentUsage = Reports
-                    .FirstOrDefault(usage => usage.Dimensions.Date == date
-                        && usage.Dimensions.AppVersion == appVersion
-                        && usage.Dimensions.UnityVersion == unityVersion);
+                    .FirstOrDefault(usage => usage.InstanceId == instanceId);
             }
 
-            if (currentUsage?.Dimensions.Date == date)
-            {
-                // update any fields that might be missing, if we've changed the format
-                if (currentUsage.Dimensions.Guid != Guid)
-                    currentUsage.Dimensions.Guid = Guid;
-            }
-            else
+            if (currentUsage == null)
             {
                 currentUsage = new Usage
                 {
+                    InstanceId = instanceId,
                     Dimensions = {
                         Date = date,
                         Guid = Guid,
                         AppVersion = appVersion,
-                        UnityVersion = unityVersion
+                        UnityVersion = unityVersion,
+                        Lang = CultureInfo.InstalledUICulture.IetfLanguageTag,
+                        CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag
                     }
                 };
                 Reports.Add(currentUsage);
