@@ -68,6 +68,7 @@ namespace GitHub.Unity
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
+        protected IUsageTracker UsageTracker { get { return Manager.UsageTracker; } }
         public Rect Position { get { return Parent.Position; } }
         public string Title { get; protected set; }
         public Vector2 Size { get; protected set; }

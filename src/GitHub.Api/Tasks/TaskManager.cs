@@ -51,6 +51,11 @@ namespace GitHub.Unity
             }
         }
 
+        public ITask Run(Action action)
+        {
+            return new ActionTask(Token, action).Start();
+        }
+
         public ITask RunInUI(Action action)
         {
             return new ActionTask(Token, action) { Affinity = TaskAffinity.UI }.Start();
