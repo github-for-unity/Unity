@@ -24,7 +24,7 @@ namespace GitHub.Unity
 
     public class Measures
     {
-        public int Startups { get; set; }
+        public int NumberOfStartups { get; set; }
         public int Commits { get; set; }
         public int Fetches { get; set; }
         public int Pushes { get; set; }

@@ -164,7 +164,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Startups++;
+            usage.Measures.NumberOfStartups++;
 
             SaveUsage(usageStore);
         }
