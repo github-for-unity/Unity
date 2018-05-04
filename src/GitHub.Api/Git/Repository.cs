@@ -411,7 +411,7 @@ namespace GitHub.Unity
             if (needsRefresh)
             {
                 needsRefresh = false;
-                UpdateUserAndEmail();
+                GitUserCacheOnCacheInvalidated();
             }
         }
 
