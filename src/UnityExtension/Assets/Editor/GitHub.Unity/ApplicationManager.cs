@@ -23,7 +23,7 @@ namespace GitHub.Unity
 
         protected override void SetupMetrics()
         {
-            SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun);
+            SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun, ApplicationCache.Instance.InstanceId);
         }
 
         protected override void InitializeUI()

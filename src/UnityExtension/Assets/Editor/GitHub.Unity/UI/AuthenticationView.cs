@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 using UnityEditor;
 
@@ -211,8 +212,10 @@ namespace GitHub.Unity
 
             isBusy = false;
 
-            if (success == true)
+            if (success)
             {
+                TaskManager.Run(UsageTracker.IncrementNumberOfAuthentications);
+
                 Clear();
                 Finish(true);
             }
