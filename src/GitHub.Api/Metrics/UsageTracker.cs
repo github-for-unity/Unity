@@ -17,19 +17,21 @@ namespace GitHub.Unity
         private readonly NPath storePath;
         private readonly ISettings userSettings;
         private readonly IMetricsService metricsService;
-        private readonly string guid;
+        private readonly string userId;
         private readonly string unityVersion;
+        private readonly string instanceId;
         private Timer timer;
 
-        public UsageTracker(IMetricsService metricsService, ISettings userSettings, NPath storePath, string guid, string unityVersion)
+        public UsageTracker(IMetricsService metricsService, ISettings userSettings, NPath storePath, string userId, string unityVersion, string instanceId)
         {
             this.userSettings = userSettings;
             this.metricsService = metricsService;
-            this.guid = guid;
+            this.userId = userId;
             this.storePath = storePath;
             this.unityVersion = unityVersion;
+            this.instanceId = instanceId;
 
-            Logger.Trace("guid:{0}", guid);
+            Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
                 RunTimer(3*60);
         }
@@ -66,7 +68,7 @@ namespace GitHub.Unity
                 result = new UsageStore();
 
             if (String.IsNullOrEmpty(result.Model.Guid))
-                result.Model.Guid = guid;
+                result.Model.Guid = userId;
 
             return result;
         }
@@ -154,10 +156,7 @@ namespace GitHub.Unity
 
         private Usage GetCurrentUsage(UsageStore usageStore)
         {
-            var usage = usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion);
-            usage.Dimensions.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
-            usage.Dimensions.CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag;
-            return usage;
+            return usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion, instanceId);
         }
 
         public void IncrementNumberOfStartups()
@@ -175,7 +174,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfCommits++;
+            usage.Measures.Commits++;
 
             SaveUsage(usageStore);
         }
@@ -185,7 +184,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfFetches++;
+            usage.Measures.Fetches++;
 
             SaveUsage(usageStore);
         }
@@ -195,7 +194,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfPushes++;
+            usage.Measures.Pushes++;
 
             SaveUsage(usageStore);
         }
@@ -205,7 +204,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfProjectsInitialized++;
+            usage.Measures.ProjectsInitialized++;
 
             SaveUsage(usageStore);
         }
@@ -215,7 +214,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfLocalBranchCreations++;
+            usage.Measures.LocalBranchCreations++;
 
             SaveUsage(usageStore);
         }
@@ -225,7 +224,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfLocalBranchDeletion++;
+            usage.Measures.LocalBranchDeletion++;
 
             SaveUsage(usageStore);
         }
@@ -235,7 +234,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfLocalBranchCheckouts++;
+            usage.Measures.LocalBranchCheckouts++;
 
             SaveUsage(usageStore);
         }
@@ -245,7 +244,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfRemoteBranchCheckouts++;
+            usage.Measures.RemoteBranchCheckouts++;
 
             SaveUsage(usageStore);
         }
@@ -255,7 +254,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfPulls++;
+            usage.Measures.Pulls++;
 
             SaveUsage(usageStore);
         }
@@ -265,7 +264,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfAuthentications++;
+            usage.Measures.Authentications++;
 
             SaveUsage(usageStore);
         }
