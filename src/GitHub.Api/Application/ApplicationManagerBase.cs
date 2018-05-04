@@ -216,6 +216,7 @@ namespace GitHub.Unity
 
             if (firstRun)
             {
+                UsageTracker.CreateEntry();
                 TaskManager.Run(UsageTracker.IncrementNumberOfStartups);
             }
 #endif

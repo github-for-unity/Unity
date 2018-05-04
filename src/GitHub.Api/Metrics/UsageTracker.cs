@@ -154,10 +154,17 @@ namespace GitHub.Unity
 
         private Usage GetCurrentUsage(UsageStore usageStore)
         {
-            var usage = usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion);
-            usage.Dimensions.Lang = CultureInfo.InstalledUICulture.IetfLanguageTag;
-            usage.Dimensions.CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag;
-            return usage;
+            return usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion);
+        }
+
+        public void CreateEntry()
+        {
+            Logger.Trace("CreateEntry: \"{0}\"", storePath);
+
+            var usageStore = LoadUsage();
+            usageStore.Model.CreateEntry(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion);
+
+            SaveUsage(usageStore);
         }
 
         public void IncrementNumberOfStartups()

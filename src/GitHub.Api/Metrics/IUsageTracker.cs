@@ -14,6 +14,7 @@
         void IncrementNumberOfLocalBranchDeletions();
         void IncrementNumberOfLocalBranchCheckouts();
         void IncrementNumberOfRemoteBranchCheckouts();
+        void CreateEntry();
     }
 
     class NullUsageTracker : IUsageTracker
@@ -30,6 +31,8 @@
         public void IncrementNumberOfLocalBranchDeletions() { }
         public void IncrementNumberOfLocalBranchCheckouts() { }
         public void IncrementNumberOfRemoteBranchCheckouts() { }
+        public void CreateEntry() { }
+
         public void SetMetricsService(IMetricsService instance) { }
     }
 }

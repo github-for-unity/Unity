@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace GitHub.Unity
@@ -51,7 +52,7 @@ namespace GitHub.Unity
             if (currentUsage == null)
             {
                 currentUsage = Reports
-                    .FirstOrDefault(usage => usage.Dimensions.Date == date
+                    .Last(usage => usage.Dimensions.Date == date
                         && usage.Dimensions.AppVersion == appVersion
                         && usage.Dimensions.UnityVersion == unityVersion);
             }
@@ -64,16 +65,7 @@ namespace GitHub.Unity
             }
             else
             {
-                currentUsage = new Usage
-                {
-                    Dimensions = {
-                        Date = date,
-                        Guid = Guid,
-                        AppVersion = appVersion,
-                        UnityVersion = unityVersion
-                    }
-                };
-                Reports.Add(currentUsage);
+                throw new InvalidOperationException("Current usage not found");
             }
 
             return currentUsage;
@@ -87,6 +79,23 @@ namespace GitHub.Unity
         public void RemoveReports(DateTime beforeDate)
         {
             Reports.RemoveAll(usage => usage.Dimensions.Date.Date != beforeDate.Date);
+        }
+
+        public void CreateEntry(string appVersion, string unityVersion)
+        {
+            var date = DateTime.UtcNow.Date;
+            currentUsage = new Usage {
+                Dimensions = {
+                    Date = date,
+                    Guid = Guid,
+                    AppVersion = appVersion,
+                    UnityVersion = unityVersion,
+                    Lang = CultureInfo.InstalledUICulture.IetfLanguageTag,
+                    CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag
+                }
+            };
+
+            Reports.Add(currentUsage);
         }
     }
 
