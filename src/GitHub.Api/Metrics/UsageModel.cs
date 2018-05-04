@@ -24,17 +24,17 @@ namespace GitHub.Unity
 
     public class Measures
     {
-        public int NumberOfStartups { get; set; }
-        public int NumberOfCommits { get; set; }
-        public int NumberOfFetches { get; set; }
-        public int NumberOfPushes { get; set; }
-        public int NumberOfPulls { get; set; }
-        public int NumberOfProjectsInitialized { get; set; }
-        public int NumberOfAuthentications { get; set; }
-        public int NumberOfLocalBranchCreations { get; set; }
-        public int NumberOfLocalBranchDeletion { get; set; }
-        public int NumberOfLocalBranchCheckouts { get; set; }
-        public int NumberOfRemoteBranchCheckouts { get; set; }
+        public int Startups { get; set; }
+        public int Commits { get; set; }
+        public int Fetches { get; set; }
+        public int Pushes { get; set; }
+        public int Pulls { get; set; }
+        public int ProjectsInitialized { get; set; }
+        public int Authentications { get; set; }
+        public int LocalBranchCreations { get; set; }
+        public int LocalBranchDeletion { get; set; }
+        public int LocalBranchCheckouts { get; set; }
+        public int RemoteBranchCheckouts { get; set; }
     }
 
     class UsageModel
