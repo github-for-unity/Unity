@@ -7,19 +7,19 @@
     <ProjectGuid>{08B87D2A-8CF1-4211-B7AA-5209F00F72F8}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestApp</RootNamespace>
-    <AssemblyName>TestApp</AssemblyName>
+    <RootNamespace>Test.CommandLine</RootNamespace>
+    <AssemblyName>CommandLine</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
+    <OutputPath>$(SolutionDir)build\$(AssemblyName)</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,7 +29,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -47,8 +46,26 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
+      <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
+      <Name>GitHub.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
+      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
+      <Name>GitHub.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestWebServer\TestWebServer.csproj">
+      <Project>{3dd3451c-30fa-4294-a3a9-1e080342f867}</Project>
+      <Name>TestWebServer</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

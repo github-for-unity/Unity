@@ -12,28 +12,28 @@ namespace GitHub.Unity
         const int PART_COUNT = 4;
 
         [NotSerialized] private int major;
-        [NotSerialized] public int Major { get { Initialize(original); return major; } }
+        [NotSerialized] public int Major { get { Initialize(version); return major; } }
         [NotSerialized] private int minor;
-        [NotSerialized] public int Minor { get { Initialize(original); return minor; } }
+        [NotSerialized] public int Minor { get { Initialize(version); return minor; } }
         [NotSerialized] private int patch;
-        [NotSerialized] public int Patch { get { Initialize(original); return patch; } }
+        [NotSerialized] public int Patch { get { Initialize(version); return patch; } }
         [NotSerialized] private int build;
-        [NotSerialized] public int Build { get { Initialize(original); return build; } }
+        [NotSerialized] public int Build { get { Initialize(version); return build; } }
         [NotSerialized] private string special;
-        [NotSerialized] public string Special { get { Initialize(original); return special; } }
+        [NotSerialized] public string Special { get { Initialize(version); return special; } }
         [NotSerialized] private bool isAlpha;
-        [NotSerialized] public bool IsAlpha { get { Initialize(original); return isAlpha; } }
+        [NotSerialized] public bool IsAlpha { get { Initialize(version); return isAlpha; } }
         [NotSerialized] private bool isBeta;
-        [NotSerialized] public bool IsBeta { get { Initialize(original); return isBeta; } }
+        [NotSerialized] public bool IsBeta { get { Initialize(version); return isBeta; } }
         [NotSerialized] private bool isUnstable;
-        [NotSerialized] public bool IsUnstable { get { Initialize(original); return isUnstable; } }
+        [NotSerialized] public bool IsUnstable { get { Initialize(version); return isUnstable; } }
 
         [NotSerialized] private int[] intParts;
         [NotSerialized] private string[] stringParts;
         [NotSerialized] private int parts;
         [NotSerialized] private bool initialized;
 
-        private string original;
+        private string version;
 
         private static readonly Regex regex = new Regex(versionRegex);
 
@@ -45,12 +45,12 @@ namespace GitHub.Unity
             return ret;
         }
 
-        private void Initialize(string version)
+        private void Initialize(string theVersion)
         {
             if (initialized)
                 return;
 
-            original = version;
+            this.version = theVersion;
 
             isAlpha = false;
             isBeta = false;
@@ -69,7 +69,7 @@ namespace GitHub.Unity
 
             var match = regex.Match(version);
             if (!match.Success)
-                throw new ArgumentException("Invalid version: " + version, "version");
+                throw new ArgumentException("Invalid version: " + version, "theVersion");
 
             major = int.Parse(match.Groups["major"].Value);
             intParts[0] = major;
@@ -127,11 +127,12 @@ namespace GitHub.Unity
                 isAlpha = special.IndexOf("alpha") >= 0;
                 isBeta = special.IndexOf("beta") >= 0;
             }
+            initialized = true;
         }
 
         public override string ToString()
         {
-            return original;
+            return version;
         }
 
         public int CompareTo(TheVersion other)
@@ -168,7 +169,7 @@ namespace GitHub.Unity
 
         public static bool operator==(TheVersion lhs, TheVersion rhs)
         {
-            if (lhs.original == rhs.original)
+            if (lhs.version == rhs.version)
                 return true;
             return
                 (lhs.Major == rhs.Major) &&
@@ -185,11 +186,11 @@ namespace GitHub.Unity
 
         public static bool operator>(TheVersion lhs, TheVersion rhs)
         {
-            if (lhs.original == rhs.original)
+            if (lhs.version == rhs.version)
                 return false;
-            if (lhs.original == null)
+            if (lhs.version == null)
                 return false;
-            if (rhs.original == null)
+            if (rhs.version == null)
                 return true;
 
             for (var i = 0; i < PART_COUNT; i++)
@@ -267,11 +268,14 @@ namespace GitHub.Unity
         }
     }
 
-    [Serializable]
     public class Package
     {
+        private string version;
         public string Url { get; set; }
-        public string Version { get; set; }
+        public string ReleaseNotes { get; set; }
+        public string ReleaseNotesUrl { get; set; }
+        public string Message { get; set; }
+        [NotSerialized] public TheVersion Version { get { return TheVersion.Parse(version); } set { version = value.ToString(); } }
     }
 
     public class UpdateCheckWindow :  EditorWindow
