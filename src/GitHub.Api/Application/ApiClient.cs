@@ -33,7 +33,7 @@ namespace GitHub.Unity
             this.taskManager = taskManager;
             this.nodeJsExecutablePath = nodeJsExecutablePath;
             this.octorunScriptPath = octorunScriptPath;
-            loginManager = new LoginManager(keychain, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret,
+            loginManager = new LoginManager(keychain,
                 processManager: processManager,
                 taskManager: taskManager,
                 nodeJsExecutablePath: nodeJsExecutablePath,
@@ -129,55 +129,6 @@ namespace GitHub.Unity
                 loginResult.TwoFACallback(new LoginResult(result, loginResult.Callback, loginResult.TwoFACallback));
             }
             loginResult.Callback(result.Code == LoginResultCodes.Success, result.Message);
-        }
-
-        public async Task<bool> LoginAsync(string username, string password, Func<LoginResult, string> need2faCode)
-        {
-            Guard.ArgumentNotNull(need2faCode, "need2faCode");
-
-            LoginResultData res = null;
-            try
-            {
-                res = await loginManager.Login(OriginalUrl, username, password);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            if (res.Code == LoginResultCodes.CodeRequired)
-            {
-                var resultCache = new LoginResult(res, null, null);
-                var code = need2faCode(resultCache);
-                return await ContinueLoginAsync(resultCache, need2faCode, code);
-            }
-            else
-            {
-                return res.Code == LoginResultCodes.Success;
-            }
-        }
-
-        public async Task<bool> ContinueLoginAsync(LoginResult loginResult, Func<LoginResult, string> need2faCode, string code)
-        {
-            LoginResultData result = null;
-            try
-            {
-                result = await loginManager.ContinueLogin(loginResult.Data, code);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            if (result.Code == LoginResultCodes.CodeFailed)
-            {
-                var resultCache = new LoginResult(result, null, null);
-                code = need2faCode(resultCache);
-                if (String.IsNullOrEmpty(code))
-                    return false;
-                return await ContinueLoginAsync(resultCache, need2faCode, code);
-            }
-            return result.Code == LoginResultCodes.Success;
         }
 
         private async Task<GitHubUser> GetCurrentUser()

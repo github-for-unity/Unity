@@ -292,7 +292,7 @@ namespace UnitTests
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(password);
 
-            keychain.SetToken(hostUri, token);
+            keychain.SetToken(hostUri, token, username);
 
             keychainAdapter.Credential.Should().NotBeNull();
             keychainAdapter.Credential.Host.Should().Be(hostUri);

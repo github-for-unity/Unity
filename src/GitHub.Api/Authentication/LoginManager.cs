@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using GitHub.Logging;
 
@@ -23,8 +21,6 @@ namespace GitHub.Unity
         private readonly ILogging logger = LogHelper.GetLogger<LoginManager>();
 
         private readonly IKeychain keychain;
-        private readonly string clientId;
-        private readonly string clientSecret;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
         private readonly NPath? nodeJsExecutablePath;
@@ -34,25 +30,17 @@ namespace GitHub.Unity
         /// Initializes a new instance of the <see cref="LoginManager"/> class.
         /// </summary>
         /// <param name="keychain"></param>
-        /// <param name="clientId">The application's client API ID.</param>
-        /// <param name="clientSecret">The application's client API secret.</param>
         /// <param name="processManager"></param>
         /// <param name="taskManager"></param>
         /// <param name="nodeJsExecutablePath"></param>
         /// <param name="octorunScript"></param>
         public LoginManager(
-            IKeychain keychain,
-            string clientId,
-            string clientSecret,
-            IProcessManager processManager = null, ITaskManager taskManager = null, NPath? nodeJsExecutablePath = null, NPath? octorunScript = null)
+            IKeychain keychain, IProcessManager processManager = null, ITaskManager taskManager = null,
+            NPath? nodeJsExecutablePath = null, NPath? octorunScript = null)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
-            Guard.ArgumentNotNullOrWhiteSpace(clientId, nameof(clientId));
-            Guard.ArgumentNotNullOrWhiteSpace(clientSecret, nameof(clientSecret));
 
             this.keychain = keychain;
-            this.clientId = clientId;
-            this.clientSecret = clientSecret;
             this.processManager = processManager;
             this.taskManager = taskManager;
             this.nodeJsExecutablePath = nodeJsExecutablePath;
@@ -84,8 +72,17 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    keychain.SetToken(host, loginResultData.Token);
-                    await keychain.Save(host);
+                    if (loginResultData.Code == LoginResultCodes.Success)
+                    {
+                        username = await RetrieveUsername(loginResultData, username);
+                    }
+
+                    keychain.SetToken(host, loginResultData.Token, username);
+
+                    if (loginResultData.Code == LoginResultCodes.Success)
+                    {
+                        await keychain.Save(host);
+                    }
 
                     return loginResultData;
                 }
@@ -119,7 +116,8 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    keychain.SetToken(host, loginResultData.Token);
+                    username = await RetrieveUsername(loginResultData, username);
+                    keychain.SetToken(host, loginResultData.Token, username);
                     await keychain.Save(host);
 
                     return loginResultData;
@@ -194,6 +192,25 @@ namespace GitHub.Unity
             }
 
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
+        }
+
+        private async Task<string> RetrieveUsername(LoginResultData loginResultData, string username)
+        {
+            if (!username.Contains("@"))
+            {
+                return username;
+            }
+
+            var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
+                user: username, userToken: loginResultData.Token).Configure(processManager);
+
+            var validateResult = await octorunTask.StartAsAsync();
+            if (!validateResult.IsSuccess)
+            {
+                throw new InvalidOperationException("Authentication validation failed");
+            }
+
+            return validateResult.Output[1];
         }
     }
 

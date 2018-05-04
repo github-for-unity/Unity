@@ -95,11 +95,15 @@ namespace GitHub.Unity
 
         public IKeychainAdapter Connect(UriString host)
         {
+            Guard.ArgumentNotNull(host, nameof(host));
+
             return FindOrCreateAdapter(host);
         }
 
         public async Task<IKeychainAdapter> Load(UriString host)
         {
+            Guard.ArgumentNotNull(host, nameof(host));
+
             var keychainAdapter = FindOrCreateAdapter(host);
             var connection = GetConnection(host);
 
@@ -145,14 +149,21 @@ namespace GitHub.Unity
         public async Task Clear(UriString host, bool deleteFromCredentialManager)
         {
             //logger.Trace("Clear Host:{0}", host);
+
+            Guard.ArgumentNotNull(host, nameof(host));
+        
+            RemoveConnection(host);
+
             //clear octokit credentials
             await RemoveCredential(host, deleteFromCredentialManager);
-            RemoveConnection(host);
         }
 
         public async Task Save(UriString host)
         {
             //logger.Trace("Save: {0}", host);
+
+            Guard.ArgumentNotNull(host, nameof(host));
+
             var keychainAdapter = await AddCredential(host);
             AddConnection(new Connection(host, keychainAdapter.Credential.Username));
         }
@@ -160,23 +171,23 @@ namespace GitHub.Unity
         public void SetCredentials(ICredential credential)
         {
             //logger.Trace("SetCredentials Host:{0}", credential.Host);
+
+            Guard.ArgumentNotNull(credential, nameof(credential));
+
             var keychainAdapter = GetKeychainAdapter(credential.Host);
             keychainAdapter.Set(credential);
         }
 
-        public void SetToken(UriString host, string token)
+        public void SetToken(UriString host, string token, string username)
         {
             //logger.Trace("SetToken Host:{0}", host);
-            var keychainAdapter = GetKeychainAdapter(host);
-            keychainAdapter.UpdateToken(token);
-        }
 
-        public void UpdateToken(UriString host, string token)
-        {
-            //logger.Trace("UpdateToken Host:{0}", host);
+            Guard.ArgumentNotNull(host, nameof(host));
+            Guard.ArgumentNotNull(token, nameof(token));
+            Guard.ArgumentNotNull(username, nameof(username));
+
             var keychainAdapter = GetKeychainAdapter(host);
-            var keychainItem = keychainAdapter.Credential;
-            keychainItem.UpdateToken(token);
+            keychainAdapter.UpdateToken(token, username);
         }
 
         private void LoadConnectionsFromDisk()
@@ -286,15 +297,6 @@ namespace GitHub.Unity
             if (connections.ContainsKey(host))
             {
                 connections.Remove(host);
-                SaveConnectionsToDisk();
-            }
-        }
-
-        private void RemoveAllConnections()
-        {
-            if (connections.Count > 0)
-            {
-                connections.Clear();
                 SaveConnectionsToDisk();
             }
         }
