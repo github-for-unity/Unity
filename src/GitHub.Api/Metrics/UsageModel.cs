@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace GitHub.Unity
@@ -55,13 +56,7 @@ namespace GitHub.Unity
                     .FirstOrDefault(usage => usage.InstanceId == instanceId);
             }
 
-            if (currentUsage?.Dimensions.Date == date)
-            {
-                // update any fields that might be missing, if we've changed the format
-                if (currentUsage.Dimensions.Guid != Guid)
-                    currentUsage.Dimensions.Guid = Guid;
-            }
-            else
+            if (currentUsage == null)
             {
                 currentUsage = new Usage
                 {
@@ -70,7 +65,9 @@ namespace GitHub.Unity
                         Date = date,
                         Guid = Guid,
                         AppVersion = appVersion,
-                        UnityVersion = unityVersion
+                        UnityVersion = unityVersion,
+                        Lang = CultureInfo.InstalledUICulture.IetfLanguageTag,
+                        CurrentLang = CultureInfo.CurrentCulture.IetfLanguageTag
                     }
                 };
                 Reports.Add(currentUsage);
