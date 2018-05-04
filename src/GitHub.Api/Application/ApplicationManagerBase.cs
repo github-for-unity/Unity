@@ -166,7 +166,11 @@ namespace GitHub.Unity
                     Environment.InitializeRepository();
                     RestartRepository();
                 })
-                .ThenInUI(InitializeUI);
+                .ThenInUI(() =>
+                {
+                    TaskManager.Run(UsageTracker.IncrementNumberOfProjectsInitialized);
+                    InitializeUI();
+                });
             return task;
         }
 
@@ -212,7 +216,7 @@ namespace GitHub.Unity
 
             if (firstRun)
             {
-                UsageTracker.IncrementLaunchCount();
+                TaskManager.Run(UsageTracker.IncrementNumberOfStartups);
             }
 #endif
         }
