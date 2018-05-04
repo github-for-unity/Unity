@@ -166,7 +166,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfStartups++;
-            Logger.Trace("NumberOfStartups:{0} Date:{1}", usage.Measures.NumberOfStartups, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -177,7 +176,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfCommits++;
-            Logger.Trace("NumberOfCommits:{0} Date:{1}", usage.Measures.NumberOfCommits, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -188,7 +186,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfFetches++;
-            Logger.Trace("NumberOfFetches:{0} Date:{1}", usage.Measures.NumberOfFetches, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -199,7 +196,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfPushes++;
-            Logger.Trace("NumberOfPushes:{0} Date:{1}", usage.Measures.NumberOfPushes, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -210,7 +206,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfProjectsInitialized++;
-            Logger.Trace("NumberOfProjectsInitialized:{0} Date:{1}", usage.Measures.NumberOfProjectsInitialized, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -221,7 +216,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfLocalBranchCreations++;
-            Logger.Trace("NumberOfLocalBranchCreations:{0} Date:{1}", usage.Measures.NumberOfLocalBranchCreations, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -232,7 +226,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfLocalBranchDeletion++;
-            Logger.Trace("NumberOfLocalBranchDeletion:{0} Date:{1}", usage.Measures.NumberOfLocalBranchDeletion, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -243,7 +236,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfLocalBranchCheckouts++;
-            Logger.Trace("NumberOfLocalBranchCheckouts:{0} Date:{1}", usage.Measures.NumberOfLocalBranchCheckouts, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -254,7 +246,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfRemoteBranchCheckouts++;
-            Logger.Trace("NumberOfRemoteBranchCheckouts:{0} Date:{1}", usage.Measures.NumberOfRemoteBranchCheckouts, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -265,7 +256,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfPulls++;
-            Logger.Trace("NumberOfPulls:{0} Date:{1}", usage.Measures.NumberOfPulls, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
@@ -276,7 +266,6 @@ namespace GitHub.Unity
             var usage = GetCurrentUsage(usageStore);
 
             usage.Measures.NumberOfAuthentications++;
-            Logger.Trace("NumberOfAuthentications:{0} Date:{1}", usage.Measures.NumberOfAuthentications, usage.Dimensions.Date);
 
             SaveUsage(usageStore);
         }
