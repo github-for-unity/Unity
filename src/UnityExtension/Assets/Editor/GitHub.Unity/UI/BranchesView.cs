@@ -305,11 +305,11 @@ namespace GitHub.Unity
                     if (createBranch)
                     {
                         GitClient.CreateBranch(newBranchName, treeLocals.SelectedNode.Path)
-                            .Then(UsageTracker.IncrementNumberOfLocalBranchCreations)
                             .FinallyInUI((success, e) =>
                             {
                                 if (success)
                                 {
+                                    TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCreations);
                                     Redraw();
                                 }
                                 else
@@ -475,11 +475,11 @@ namespace GitHub.Unity
                 if (confirmCheckout)
                 {
                     GitClient.CreateBranch(branchName, branch)
-                        .Then(UsageTracker.IncrementNumberOfRemoteBranchCheckouts)
                         .FinallyInUI((success, e) =>
                         {
                             if (success)
                             {
+                                TaskManager.Run(UsageTracker.IncrementNumberOfRemoteBranchCheckouts);
                                 Redraw();
                             }
                             else
@@ -498,11 +498,11 @@ namespace GitHub.Unity
                 ConfirmSwitchCancel))
             {
                 GitClient.SwitchBranch(branch)
-                    .Then(UsageTracker.IncrementNumberOfLocalBranchCheckouts)
                     .FinallyInUI((success, e) =>
                     {
                         if (success)
                         {
+                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCheckouts);
                             Redraw();
                         }
                         else
@@ -519,9 +519,14 @@ namespace GitHub.Unity
             var dialogMessage = string.Format(DeleteBranchMessageFormatString, branch);
             if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
             {
-                GitClient
-                    .DeleteBranch(branch, true)
-                    .Then(UsageTracker.IncrementNumberOfLocalBranchDeletions)
+                GitClient.DeleteBranch(branch, true)
+                    .FinallyInUI((success, e) =>
+                    {
+                        if (success)
+                        {
+                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchDeletions);
+                        }
+                    })
                     .Start();
             }
         }

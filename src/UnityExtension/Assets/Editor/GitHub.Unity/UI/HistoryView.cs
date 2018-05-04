@@ -702,10 +702,11 @@ namespace GitHub.Unity
                             // (either git rebase --abort or git merge --abort)
                         }
                     }, runOptions: TaskRunOptions.OnAlways)
-                    .Then(UsageTracker.IncrementNumberOfPulls)
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
+                            TaskManager.Run(UsageTracker.IncrementNumberOfPulls);
+
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
                             Localization.Ok);
@@ -725,10 +726,11 @@ namespace GitHub.Unity
         {
             Repository
                 .Push()
-                .Then(UsageTracker.IncrementNumberOfPushes)
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
+                        TaskManager.Run(UsageTracker.IncrementNumberOfPushes);
+
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
                         Localization.Ok);
@@ -747,10 +749,11 @@ namespace GitHub.Unity
         {
             Repository
                 .Fetch()
-                .Then(UsageTracker.IncrementNumberOfFetches)
                 .FinallyInUI((success, e) => {
                     if (!success)
                     {
+                        TaskManager.Run(UsageTracker.IncrementNumberOfFetches);
+
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
                             Localization.Ok);
                     }
