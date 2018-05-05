@@ -165,7 +165,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(host, nameof(host));
 
             var keychainAdapter = await AddCredential(host);
-            AddConnection(new Connection(host.Host, keychainAdapter.Credential.Username));
+            AddConnection(new Connection(host, keychainAdapter.Credential.Username));
         }
 
         public void SetCredentials(ICredential credential)
