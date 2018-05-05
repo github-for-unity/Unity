@@ -294,9 +294,9 @@ namespace GitHub.Unity
         private void RemoveConnection(UriString host)
         {
             // create new connection in the connection cache for this host
-            if (connections.ContainsKey(host))
+            if (connections.ContainsKey(host.Host))
             {
-                connections.Remove(host);
+                connections.Remove(host.Host);
                 SaveConnectionsToDisk();
             }
         }
