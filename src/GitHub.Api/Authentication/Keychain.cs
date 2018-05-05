@@ -165,7 +165,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(host, nameof(host));
 
             var keychainAdapter = await AddCredential(host);
-            AddConnection(new Connection(host, keychainAdapter.Credential.Username));
+            AddConnection(new Connection(host.Host, keychainAdapter.Credential.Username));
         }
 
         public void SetCredentials(ICredential credential)
@@ -294,9 +294,9 @@ namespace GitHub.Unity
         private void RemoveConnection(UriString host)
         {
             // create new connection in the connection cache for this host
-            if (connections.ContainsKey(host))
+            if (connections.ContainsKey(host.Host))
             {
-                connections.Remove(host);
+                connections.Remove(host.Host);
                 SaveConnectionsToDisk();
             }
         }
