@@ -136,6 +136,11 @@ namespace GitHub.Unity
         {
             package = new GUIPackage(newPackage);
             currentVersion = current.ToString();
+            if (guiLogo != null)
+            {
+                guiLogo = null;
+                Repaint();
+            }
         }
 
         private void OnGUI()
