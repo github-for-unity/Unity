@@ -1,6 +1,7 @@
-#!/bin/sh -eux
+#!/bin/sh -eu
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ $# -lt 3 ]; then
-	echo "Usage: generate-package.sh [git|lfs] [version] [path to file] [host url (optional)] [release notes file (optional)] [message file (optional)]"
+	echo "Usage: generate-package.sh [git|lfs|ghu] [version] [path to file] [host url (optional)] [release notes file (optional)] [message file (optional)]"
 	exit 1
 fi
 
@@ -15,11 +16,15 @@ fi
 
 if [ "$1" == "git" ]; then
 	MD5=$GIT_MD5
-	URL="$URL/unity/git/git.zip"
+	URL="$URL/unity/git"
 fi
 if [ "$1" == "lfs" ]; then
 	MD5=$LFS_MD5
-	URL="$URL/unity/git/git-lfs.zip"
+	URL="$URL/unity/git"
+fi
+if [ "$1" == "ghu" ]; then
+	MD5=
+	URL="$URL/unity/releases"
 fi
 
 RN=""
@@ -37,8 +42,8 @@ if [ -e "/c/" ]; then
 	EXEC=""
 fi
 
-if [ ! -e build/CommandLine/CommandLine.exe ]; then
-	>&2 xbuild /target:CommandLine GitHub.Unity.sln /verbosity:minimal
+if [ ! -e "$DIR/build/CommandLine/CommandLine.exe" ]; then
+	>&2 xbuild /target:CommandLine "$DIR/GitHub.Unity.sln" /verbosity:minimal
 fi
 
-"$EXEC"build/CommandLine/CommandLine.exe --gen-package --version "$2" --path "$3" --url "$URL" --md5 "$MD5" --rn "$RN" --msg "$MSG"
+"$EXEC""$DIR/build/CommandLine/CommandLine.exe" --gen-package --version "$2" --path "$3" --url "$URL" --md5 "$MD5" --rn "$RN" --msg "$MSG"

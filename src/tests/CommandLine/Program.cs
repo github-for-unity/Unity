@@ -91,6 +91,7 @@ namespace TestApp
             if (generatePackage)
             {
                 var md5 = path.CalculateMD5();
+                url += "/" + path.FileName;
                 var package = new Package
                 {
                     ExecutableMd5 = execMd5,
@@ -101,6 +102,7 @@ namespace TestApp
                     Url = url,
                     Version = TheVersion.Parse(version),
                 };
+
                 var json = package.ToJson(lowerCase: true, onlyPublic: false);
                 if (outfile.IsInitialized)
                     outfile.WriteAllText(json);
