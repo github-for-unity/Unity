@@ -167,19 +167,17 @@ namespace GitHub.Unity
             {
                 GUILayout.Space(20);
 
+                scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(405), GUILayout.Height(200));
                 if (hasMessage)
                 {
-                    scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(405), GUILayout.Height(200));
                     EditorGUILayout.LabelField(guiPackageMessage, "WordWrappedLabel");
-                    EditorGUILayout.EndScrollView();
                 }
 
                 if (hasReleaseNotes)
                 {
-                    scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(405), GUILayout.Height(200));
                     EditorGUILayout.LabelField(guiPackageReleaseNotes, "WordWrappedLabel");
-                    EditorGUILayout.EndScrollView();
                 }
+                EditorGUILayout.EndScrollView();
             }
 
             GUILayout.Space(20);
@@ -187,6 +185,7 @@ namespace GitHub.Unity
             if (GUILayout.Button(guiDownloadNewVersion, GUILayout.Width(200)))
             {
                 Help.BrowseURL(package.Package.Url);
+                Close();
             }
 
             if (GUILayout.Button(guiSkipThisVersion, GUILayout.Width(200)))
