@@ -69,6 +69,9 @@
     <None Include="files\unity\latest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="files\unity\releases\github-for-unity-99.2.0-beta1.unitypackage">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
@@ -78,7 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="files\unity\git\mac\" />
-    <Folder Include="files\unity\releases\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
