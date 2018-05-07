@@ -113,7 +113,11 @@ namespace GitHub.Unity
                     Environment.InitializeRepository();
                     RestartRepository();
                 })
-                .ThenInUI(InitializeUI);
+                .ThenInUI(() =>
+                {
+                    TaskManager.Run(UsageTracker.IncrementNumberOfProjectsInitialized);
+                    InitializeUI();
+                });
             return task;
         }
 
@@ -130,22 +134,22 @@ namespace GitHub.Unity
             }
         }
 
-        protected void SetupMetrics(string unityVersion, bool firstRun)
+        protected void SetupMetrics(string unityVersion, bool firstRun, Guid instanceId)
         {
             //Logger.Trace("Setup metrics");
 
             var usagePath = Environment.UserCachePath.Combine(Constants.UsageFile);
 
-            string id = null;
+            string userId = null;
             if (UserSettings.Exists(Constants.GuidKey))
             {
-                id = UserSettings.Get(Constants.GuidKey);
+                userId = UserSettings.Get(Constants.GuidKey);
             }
 
-            if (String.IsNullOrEmpty(id))
+            if (String.IsNullOrEmpty(userId))
             {
-                id = Guid.NewGuid().ToString();
-                UserSettings.Set(Constants.GuidKey, id);
+                userId = Guid.NewGuid().ToString();
+                UserSettings.Set(Constants.GuidKey, userId);
             }
 
 #if ENABLE_METRICS
@@ -155,11 +159,11 @@ namespace GitHub.Unity
                 Environment.NodeJsExecutablePath,
                 Environment.OctorunScriptPath);
 
-            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, id, unityVersion);
+            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, userId, unityVersion, instanceId.ToString());
 
             if (firstRun)
             {
-                UsageTracker.IncrementLaunchCount();
+                TaskManager.Run(UsageTracker.IncrementNumberOfStartups);
             }
 #endif
         }

@@ -66,7 +66,7 @@ namespace GitHub.Unity
             LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter(logPath)
                 //, new UnityLogAdapter()
                 );
-            LogHelper.Info("Initializing GitHub for Unity version " + ApplicationInfo.Version);
+            LogHelper.Info("Initializing GitHubForUnity:'v{0}' Unity:'v{1}'", ApplicationInfo.Version, Environment.UnityVersion);
 
             ApplicationManager.Run(ApplicationCache.Instance.FirstRun);
 

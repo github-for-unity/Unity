@@ -353,8 +353,13 @@ namespace GitHub.Unity
             }
 
             addTask
-                .FinallyInUI((b, exception) => 
+                .FinallyInUI((success, exception) => 
                     {
+                        if (success)
+                        {
+                            TaskManager.Run(UsageTracker.IncrementNumberOfCommits);
+                        }
+
                         commitMessage = "";
                         commitBody = "";
                     }).Start();

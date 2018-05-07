@@ -91,7 +91,6 @@ namespace GitHub.Unity
                                  favoriteIconOff,
                                  smallLogoIcon,
                                  bigLogoIcon,
-                                 defaultAssetIcon,
                                  folderIcon,
                                  mergeIcon,
                                  dotIcon,
@@ -795,19 +794,6 @@ namespace GitHub.Unity
                 }
 
                 return localCommitIcon;
-            }
-        }
-
-        public static Texture2D DefaultAssetIcon
-        {
-            get
-            {
-                if (defaultAssetIcon == null)
-                {
-                    defaultAssetIcon = EditorGUIUtility.FindTexture("DefaultAsset Icon");
-                }
-
-                return defaultAssetIcon;
             }
         }
 

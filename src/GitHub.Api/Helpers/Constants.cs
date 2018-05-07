@@ -6,7 +6,7 @@ namespace GitHub.Unity
     {
         public const string GuidKey = "Guid";
         public const string MetricsKey = "MetricsEnabled";
-        public const string UsageFile = "usage.json";
+        public const string UsageFile = "metrics.json";
         public const string GitInstallPathKey = "GitInstallPath";
         public const string TraceLoggingKey = "EnableTraceLogging";
         public const string WebTimeoutKey = "WebTimeout";

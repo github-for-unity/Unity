@@ -14,6 +14,8 @@ namespace GitHub.Unity
     {
         [SerializeField] private bool firstRun = true;
         [SerializeField] public string firstRunAtString;
+        [SerializeField] public string instanceIdString;
+        [NonSerialized] private Guid? instanceId;
         [NonSerialized] private bool? firstRunValue;
         [NonSerialized] public DateTimeOffset? firstRunAtValue;
 
@@ -64,6 +66,33 @@ namespace GitHub.Unity
                 firstRun = false;
                 FirstRunAt = DateTimeOffset.Now;
                 Save(true);
+            }
+        }
+
+        public Guid InstanceId
+        {
+            get
+            {
+                EnsureInstanceId();
+                return instanceId.Value;
+            }
+        }
+
+        private void EnsureInstanceId()
+        {
+            if (instanceId.HasValue)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(instanceIdString))
+            {
+                instanceId = Guid.NewGuid();
+                instanceIdString = instanceId.ToString();
+            }
+            else
+            {
+                instanceId = new Guid(instanceIdString);
             }
         }
     }
