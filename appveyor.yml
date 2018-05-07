@@ -57,7 +57,6 @@ test:
     except:
       - '**\*.TestRunner.dll'
       - '**\*.TestUtils.dll'
-      - '**\*.UnityTests.dll'
   categories:
     except:
     - DoNotRunOnAppVeyor
