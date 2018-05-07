@@ -91,11 +91,13 @@ namespace GitHub.Unity
                     }
                     catch
                     {
+                        value = fallback;
                         cacheData[key] = fallback;
                     }
                 }
+                return (T)value;
             }
-            return (T)cacheData[key];
+            return fallback;
         }
 
         public override void Set<T>(string key, T value)
