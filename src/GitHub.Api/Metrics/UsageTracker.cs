@@ -179,22 +179,22 @@ namespace GitHub.Unity
             SaveUsage(usageStore);
         }
 
-        public void HistoryToolbarButtonFetch()
+        public void HistoryViewToolbarButtonFetch()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.HistoryToolbarButtonFetch++;
+            usage.Measures.HistoryViewToolbarButtonFetch++;
 
             SaveUsage(usageStore);
         }
 
-        public void HistoryToolbarButtonPush()
+        public void HistoryViewToolbarButtonPush()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.HistoryToolbarButtonPush++;
+            usage.Measures.HistoryViewToolbarButtonPush++;
 
             SaveUsage(usageStore);
         }
@@ -249,12 +249,12 @@ namespace GitHub.Unity
             SaveUsage(usageStore);
         }
 
-        public void HistoryToolbarButtonPull()
+        public void HistoryViewToolbarButtonPull()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.HistoryToolbarButtonPull++;
+            usage.Measures.HistoryViewToolbarButtonPull++;
 
             SaveUsage(usageStore);
         }

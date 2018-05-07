@@ -26,9 +26,9 @@ namespace GitHub.Unity
     {
         public int NumberOfStartups { get; set; }
         public int ChangesViewButtonCommit { get; set; }
-        public int HistoryToolbarButtonFetch { get; set; }
-        public int HistoryToolbarButtonPush { get; set; }
-        public int HistoryToolbarButtonPull { get; set; }
+        public int HistoryViewToolbarButtonFetch { get; set; }
+        public int HistoryViewToolbarButtonPush { get; set; }
+        public int HistoryViewToolbarButtonPull { get; set; }
         public int Initialized { get; set; }
         public int AuthenticationViewButtonAuthentication { get; set; }
         public int BranchesViewButtonCreateBranch { get; set; }

@@ -705,7 +705,7 @@ namespace GitHub.Unity
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.HistoryToolbarButtonPull);
+                            TaskManager.Run(UsageTracker.HistoryViewToolbarButtonPull);
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
@@ -729,7 +729,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
-                        TaskManager.Run(UsageTracker.HistoryToolbarButtonPush);
+                        TaskManager.Run(UsageTracker.HistoryViewToolbarButtonPush);
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -752,7 +752,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (!success)
                     {
-                        TaskManager.Run(UsageTracker.HistoryToolbarButtonFetch);
+                        TaskManager.Run(UsageTracker.HistoryViewToolbarButtonFetch);
 
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
                             Localization.Ok);

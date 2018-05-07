@@ -5,9 +5,9 @@
         bool Enabled { get; set; }
         void IncrementNumberOfStartups();
         void ChangesViewButtonCommit();
-        void HistoryToolbarButtonFetch();
-        void HistoryToolbarButtonPush();
-        void HistoryToolbarButtonPull();
+        void HistoryViewToolbarButtonFetch();
+        void HistoryViewToolbarButtonPush();
+        void HistoryViewToolbarButtonPull();
         void AuthenticationViewButtonAuthentication();
         void Initialized();
         void BranchesViewButtonCreateBranch();
@@ -21,9 +21,9 @@
         public bool Enabled { get; set; }
         public void IncrementNumberOfStartups() { }
         public void ChangesViewButtonCommit() { }
-        public void HistoryToolbarButtonFetch() { }
-        public void HistoryToolbarButtonPush() { }
-        public void HistoryToolbarButtonPull() { }
+        public void HistoryViewToolbarButtonFetch() { }
+        public void HistoryViewToolbarButtonPush() { }
+        public void HistoryViewToolbarButtonPull() { }
         public void AuthenticationViewButtonAuthentication() { }
         public void Initialized() { }
         public void BranchesViewButtonCreateBranch() { }
