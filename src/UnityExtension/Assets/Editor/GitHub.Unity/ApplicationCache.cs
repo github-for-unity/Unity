@@ -38,8 +38,9 @@ namespace GitHub.Unity
                     if (!DateTimeOffset.TryParseExact(firstRunAtString, Constants.Iso8601Format,
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
                     {
-                        FirstRunAt = DateTimeOffset.Now;
+                        dt = DateTimeOffset.Now;
                     }
+                    FirstRunAt = dt;
                 }
 
                 return firstRunAtValue.Value;
