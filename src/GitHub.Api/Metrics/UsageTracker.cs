@@ -174,7 +174,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfCommits++;
+            usage.Measures.Commits++;
 
             SaveUsage(usageStore);
         }
@@ -184,7 +184,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfFetches++;
+            usage.Measures.Fetches++;
 
             SaveUsage(usageStore);
         }
@@ -194,7 +194,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfPushes++;
+            usage.Measures.Pushes++;
 
             SaveUsage(usageStore);
         }
@@ -204,7 +204,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfProjectsInitialized++;
+            usage.Measures.ProjectsInitialized++;
 
             SaveUsage(usageStore);
         }
@@ -214,7 +214,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfLocalBranchCreations++;
+            usage.Measures.LocalBranchCreations++;
 
             SaveUsage(usageStore);
         }
@@ -224,7 +224,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfLocalBranchDeletion++;
+            usage.Measures.LocalBranchDeletion++;
 
             SaveUsage(usageStore);
         }
@@ -234,7 +234,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfLocalBranchCheckouts++;
+            usage.Measures.LocalBranchCheckouts++;
 
             SaveUsage(usageStore);
         }
@@ -244,7 +244,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfRemoteBranchCheckouts++;
+            usage.Measures.RemoteBranchCheckouts++;
 
             SaveUsage(usageStore);
         }
@@ -254,7 +254,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfPulls++;
+            usage.Measures.Pulls++;
 
             SaveUsage(usageStore);
         }
@@ -264,7 +264,7 @@ namespace GitHub.Unity
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.NumberOfAuthentications++;
+            usage.Measures.Authentications++;
 
             SaveUsage(usageStore);
         }
