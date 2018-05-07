@@ -199,12 +199,12 @@ namespace GitHub.Unity
             SaveUsage(usageStore);
         }
 
-        public void Initialized()
+        public void ProjectsInitialized()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Initialized++;
+            usage.Measures.ProjectsInitialized++;
 
             SaveUsage(usageStore);
         }

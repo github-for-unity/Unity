@@ -168,7 +168,7 @@ namespace GitHub.Unity
                 })
                 .ThenInUI(() =>
                 {
-                    TaskManager.Run(UsageTracker.Initialized);
+                    TaskManager.Run(UsageTracker.ProjectsInitialized);
                     InitializeUI();
                 });
             return task;

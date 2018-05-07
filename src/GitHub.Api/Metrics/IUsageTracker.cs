@@ -9,7 +9,7 @@
         void HistoryViewToolbarButtonPush();
         void HistoryViewToolbarButtonPull();
         void AuthenticationViewButtonAuthentication();
-        void Initialized();
+        void ProjectsInitialized();
         void BranchesViewButtonCreateBranch();
         void BranchesViewButtonDeleteBranch();
         void BranchesViewButtonCheckoutLocalBranch();
@@ -25,7 +25,7 @@
         public void HistoryViewToolbarButtonPush() { }
         public void HistoryViewToolbarButtonPull() { }
         public void AuthenticationViewButtonAuthentication() { }
-        public void Initialized() { }
+        public void ProjectsInitialized() { }
         public void BranchesViewButtonCreateBranch() { }
         public void BranchesViewButtonDeleteBranch() { }
         public void BranchesViewButtonCheckoutLocalBranch() { }

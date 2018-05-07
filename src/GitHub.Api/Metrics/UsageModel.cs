@@ -29,7 +29,7 @@ namespace GitHub.Unity
         public int HistoryViewToolbarButtonFetch { get; set; }
         public int HistoryViewToolbarButtonPush { get; set; }
         public int HistoryViewToolbarButtonPull { get; set; }
-        public int Initialized { get; set; }
+        public int ProjectsInitialized { get; set; }
         public int AuthenticationViewButtonAuthentication { get; set; }
         public int BranchesViewButtonCreateBranch { get; set; }
         public int BranchesViewButtonDeleteBranch { get; set; }
