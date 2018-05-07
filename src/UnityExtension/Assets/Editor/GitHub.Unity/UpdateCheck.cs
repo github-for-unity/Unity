@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -70,19 +71,29 @@ namespace GitHub.Unity
                 {
                     try
                     {
-                        var package = result.ReadAllText().FromJson<Package>(lowerCase: true, onlyPublic: false);
-                        var current = TheVersion.Parse(ApplicationInfo.Version);
-                        var versionsToSkip = EntryPoint.ApplicationManager.UserSettings.Get<TheVersion[]>(Constants.SkipVersionKey, new TheVersion[] { });
-                        var newVersion = package.Version;
+                        Package package = result.ReadAllText().FromJson<Package>(lowerCase: true, onlyPublic: false);
+                        TheVersion current = TheVersion.Parse(ApplicationInfo.Version);
+                        TheVersion newVersion = package.Version;
 
-                        Debug.LogFormat("newVersion:{0} current:{1} versionsToSkip:{2}", newVersion, current, versionsToSkip != null ? versionsToSkip.Length : 0);
-                        if (newVersion > current && (!versionsToSkip.Any(x => x == newVersion)))
+                        TheVersion[] versionsToSkip = EntryPoint.ApplicationManager.UserSettings.Get<TheVersion[]>(Constants.SkipVersionKey);
+                        versionsToSkip = versionsToSkip == null ? new TheVersion[] {} : versionsToSkip;
+                        if (versionsToSkip.Any(x => x == newVersion))
                         {
-                            TaskManager.Instance.RunInUI(() =>
-                            {
-                                NotifyOfNewUpdate(current, package);
-                            });
+                            LogHelper.Info("Skipping GitHub for Unity update v" + newVersion);
+                            return;
                         }
+
+                        if (newVersion <= current)
+                        {
+                            LogHelper.Trace("Skipping GitHub for Unity update v" + newVersion + ", we already have it");
+                            return;
+                        }
+
+
+                        TaskManager.Instance.RunInUI(() =>
+                        {
+                            NotifyOfNewUpdate(current, package);
+                        });
                     }
                     catch(Exception ex)
                     {
@@ -103,7 +114,6 @@ namespace GitHub.Unity
         private const string windowTitle = "GitHub for Unity Update Check";
         private const string newUpdateMessage = "There is a new version of GitHub for Unity available.\n\nCurrent version is {0}\nNew version is {1}";
         private const string skipThisVersionMessage = "Skip new version";
-        private const string remingMeTomorrowMessage = "Remind me tomorrow";
         private const string downloadNewVersionMessage = "Download new version";
         private const string browseReleaseNotes = "Browse the release notes";
 
@@ -112,7 +122,6 @@ namespace GitHub.Unity
         private static GUIContent guiPackageReleaseNotes;
         private static GUIContent guiPackageMessage;
         private static GUIContent guiSkipThisVersion;
-        private static GUIContent guiRemindMeTomorrow;
         private static GUIContent guiDownloadNewVersion;
         private static GUIContent guiBrowseReleaseNotes;
 
@@ -188,14 +197,6 @@ namespace GitHub.Unity
                 this.Close();
             }
 
-            if (GUILayout.Button(guiRemindMeTomorrow, GUILayout.Width(200)))
-            {
-                var settings = EntryPoint.ApplicationManager.UserSettings;
-                var tomorrow = DateTimeOffset.Now.AddDays(1).ToString(Constants.Iso8601Format);
-                settings.Set<string>(Constants.UpdateReminderDateKey, tomorrow);
-                this.Close();
-            }
-
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
 
@@ -214,7 +215,6 @@ namespace GitHub.Unity
             guiLogo = new GUIContent(Styles.BigLogo);
             guiNewUpdate = new GUIContent(String.Format(newUpdateMessage, currentVersion, package.Package.Version.ToString()));
             guiSkipThisVersion = new GUIContent(skipThisVersionMessage);
-            guiRemindMeTomorrow = new GUIContent(remingMeTomorrowMessage);
             guiDownloadNewVersion = new GUIContent(downloadNewVersionMessage);
             guiBrowseReleaseNotes = new GUIContent(browseReleaseNotes);
             hasMessage = !String.IsNullOrEmpty(package.Package.Message);
