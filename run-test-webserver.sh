@@ -1,5 +1,5 @@
 #!/bin/sh -eu
-PORT="55555"
+PORT="50000"
 if [ $# -eq 1 ]; then
 	PORT="$1"
 fi
