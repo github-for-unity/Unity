@@ -163,16 +163,12 @@ namespace GitHub.Unity
             {
                 if (!string.IsNullOrEmpty(node.ProjectPath))
                 {
-                    nodeIcon = AssetDatabase.GetCachedIcon(node.ProjectPath);
+                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(node.ProjectPath);
                 }
 
                 if (nodeIcon != null)
                 {
                     nodeIcon.hideFlags = HideFlags.HideAndDontSave;
-                }
-                else
-                {
-                    nodeIcon = Styles.DefaultAssetIcon;
                 }
             }
 
