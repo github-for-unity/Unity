@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/sh -eux
 if [ $# -lt 1 ]; then
 	echo "Usage: generate-version.sh [version] [host url (default: http://ghfvs-installer.github.com)]"
 	exit 1
@@ -18,4 +18,4 @@ if [ ! -e build/CommandLine/CommandLine.exe ]; then
 	>&2 xbuild /target:CommandLine GitHub.Unity.sln /verbosity:minimal
 fi
 
-"$EXEC" build/CommandLine/CommandLine.exe -g -v "$1" -u "$URL"
+"$EXEC"build/CommandLine/CommandLine.exe -g -v "$1" -u "$URL"

@@ -156,6 +156,10 @@ public class VersionTests
         version1 = TheVersion.Parse("1.2.3");
         version2 = TheVersion.Parse("1.2.3alpha1");
         Assert.IsTrue(version1 >= version2);
+
+        version1 = TheVersion.Parse("0.32.0");
+        version2 = TheVersion.Parse("0.33.0-beta");
+        Assert.IsTrue(version1 < version2);
     }
 
     [Test]

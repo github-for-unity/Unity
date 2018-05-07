@@ -239,10 +239,13 @@ namespace GitHub.Unity
             {
                 Logger.Trace("Attempting to restore portable Git Path:{0}", value);
 
-                var gitInstaller = new GitInstaller(Environment, EntryPoint.ApplicationManager.ProcessManager,
-                    EntryPoint.ApplicationManager.TaskManager);
+                var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager,
+                    TaskManager, Manager.SystemSettings);
 
-                gitInstaller.SetupGitIfNeeded()
+                new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
+                    {
+                        return gitInstaller.SetupGitIfNeeded();
+                    })
                     .FinallyInUI((success, exception, installationState) =>
                     {
                         Logger.Trace("Setup Git Using the installer:{0}", success);

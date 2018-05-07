@@ -11,8 +11,10 @@ namespace GitHub.Unity
         public const string TraceLoggingKey = "EnableTraceLogging";
         public const string WebTimeoutKey = "WebTimeout";
         public const string Iso8601Format = "yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz";
+        public const string SkipVersionKey = "SkipVersion";
+        public const string UpdateReminderDateKey = "UpdateReminderDate";
 
         public static readonly Version MinimumGitVersion = new Version(2, 11, 0);
-        public static readonly Version MinimumGitLfsVersion = new Version(2, 3, 4);
+        public static readonly Version MinimumGitLfsVersion = new Version(2, 4, 0);
     }
 }

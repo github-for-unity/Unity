@@ -33,7 +33,22 @@ namespace GitHub.Unity
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
 
-            return environment.ExtensionInstallPath.Combine(type, os, resource).Copy(destinationPath.Combine(resource));
+            // check the GitHub.Api assembly
+            if (!asm.FullName.StartsWith("GitHub.Api"))
+            {
+                asm = typeof(ApplicationManagerBase).Assembly;
+                stream = asm.GetManifestResourceStream(
+                                        String.Format("GitHub.Unity.{0}{1}.{2}", type, !string.IsNullOrEmpty(os) ? "." + os : os, resource));
+                if (stream != null)
+                    return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
+            }
+
+            // check the filesystem
+            NPath possiblePath = environment.ExtensionInstallPath.Combine(type, os, resource);
+            if (possiblePath.FileExists())
+                return possiblePath.Copy(destinationPath.Combine(resource));
+
+            return NPath.Default;
         }
     }
 }

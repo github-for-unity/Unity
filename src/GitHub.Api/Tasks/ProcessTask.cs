@@ -294,7 +294,7 @@ namespace GitHub.Unity
         {
         }
 
-        protected override T RunWithReturn(bool success)
+        public override T RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
@@ -430,7 +430,7 @@ namespace GitHub.Unity
             outputProcessor.OnEntry += x => RaiseOnData(x);
         }
 
-        protected override List<T> RunWithReturn(bool success)
+        public override List<T> RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 

@@ -26,7 +26,7 @@ namespace GitHub.Unity
             }
             else
             {
-                var iconPath = "Assets/Editor/GitHubUnity/IconsAndLogos/" + filename;
+                var iconPath = "Assets/Editor/GitHub.Unity/IconsAndLogos/" + filename;
                 texture2D = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
             }
 

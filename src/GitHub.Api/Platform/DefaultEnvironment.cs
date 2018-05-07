@@ -67,6 +67,9 @@ namespace GitHub.Unity
             UnityProjectPath = assetsPath.Parent;
             UnityVersion = unityVersion;
             User = new User(CacheContainer);
+            UserSettings = new UserSettings(this);
+            LocalSettings = new LocalSettings(this);
+            SystemSettings = new SystemSettings(this);
         }
 
         public void InitializeRepository(NPath? repositoryPath = null)
@@ -194,6 +197,9 @@ namespace GitHub.Unity
         public ICacheContainer CacheContainer { get; private set; }
         public IRepository Repository { get; set; }
         public IUser User { get; set; }
+        public ISettings LocalSettings { get; protected set; }
+        public ISettings SystemSettings { get; protected set; }
+        public ISettings UserSettings { get; protected set; }
 
         public bool IsWindows { get { return OnWindows; } }
         public bool IsLinux { get { return OnLinux; } }

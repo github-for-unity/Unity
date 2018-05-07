@@ -7,9 +7,9 @@ using NUnit.Framework;
 namespace IntegrationTests
 {
     [TestFixture]
-    class GitClientTests : BaseGitEnvironmentTest
+    class GitClientTests : BaseGitTestWithHttpServer
     {
-        protected static TimeSpan Timeout = TimeSpan.FromMinutes(5);
+        protected override int Timeout { get; set; } = 5 * 60 * 1000;
 
         [Test]
         public void AaSetupGitFirst()

@@ -66,6 +66,14 @@
     <Compile Include="VersionTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
+      <Project>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\tests\TestWebServer\TestWebServer.csproj">
+      <Project>{3dd3451c-30fa-4294-a3a9-1e080342f867}</Project>
+      <Name>TestWebServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{ADD7A18B-DD2A-4C22-A2C1-488964EFF30A}</Project>
       <Name>GitHub.Unity</Name>

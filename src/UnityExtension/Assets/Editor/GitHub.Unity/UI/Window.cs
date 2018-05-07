@@ -60,14 +60,20 @@ namespace GitHub.Unity
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
         }
 
-#if DEBUG 
-        [MenuItem("GitHub/Select Window")] 
-        public static void GitHub_SelectWindow() 
-        { 
-            var window = Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window; 
-            Selection.activeObject = window; 
-        } 
-#endif 
+#if DEBUG
+        [MenuItem("GitHub/Select Window")]
+        public static void GitHub_SelectWindow()
+        {
+            var window = Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window;
+            Selection.activeObject = window;
+        }
+
+        [MenuItem("GitHub/Restart")]
+        public static void GitHub_Restart()
+        {
+            EntryPoint.Restart();
+        }
+#endif
 
         public static void ShowWindow(IApplicationManager applicationManager)
         {
@@ -192,7 +198,7 @@ namespace GitHub.Unity
             base.OnUI();
 
             if (HasRepository)
-            { 
+            {
                 DoHeaderGUI();
             }
 
@@ -234,7 +240,7 @@ namespace GitHub.Unity
         public override void Update()
         {
             base.Update();
-            
+
             // Notification auto-clear timer override
             if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
             {

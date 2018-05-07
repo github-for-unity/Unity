@@ -42,10 +42,8 @@ namespace IntegrationTests
 
             var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
                 {
-                    GitZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitZipMd5Url).Filename}",
-                    GitZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitZipUrl).Filename}",
-                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitLfsZipMd5Url).Filename}",
-                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new UriString(GitInstaller.GitInstallDetails.DefaultGitLfsZipUrl).Filename}",
+                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
                 };
 
             TestBasePath.Combine("git").CreateDirectory();
@@ -61,13 +59,9 @@ namespace IntegrationTests
                 }
             }), Arg.Any<CancellationToken>(), Arg.Any<Func<long, long, bool>>()).Returns(true);
             ZipHelper.Instance = zipHelper;
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails: installDetails);
 
-            TaskCompletionSource<GitInstaller.GitInstallationState> end = new TaskCompletionSource<GitInstaller.GitInstallationState>();
-            var startTask = gitInstaller.SetupGitIfNeeded().Finally((_, state) => end.TrySetResult(state));
-            startTask.Start();
-            GitInstaller.GitInstallationState result = null;
-            Assert.DoesNotThrow(async () => result = await end.Task);
+            var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
 
             Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);
@@ -97,21 +91,14 @@ namespace IntegrationTests
 
             var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, Environment.IsWindows)
                 {
-                    GitZipMd5Url = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitZipMd5Url).AbsolutePath}",
-                    GitZipUrl = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitZipUrl).AbsolutePath}",
-                    GitLfsZipMd5Url = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitLfsZipMd5Url).AbsolutePath}",
-                    GitLfsZipUrl = $"http://localhost:{server.Port}/{new Uri(GitInstaller.GitInstallDetails.DefaultGitLfsZipUrl).AbsolutePath}",
+                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/mac/{GitInstaller.GitInstallDetails.GitPackageName}",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/mac/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
                 };
 
             TestBasePath.Combine("git").CreateDirectory();
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
-            var startTask = gitInstaller.SetupGitIfNeeded();
-            var endTask = new FuncTask<GitInstaller.GitInstallationState, GitInstaller.GitInstallationState>(TaskManager.Token, (s, state) => state);
-            startTask.OnEnd += (thisTask, path, success, exception) => thisTask.GetEndOfChain().Then(endTask);
-            startTask.Start();
-            GitInstaller.GitInstallationState result = null;
-            Assert.DoesNotThrow(async () => result = await endTask.Task);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails: installDetails);
+            var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
 
             Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);

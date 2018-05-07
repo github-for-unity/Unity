@@ -97,6 +97,7 @@
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Cache\CachingClasses.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
@@ -136,6 +137,8 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Primitives\Package.cs" />
+    <Compile Include="Primitives\TheVersion.cs" />
     <Compile Include="Tasks\ActionTask.cs" />
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
     <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
@@ -269,9 +272,9 @@
     <Content Include="PlatformResources\mac\git-lfs.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PlatformResources\windows\git-lfs.zip">
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
     <Content Include="PlatformResources\windows\git.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -284,12 +287,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PlatformResources\mac\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git.zip.md5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
@@ -309,6 +306,12 @@
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <Content Include="PlatformResources\windows\git-lfs.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PlatformResources\windows\git.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

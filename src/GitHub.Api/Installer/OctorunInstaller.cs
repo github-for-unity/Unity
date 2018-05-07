@@ -24,34 +24,28 @@ namespace GitHub.Unity
             this.taskManager = taskManager;
         }
 
-        public ITask<NPath> SetupOctorunIfNeeded()
+        public NPath SetupOctorunIfNeeded()
         {
             //Logger.Trace("SetupOctorunIfNeeded");
 
-            var task = new FuncTask<NPath>(taskManager.Token, () =>
-            {
-                var isOctorunExtracted = IsOctorunExtracted();
-                Logger.Trace("isOctorunExtracted: {0}", isOctorunExtracted);
-                if (isOctorunExtracted)
-                    return installDetails.ExecutablePath;
-                GrabZipFromResources();
-                return NPath.Default;
-            });
+            NPath path = NPath.Default;
+            var isOctorunExtracted = IsOctorunExtracted();
+            Logger.Trace("isOctorunExtracted: {0}", isOctorunExtracted);
+            if (isOctorunExtracted)
+                path = installDetails.ExecutablePath;
+            GrabZipFromResources();
 
-            task.OnEnd += (t, path, _, __) =>
+            if (!path.IsInitialized)
             {
-                if (!path.IsInitialized)
-                {
-                    var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
-                    var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
-                            tempZipExtractPath, sharpZipLibHelper,
-                            fileSystem)
-                        .Then((success, extractPath) => MoveOctorun(extractPath.Combine("octorun")));
-                    t.Then(unzipTask);
-                }
-            };
-
-            return task;
+                var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
+                var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
+                        tempZipExtractPath, sharpZipLibHelper,
+                        fileSystem);
+                var extractPath = unzipTask.RunWithReturn(true);
+                if (unzipTask.Successful)
+                    path = MoveOctorun(extractPath.Combine("octorun"));
+            }
+            return path;
         }
 
         private NPath GrabZipFromResources()

@@ -123,7 +123,7 @@ namespace GitHub.Unity
                     logger.Warning("Keychain Username:\"{0}\" does not match cached Username:\"{1}\"; Hopefully it works", keychainItem.Username, connection.Username);
                 }
 
-                //logger.Trace("Loaded from Credential Manager Host:\"{0}\" Username:\"{1}\"", keychainItem.Host, keychainItem.Username); 
+                //logger.Trace("Loaded from Credential Manager Host:\"{0}\" Username:\"{1}\"", keychainItem.Host, keychainItem.Username);
                 keychainAdapter.Set(keychainItem);
             }
             return keychainAdapter;
@@ -151,7 +151,7 @@ namespace GitHub.Unity
             //logger.Trace("Clear Host:{0}", host);
 
             Guard.ArgumentNotNull(host, nameof(host));
-        
+
             RemoveConnection(host);
 
             //clear octokit credentials
