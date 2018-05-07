@@ -10,21 +10,21 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitFetchTask(string remote,
-            CancellationToken token, bool all = false, bool prune = false, IOutputProcessor<string> processor = null)
+            CancellationToken token, bool tags = false, bool prune = false, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Name = TaskName;
             var stringBuilder = new StringBuilder();
             stringBuilder.Append("fetch");
-
-            if (all)
-            {
-                stringBuilder.Append(" --all");
-            }
-
+            
             if (prune)
             {
                 stringBuilder.Append(" -p");
+            }
+
+            if (tags)
+            {
+                stringBuilder.Append(" --tags");
             }
 
             if (!String.IsNullOrEmpty(remote))
