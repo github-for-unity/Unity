@@ -45,11 +45,13 @@ namespace GitHub.Logging
             set { instance = value; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
         public static ILogging GetLogger<T>()
         {
             return GetLogger(typeof(T));
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static ILogging GetLogger(Type type)
         {
             return GetLogger(type.Name);
