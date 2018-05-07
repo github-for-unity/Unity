@@ -169,102 +169,102 @@ namespace GitHub.Unity
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfCommits()
+        public void ChangesViewButtonCommit()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Commits++;
+            usage.Measures.ChangesViewButtonCommit++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfFetches()
+        public void HistoryToolbarButtonFetch()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Fetches++;
+            usage.Measures.HistoryToolbarButtonFetch++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfPushes()
+        public void HistoryToolbarButtonPush()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Pushes++;
+            usage.Measures.HistoryToolbarButtonPush++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfProjectsInitialized()
+        public void Initialized()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.ProjectsInitialized++;
+            usage.Measures.Initialized++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfLocalBranchCreations()
+        public void BranchesViewButtonCreateBranch()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.LocalBranchCreations++;
+            usage.Measures.BranchesViewButtonCreateBranch++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfLocalBranchDeletions()
+        public void BranchesViewButtonDeleteBranch()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.LocalBranchDeletion++;
+            usage.Measures.BranchesViewButtonDeleteBranch++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfLocalBranchCheckouts()
+        public void BranchesViewButtonCheckoutLocalBranch()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.LocalBranchCheckouts++;
+            usage.Measures.BranchesViewButtonCheckoutLocalBranch++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfRemoteBranchCheckouts()
+        public void BranchesViewButtonCheckoutRemoteBranch()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.RemoteBranchCheckouts++;
+            usage.Measures.BranchesViewButtonCheckoutRemoteBranch++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfPulls()
+        public void HistoryToolbarButtonPull()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Pulls++;
+            usage.Measures.HistoryToolbarButtonPull++;
 
             SaveUsage(usageStore);
         }
 
-        public void IncrementNumberOfAuthentications()
+        public void AuthenticationViewButtonAuthentication()
         {
             var usageStore = LoadUsage();
             var usage = GetCurrentUsage(usageStore);
 
-            usage.Measures.Authentications++;
+            usage.Measures.AuthenticationViewButtonAuthentication++;
 
             SaveUsage(usageStore);
         }

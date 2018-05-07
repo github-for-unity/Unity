@@ -705,7 +705,7 @@ namespace GitHub.Unity
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementNumberOfPulls);
+                            TaskManager.Run(UsageTracker.HistoryToolbarButtonPull);
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
@@ -729,7 +729,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
-                        TaskManager.Run(UsageTracker.IncrementNumberOfPushes);
+                        TaskManager.Run(UsageTracker.HistoryToolbarButtonPush);
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -752,7 +752,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (!success)
                     {
-                        TaskManager.Run(UsageTracker.IncrementNumberOfFetches);
+                        TaskManager.Run(UsageTracker.HistoryToolbarButtonFetch);
 
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
                             Localization.Ok);

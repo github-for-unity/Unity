@@ -25,16 +25,16 @@ namespace GitHub.Unity
     public class Measures
     {
         public int NumberOfStartups { get; set; }
-        public int Commits { get; set; }
-        public int Fetches { get; set; }
-        public int Pushes { get; set; }
-        public int Pulls { get; set; }
-        public int ProjectsInitialized { get; set; }
-        public int Authentications { get; set; }
-        public int LocalBranchCreations { get; set; }
-        public int LocalBranchDeletion { get; set; }
-        public int LocalBranchCheckouts { get; set; }
-        public int RemoteBranchCheckouts { get; set; }
+        public int ChangesViewButtonCommit { get; set; }
+        public int HistoryToolbarButtonFetch { get; set; }
+        public int HistoryToolbarButtonPush { get; set; }
+        public int HistoryToolbarButtonPull { get; set; }
+        public int Initialized { get; set; }
+        public int AuthenticationViewButtonAuthentication { get; set; }
+        public int BranchesViewButtonCreateBranch { get; set; }
+        public int BranchesViewButtonDeleteBranch { get; set; }
+        public int BranchesViewButtonCheckoutLocalBranch { get; set; }
+        public int BranchesViewButtonCheckoutRemoteBranch { get; set; }
     }
 
     class UsageModel

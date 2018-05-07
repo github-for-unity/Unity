@@ -309,7 +309,7 @@ namespace GitHub.Unity
                             {
                                 if (success)
                                 {
-                                    TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCreations);
+                                    TaskManager.Run(UsageTracker.BranchesViewButtonCreateBranch);
                                     Redraw();
                                 }
                                 else
@@ -479,7 +479,7 @@ namespace GitHub.Unity
                         {
                             if (success)
                             {
-                                TaskManager.Run(UsageTracker.IncrementNumberOfRemoteBranchCheckouts);
+                                TaskManager.Run(UsageTracker.BranchesViewButtonCheckoutRemoteBranch);
                                 Redraw();
                             }
                             else
@@ -502,7 +502,7 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCheckouts);
+                            TaskManager.Run(UsageTracker.BranchesViewButtonCheckoutLocalBranch);
                             Redraw();
                         }
                         else
@@ -524,7 +524,7 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchDeletions);
+                            TaskManager.Run(UsageTracker.BranchesViewButtonDeleteBranch);
                         }
                     })
                     .Start();

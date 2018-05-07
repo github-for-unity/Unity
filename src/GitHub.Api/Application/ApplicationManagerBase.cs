@@ -168,7 +168,7 @@ namespace GitHub.Unity
                 })
                 .ThenInUI(() =>
                 {
-                    TaskManager.Run(UsageTracker.IncrementNumberOfProjectsInitialized);
+                    TaskManager.Run(UsageTracker.Initialized);
                     InitializeUI();
                 });
             return task;
