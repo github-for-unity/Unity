@@ -109,6 +109,8 @@ namespace GitHub.Unity
                 .RequestLock(repositoryPath)
                 .ThenInUI(_ =>
                 {
+                    EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.AssetExplorerContextMenuLfsLock);
+
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();
@@ -150,6 +152,8 @@ namespace GitHub.Unity
                 .ReleaseLock(repositoryPath, false)
                 .ThenInUI(_ =>
                 {
+                    EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.AssetExplorerContextMenuLfsUnlock);
+
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();

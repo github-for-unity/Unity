@@ -14,6 +14,9 @@
         void BranchesViewButtonDeleteBranch();
         void BranchesViewButtonCheckoutLocalBranch();
         void BranchesViewButtonCheckoutRemoteBranch();
+        void SettingsViewUnlockButtonLfsUnlock();
+        void AssetExplorerContextMenuLfsLock();
+        void AssetExplorerContextMenuLfsUnlock();
     }
 
     class NullUsageTracker : IUsageTracker
@@ -30,6 +33,12 @@
         public void BranchesViewButtonDeleteBranch() { }
         public void BranchesViewButtonCheckoutLocalBranch() { }
         public void BranchesViewButtonCheckoutRemoteBranch() { }
+        public void SettingsViewUnlockButtonLfsUnlock() { }
+
+        public void AssetExplorerContextMenuLfsLock() { }
+
+        public void AssetExplorerContextMenuLfsUnlock() { }
+
         public void SetMetricsService(IMetricsService instance) { }
     }
 }

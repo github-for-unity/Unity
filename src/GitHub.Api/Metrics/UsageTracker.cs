@@ -249,6 +249,36 @@ namespace GitHub.Unity
             SaveUsage(usageStore);
         }
 
+        public void SettingsViewUnlockButtonLfsUnlock()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.Measures.SettingsViewUnlockButtonLfsUnlock++;
+
+            SaveUsage(usageStore);
+        }
+
+        public void AssetExplorerContextMenuLfsLock()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.Measures.AssetExplorerContextMenuLfsLock++;
+
+            SaveUsage(usageStore);
+        }
+
+        public void AssetExplorerContextMenuLfsUnlock()
+        {
+            var usageStore = LoadUsage();
+            var usage = GetCurrentUsage(usageStore);
+
+            usage.Measures.AssetExplorerContextMenuLfsUnlock++;
+
+            SaveUsage(usageStore);
+        }
+
         public void HistoryViewToolbarButtonPull()
         {
             var usageStore = LoadUsage();

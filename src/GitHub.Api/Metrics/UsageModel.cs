@@ -35,6 +35,9 @@ namespace GitHub.Unity
         public int BranchesViewButtonDeleteBranch { get; set; }
         public int BranchesViewButtonCheckoutLocalBranch { get; set; }
         public int BranchesViewButtonCheckoutRemoteBranch { get; set; }
+        public int SettingsViewUnlockButtonLfsUnlock { get; set; }
+        public int AssetExplorerContextMenuLfsLock { get; set; }
+        public int AssetExplorerContextMenuLfsUnlock { get; set; }
     }
 
     class UsageModel
