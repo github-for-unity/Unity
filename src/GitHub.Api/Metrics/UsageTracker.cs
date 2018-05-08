@@ -2,8 +2,6 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
-using System.Globalization;
 using System.Threading;
 using Timer = System.Threading.Timer;
 using GitHub.Logging;
@@ -121,6 +119,14 @@ namespace GitHub.Unity
             usageLoader.Save(usage);
         }
 
+        public void IncrementProjectsInitialized()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .ProjectsInitialized++;
+            usageLoader.Save(usage);
+        }
+
         public void IncrementChangesViewButtonCommit()
         {
             var usage = usageLoader.Load(userId);
@@ -129,27 +135,27 @@ namespace GitHub.Unity
             usageLoader.Save(usage);
         }
 
-        public void IncrementHistoryViewToolbarButtonFetch()
+        public void IncrementHistoryViewToolbarFetch()
         {
             var usage = usageLoader.Load(userId);
             usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarButtonFetch++;
+                .HistoryViewToolbarFetch++;
             usageLoader.Save(usage);
         }
 
-        public void IncrementHistoryViewToolbarButtonPush()
+        public void IncrementHistoryViewToolbarPush()
         {
             var usage = usageLoader.Load(userId);
             usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarButtonPush++;
+                .HistoryViewToolbarPush++;
             usageLoader.Save(usage);
         }
 
-        public void IncrementProjectsInitialized()
+        public void IncrementHistoryViewToolbarPull()
         {
             var usage = usageLoader.Load(userId);
             usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .ProjectsInitialized++;
+                .HistoryViewToolbarPull++;
             usageLoader.Save(usage);
         }
 
@@ -185,35 +191,11 @@ namespace GitHub.Unity
             usageLoader.Save(usage);
         }
 
-        public void IncrementSettingsViewUnlockButtonLfsUnlock()
+        public void IncrementSettingsViewButtonLfsUnlock()
         {
             var usage = usageLoader.Load(userId);
             usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .SettingsViewUnlockButtonLfsUnlock++;
-            usageLoader.Save(usage);
-        }
-
-        public void IncrementAssetExplorerContextMenuLfsLock()
-        {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .AssetExplorerContextMenuLfsLock++;
-            usageLoader.Save(usage);
-        }
-
-        public void IncrementAssetExplorerContextMenuLfsUnlock()
-        {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .AssetExplorerContextMenuLfsUnlock++;
-            usageLoader.Save(usage);
-        }
-
-        public void IncrementHistoryViewToolbarButtonPull()
-        {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarButtonPull++;
+                .SettingsViewButtonLfsUnlock++;
             usageLoader.Save(usage);
         }
 
@@ -222,6 +204,22 @@ namespace GitHub.Unity
             var usage = usageLoader.Load(userId);
             usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
                 .AuthenticationViewButtonAuthentication++;
+            usageLoader.Save(usage);
+        }
+
+        public void IncrementUnityProjectViewContextLfsLock()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .UnityProjectViewContextLfsLock++;
+            usageLoader.Save(usage);
+        }
+
+        public void IncrementUnityProjectViewContextLfsUnlock()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .UnityProjectViewContextLfsUnlock++;
             usageLoader.Save(usage);
         }
 

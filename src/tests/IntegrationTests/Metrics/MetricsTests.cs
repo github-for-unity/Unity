@@ -12,20 +12,20 @@ namespace IntegrationTests
     [TestFixture]
     class MetricsTests : BaseIntegrationTest
     {
-        [TestCase(nameof(Measures.AssetExplorerContextMenuLfsLock))]
-        [TestCase(nameof(Measures.AssetExplorerContextMenuLfsUnlock))]
+        [TestCase(nameof(Measures.UnityProjectViewContextLfsLock))]
+        [TestCase(nameof(Measures.UnityProjectViewContextLfsUnlock))]
         [TestCase(nameof(Measures.AuthenticationViewButtonAuthentication))]
         [TestCase(nameof(Measures.BranchesViewButtonCheckoutLocalBranch))]
         [TestCase(nameof(Measures.BranchesViewButtonCheckoutRemoteBranch))]
         [TestCase(nameof(Measures.BranchesViewButtonCreateBranch))]
         [TestCase(nameof(Measures.BranchesViewButtonDeleteBranch))]
         [TestCase(nameof(Measures.ChangesViewButtonCommit))]
-        [TestCase(nameof(Measures.HistoryViewToolbarButtonFetch))]
-        [TestCase(nameof(Measures.HistoryViewToolbarButtonPull))]
-        [TestCase(nameof(Measures.HistoryViewToolbarButtonPush))]
+        [TestCase(nameof(Measures.HistoryViewToolbarFetch))]
+        [TestCase(nameof(Measures.HistoryViewToolbarPull))]
+        [TestCase(nameof(Measures.HistoryViewToolbarPush))]
         [TestCase(nameof(Measures.NumberOfStartups))]
         [TestCase(nameof(Measures.ProjectsInitialized))]
-        [TestCase(nameof(Measures.SettingsViewUnlockButtonLfsUnlock))]
+        [TestCase(nameof(Measures.SettingsViewButtonLfsUnlock))]
         public void IncrementMetricsWorks(string measureName)
         {
             var userId = Guid.NewGuid().ToString();

@@ -27,19 +27,19 @@ namespace GitHub.Unity
     public class Measures
     {
         public int NumberOfStartups { get; set; }
-        public int ChangesViewButtonCommit { get; set; }
-        public int HistoryViewToolbarButtonFetch { get; set; }
-        public int HistoryViewToolbarButtonPush { get; set; }
-        public int HistoryViewToolbarButtonPull { get; set; }
         public int ProjectsInitialized { get; set; }
+        public int ChangesViewButtonCommit { get; set; }
+        public int HistoryViewToolbarFetch { get; set; }
+        public int HistoryViewToolbarPush { get; set; }
+        public int HistoryViewToolbarPull { get; set; }
         public int AuthenticationViewButtonAuthentication { get; set; }
         public int BranchesViewButtonCreateBranch { get; set; }
         public int BranchesViewButtonDeleteBranch { get; set; }
         public int BranchesViewButtonCheckoutLocalBranch { get; set; }
         public int BranchesViewButtonCheckoutRemoteBranch { get; set; }
-        public int SettingsViewUnlockButtonLfsUnlock { get; set; }
-        public int AssetExplorerContextMenuLfsLock { get; set; }
-        public int AssetExplorerContextMenuLfsUnlock { get; set; }
+        public int SettingsViewButtonLfsUnlock { get; set; }
+        public int UnityProjectViewContextLfsLock { get; set; }
+        public int UnityProjectViewContextLfsUnlock { get; set; }
     }
 
     class UsageModel

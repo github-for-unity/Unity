@@ -5,17 +5,17 @@
         bool Enabled { get; set; }
         void IncrementNumberOfStartups();
         void IncrementChangesViewButtonCommit();
-        void IncrementHistoryViewToolbarButtonFetch();
-        void IncrementHistoryViewToolbarButtonPush();
-        void IncrementHistoryViewToolbarButtonPull();
+        void IncrementHistoryViewToolbarFetch();
+        void IncrementHistoryViewToolbarPush();
+        void IncrementHistoryViewToolbarPull();
         void IncrementAuthenticationViewButtonAuthentication();
         void IncrementProjectsInitialized();
         void IncrementBranchesViewButtonCreateBranch();
         void IncrementBranchesViewButtonDeleteBranch();
         void IncrementBranchesViewButtonCheckoutLocalBranch();
         void IncrementBranchesViewButtonCheckoutRemoteBranch();
-        void IncrementSettingsViewUnlockButtonLfsUnlock();
-        void IncrementAssetExplorerContextMenuLfsLock();
-        void IncrementAssetExplorerContextMenuLfsUnlock();
+        void IncrementSettingsViewButtonLfsUnlock();
+        void IncrementUnityProjectViewContextLfsLock();
+        void IncrementUnityProjectViewContextLfsUnlock();
     }
 }

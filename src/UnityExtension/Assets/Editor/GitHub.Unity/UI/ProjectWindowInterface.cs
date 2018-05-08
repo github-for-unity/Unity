@@ -111,7 +111,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementAssetExplorerContextMenuLfsLock);
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsLock);
                     }
 
                     isBusy = false;
@@ -157,7 +157,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementAssetExplorerContextMenuLfsUnlock);
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
                     }
                     isBusy = false;
                     Selection.activeGameObject = null;
