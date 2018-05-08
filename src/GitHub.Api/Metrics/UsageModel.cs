@@ -17,7 +17,7 @@ namespace GitHub.Unity
     public class Dimensions
     {
         public string Guid { get; set; }
-        public DateTime Date { get; set; }
+        public DateTimeOffset Date { get; set; }
         public string AppVersion { get; set; }
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
@@ -54,7 +54,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(appVersion, "appVersion");
             Guard.ArgumentNotNullOrWhiteSpace(unityVersion, "unityVersion");
 
-            var date = DateTime.UtcNow.Date;
+            var now = DateTimeOffset.Now;
             if (currentUsage == null)
             {
                 currentUsage = Reports
@@ -67,7 +67,7 @@ namespace GitHub.Unity
                 {
                     InstanceId = instanceId,
                     Dimensions = {
-                        Date = date,
+                        Date = now,
                         Guid = Guid,
                         AppVersion = appVersion,
                         UnityVersion = unityVersion,
@@ -94,7 +94,7 @@ namespace GitHub.Unity
 
     class UsageStore
     {
-        public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.Now;
         public UsageModel Model { get; set; } = new UsageModel();
 
         public Measures GetCurrentMeasures(string appVersion, string unityVersion, string instanceId)
