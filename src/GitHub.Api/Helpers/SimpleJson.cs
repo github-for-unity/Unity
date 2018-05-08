@@ -1274,7 +1274,7 @@ namespace GitHub.Unity.Json
 
         internal virtual ReflectionUtils.ConstructorDelegate ContructorDelegateFactory(Type key)
         {
-            return ReflectionUtils.GetContructor(key, key.IsArray ? ArrayConstructorParameterTypes : EmptyTypes);
+            return ReflectionUtils.GetContructor(key, (key.IsArray || ReflectionUtils.IsAssignableFrom(typeof(IList), key))? ArrayConstructorParameterTypes : EmptyTypes);
         }
 
         internal virtual IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory(Type type)
