@@ -330,11 +330,13 @@ namespace GitHub.Unity
 
                     if (itemsToRevert.Any())
                     {
-                        task.Then(GitClient.Discard(itemsToRevert));
+                        var next = GitClient.Discard(itemsToRevert);
+                        HookupHandlers(next, true);
+                        task.OnEnd -= HookupEndHandlerWithWatcher;
+                        task.Then(next);
                     }
                 }
                 , () => gitStatusEntries);
-
 
             return HookupHandlers(task, true);
         }
@@ -459,21 +461,37 @@ namespace GitHub.Unity
                 }
             };
 
-            task.Finally(success =>
-            {
-                if (filesystemChangesExpected)
-                {
-                    //Logger.Trace("Ended Operation - Enable Watcher");
-                    watcher.Start();
-                }
-
-                if (isExclusive)
-                {
-                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
-                    IsBusy = false;
-                }
-            });
+            if (filesystemChangesExpected)
+                task.OnEnd += HookupEndHandlerWithWatcher;
+            else
+                task.OnEnd += HookupEndHandlerWithoutWatcher;
             return task;
+        }
+
+        private void HookupEndHandlerWithWatcher(ITask task, bool success, Exception ex)
+        {
+            HookupEndHandler(task, true);
+        }
+
+        private void HookupEndHandlerWithoutWatcher(ITask task, bool success, Exception ex)
+        {
+            HookupEndHandler(task, false);
+        }
+
+        private void HookupEndHandler(ITask task, bool filesystemChangesExpected)
+        {
+            var isExclusive = task.IsChainExclusive();
+            if (filesystemChangesExpected)
+            {
+                //Logger.Trace("Ended Operation - Enable Watcher");
+                watcher.Start();
+            }
+
+            if (isExclusive)
+            {
+                //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                IsBusy = false;
+            }
         }
 
         private string GetCurrentHead()
