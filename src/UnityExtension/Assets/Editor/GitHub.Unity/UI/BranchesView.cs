@@ -309,6 +309,7 @@ namespace GitHub.Unity
                             {
                                 if (success)
                                 {
+                                    TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCreations);
                                     Redraw();
                                 }
                                 else
@@ -473,17 +474,20 @@ namespace GitHub.Unity
 
                 if (confirmCheckout)
                 {
-                    GitClient.CreateBranch(branchName, branch).FinallyInUI((success, e) => {
-                        if (success)
+                    GitClient.CreateBranch(branchName, branch)
+                        .FinallyInUI((success, e) =>
                         {
-                            Redraw();
-                        }
-                        else
-                        {
-                            EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
-                        }
-                    }).Start();
+                            if (success)
+                            {
+                                TaskManager.Run(UsageTracker.IncrementNumberOfRemoteBranchCheckouts);
+                                Redraw();
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                    String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
+                            }
+                        }).Start();
                 }
             }
         }
@@ -493,17 +497,20 @@ namespace GitHub.Unity
             if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, branch), ConfirmSwitchOK,
                 ConfirmSwitchCancel))
             {
-                GitClient.SwitchBranch(branch).FinallyInUI((success, e) => {
-                    if (success)
+                GitClient.SwitchBranch(branch)
+                    .FinallyInUI((success, e) =>
                     {
-                        Redraw();
-                    }
-                    else
-                    {
-                        EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                            String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
-                    }
-                }).Start();
+                        if (success)
+                        {
+                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCheckouts);
+                            Redraw();
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
+                                String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
+                        }
+                    }).Start();
             }
         }
 
@@ -512,7 +519,15 @@ namespace GitHub.Unity
             var dialogMessage = string.Format(DeleteBranchMessageFormatString, branch);
             if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
             {
-                GitClient.DeleteBranch(branch, true).Start();
+                GitClient.DeleteBranch(branch, true)
+                    .FinallyInUI((success, e) =>
+                    {
+                        if (success)
+                        {
+                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchDeletions);
+                        }
+                    })
+                    .Start();
             }
         }
 
