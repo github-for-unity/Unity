@@ -12,7 +12,6 @@ namespace IntegrationTests
     [TestFixture]
     class MetricsTests : BaseIntegrationTest
     {
-
         [TestCase(nameof(Measures.AssetExplorerContextMenuLfsLock))]
         [TestCase(nameof(Measures.AssetExplorerContextMenuLfsUnlock))]
         [TestCase(nameof(Measures.AuthenticationViewButtonAuthentication))]
@@ -29,7 +28,6 @@ namespace IntegrationTests
         [TestCase(nameof(Measures.SettingsViewUnlockButtonLfsUnlock))]
         public void IncrementMetricsWorks(string measureName)
         {
-            InitializeEnvironment(TestBasePath, null, false, false);
             var userId = Guid.NewGuid().ToString();
             var appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
             var unityVersion = "2017.3f1";
@@ -49,6 +47,26 @@ namespace IntegrationTests
             meth.Invoke(usageTracker, null);
             currentUsage = usageStore.GetCurrentMeasures(appVersion, unityVersion, instanceId);
             Assert.AreEqual(1, prop.GetValue(currentUsage, null));
+        }
+
+        [Test]
+        public void LoadingWorks()
+        {
+            InitializeEnvironment(TestBasePath, TestBasePath, false, false);
+            var userId = Guid.NewGuid().ToString();
+            var appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
+            var unityVersion = "2017.3f1";
+            var instanceId = Guid.NewGuid().ToString();
+            var usageStore = new UsageStore();
+            usageStore.Model.Guid = userId;
+            var usageTracker = new UsageTracker(Substitute.For<IMetricsService>(), Substitute.For<ISettings>(),
+                Environment, userId, unityVersion, instanceId);
+            usageTracker.IncrementNumberOfStartups();
+            var storePath = Environment.UserCachePath.Combine(Constants.UsageFile);
+            Assert.IsTrue(storePath.FileExists());
+            var json = storePath.ReadAllText(Encoding.UTF8);
+            var savedStore = json.FromJson<UsageStore>(lowerCase: true);
+            Assert.AreEqual(1, savedStore.GetCurrentMeasures(appVersion, unityVersion, instanceId).NumberOfStartups);
         }
     }
 }
