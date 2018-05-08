@@ -693,15 +693,6 @@ namespace GitHub.Unity
             {
                 Repository
                     .Pull()
-                    // we need the error propagated from the original git command to handle things appropriately
-                    .Then(success => {
-                        if (!success)
-                        {
-                            // if Pull fails we need to parse the output of the command, figure out
-                            // whether pull triggered a merge or a rebase, and abort the operation accordingly
-                            // (either git rebase --abort or git merge --abort)
-                        }
-                    }, runOptions: TaskRunOptions.OnAlways)
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
