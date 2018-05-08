@@ -1,7 +1,9 @@
-﻿using System;
+﻿using GitHub.Logging;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 
 namespace GitHub.Unity
 {
@@ -94,5 +96,10 @@ namespace GitHub.Unity
     {
         public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.UtcNow;
         public UsageModel Model { get; set; } = new UsageModel();
+
+        public Measures GetCurrentMeasures(string appVersion, string unityVersion, string instanceId)
+        {
+            return Model.GetCurrentUsage(appVersion, unityVersion, instanceId).Measures;
+        }
     }
 }

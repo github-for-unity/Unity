@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -705,7 +705,7 @@ namespace GitHub.Unity
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.HistoryViewToolbarButtonPull);
+                            TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarButtonPull);
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
@@ -729,7 +729,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
-                        TaskManager.Run(UsageTracker.HistoryViewToolbarButtonPush);
+                        TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarButtonPush);
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -752,7 +752,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (!success)
                     {
-                        TaskManager.Run(UsageTracker.HistoryViewToolbarButtonFetch);
+                        TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarButtonFetch);
 
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
                             Localization.Ok);

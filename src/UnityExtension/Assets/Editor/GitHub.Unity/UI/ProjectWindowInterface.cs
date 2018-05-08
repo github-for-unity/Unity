@@ -109,7 +109,7 @@ namespace GitHub.Unity
                 .RequestLock(repositoryPath)
                 .ThenInUI(_ =>
                 {
-                    EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.AssetExplorerContextMenuLfsLock);
+                    EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementAssetExplorerContextMenuLfsLock);
 
                     isBusy = false;
                     Selection.activeGameObject = null;
@@ -152,7 +152,7 @@ namespace GitHub.Unity
                 .ReleaseLock(repositoryPath, false)
                 .ThenInUI(_ =>
                 {
-                    EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.AssetExplorerContextMenuLfsUnlock);
+                    EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementAssetExplorerContextMenuLfsUnlock);
 
                     isBusy = false;
                     Selection.activeGameObject = null;

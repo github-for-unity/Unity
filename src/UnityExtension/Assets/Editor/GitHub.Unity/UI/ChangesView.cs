@@ -357,7 +357,7 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.ChangesViewButtonCommit);
+                            TaskManager.Run(UsageTracker.IncrementChangesViewButtonCommit);
                         }
 
                         commitMessage = "";

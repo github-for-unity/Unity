@@ -293,7 +293,7 @@ namespace GitHub.Unity
                                 if (GUILayout.Button("Unlock"))
                                 {
                                     Repository.ReleaseLock(lck.Path, false).FinallyInUI((b, exception) => {
-                                        TaskManager.Run(UsageTracker.SettingsViewUnlockButtonLfsUnlock);
+                                        TaskManager.Run(UsageTracker.IncrementSettingsViewUnlockButtonLfsUnlock);
                                     }).Start();
                                 }
                             }

@@ -214,7 +214,7 @@ namespace GitHub.Unity
 
             if (success)
             {
-                TaskManager.Run(UsageTracker.AuthenticationViewButtonAuthentication);
+                TaskManager.Run(UsageTracker.IncrementAuthenticationViewButtonAuthentication);
 
                 Clear();
                 Finish(true);
