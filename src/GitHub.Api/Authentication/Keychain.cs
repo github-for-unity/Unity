@@ -198,7 +198,7 @@ namespace GitHub.Unity
                 var json = cachePath.ReadAllText();
                 try
                 {
-                    var conns = SimpleJson.DeserializeObject<Connection[]>(json);
+                    var conns = json.FromJson<Connection[]>();
                     UpdateConnections(conns);
                 }
                 catch (IOException ex)
@@ -219,7 +219,7 @@ namespace GitHub.Unity
             //logger.Trace("WriteCacheToDisk Count:{0} Path:{1}", connectionCache.Count, cachePath.ToString());
             try
             {
-                var json = SimpleJson.SerializeObject(connections.Values.ToArray());
+                var json = connections.Values.ToJson();
                 cachePath.WriteAllText(json);
             }
             catch (IOException ex)

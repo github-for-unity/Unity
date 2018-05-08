@@ -36,7 +36,7 @@
 
 // NOTE: uncomment the following line to disable linq expressions/compiled lambda (better performance) instead of method.invoke().
 // define if you are using .net framework <= 3.0 or < WP7.5
-//#define SIMPLE_JSON_NO_LINQ_EXPRESSION
+#define SIMPLE_JSON_NO_LINQ_EXPRESSION
 
 // NOTE: uncomment the following line if you are compiling under Window Metro style application/library.
 // usually already defined in properties
@@ -66,12 +66,14 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using GitHub.Reflection;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using GitHub.Unity.Json;
 
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable RedundantExplicitArrayCreation
 // ReSharper disable SuggestUseVarKeywordEvident
-namespace GitHub
+namespace GitHub.Unity.Json
 {
     /// <summary>
     /// Represents the json array.
@@ -482,10 +484,7 @@ namespace GitHub
         }
 #endif
     }
-}
 
-namespace GitHub
-{
     /// <summary>
     /// This class encodes and decodes JSON strings.
     /// Spec. details, see http://www.json.org/
@@ -517,6 +516,7 @@ namespace GitHub
 
         private static readonly char[] EscapeTable;
         private static readonly char[] EscapeCharacters = new char[] { '"', '\\', '\b', '\f', '\n', '\r', '\t' };
+        private static readonly string EscapeCharactersString = new string(EscapeCharacters);
 
         static SimpleJson()
         {
@@ -620,7 +620,7 @@ namespace GitHub
             StringBuilder sb = new StringBuilder();
             char c;
 
-            for (int i = 0; i < jsonString.Length; )
+            for (int i = 0; i < jsonString.Length;)
             {
                 c = jsonString[i++];
 
@@ -1252,9 +1252,12 @@ namespace GitHub
 
         private static readonly string[] Iso8601Format = new string[]
                                                              {
-                                                                 @"yyyy-MM-dd\THH:mm:ss.FFFFFFF\Z",
-                                                                 @"yyyy-MM-dd\THH:mm:ss\Z",
-                                                                 @"yyyy-MM-dd\THH:mm:ssK"
+                                                                @"yyyy-MM-dd\THH\:mm\:sszzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:sszzz",
                                                              };
 
         public PocoJsonSerializerStrategy()
@@ -1271,7 +1274,7 @@ namespace GitHub
 
         internal virtual ReflectionUtils.ConstructorDelegate ContructorDelegateFactory(Type key)
         {
-            return ReflectionUtils.GetContructor(key, key.IsArray ? ArrayConstructorParameterTypes : EmptyTypes);
+            return ReflectionUtils.GetContructor(key, (key.IsArray || ReflectionUtils.IsAssignableFrom(typeof(IList), key))? ArrayConstructorParameterTypes : EmptyTypes);
         }
 
         internal virtual IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory(Type type)
@@ -1282,14 +1285,14 @@ namespace GitHub
                 if (propertyInfo.CanRead)
                 {
                     MethodInfo getMethod = ReflectionUtils.GetGetterMethodInfo(propertyInfo);
-                    if (getMethod.IsStatic || !getMethod.IsPublic)
+                    if (!CanAddProperty(propertyInfo, getMethod))
                         continue;
                     result[MapClrMemberNameToJsonFieldName(propertyInfo.Name)] = ReflectionUtils.GetGetMethod(propertyInfo);
                 }
             }
             foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(type))
             {
-                if (fieldInfo.IsStatic || !fieldInfo.IsPublic)
+                if (!CanAddField(fieldInfo))
                     continue;
                 result[MapClrMemberNameToJsonFieldName(fieldInfo.Name)] = ReflectionUtils.GetGetMethod(fieldInfo);
             }
@@ -1304,18 +1307,38 @@ namespace GitHub
                 if (propertyInfo.CanWrite)
                 {
                     MethodInfo setMethod = ReflectionUtils.GetSetterMethodInfo(propertyInfo);
-                    if (setMethod.IsStatic || !setMethod.IsPublic)
+                    if (!CanAddProperty(propertyInfo, setMethod))
                         continue;
                     result[MapClrMemberNameToJsonFieldName(propertyInfo.Name)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(propertyInfo.PropertyType, ReflectionUtils.GetSetMethod(propertyInfo));
                 }
             }
             foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(type))
             {
-                if (fieldInfo.IsInitOnly || fieldInfo.IsStatic || !fieldInfo.IsPublic)
+                if (fieldInfo.IsInitOnly || !CanAddField(fieldInfo))
                     continue;
                 result[MapClrMemberNameToJsonFieldName(fieldInfo.Name)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(fieldInfo.FieldType, ReflectionUtils.GetSetMethod(fieldInfo));
             }
             return result;
+        }
+
+        protected virtual bool CanAddField(FieldInfo field)
+        {
+            if (field.IsStatic)
+                return false;
+            if (ReflectionUtils.GetAttribute(field, typeof(NotSerializedAttribute)) != null)
+                return false;
+            if (ReflectionUtils.GetAttribute(field, typeof(CompilerGeneratedAttribute)) != null)
+                return false;
+            return true;
+        }
+
+        protected virtual bool CanAddProperty(PropertyInfo property, MethodInfo method)
+        {
+            if (method.IsStatic)
+                return false;
+            if (ReflectionUtils.GetAttribute(property, typeof(NotSerializedAttribute)) != null)
+                return false;
+            return true;
         }
 
         public virtual bool TrySerializeNonPrimitiveObject(object input, out object output)
@@ -1329,7 +1352,7 @@ namespace GitHub
             if (type == null) throw new ArgumentNullException("type");
             string str = value as string;
 
-            if (type == typeof (Guid) && string.IsNullOrEmpty(str))
+            if (type == typeof(Guid) && string.IsNullOrEmpty(str))
                 return default(Guid);
 
             if (value == null)
@@ -1349,19 +1372,19 @@ namespace GitHub
                         return new Guid(str);
                     if (type == typeof(Uri))
                     {
-                        bool isValid =  Uri.IsWellFormedUriString(str, UriKind.RelativeOrAbsolute);
+                        bool isValid = Uri.IsWellFormedUriString(str, UriKind.RelativeOrAbsolute);
 
                         Uri result;
                         if (isValid && Uri.TryCreate(str, UriKind.RelativeOrAbsolute, out result))
                             return result;
 
-                                                return null;
+                        return null;
                     }
 
-                                    if (type == typeof(string))
-                                        return str;
+                    if (type == typeof(string))
+                        return str;
 
-                                    return Convert.ChangeType(str, type, CultureInfo.InvariantCulture);
+                    return Convert.ChangeType(str, type, CultureInfo.InvariantCulture);
                 }
                 else
                 {
@@ -1592,8 +1615,6 @@ namespace GitHub
 
 #endif
 
-    namespace Reflection
-    {
         // This class is meant to be copied into other libraries. So we want to exclude it from Code Analysis rules
         // that might be in place in the target project.
         [GeneratedCode("reflection-utils", "1.0.0")]
@@ -1648,7 +1669,7 @@ namespace GitHub
                 foreach (Type implementedInterface in interfaces)
                 {
                     if (IsTypeGeneric(implementedInterface) &&
-                        implementedInterface.GetGenericTypeDefinition() == typeof (IList<>))
+                        implementedInterface.GetGenericTypeDefinition() == typeof(IList<>))
                     {
                         return GetGenericTypeArguments(implementedInterface)[0];
                     }
@@ -1837,7 +1858,13 @@ namespace GitHub
             public static ConstructorDelegate GetConstructorByReflection(Type type, params Type[] argsType)
             {
                 ConstructorInfo constructorInfo = GetConstructorInfo(type, argsType);
-                return constructorInfo == null ? null : GetConstructorByReflection(constructorInfo);
+                // if it's a value type (i.e., struct), it won't have a default constructor, so use Activator instead
+                return constructorInfo == null ? (type.IsValueType ? GetConstructorForValueType(type) : null) : GetConstructorByReflection(constructorInfo);
+            }
+
+            static ConstructorDelegate GetConstructorForValueType(Type type)
+            {
+                return delegate(object[] args) { return Activator.CreateInstance(type); };
             }
 
 #if !SIMPLE_JSON_NO_LINQ_EXPRESSION
@@ -1864,7 +1891,8 @@ namespace GitHub
             public static ConstructorDelegate GetConstructorByExpression(Type type, params Type[] argsType)
             {
                 ConstructorInfo constructorInfo = GetConstructorInfo(type, argsType);
-                return constructorInfo == null ? null : GetConstructorByExpression(constructorInfo);
+                // if it's a value type (i.e., struct), it won't have a default constructor, so use Activator instead
+                return constructorInfo == null ? (type.IsValueType ? GetConstructorForValueType(type) : null) : GetConstructorByExpression(constructorInfo);
             }
 
 #endif
@@ -1924,6 +1952,9 @@ namespace GitHub
 #if SIMPLE_JSON_NO_LINQ_EXPRESSION
                 return GetSetMethodByReflection(propertyInfo);
 #else
+                // if it's a struct, we want to use reflection, as linq expressions modify copies of the object and not the real thing
+                if (propertyInfo.DeclaringType.IsValueType)
+                    return GetSetMethodByReflection(propertyInfo);
                 return GetSetMethodByExpression(propertyInfo);
 #endif
             }
@@ -1933,6 +1964,9 @@ namespace GitHub
 #if SIMPLE_JSON_NO_LINQ_EXPRESSION
                 return GetSetMethodByReflection(fieldInfo);
 #else
+                // if it's a struct, we want to use reflection, as linq expressions modify copies of the object and not the real thing
+                if (fieldInfo.DeclaringType.IsValueType)
+                    return GetSetMethodByReflection(fieldInfo);
                 return GetSetMethodByExpression(fieldInfo);
 #endif
             }
@@ -2118,6 +2152,107 @@ namespace GitHub
                 }
             }
 
+        }
+
+}
+
+namespace GitHub.Unity
+{
+    [System.AttributeUsage(System.AttributeTargets.Property |
+                       System.AttributeTargets.Field)]
+    public sealed class NotSerializedAttribute : Attribute
+    {
+    }
+
+    public static class JsonSerializerExtensions
+    {
+        static JsonSerializationStrategy publicLowerCaseStrategy = new JsonSerializationStrategy(true, true);
+        static JsonSerializationStrategy publicUpperCaseStrategy = new JsonSerializationStrategy(false, true);
+        static JsonSerializationStrategy privateLowerCaseStrategy = new JsonSerializationStrategy(true, false);
+        static JsonSerializationStrategy privateUpperCaseStrategy = new JsonSerializationStrategy(false, false);
+        public static string ToJson<T>(this T model, bool lowerCase = false, bool onlyPublic = true)
+        {
+            return SimpleJson.SerializeObject(model, GetStrategy(lowerCase, onlyPublic));
+        }
+
+        public static T FromJson<T>(this string json, bool lowerCase = false, bool onlyPublic = true)
+        {
+            return SimpleJson.DeserializeObject<T>(json, GetStrategy(lowerCase, onlyPublic));
+        }
+
+        public static T FromObject<T>(this object obj, bool lowerCase = false, bool onlyPublic = true)
+        {
+            if (obj == null)
+                return default(T);
+            var ret = GetStrategy(lowerCase, onlyPublic).DeserializeObject(obj, typeof(T));
+            if (ret is T)
+                return (T)ret;
+            return default(T);
+        }
+
+        private static JsonSerializationStrategy GetStrategy(bool lowerCase, bool onlyPublic)
+        {
+            if (lowerCase && onlyPublic)
+                return publicLowerCaseStrategy;
+            if (lowerCase && !onlyPublic)
+                return privateLowerCaseStrategy;
+            if (!lowerCase && onlyPublic)
+                return publicUpperCaseStrategy;
+            return privateUpperCaseStrategy;
+        }
+
+        /// <summary>
+        /// Convert from PascalCase to camelCase.
+        /// </summary>
+        private static string ToJsonPropertyName(string propertyName)
+        {
+            Guard.ArgumentNotNullOrWhiteSpace(propertyName, "propertyName");
+            int i = 0;
+            while (i < propertyName.Length && char.IsUpper(propertyName[i]))
+                i++;
+            return propertyName.Substring(0, i).ToLowerInvariant() + propertyName.Substring(i);
+        }
+
+        class JsonSerializationStrategy : PocoJsonSerializerStrategy
+        {
+            private bool toLowerCase = false;
+            private bool onlyPublic = true;
+
+            public JsonSerializationStrategy(bool toLowerCase, bool onlyPublic)
+            {
+                this.toLowerCase = toLowerCase;
+                this.onlyPublic = onlyPublic;
+            }
+
+            protected override bool CanAddField(FieldInfo field)
+            {
+                var canAdd = base.CanAddField(field);
+                return canAdd && ((onlyPublic && field.IsPublic) || !onlyPublic);
+            }
+
+            protected override bool CanAddProperty(PropertyInfo property, MethodInfo method)
+            {
+                var canAdd = base.CanAddProperty(property, method);
+                if (!canAdd)
+                    return false;
+
+                // we always serialize public things
+                if (method.IsPublic)
+                    return true;
+
+                // if the getter is private and we're only serializing public things, skip this property
+                if (onlyPublic && method.Name.StartsWith("get_"))
+                    return false;
+
+                return true;
+            }
+
+            protected override string MapClrMemberNameToJsonFieldName(string clrPropertyName)
+            {
+                if (!toLowerCase)
+                    return base.MapClrMemberNameToJsonFieldName(clrPropertyName);
+                return ToJsonPropertyName(clrPropertyName);
+            }
         }
     }
 }

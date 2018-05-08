@@ -125,7 +125,7 @@ namespace GitHub.Unity
 
             try
             {
-                cacheData = SimpleJson.DeserializeObject<CacheData>(data);
+                cacheData = data.FromJson<CacheData>();
             }
             catch(Exception ex)
             {
@@ -149,7 +149,7 @@ namespace GitHub.Unity
 
             try
             {
-                var data = SimpleJson.SerializeObject(cacheData);
+                var data = cacheData.ToJson();
                 writeAllText(path, data);
             }
             catch (Exception ex)
