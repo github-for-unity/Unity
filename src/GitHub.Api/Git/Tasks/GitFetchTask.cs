@@ -10,7 +10,7 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitFetchTask(string remote,
-            CancellationToken token, bool tags = false, bool prune = false, IOutputProcessor<string> processor = null)
+            CancellationToken token, bool prune = false, bool tags = false, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Name = TaskName;
