@@ -1252,9 +1252,12 @@ namespace GitHub.Unity.Json
 
         private static readonly string[] Iso8601Format = new string[]
                                                              {
-                                                                 @"yyyy-MM-dd\THH:mm:ss.FFFFFFF\Z",
-                                                                 @"yyyy-MM-dd\THH:mm:ss\Z",
-                                                                 @"yyyy-MM-dd\THH:mm:ssK"
+                                                                @"yyyy-MM-dd\THH\:mm\:sszzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:sszzz",
                                                              };
 
         public PocoJsonSerializerStrategy()
@@ -1271,7 +1274,7 @@ namespace GitHub.Unity.Json
 
         internal virtual ReflectionUtils.ConstructorDelegate ContructorDelegateFactory(Type key)
         {
-            return ReflectionUtils.GetContructor(key, key.IsArray ? ArrayConstructorParameterTypes : EmptyTypes);
+            return ReflectionUtils.GetContructor(key, (key.IsArray || ReflectionUtils.IsAssignableFrom(typeof(IList), key))? ArrayConstructorParameterTypes : EmptyTypes);
         }
 
         internal virtual IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory(Type type)
