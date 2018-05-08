@@ -301,7 +301,7 @@ namespace GitHub.Unity
         {
             try
             {
-                var json = this.ToJson(lowerCase: true);
+                var json = store.ToJson(lowerCase: true);
                 path.WriteAllText(json, Encoding.UTF8);
             }
             catch (Exception ex)
