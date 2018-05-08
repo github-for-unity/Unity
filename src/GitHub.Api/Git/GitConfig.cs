@@ -233,9 +233,9 @@ namespace GitHub.Unity
             if (ret)
             {
                 if (value is float)
-                    value = (T)(object)sect.GetFloat(key);
+                    value = (T)(object)sect.TryGetFloat(key);
                 else if (value is int)
-                    value = (T)(object)sect.GetInt(key);
+                    value = (T)(object)sect.TryGetInt(key);
                 else
                     value = (T)(object)sect.GetString(key);
             }
@@ -249,12 +249,12 @@ namespace GitHub.Unity
 
         public float GetFloat(string section, string key)
         {
-            return sections[section].GetFloat(key);
+            return sections[section].TryGetFloat(key);
         }
 
         public int GetInt(string section, string key)
         {
-            return sections[section].GetInt(key);
+            return sections[section].TryGetInt(key);
         }
 
         public void Set<T>(string section, string key, T value)
@@ -317,7 +317,7 @@ namespace GitHub.Unity
                 return this[key].First();
             }
 
-            public int GetInt(string key)
+            public int TryGetInt(string key)
             {
                 var value = TryGetString(key);
                 int result = 0;
@@ -325,7 +325,7 @@ namespace GitHub.Unity
                 return result;
             }
 
-            public float GetFloat(string key)
+            public float TryGetFloat(string key)
             {
                 var value = TryGetString(key);
                 float result = 0F;
