@@ -304,7 +304,7 @@ namespace GitHub.Unity
                     // Effectuate create
                     if (createBranch)
                     {
-                        GitClient.CreateBranch(newBranchName, treeLocals.SelectedNode.Path)
+                        Repository.CreateBranch(newBranchName, treeLocals.SelectedNode.Path)
                             .FinallyInUI((success, e) =>
                             {
                                 if (success)
@@ -474,7 +474,7 @@ namespace GitHub.Unity
 
                 if (confirmCheckout)
                 {
-                    GitClient.CreateBranch(branchName, branch)
+                    Repository.CreateBranch(branchName, branch)
                         .FinallyInUI((success, e) =>
                         {
                             if (success)
@@ -497,7 +497,7 @@ namespace GitHub.Unity
             if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, branch), ConfirmSwitchOK,
                 ConfirmSwitchCancel))
             {
-                GitClient.SwitchBranch(branch)
+                Repository.SwitchBranch(branch)
                     .FinallyInUI((success, e) =>
                     {
                         if (success)
@@ -519,14 +519,8 @@ namespace GitHub.Unity
             var dialogMessage = string.Format(DeleteBranchMessageFormatString, branch);
             if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
             {
-                GitClient.DeleteBranch(branch, true)
-                    .FinallyInUI((success, e) =>
-                    {
-                        if (success)
-                        {
-                            TaskManager.Run(UsageTracker.IncrementBranchesViewButtonDeleteBranch);
-                        }
-                    })
+                Repository.DeleteBranch(branch, true)
+                    .Then(UsageTracker.IncrementBranchesViewButtonDeleteBranch)
                     .Start();
             }
         }
