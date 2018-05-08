@@ -14,6 +14,20 @@ namespace GitHub.Unity
     {
         public static NPath ToFile(ResourceType resourceType, string resource, NPath destinationPath, IEnvironment environment)
         {
+            /*
+                This function attempts to get files embedded in the callers assembly.
+                GitHub.Unity which tends to contain logos
+                GitHub.Api which tends to contain application resources
+
+                Each file's name is their physical path in the project.
+
+                When running tests, we assume the tests are looking for application resources, and default to returning GitHub.Api 
+
+                First check for the resource in the calling assembly.
+                If the resource cannot be found, fallback to looking in GitHub.Api's assembly.
+                If the resource is still not found, it attempts to find it in the file system
+             */
+
             var os = "";
             if (resourceType == ResourceType.Platform)
             {
