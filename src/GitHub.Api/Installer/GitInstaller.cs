@@ -44,9 +44,21 @@ namespace GitHub.Unity
                     Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
                     state.GitExecutablePath = gitExecutablePath.Value;
                     state.GitIsValid = true;
+
+                    var findTask = new FindExecTask("git-lfs", cancellationToken).Configure(processManager, dontSetupGit: true).Catch(e => true);
+                    var gitLfsPath = findTask.RunWithReturn(true);
+                    state.GitLfsIsValid = findTask.Successful;
+                    if (state.GitLfsIsValid)
+                    {
+                        // we should doublecheck that system git is usable here
+                        state.GitLfsExecutablePath = gitLfsPath;
+                        state.GitLfsInstallationPath = gitLfsPath.Resolve().Parent.Parent;
+                    }
+
+                    if (state.GitIsValid && state.GitLfsIsValid)
+                        return state;
                 }
             }
-
 
             if (!environment.IsWindows)
             {
