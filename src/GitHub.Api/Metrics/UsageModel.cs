@@ -40,6 +40,8 @@ namespace GitHub.Unity
         public int SettingsViewButtonLfsUnlock { get; set; }
         public int UnityProjectViewContextLfsLock { get; set; }
         public int UnityProjectViewContextLfsUnlock { get; set; }
+        public int PublishViewButtonPublish { get; set; }
+        public int ApplicationMenuMenuItemCommandLine { get; set; }
     }
 
     class UsageModel

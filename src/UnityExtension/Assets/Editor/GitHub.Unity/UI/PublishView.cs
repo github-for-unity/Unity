@@ -173,6 +173,8 @@ namespace GitHub.Unity
                                 return;
                             }
 
+                            TaskManager.Run(UsageTracker.IncrementPublishViewButtonPublish);
+
                             if (repository == null)
                             {
                                 Logger.Warning("Returned Repository is null");

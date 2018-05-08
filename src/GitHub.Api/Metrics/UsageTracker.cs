@@ -223,6 +223,22 @@ namespace GitHub.Unity
             usageLoader.Save(usage);
         }
 
+        public void IncrementPublishViewButtonPublish()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                 .PublishViewButtonPublish++;
+            usageLoader.Save(usage);
+        }
+
+        public void IncrementApplicationMenuMenuItemCommandLine()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                 .ApplicationMenuMenuItemCommandLine++;
+            usageLoader.Save(usage);
+        }
+
         public bool Enabled
         {
             get

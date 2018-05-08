@@ -17,5 +17,7 @@
         void IncrementSettingsViewButtonLfsUnlock();
         void IncrementUnityProjectViewContextLfsLock();
         void IncrementUnityProjectViewContextLfsUnlock();
+        void IncrementPublishViewButtonPublish();
+        void IncrementApplicationMenuMenuItemCommandLine();
     }
 }

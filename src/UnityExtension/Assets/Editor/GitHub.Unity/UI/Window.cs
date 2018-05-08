@@ -58,6 +58,7 @@ namespace GitHub.Unity
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
+            EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine);
         }
 
 #if DEBUG 
