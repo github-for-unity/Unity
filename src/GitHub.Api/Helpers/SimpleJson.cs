@@ -1252,9 +1252,12 @@ namespace GitHub.Unity.Json
 
         private static readonly string[] Iso8601Format = new string[]
                                                              {
-                                                                 @"yyyy-MM-dd\THH:mm:ss.FFFFFFF\Z",
-                                                                 @"yyyy-MM-dd\THH:mm:ss\Z",
-                                                                 @"yyyy-MM-dd\THH:mm:ssK"
+                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:sszzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH:mm:sszzz",
                                                              };
 
         public PocoJsonSerializerStrategy()

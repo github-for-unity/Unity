@@ -36,7 +36,7 @@ namespace GitHub.Unity
 
                 if (!firstRunAtValue.HasValue)
                 {
-                    firstRunAtValue = DateTimeOffset.ParseExact(firstRunAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture);
+                    firstRunAtValue = DateTimeOffset.ParseExact(firstRunAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None);
                 }
 
                 return firstRunAtValue.Value;
@@ -241,7 +241,7 @@ namespace GitHub.Unity
                 if (!lastUpdatedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         lastUpdatedAtValue = result;
                     }
@@ -267,7 +267,7 @@ namespace GitHub.Unity
                 if (!initializedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         initializedAtValue = result;
                     }
