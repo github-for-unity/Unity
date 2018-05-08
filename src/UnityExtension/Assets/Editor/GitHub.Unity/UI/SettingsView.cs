@@ -292,7 +292,7 @@ namespace GitHub.Unity
                                 GUILayout.FlexibleSpace();
                                 if (GUILayout.Button("Unlock"))
                                 {
-                                    Repository.ReleaseLock(lck.Path, false).Start();
+                                    Repository.ReleaseLock(lck.Path, true).Start();
                                 }
                             }
                             GUILayout.EndHorizontal();
