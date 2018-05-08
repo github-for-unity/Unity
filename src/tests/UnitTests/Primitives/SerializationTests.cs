@@ -30,5 +30,20 @@ namespace UnitTests.Primitives
             Assert.AreEqual(dt1, dt2);
             Assert.AreEqual(dt2, dt3);
         }
+
+        class TestData
+        {
+            public List<string> Things { get; set; } = new List<string>();
+        }
+
+        [Test]
+        public void ListDeserializesCorrectly()
+        {
+            var data = new TestData();
+            data.Things.Add("something");
+            var json = data.ToJson();
+            var ret = json.FromJson<TestData>();
+            CollectionAssert.AreEquivalent(data.Things, ret.Things);
+        }
     }
 }
