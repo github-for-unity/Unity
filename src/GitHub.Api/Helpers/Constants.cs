@@ -17,7 +17,6 @@ namespace GitHub.Unity
             @"yyyy-MM-dd\THH\:mm\:sszzz"
         };
         public const string SkipVersionKey = "SkipVersion";
-        public const string UpdateReminderDateKey = "UpdateReminderDate";
 
         public static readonly Version MinimumGitVersion = new Version(2, 11, 0);
         public static readonly Version MinimumGitLfsVersion = new Version(2, 4, 0);

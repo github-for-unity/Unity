@@ -60,10 +60,6 @@ namespace GitHub.Unity
 
         public static void CheckForUpdates()
         {
-            var savedReminderDate = EntryPoint.ApplicationManager.UserSettings.Get<string>(Constants.UpdateReminderDateKey);
-            if (savedReminderDate.ToDateTimeOffset().Date > DateTimeOffset.Now.Date)
-                return;
-
             var download = new DownloadTask(TaskManager.Instance.Token, EntryPoint.Environment.FileSystem, UpdateFeedUrl, EntryPoint.Environment.UserCachePath);
             download.OnEnd += (thisTask, result, success, exception) =>
             {

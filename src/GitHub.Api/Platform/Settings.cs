@@ -74,7 +74,7 @@ namespace GitHub.Unity
                 if (typeof(T) == typeof(DateTimeOffset))
                 {
                     DateTimeOffset dt;
-                    if (DateTimeOffset.TryParseExact(value?.ToString(), Constants.Iso8601Format,
+                    if (DateTimeOffset.TryParseExact(value?.ToString(), Constants.Iso8601Formats,
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
                     {
                         value = dt;
