@@ -1,5 +1,5 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
@@ -10,30 +10,28 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitFetchTask(string remote,
-            CancellationToken token, bool prune = false, bool tags = false, IOutputProcessor<string> processor = null)
+            CancellationToken token, bool prune = true, bool tags = true, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Name = TaskName;
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append("fetch");
+            var args = new List<string> { "fetch" };
             
             if (prune)
             {
-                stringBuilder.Append(" -p");
+                args.Add("--prune");
             }
 
             if (tags)
             {
-                stringBuilder.Append(" --tags");
+                args.Add("--tags");
             }
 
             if (!String.IsNullOrEmpty(remote))
             {
-                stringBuilder.Append(" ");
-                stringBuilder.Append(remote);
+                args.Add(remote);
             }
 
-            arguments = stringBuilder.ToString();
+            arguments = args.Join(" ");
         }
 
         public override string ProcessArguments { get { return arguments; } }
