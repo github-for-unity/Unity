@@ -71,11 +71,9 @@ namespace IntegrationTests
         protected void InitializePlatform(NPath repoPath,
             bool enableEnvironmentTrace = true,
             bool setupGit = true,
-            string testName = "",
-            bool initializeRepository = true)
+            string testName = "")
         {
             InitializeTaskManager();
-            InitializeEnvironment(repoPath, enableEnvironmentTrace, initializeRepository);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
@@ -99,6 +97,7 @@ namespace IntegrationTests
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
             [CallerMemberName] string testName = "")
         {
+            InitializeEnvironment(repoPath, enableEnvironmentTrace, true);
             InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, setupGit: setupGit, testName: testName);
 
             DotGitPath = repoPath.Combine(".git");
@@ -142,7 +141,7 @@ namespace IntegrationTests
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", zipArchivesPath, Environment);
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
 
             Exception ex = null;
 

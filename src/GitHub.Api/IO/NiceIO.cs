@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,6 +36,7 @@ using System.Text;
 namespace GitHub.Unity
 {
     [Serializable]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public struct NPath : IEquatable<NPath>, IComparable
     {
         public static NPath Default;
@@ -1107,6 +1110,8 @@ namespace GitHub.Unity
                 return _pathStringComparison.Value;
             }
         }
+
+        internal string DebuggerDisplay => ToString();
     }
 
     public static class Extensions

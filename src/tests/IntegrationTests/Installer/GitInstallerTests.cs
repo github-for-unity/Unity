@@ -5,6 +5,8 @@ using FluentAssertions;
 using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
+using System.IO;
+using System.Linq;
 
 namespace IntegrationTests
 {
@@ -15,7 +17,8 @@ namespace IntegrationTests
         public override void OnSetup()
         {
             base.OnSetup();
-            InitializePlatform(TestBasePath, setupGit: false, initializeRepository: false);
+            InitializeEnvironment(TestBasePath, false, false);
+            InitializePlatform(TestBasePath, setupGit: false);
         }
 
         private TestWebServer.HttpServer server;
@@ -59,7 +62,7 @@ namespace IntegrationTests
                 }
             }), Arg.Any<CancellationToken>(), Arg.Any<Func<long, long, bool>>()).Returns(true);
             ZipHelper.Instance = zipHelper;
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
 
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
@@ -74,20 +77,28 @@ namespace IntegrationTests
             Environment.GitLfsExecutablePath = result.GitLfsExecutablePath;
 
             Environment.IsCustomGitExecutable = isCustomGitExec;
-            
+
             var procTask = new SimpleProcessTask(TaskManager.Token, "something")
                 .Configure(ProcessManager);
             procTask.Process.StartInfo.EnvironmentVariables["PATH"].Should().StartWith(gitInstallationPath.ToString());
         }
 
-        //[Test]
-        public void GitInstallMac()
+        [Test]
+        public void MacSkipsInstallWhenSettingsGitExists()
         {
-            var filesystem = Substitute.For<IFileSystem>();
             DefaultEnvironment.OnMac = true;
             DefaultEnvironment.OnWindows = false;
 
-            var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.FileExists(Arg.Any<string>()).Returns(true);
+            filesystem.DirectoryExists(Arg.Any<string>()).Returns(true);
+            filesystem.DirectorySeparatorChar.Returns('/');
+            Environment.FileSystem = filesystem;
+
+            var gitInstallationPath = "/usr/local".ToNPath();
+            var gitExecutablePath = gitInstallationPath.Combine("bin/git");
+            var gitLfsInstallationPath = gitInstallationPath;
+            var gitLfsExecutablePath = gitLfsInstallationPath.Combine("bin/git-lfs");
 
             var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, Environment.IsWindows)
                 {
@@ -95,26 +106,146 @@ namespace IntegrationTests
                     GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/mac/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
                 };
 
-            TestBasePath.Combine("git").CreateDirectory();
+            var ret = new string[] { gitLfsExecutablePath };
+            filesystem.GetFiles(Arg.Any<string>(), Arg.Is<string>(installDetails.GitLfsExecutable), Arg.Any<SearchOption>())
+                      .Returns(ret);
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails: installDetails);
+            var settings = Substitute.For<ISettings>();
+            var settingsRet = gitExecutablePath.ToString();
+            settings.Get(Arg.Is<string>(Constants.GitInstallPathKey), Arg.Any<string>()).Returns(settingsRet);
+            var installer = new GitInstaller(Environment, ProcessManager, TaskManager, settings, installDetails);
+            var result = installer.SetupGitIfNeeded();
+            Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
+            Assert.AreEqual(gitLfsInstallationPath, result.GitLfsInstallationPath);
+            Assert.AreEqual(gitExecutablePath, result.GitExecutablePath);
+            Assert.AreEqual(gitLfsExecutablePath, result.GitLfsExecutablePath);
+        }
+
+        [Test]
+        public void WindowsSkipsInstallWhenSettingsGitExists()
+        {
+            DefaultEnvironment.OnMac = false;
+            DefaultEnvironment.OnWindows = true;
+
+            var filesystem = Substitute.For<IFileSystem>();
+            filesystem.FileExists(Arg.Any<string>()).Returns(true);
+            filesystem.DirectoryExists(Arg.Any<string>()).Returns(true);
+            filesystem.DirectorySeparatorChar.Returns('\\');
+            Environment.FileSystem = filesystem;
+
+            var gitInstallationPath = "c:/Program Files/Git".ToNPath();
+            var gitExecutablePath = gitInstallationPath.Combine("cmd/git.exe");
+            var gitLfsInstallationPath = gitInstallationPath;
+            var gitLfsExecutablePath = gitLfsInstallationPath.Combine("mingw32/libexec/git-core/git-lfs.exe");
+
+            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, Environment.IsWindows)
+                {
+                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
+                };
+
+            var ret = new string[] { gitLfsExecutablePath };
+            filesystem.GetFiles(Arg.Any<string>(), Arg.Is<string>(installDetails.GitLfsExecutable), Arg.Any<SearchOption>())
+                .Returns(ret);
+
+            var settings = Substitute.For<ISettings>();
+            var settingsRet = gitExecutablePath.ToString();
+            settings.Get(Arg.Is<string>(Constants.GitInstallPathKey), Arg.Any<string>()).Returns(settingsRet);
+            var installer = new GitInstaller(Environment, ProcessManager, TaskManager, settings, installDetails);
+            var result = installer.SetupGitIfNeeded();
+            Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
+            Assert.AreEqual(gitLfsInstallationPath, result.GitLfsInstallationPath);
+            Assert.AreEqual(gitExecutablePath, result.GitExecutablePath);
+            Assert.AreEqual(gitLfsExecutablePath, result.GitLfsExecutablePath);
+        }
+    }
+
+    [TestFixture]
+    class GitInstallerTestsWithHttp : BaseTestWithHttpServer
+    {
+        public override void OnSetup()
+        {
+            base.OnSetup();
+            InitializeEnvironment(TestBasePath, false, false);
+            InitializePlatform(TestBasePath, setupGit: false);
+        }
+
+        [Test]
+        public void GitLfsIsInstalledIfMissing()
+        {
+            var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
+
+            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
+                {
+                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
+                };
+
+            var package = Package.Load(Environment, installDetails.GitPackageFeed);
+            var downloader = new Downloader();
+            downloader.Catch(e => true);
+            downloader.QueueDownload(package.Uri, installDetails.ZipPath);
+            downloader.RunWithReturn(true);
+
+            var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
+
+            var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+            ZipHelper.Instance.Extract(installDetails.GitZipPath, gitExtractPath, TaskManager.Token, null, s => s.ToNPath().FileName == "git.exe");
+            var source = gitExtractPath;
+            var target = installDetails.GitInstallationPath;
+            target.DeleteIfExists();
+            target.EnsureParentDirectoryExists();
+            source.Move(target);
+
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
+
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
 
             Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);
-            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine("bin", "git" + Environment.ExecutableExtension));
-            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
+            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "cmd", "git" + Environment.ExecutableExtension));
+            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "mingw32", "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
+        }
 
-            var isCustomGitExec = result.GitExecutablePath != result.GitExecutablePath;
+        [Test]
+        public void GitLfsIsInstalledIfMissingWithCustomGitPath()
+        {
+            var defaultGitInstall = TestBasePath.Combine("DefaultInstall").CreateDirectory();
+            var customGitInstall = TestBasePath.Combine("CustomGitInstall").CreateDirectory();
+            var gitExec = customGitInstall.Combine("cmd/git.exe");
+            gitExec.WriteAllText("");
+            Environment.SystemSettings.Set(Constants.GitInstallPathKey, gitExec.ToString());
 
-            Environment.GitExecutablePath = result.GitExecutablePath;
-            Environment.GitLfsExecutablePath = result.GitLfsExecutablePath;
+            var installDetails = new GitInstaller.GitInstallDetails(defaultGitInstall, DefaultEnvironment.OnWindows)
+                {
+                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
+                };
 
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, Environment.SystemSettings, installDetails: installDetails);
+
+            var state = gitInstaller.SetupGitIfNeeded();
+            state.Should().NotBeNull();
+
+            var gitLfsBasePath = defaultGitInstall.Combine(installDetails.PackageNameWithVersion);
+            var gitLfsExec = gitLfsBasePath.Combine("mingw32", "libexec", "git-core", "git-lfs.exe");
+            state.GitInstallationPath.Should().Be(customGitInstall);
+            state.GitExecutablePath.Should().Be(gitExec);
+            state.GitLfsInstallationPath.Should().Be(gitLfsBasePath);
+            state.GitLfsExecutablePath.Should().Be(gitLfsExec);
+            gitLfsExec.FileExists().Should().BeTrue();
+
+            var isCustomGitExec = state.GitExecutablePath != installDetails.GitExecutablePath;
+
+            Environment.GitExecutablePath = state.GitExecutablePath;
+            Environment.GitLfsExecutablePath = state.GitLfsExecutablePath;
             Environment.IsCustomGitExecutable = isCustomGitExec;
-            
+
             var procTask = new SimpleProcessTask(TaskManager.Token, "something")
                 .Configure(ProcessManager);
-            procTask.Process.StartInfo.EnvironmentVariables["PATH"].Should().StartWith(gitInstallationPath.ToString());
+            var pathList = procTask.Process.StartInfo.EnvironmentVariables["PATH"].ToNPathList(Environment).TakeWhile(x => x != "END");
+            pathList.First().Should().Be(gitExec.Parent);
+            pathList.Any(x => x == gitLfsExec.Parent).Should().BeTrue();
         }
     }
 }

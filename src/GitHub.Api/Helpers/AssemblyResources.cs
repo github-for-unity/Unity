@@ -57,11 +57,13 @@ namespace GitHub.Unity
                     return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
             }
 
-            // check the filesystem
-            NPath possiblePath = environment.ExtensionInstallPath.Combine(type, os, resource);
-            if (possiblePath.FileExists())
-                return possiblePath.Copy(destinationPath.Combine(resource));
-
+            if (!Guard.InUnitTestRunner)
+            {
+                // check the filesystem
+                NPath possiblePath = environment.ExtensionInstallPath.Combine(type, os, resource);
+                if (possiblePath.FileExists())
+                    return possiblePath.Copy(destinationPath.Combine(resource));
+            }
             return NPath.Default;
         }
     }
