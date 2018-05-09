@@ -94,7 +94,7 @@ namespace GitHub.Unity
 
             var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-            var task = 
+            var task =
                 GitClient.Init()
                 .Then(GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local))
                 .Then(GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local))
@@ -203,7 +203,7 @@ namespace GitHub.Unity
             {
                 var credHelperTask = GitClient.GetConfig("credential.helper", GitConfigSource.Global);
                 credHelperTask.OnEnd += (thisTask, credentialHelper, success, exception) =>
-                    {   
+                    {
                         if (!success || string.IsNullOrEmpty(credentialHelper))
                         {
                             Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
