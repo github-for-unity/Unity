@@ -71,9 +71,8 @@ namespace GitHub.Unity
                         TheVersion current = TheVersion.Parse(ApplicationInfo.Version);
                         TheVersion newVersion = package.Version;
 
-                        TheVersion[] versionsToSkip = EntryPoint.ApplicationManager.UserSettings.Get<TheVersion[]>(Constants.SkipVersionKey);
-                        versionsToSkip = versionsToSkip == null ? new TheVersion[] {} : versionsToSkip;
-                        if (versionsToSkip.Any(x => x == newVersion))
+                        var versionToSkip = EntryPoint.ApplicationManager.UserSettings.Get<TheVersion>(Constants.SkipVersionKey);
+                        if (versionToSkip == newVersion)
                         {
                             LogHelper.Info("Skipping GitHub for Unity update v" + newVersion);
                             return;
@@ -192,8 +191,7 @@ namespace GitHub.Unity
             if (GUILayout.Button(guiSkipThisVersion, GUILayout.Width(200)))
             {
                 var settings = EntryPoint.ApplicationManager.UserSettings;
-                var skipVersions = settings.Get<TheVersion[]>(Constants.SkipVersionKey).Append(package.Package.Version);
-                settings.Set<TheVersion[]>(Constants.SkipVersionKey, skipVersions);
+                settings.Set<TheVersion>(Constants.SkipVersionKey, package.Package.Version);
                 this.Close();
             }
 
