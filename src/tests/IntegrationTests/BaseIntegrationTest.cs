@@ -97,8 +97,8 @@ namespace IntegrationTests
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
             [CallerMemberName] string testName = "")
         {
-            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, setupGit: setupGit, testName: testName);
             InitializeEnvironment(repoPath, enableEnvironmentTrace, true);
+            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, setupGit: setupGit, testName: testName);
 
             DotGitPath = repoPath.Combine(".git");
 
