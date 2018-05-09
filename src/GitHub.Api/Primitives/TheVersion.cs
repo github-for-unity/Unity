@@ -47,6 +47,8 @@ namespace GitHub.Unity
             if (initialized)
                 return;
 
+            Guard.ArgumentNotNullOrWhiteSpace(version, nameof(version));
+
             this.Version = version;
 
             isAlpha = false;
