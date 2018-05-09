@@ -17,6 +17,7 @@ namespace GitHub.Unity
         private const string HistoryTitle = "History";
         private const string ChangesTitle = "Changes";
         private const string BranchesTitle = "Branches";
+        private const string LocksTitle = "Locks";
         private const string SettingsTitle = "Settings";
         private const string DefaultRepoUrl = "No remote configured";
         private const string Window_RepoUrlTooltip = "Url of the {0} remote";
@@ -40,6 +41,7 @@ namespace GitHub.Unity
         [SerializeField] private ChangesView changesView = new ChangesView();
         [SerializeField] private HistoryView historyView = new HistoryView();
         [SerializeField] private SettingsView settingsView = new SettingsView();
+        [SerializeField] private LocksView locksView = new LocksView();
 
         [SerializeField] private string repoRemote;
         [SerializeField] private string repoBranch;
@@ -92,6 +94,7 @@ namespace GitHub.Unity
             ChangesView.InitializeView(this);
             BranchesView.InitializeView(this);
             SettingsView.InitializeView(this);
+            LocksView.InitializeView(this);
             InitProjectView.InitializeView(this);
 
             titleContent = new GUIContent(Title, Styles.SmallLogo);
@@ -411,6 +414,7 @@ namespace GitHub.Unity
                         changeTab = TabButton(SubTab.Changes, ChangesTitle, changeTab);
                         changeTab = TabButton(SubTab.History, HistoryTitle, changeTab);
                         changeTab = TabButton(SubTab.Branches, BranchesTitle, changeTab);
+                        changeTab = TabButton(SubTab.Locks, LocksTitle, changeTab);
                     }
                     else if (!HasRepository)
                     {
@@ -536,6 +540,8 @@ namespace GitHub.Unity
                     return branchesView;
                 case SubTab.Settings:
                     return settingsView;
+                case SubTab.Locks:
+                    return locksView;
                 default:
                     throw new ArgumentOutOfRangeException("tab");
             }
@@ -561,6 +567,11 @@ namespace GitHub.Unity
             get { return settingsView; }
         }
 
+        public LocksView LocksView
+        {
+            get { return locksView; }
+        }
+
         public InitProjectView InitProjectView
         {
             get { return initProjectView; }
@@ -583,7 +594,8 @@ namespace GitHub.Unity
             History,
             Changes,
             Branches,
-            Settings
+            Settings,
+            Locks
         }
     }
 }

@@ -103,6 +103,7 @@
     <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
     <Compile Include="UI\InitProjectView.cs" />
+    <Compile Include="UI\LocksView.cs" />
     <Compile Include="UI\Spinner.cs" />
     <Compile Include="UI\TreeControl.cs" />
     <Compile Include="UI\UserSettingsView.cs" />

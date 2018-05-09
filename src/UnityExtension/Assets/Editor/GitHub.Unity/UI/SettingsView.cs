@@ -154,6 +154,9 @@ namespace GitHub.Unity
             {
                 return;
             }
+
+            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
+            repository.LocksChanged -= RepositoryOnLocksChanged;
         }
 
         private void ValidateCachedData(IRepository repository)
