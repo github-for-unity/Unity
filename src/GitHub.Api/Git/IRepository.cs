@@ -75,5 +75,8 @@ namespace GitHub.Unity
         ITask RemoteAdd(string remote, string url);
         ITask RemoteRemove(string remote);
         ITask Push(string remote);
+        ITask DeleteBranch(string branch, bool force);
+        ITask CreateBranch(string branch, string baseBranch);
+        ITask SwitchBranch(string branch);
     }
 }

@@ -18,7 +18,7 @@ namespace GitHub.Logging
                 if (tracingEnabled != value)
                 {
                     tracingEnabled = value;
-                    Instance?.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
+                    Instance.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
                 }
             }
         }

@@ -122,6 +122,9 @@ namespace GitHub.Unity
         public ITask DiscardChanges(GitStatusEntry[] gitStatusEntry) => repositoryManager.DiscardChanges(gitStatusEntry);
         public ITask RemoteAdd(string remote, string url) => repositoryManager.RemoteAdd(remote, url);
         public ITask RemoteRemove(string remote) => repositoryManager.RemoteRemove(remote);
+        public ITask DeleteBranch(string branch, bool force) => repositoryManager.DeleteBranch(branch, force);
+        public ITask CreateBranch(string branch, string baseBranch) => repositoryManager.CreateBranch(branch, baseBranch);
+        public ITask SwitchBranch(string branch) => repositoryManager.SwitchBranch(branch);
 
         public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(cacheType, cacheUpdateEvent);
 
