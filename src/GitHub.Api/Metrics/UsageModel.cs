@@ -1,7 +1,9 @@
-﻿using System;
+﻿using GitHub.Logging;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 
 namespace GitHub.Unity
 {
@@ -15,7 +17,7 @@ namespace GitHub.Unity
     public class Dimensions
     {
         public string Guid { get; set; }
-        public DateTime Date { get; set; }
+        public DateTimeOffset Date { get; set; }
         public string AppVersion { get; set; }
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
@@ -25,16 +27,21 @@ namespace GitHub.Unity
     public class Measures
     {
         public int NumberOfStartups { get; set; }
-        public int Commits { get; set; }
-        public int Fetches { get; set; }
-        public int Pushes { get; set; }
-        public int Pulls { get; set; }
         public int ProjectsInitialized { get; set; }
-        public int Authentications { get; set; }
-        public int LocalBranchCreations { get; set; }
-        public int LocalBranchDeletion { get; set; }
-        public int LocalBranchCheckouts { get; set; }
-        public int RemoteBranchCheckouts { get; set; }
+        public int ChangesViewButtonCommit { get; set; }
+        public int HistoryViewToolbarFetch { get; set; }
+        public int HistoryViewToolbarPush { get; set; }
+        public int HistoryViewToolbarPull { get; set; }
+        public int AuthenticationViewButtonAuthentication { get; set; }
+        public int BranchesViewButtonCreateBranch { get; set; }
+        public int BranchesViewButtonDeleteBranch { get; set; }
+        public int BranchesViewButtonCheckoutLocalBranch { get; set; }
+        public int BranchesViewButtonCheckoutRemoteBranch { get; set; }
+        public int SettingsViewButtonLfsUnlock { get; set; }
+        public int UnityProjectViewContextLfsLock { get; set; }
+        public int UnityProjectViewContextLfsUnlock { get; set; }
+        public int PublishViewButtonPublish { get; set; }
+        public int ApplicationMenuMenuItemCommandLine { get; set; }
     }
 
     class UsageModel
@@ -49,7 +56,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(appVersion, "appVersion");
             Guard.ArgumentNotNullOrWhiteSpace(unityVersion, "unityVersion");
 
-            var date = DateTime.UtcNow.Date;
+            var now = DateTimeOffset.Now;
             if (currentUsage == null)
             {
                 currentUsage = Reports
@@ -62,7 +69,7 @@ namespace GitHub.Unity
                 {
                     InstanceId = instanceId,
                     Dimensions = {
-                        Date = date,
+                        Date = now,
                         Guid = Guid,
                         AppVersion = appVersion,
                         UnityVersion = unityVersion,
@@ -89,7 +96,12 @@ namespace GitHub.Unity
 
     class UsageStore
     {
-        public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.Now;
         public UsageModel Model { get; set; } = new UsageModel();
+
+        public Measures GetCurrentMeasures(string appVersion, string unityVersion, string instanceId)
+        {
+            return Model.GetCurrentUsage(appVersion, unityVersion, instanceId).Measures;
+        }
     }
 }
