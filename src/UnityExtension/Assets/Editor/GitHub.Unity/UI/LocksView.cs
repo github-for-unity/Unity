@@ -47,6 +47,12 @@ namespace GitHub.Unity
         {
             scroll = GUILayout.BeginScrollView(scroll);
             {
+                if (Repository != null)
+                {
+                    OnGitLfsLocksGUI();
+                }
+
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
             }
 
             GUILayout.EndScrollView();
@@ -104,6 +110,75 @@ namespace GitHub.Unity
                     ? repositoryCurrentLocks.ToList()
                     : new List<GitLock>();
             }
+        }
+
+        private void OnGitLfsLocksGUI()
+        {
+            EditorGUI.BeginDisabledGroup(IsBusy || Repository == null);
+            {
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Label("Locked files", EditorStyles.boldLabel);
+
+                    scroll = EditorGUILayout.BeginScrollView(scroll, Styles.GenericTableBoxStyle,
+                        GUILayout.Height(125));
+                    {
+                        GUILayout.BeginVertical();
+                        {
+                            var lockedFilesCount = lockedFiles.Count;
+                            for (var index = 0; index < lockedFilesCount; ++index)
+                            {
+                                GUIStyle rowStyle = (lockedFileSelection == index)
+                                    ? Styles.LockedFileRowSelectedStyle
+                                    : Styles.LockedFileRowStyle;
+                                GUILayout.Box(lockedFiles[index].Path, rowStyle);
+
+                                if (Event.current.type == EventType.MouseDown &&
+                                    GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+                                {
+                                    var currentEvent = Event.current;
+
+                                    if (currentEvent.button == 0)
+                                    {
+                                        lockedFileSelection = index;
+                                    }
+
+                                    Event.current.Use();
+                                }
+                            }
+                        }
+
+                        GUILayout.EndVertical();
+                    }
+
+                    EditorGUILayout.EndScrollView();
+
+                    if (lockedFileSelection > -1)
+                    {
+                        GUILayout.BeginVertical();
+                        {
+                            var lck = lockedFiles[lockedFileSelection];
+                            GUILayout.Label(lck.Path, EditorStyles.boldLabel);
+
+                            GUILayout.BeginHorizontal();
+                            {
+                                GUILayout.Label("Locked by " + lck.User);
+                                GUILayout.FlexibleSpace();
+                                if (GUILayout.Button("Unlock"))
+                                {
+                                    Repository.ReleaseLock(lck.Path, true).Start();
+                                }
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+                        GUILayout.EndVertical();
+                    }
+                }
+
+                GUILayout.EndVertical();
+
+            }
+            EditorGUI.EndDisabledGroup();
         }
 
         public override bool IsBusy

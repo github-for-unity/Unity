@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using GitHub.Logging;
 using UnityEngine;
 
 namespace GitHub.Unity
@@ -14,8 +12,6 @@ namespace GitHub.Unity
     {
         [SerializeField] private List<TKey> keys = new List<TKey>();
         [SerializeField] private List<TValue> values = new List<TValue>();
-
-        [NonSerialized] private ILogging logger = LogHelper.GetLogger("SerializableDictionary");
 
         // save the dictionary to lists
         public void OnBeforeSerialize()
