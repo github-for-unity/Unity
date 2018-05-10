@@ -9,27 +9,317 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
+    public class GitLockEntry
+    {
+        public static GitLockEntry Default = new GitLockEntry(Unity.GitLock.Default);
+
+        [SerializeField] private GitLock gitLock;
+
+        [NonSerialized] public Texture Icon;
+        [NonSerialized] public GUIContent Content;
+
+        public GitLockEntry(GitLock gitLock)
+        {
+            this.gitLock = gitLock;
+        }
+
+        public GitLock GitLock
+        {
+            get { return gitLock; }
+        }
+    }
+
+    [Serializable]
+    class LocksControl
+    {
+        [SerializeField] private Vector2 scroll;
+        [SerializeField] private List<GitLockEntry> gitLockEntries = new List<GitLockEntry>();
+        [SerializeField] private int selectedIndex = -1;
+
+        [NonSerialized] private Action<GitLock> rightClickNextRender;
+        [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
+        [NonSerialized] private int controlId;
+
+        private const string FilePathFormatString = "Path: {0}";
+        private const string UserNameFormatString = "User: {0}";
+
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { selectedIndex = value; }
+        }
+
+        public GitLockEntry SelectedGitLockEntry
+        {
+            get { return SelectedIndex < 0 ? GitLockEntry.Default : gitLockEntries[SelectedIndex]; }
+        }
+
+        public bool Render(Rect containingRect, Action<GitLock> singleClick = null,
+            Action<GitLock> doubleClick = null, Action<GitLock> rightClick = null)
+        {
+            var requiresRepaint = false;
+            scroll = GUILayout.BeginScrollView(scroll);
+            {
+                controlId = GUIUtility.GetControlID(FocusType.Keyboard);
+
+                if (Event.current.type != EventType.Repaint)
+                {
+                    if (rightClickNextRender != null)
+                    {
+                        rightClickNextRender.Invoke(rightClickNextRenderEntry.GitLock);
+                        rightClickNextRender = null;
+                        rightClickNextRenderEntry = GitLockEntry.Default;
+                    }
+                }
+
+                var startDisplay = scroll.y;
+                var endDisplay = scroll.y + containingRect.height;
+
+                var rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
+
+                for (var index = 0; index < gitLockEntries.Count; index++)
+                {
+                    var entry = gitLockEntries[index];
+
+                    var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.LocksEntryHeight);
+
+                    var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                    if (shouldRenderEntry && Event.current.type == EventType.Repaint)
+                    {
+                        RenderEntry(entryRect, entry, index);
+                    }
+
+                    var entryRequiresRepaint =
+                        HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
+                    requiresRepaint = requiresRepaint || entryRequiresRepaint;
+
+                    rect.y += Styles.LocksEntryHeight;
+                }
+
+                GUILayout.Space(rect.y - containingRect.y);
+            }
+            GUILayout.EndScrollView();
+
+            return requiresRepaint;
+        }
+
+        private void RenderEntry(Rect entryRect, GitLockEntry entry, int index)
+        {
+            var isSelected = index == SelectedIndex;
+
+            var iconRect = new Rect(entryRect.x, entryRect.y + Styles.BaseSpacing / 2, 32, 32);
+            var pathRect = new Rect(entryRect.x + 32, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksSummaryHeight + Styles.BaseSpacing);
+            var lastY = pathRect.y + pathRect.height;
+            var userRect = new Rect(entryRect.x + 32, lastY + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksUserHeight + Styles.BaseSpacing);
+
+            var hasKeyboardFocus = GUIUtility.keyboardControl == controlId; 
+
+            Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(iconRect, entry.Content, false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(pathRect, string.Format(FilePathFormatString, entry.GitLock.Path), false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(userRect, string.Format(UserNameFormatString, entry.GitLock.User), false, false, isSelected, hasKeyboardFocus);
+        }
+
+        private bool HandleInput(Rect rect, GitLockEntry entry, int index, Action<GitLock> singleClick = null,
+            Action<GitLock> doubleClick = null, Action<GitLock> rightClick = null)
+        {
+            var requiresRepaint = false;
+            var clickRect = new Rect(0f, rect.y, rect.width, rect.height);
+            if (Event.current.type == EventType.MouseDown && clickRect.Contains(Event.current.mousePosition))
+            {
+                Event.current.Use();
+                GUIUtility.keyboardControl = controlId;
+
+                SelectedIndex = index;
+                requiresRepaint = true;
+                var clickCount = Event.current.clickCount;
+                var mouseButton = Event.current.button;
+
+                if (mouseButton == 0 && clickCount == 1 && singleClick != null)
+                {
+                    singleClick(entry.GitLock);
+                }
+                if (mouseButton == 0 && clickCount > 1 && doubleClick != null)
+                {
+                    doubleClick(entry.GitLock);
+                }
+                if (mouseButton == 1 && clickCount == 1 && rightClick != null)
+                {
+                    rightClickNextRender = rightClick;
+                    rightClickNextRenderEntry = entry;
+                }
+            }
+
+            // Keyboard navigation if this child is the current selection
+            if (GUIUtility.keyboardControl == controlId && index == SelectedIndex && Event.current.type == EventType.KeyDown)
+            {
+                var directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
+                if (directionY != 0)
+                {
+                    Event.current.Use();
+
+                    if (directionY > 0)
+                    {
+                        requiresRepaint = SelectNext(index) != index;
+                    }
+                    else
+                    {
+                        requiresRepaint = SelectPrevious(index) != index;
+                    }
+                }
+            }
+
+            return requiresRepaint;
+        }
+
+        public void Load(List<GitLock> locks)
+        {
+            var selectedCommitId = SelectedGitLockEntry.GitLock.ID;
+            var scrollValue = scroll.y;
+
+            var previousCount = gitLockEntries.Count;
+
+            var scrollIndex = (int)(scrollValue / Styles.LocksEntryHeight);
+
+            gitLockEntries = locks.Select(gitLock => {
+                var gitLockEntry = new GitLockEntry(gitLock);
+                LoadIcon(gitLockEntry);
+                return gitLockEntry;
+            }).ToList();
+
+            var selectionPresent = false;
+            for (var index = 0; index < gitLockEntries.Count; index++)
+            {
+                var gitLogEntry = gitLockEntries[index];
+                if (gitLogEntry.GitLock.ID.Equals(selectedCommitId))
+                {
+                    selectedIndex = index;
+                    selectionPresent = true;
+                    break;
+                }
+            }
+
+            if (!selectionPresent)
+            {
+                selectedIndex = -1;
+            }
+
+            if (scrollIndex > gitLockEntries.Count)
+            {
+                ScrollTo(0);
+            }
+            else
+            {
+                var scrollOffset = scrollValue % Styles.LocksEntryHeight;
+
+                var scrollIndexFromBottom = previousCount - scrollIndex;
+                var newScrollIndex = gitLockEntries.Count - scrollIndexFromBottom;
+
+                ScrollTo(newScrollIndex, scrollOffset);
+            }
+        }
+
+        public void LoadIcons()
+        {
+            foreach (var gitLockEntry in gitLockEntries)
+            {
+                LoadIcon(gitLockEntry);
+            }
+        }
+
+        private void LoadIcon(GitLockEntry gitLockEntry)
+        {
+            if (gitLockEntry.Icon == null)
+            {
+                var nodeIcon = GetNodeIcon(gitLockEntry.GitLock);
+                gitLockEntry.Icon = nodeIcon;
+            }
+
+            if (gitLockEntry.Content == null)
+            {
+                gitLockEntry.Content = new GUIContent(gitLockEntry.Icon);
+            }
+        }
+
+        protected Texture GetNodeIcon(GitLock node)
+        {
+            Texture nodeIcon = null;
+
+            if (!string.IsNullOrEmpty(node.Path))
+            {
+                nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(node.Path);
+            }
+
+            if (nodeIcon != null)
+            {
+                nodeIcon.hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            return nodeIcon;
+        }
+
+        private int SelectNext(int index)
+        {
+            index++;
+
+            if (index < gitLockEntries.Count)
+            {
+                SelectedIndex = index;
+            }
+            else
+            {
+                index = -1;
+            }
+
+            return index;
+        }
+
+        private int SelectPrevious(int index)
+        {
+            index--;
+
+            if (index >= 0)
+            {
+                SelectedIndex = index;
+            }
+            else
+            {
+                SelectedIndex = -1;
+            }
+
+            return index;
+        }
+
+        public void ScrollTo(int index, float offset = 0f)
+        {
+            scroll.Set(scroll.x, Styles.LocksEntryHeight * index + offset);
+        }
+    }
+
+    [Serializable]
     class LocksView : Subview
     {
         [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool isBusy;
 
+        [SerializeField] private LocksControl locksControl;
+        [SerializeField] private GitLock selectedEntry = GitLock.Default;
+
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
-        [SerializeField] private int lockedFileSelection = -1;
-        [SerializeField] private Vector2 scroll;
 
         public override void OnEnable()
         {
             base.OnEnable();
-            AttachHandlers(Repository);
 
-            if (Repository != null)
+            if (locksControl != null)
             {
-                ValidateCachedData(Repository);
+                locksControl.LoadIcons();
             }
-        }
 
+            AttachHandlers(Repository);
+            ValidateCachedData(Repository);
+        }
 
         public override void OnDisable()
         {
@@ -45,17 +335,32 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            scroll = GUILayout.BeginScrollView(scroll);
+            var rect = GUILayoutUtility.GetLastRect();
+            if (locksControl != null)
             {
-                if (Repository != null)
-                {
-                    OnGitLfsLocksGUI();
-                }
+                var lockControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
 
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                var requiresRepaint = locksControl.Render(lockControlRect,
+                    entry => {
+                        selectedEntry = entry;
+                    },
+                    entry => { }, 
+                    entry => {
+                        GenericMenu menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Unlock File"), false, UnlockFile);
+                        menu.ShowAsContext();
+                    });
+
+                if (requiresRepaint)
+                    Redraw();
             }
+        }
 
-            GUILayout.EndScrollView();
+        private void UnlockFile()
+        {
+            Repository
+                .ReleaseLock(selectedEntry.Path, true)
+                .Start();
         }
 
         private void AttachHandlers(IRepository repository)
@@ -95,90 +400,34 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (lockedFiles == null)
-                lockedFiles = new List<GitLock>();
-
             if (Repository == null)
+            {
                 return;
+            }
 
             if (currentLocksHasUpdate)
             {
                 currentLocksHasUpdate = false;
-                var repositoryCurrentLocks = Repository.CurrentLocks;
-                lockedFileSelection = -1;
-                lockedFiles = repositoryCurrentLocks != null
-                    ? repositoryCurrentLocks.ToList()
-                    : new List<GitLock>();
+
+                lockedFiles = Repository.CurrentLocks;
+
+                BuildLocksControl();
             }
         }
 
-        private void OnGitLfsLocksGUI()
+        private void BuildLocksControl()
         {
-            EditorGUI.BeginDisabledGroup(IsBusy || Repository == null);
+            if (locksControl == null)
             {
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Label("Locked files", EditorStyles.boldLabel);
-
-                    scroll = EditorGUILayout.BeginScrollView(scroll, Styles.GenericTableBoxStyle,
-                        GUILayout.Height(125));
-                    {
-                        GUILayout.BeginVertical();
-                        {
-                            var lockedFilesCount = lockedFiles.Count;
-                            for (var index = 0; index < lockedFilesCount; ++index)
-                            {
-                                GUIStyle rowStyle = (lockedFileSelection == index)
-                                    ? Styles.LockedFileRowSelectedStyle
-                                    : Styles.LockedFileRowStyle;
-                                GUILayout.Box(lockedFiles[index].Path, rowStyle);
-
-                                if (Event.current.type == EventType.MouseDown &&
-                                    GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                                {
-                                    var currentEvent = Event.current;
-
-                                    if (currentEvent.button == 0)
-                                    {
-                                        lockedFileSelection = index;
-                                    }
-
-                                    Event.current.Use();
-                                }
-                            }
-                        }
-
-                        GUILayout.EndVertical();
-                    }
-
-                    EditorGUILayout.EndScrollView();
-
-                    if (lockedFileSelection > -1)
-                    {
-                        GUILayout.BeginVertical();
-                        {
-                            var lck = lockedFiles[lockedFileSelection];
-                            GUILayout.Label(lck.Path, EditorStyles.boldLabel);
-
-                            GUILayout.BeginHorizontal();
-                            {
-                                GUILayout.Label("Locked by " + lck.User);
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button("Unlock"))
-                                {
-                                    Repository.ReleaseLock(lck.Path, true).Start();
-                                }
-                            }
-                            GUILayout.EndHorizontal();
-                        }
-                        GUILayout.EndVertical();
-                    }
-                }
-
-                GUILayout.EndVertical();
-
+                locksControl = new LocksControl();
             }
-            EditorGUI.EndDisabledGroup();
+
+            locksControl.Load(lockedFiles);
+            if (!selectedEntry.Equals(GitLock.Default)
+                && selectedEntry.ID != locksControl.SelectedGitLockEntry.GitLock.ID)
+            {
+                selectedEntry = GitLock.Default;
+            }
         }
 
         public override bool IsBusy
