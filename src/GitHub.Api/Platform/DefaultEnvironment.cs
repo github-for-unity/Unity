@@ -40,7 +40,14 @@ namespace GitHub.Unity
 
             UserCachePath = localAppData.Combine(ApplicationInfo.ApplicationName);
             SystemCachePath = commonAppData.Combine(ApplicationInfo.ApplicationName);
-            LogPath = UserCachePath.Combine(logFile);
+            if (IsMac)
+            {
+                LogPath = NPath.HomeDirectory.Combine("Library/Logs").Combine(ApplicationInfo.ApplicationName).Combine(logFile);
+            }
+            else
+            {
+                LogPath = UserCachePath.Combine(logFile);
+            }
         }
 
         public DefaultEnvironment(ICacheContainer cacheContainer) : this()
