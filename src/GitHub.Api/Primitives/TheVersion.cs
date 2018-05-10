@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Text.RegularExpressions;
 
@@ -7,6 +8,7 @@ namespace GitHub.Unity
     {
         private const string versionRegex = @"(?<major>\d+)(\.?(?<minor>[^.]+))?(\.?(?<patch>[^.]+))?(\.?(?<build>.+))?";
         private const int PART_COUNT = 4;
+        public static TheVersion Default { get; } = default(TheVersion).Initialize(null);
 
         [NotSerialized] private int major;
         [NotSerialized] public int Major { get { Initialize(Version); return major; } }
@@ -36,16 +38,13 @@ namespace GitHub.Unity
 
         public static TheVersion Parse(string version)
         {
-            Guard.ArgumentNotNull(version, "version");
-            TheVersion ret = default(TheVersion);
-            ret.Initialize(version);
-            return ret;
+            return default(TheVersion).Initialize(version);
         }
 
-        private void Initialize(string version)
+        private TheVersion Initialize(string version)
         {
             if (initialized)
-                return;
+                return this;
 
             this.Version = version;
 
@@ -58,6 +57,9 @@ namespace GitHub.Unity
             special = null;
             parts = 0;
 
+            if (String.IsNullOrEmpty(version))
+                return this;
+
             intParts = new int[PART_COUNT];
             stringParts = new string[PART_COUNT];
 
@@ -66,7 +68,10 @@ namespace GitHub.Unity
 
             var match = regex.Match(version);
             if (!match.Success)
-                throw new ArgumentException("Invalid version: " + version, "version");
+            {
+                LogHelper.Error(new ArgumentException("Invalid version: " + version, "version"));
+                return this;
+            }
 
             major = int.Parse(match.Groups["major"].Value);
             intParts[0] = major;
@@ -125,6 +130,7 @@ namespace GitHub.Unity
                 isBeta = special.IndexOf("beta") >= 0;
             }
             initialized = true;
+            return this;
         }
 
         public override string ToString()

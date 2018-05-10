@@ -186,4 +186,15 @@ public class VersionTests
         version = TheVersion.Parse("1.2.3.4whatever");
         Assert.IsTrue(version.IsUnstable);
     }
+
+    [Test]
+    public void ParsingInvalidVersionStringsWorks()
+    {
+        var ret = TheVersion.Parse(null);
+        Assert.AreEqual(TheVersion.Default, ret);
+        ret = TheVersion.Parse("");
+        Assert.AreEqual(TheVersion.Default, ret);
+        ret = TheVersion.Parse("bla");
+        Assert.AreEqual(TheVersion.Default, ret);
+    }
 }
