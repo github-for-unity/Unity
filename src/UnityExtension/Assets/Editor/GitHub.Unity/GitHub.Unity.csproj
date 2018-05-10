@@ -35,7 +35,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>4</LangVersion>
     <BuildConfid>Release</BuildConfid>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
