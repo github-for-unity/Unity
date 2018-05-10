@@ -327,10 +327,7 @@ namespace GitHub.Unity
 
                     if (itemsToRevert.Any())
                     {
-                        var next = GitClient.Discard(itemsToRevert);
-                        HookupHandlers(next, true);
-                        task.OnEnd -= HookupEndHandlerWithWatcher;
-                        task.Then(next);
+                        task.Then(GitClient.Discard(itemsToRevert));
                     }
                 }
                 , () => gitStatusEntries);
@@ -453,35 +450,21 @@ namespace GitHub.Unity
                 }
             };
 
-            if (filesystemChangesExpected)
-                task.OnEnd += HookupEndHandlerWithWatcher;
-            else
-                task.OnEnd += HookupEndHandlerWithoutWatcher;
+            task.Finally(success =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+            });
             return task;
-        }
-
-        private void HookupEndHandlerWithWatcher(ITask task, bool success, Exception ex)
-        {
-            HookupEndHandler(task, true);
-        }
-
-        private void HookupEndHandlerWithoutWatcher(ITask task, bool success, Exception ex)
-        {
-            HookupEndHandler(task, false);
-        }
-
-        private void HookupEndHandler(ITask task, bool filesystemChangesExpected)
-        {
-            var isExclusive = task.IsChainExclusive();
-            if (filesystemChangesExpected)
-            {
-                watcher.Start();
-            }
-
-            if (isExclusive)
-            {
-                IsBusy = false;
-            }
         }
 
         private string GetCurrentHead()
