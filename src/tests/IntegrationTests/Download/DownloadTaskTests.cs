@@ -318,7 +318,7 @@ namespace IntegrationTests.Download
 
             var fileSystem = NPath.FileSystem;
 
-            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt");
+            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt", TestBasePath);
             var exceptionThrown = false;
 
             var autoResetEvent = new AutoResetEvent(false);

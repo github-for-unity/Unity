@@ -32,7 +32,7 @@ namespace GitHub.Unity
         public DownloadTask(CancellationToken token,
             IFileSystem fileSystem,
             UriString url,
-            NPath? targetDirectory = null,
+            NPath targetDirectory,
             int retryCount = 0)
             : base(token)
         {
@@ -40,7 +40,7 @@ namespace GitHub.Unity
             RetryCount = retryCount;
             Url = url;
             Filename = url.Filename;
-            TargetDirectory = targetDirectory ?? NPath.CreateTempDirectory("ghu");
+            TargetDirectory = targetDirectory;
             this.Name = $"Download {Url}";
         }
 

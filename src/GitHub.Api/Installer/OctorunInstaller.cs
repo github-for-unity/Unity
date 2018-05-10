@@ -44,6 +44,7 @@ namespace GitHub.Unity
                 var extractPath = unzipTask.RunWithReturn(true);
                 if (unzipTask.Successful)
                     path = MoveOctorun(extractPath.Combine("octorun"));
+                tempZipExtractPath.DeleteIfExists();
             }
             return path;
         }
