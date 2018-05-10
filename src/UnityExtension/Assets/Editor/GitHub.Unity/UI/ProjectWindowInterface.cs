@@ -25,8 +25,6 @@ namespace GitHub.Unity
 
         public static void Initialize(IRepository repo)
         {
-            //Logger.Trace("Initialize HasRepository:{0}", repo != null);
-
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 

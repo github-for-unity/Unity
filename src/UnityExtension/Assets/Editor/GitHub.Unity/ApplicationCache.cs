@@ -199,7 +199,6 @@ namespace GitHub.Unity
         {
             if (!isInvalidating)
             {
-                Logger.Trace("Invalidate");
                 isInvalidating = true;
                 LastUpdatedAt = DateTimeOffset.MinValue;
                 CacheInvalidated.SafeInvoke(CacheType);
@@ -220,7 +219,6 @@ namespace GitHub.Unity
 
             if (isChanged)
             {
-                Logger.Trace("Updated: {0}", now);
                 CacheUpdated.SafeInvoke(CacheType, now);
             }
         }
@@ -529,8 +527,6 @@ namespace GitHub.Unity
             remoteConfigBranches = new RemoteConfigBranchDictionary(configBranches);
             remotes = gitRemotes;
             remoteBranches = gitBranches;
-
-            Logger.Trace("SetRemotes {0}", now);
             SaveData(now, true);
         }
 
@@ -539,8 +535,6 @@ namespace GitHub.Unity
             var now = DateTimeOffset.Now;
             localConfigBranches = new LocalConfigBranchDictionary(configBranches);
             localBranches = gitBranches;
-
-            Logger.Trace("SetLocals {0}", now);
             SaveData(now, true);
         }
 

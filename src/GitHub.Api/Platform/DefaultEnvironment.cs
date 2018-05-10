@@ -76,21 +76,15 @@ namespace GitHub.Unity
         {
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
 
-            //Logger.Trace("InitializeRepository expectedRepositoryPath:{0}", repositoryPath);
-
             NPath expectedRepositoryPath;
             if (!RepositoryPath.IsInitialized)
             {
                 Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
 
-                //Logger.Trace("RepositoryPath is null");
-
                 expectedRepositoryPath = repositoryPath != null ? repositoryPath.Value : UnityProjectPath;
 
                 if (!expectedRepositoryPath.DirectoryExists(".git"))
                 {
-                    Logger.Trace(".git folder exists");
-
                     NPath reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
                     if (reporoot.IsInitialized)
                         expectedRepositoryPath = reporoot;
@@ -98,14 +92,12 @@ namespace GitHub.Unity
             }
             else
             {
-                //Logger.Trace("Set to RepositoryPath");
                 expectedRepositoryPath = RepositoryPath;
             }
 
             FileSystem.SetCurrentDirectory(expectedRepositoryPath);
             if (expectedRepositoryPath.DirectoryExists(".git"))
             {
-                //Logger.Trace("Determined expectedRepositoryPath:{0}", expectedRepositoryPath);
                 RepositoryPath = expectedRepositoryPath;
                 Repository = new Repository(RepositoryPath, CacheContainer);
             }

@@ -113,32 +113,25 @@ namespace GitHub.Unity
             OnClose.SafeInvoke(false);
             OnClose = null;
 
-            //Logger.Trace("OpenView: {0}", popupViewType.ToString());
-
             var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
             if (viewNeedsAuthentication)
             {
-                //Logger.Trace("Validating to open view");
-
-                Client.GetCurrentUser(user => {
-
-                    //Logger.Trace("User validated opening view");
-
+                Client.GetCurrentUser(user =>
+                {
                     OpenInternal(popupViewType, onClose);
                     shouldCloseOnFinish = true;
 
-                }, exception => {
-                    //Logger.Trace("User required validation opening AuthenticationView");
+                },
+                exception =>
+                {
                     authenticationView.Initialize(exception);
-                    OpenInternal(PopupViewType.AuthenticationView, completedAuthentication => {
+                    OpenInternal(PopupViewType.AuthenticationView, completedAuthentication =>
+                    {
                         if (completedAuthentication)
                         {
-                            //Logger.Trace("User completed validation opening view: {0}", popupViewType.ToString());
-
                             Open(popupViewType, onClose);
                         }
                     });
-
                     shouldCloseOnFinish = false;
                 });
             }

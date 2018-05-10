@@ -26,11 +26,8 @@ namespace GitHub.Unity
 
         public NPath SetupOctorunIfNeeded()
         {
-            //Logger.Trace("SetupOctorunIfNeeded");
-
             NPath path = NPath.Default;
             var isOctorunExtracted = IsOctorunExtracted();
-            Logger.Trace("isOctorunExtracted: {0}", isOctorunExtracted);
             if (isOctorunExtracted)
                 path = installDetails.ExecutablePath;
             GrabZipFromResources();
@@ -61,8 +58,6 @@ namespace GitHub.Unity
         private NPath MoveOctorun(NPath fromPath)
         {
             var toPath = installDetails.InstallationPath;
-            Logger.Trace($"Moving tempDirectory:'{fromPath}' to extractTarget:'{toPath}'");
-
             toPath.DeleteIfExists();
             toPath.EnsureParentDirectoryExists();
             fromPath.Move(toPath);
@@ -73,13 +68,11 @@ namespace GitHub.Unity
         {
             if (!installDetails.InstallationPath.DirectoryExists())
             {
-                //Logger.Warning($"{octorunPath} does not exist");
                 return false;
             }
 
             if (!installDetails.VersionFile.FileExists())
             {
-                //Logger.Warning($"{versionFilePath} does not exist");
                 return false;
             }
 

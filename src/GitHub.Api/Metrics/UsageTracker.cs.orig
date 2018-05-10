@@ -2,6 +2,10 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+<<<<<<< HEAD
+using System.Globalization;
+=======
+>>>>>>> origin/master
 using System.Threading;
 using Timer = System.Threading.Timer;
 using GitHub.Logging;
@@ -23,7 +27,7 @@ namespace GitHub.Unity
 
         public UsageTracker(IMetricsService metricsService, ISettings userSettings,
             IEnvironment environment, string userId, string unityVersion, string instanceId)
-                : this(metricsService, userSettings, 
+                : this(metricsService, userSettings,
                       new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
                       userId, unityVersion, instanceId)
         {
@@ -48,6 +52,7 @@ namespace GitHub.Unity
 
         private void RunTimer(int seconds)
         {
+            Logger.Trace($"Scheduling timer for {seconds} seconds from now");
             timer = new Timer(async _ =>
             {
                 try
@@ -71,6 +76,8 @@ namespace GitHub.Unity
 
             if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
             {
+                Logger.Trace("Sending Usage");
+
                 var currentTimeOffset = DateTimeOffset.UtcNow;
                 var beforeDate = currentTimeOffset.Date;
 
@@ -281,6 +288,8 @@ namespace GitHub.Unity
             string json = null;
             if (path.FileExists())
             {
+                LogHelper.Instance.Trace("LoadUsage: \"{0}\"", path);
+
                 try
                 {
                     json = path.ReadAllText(Encoding.UTF8);

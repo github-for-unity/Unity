@@ -97,12 +97,8 @@ namespace GitHub.Unity
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
             username = keychainConnections.First().Username;
 
-            //Logger.Trace("Loading Owners");
-
             Client.GetOrganizations(orgs =>
             {
-                //Logger.Trace("Loaded {0} Owners", orgs.Length);
-
                 publishOwners = orgs
                     .OrderBy(organization => organization.Login)
                     .Select(organization => organization.Login)
@@ -113,14 +109,14 @@ namespace GitHub.Unity
                 isBusy = false;
 
                 Redraw();
-            }, exception =>
+            },
+            exception =>
             {
                 isBusy = false;
 
                 var keychainEmptyException = exception as KeychainEmptyException;
                 if (keychainEmptyException != null)
                 {
-                    //Logger.Trace("Keychain empty");
                     PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
                     return;
                 }
@@ -167,7 +163,6 @@ namespace GitHub.Unity
                             if (ex != null)
                             {
                                 Logger.Error(ex, "Repository Create Error Type:{0}", ex.GetType().ToString());
-
                                 error = GetPublishErrorMessage(ex);
                                 isBusy = false;
                                 return;
@@ -181,9 +176,6 @@ namespace GitHub.Unity
                                 isBusy = false;
                                 return;
                             }
-
-                            Logger.Trace("Repository Created");
-
                             Repository.RemoteAdd("origin", repository.CloneUrl)
                                 .Then(Repository.Push("origin"))
                                 .ThenInUI(Finish)

@@ -43,7 +43,6 @@ namespace GitHub.Unity
 
         public void Run(bool firstRun)
         {
-            Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
             isBusy = true;
 
             var thread = new Thread(obj =>
@@ -78,8 +77,6 @@ namespace GitHub.Unity
 
         public ITask InitializeRepository()
         {
-            //Logger.Trace("Running Repository Initialize");
-
             var targetPath = NPath.CurrentDirectory;
 
             var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
@@ -136,8 +133,6 @@ namespace GitHub.Unity
 
         protected void SetupMetrics(string unityVersion, bool firstRun, Guid instanceId)
         {
-            //Logger.Trace("Setup metrics");
-
             string userId = null;
             if (UserSettings.Exists(Constants.GuidKey))
             {

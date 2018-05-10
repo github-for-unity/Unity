@@ -154,8 +154,6 @@ namespace GitHub.Unity
         {
             try
             {
-                logger.Trace("Creating repository");
-
                 var user = await GetCurrentUser();
                 var keychainAdapter = keychain.Connect(OriginalUrl);
 
@@ -209,8 +207,6 @@ namespace GitHub.Unity
         {
             try
             {
-                logger.Trace("Getting Organizations");
-
                 var user = await GetCurrentUser();
                 var keychainAdapter = keychain.Connect(OriginalUrl);
 

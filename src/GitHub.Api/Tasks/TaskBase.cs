@@ -323,7 +323,6 @@ namespace GitHub.Unity
         {
             if (Task.Status == TaskStatus.Created)
             {
-                //Logger.Trace($"Starting {Affinity} {ToString()}");
                 Task.Start(scheduler);
             }
             return this;
@@ -348,7 +347,6 @@ namespace GitHub.Unity
         {
             if (continuationOnAlways != null)
             {
-                //Logger.Trace($"Setting ContinueWith {Affinity} {continuation}");
                 SetContinuation(continuationOnAlways, runAlwaysOptions);
             }
         }
@@ -409,7 +407,6 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnStart()
         {
-            //Logger.Trace($"Executing {ToString()}");
             OnStart?.Invoke(this);
         }
 
@@ -436,7 +433,6 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this, !taskFailed, exception);
             SetupContinuations();
             hasRun = true;
-            //Logger.Trace($"Finished {ToString()}");
         }
 
         protected void SetupContinuations()
@@ -667,7 +663,6 @@ namespace GitHub.Unity
 
         protected override void RaiseOnStart()
         {
-            //Logger.Trace($"Executing {ToString()}");
             OnStart?.Invoke(this);
             base.RaiseOnStart();
         }
@@ -678,7 +673,6 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this, result, !taskFailed, exception);
             SetupContinuations();
             hasRun = true;
-            //Logger.Trace($"Finished {ToString()} {result}");
         }
 
         protected override void CallFinallyHandler()

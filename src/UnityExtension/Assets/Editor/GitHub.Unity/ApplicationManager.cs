@@ -41,7 +41,6 @@ namespace GitHub.Unity
 
         protected override void SetProjectToTextSerialization()
         {
-            //Logger.Trace("SetProjectToTextSerialization");
             EditorSettings.serializationMode = SerializationMode.ForceText;
         }
 
