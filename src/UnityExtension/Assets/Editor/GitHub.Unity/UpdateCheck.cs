@@ -71,15 +71,11 @@ namespace GitHub.Unity
                         TheVersion current = TheVersion.Parse(ApplicationInfo.Version);
                         TheVersion newVersion = package.Version;
 
-                        var versionToSkipString = EntryPoint.ApplicationManager.UserSettings.Get<string>(Constants.SkipVersionKey);
-                        if (!string.IsNullOrEmpty(versionToSkipString))
+                        var versionToSkip = EntryPoint.ApplicationManager.UserSettings.Get<TheVersion>(Constants.SkipVersionKey);
+                        if (versionToSkip == newVersion)
                         {
-                            var versionToSkip = TheVersion.Parse(versionToSkipString);
-                            if (versionToSkip == newVersion)
-                            {
-                                LogHelper.Info("Skipping GitHub for Unity update v" + newVersion);
-                                return;
-                            }
+                            LogHelper.Info("Skipping GitHub for Unity update v" + newVersion);
+                            return;
                         }
 
                         if (newVersion <= current)

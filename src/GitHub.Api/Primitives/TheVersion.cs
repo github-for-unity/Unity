@@ -1,3 +1,4 @@
+using GitHub.Logging;
 using System;
 using System.Text.RegularExpressions;
 
@@ -47,8 +48,6 @@ namespace GitHub.Unity
             if (initialized)
                 return;
 
-            Guard.ArgumentNotNullOrWhiteSpace(version, nameof(version));
-
             this.Version = version;
 
             isAlpha = false;
@@ -60,6 +59,9 @@ namespace GitHub.Unity
             special = null;
             parts = 0;
 
+            if (String.IsNullOrEmpty(version))
+                return;
+
             intParts = new int[PART_COUNT];
             stringParts = new string[PART_COUNT];
 
@@ -68,7 +70,10 @@ namespace GitHub.Unity
 
             var match = regex.Match(version);
             if (!match.Success)
-                throw new ArgumentException("Invalid version: " + version, "version");
+            {
+                LogHelper.Error(new ArgumentException("Invalid version: " + version, "version"));
+                return;
+            }
 
             major = int.Parse(match.Groups["major"].Value);
             intParts[0] = major;
