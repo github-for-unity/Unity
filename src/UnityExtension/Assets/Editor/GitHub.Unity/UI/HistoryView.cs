@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -693,19 +693,10 @@ namespace GitHub.Unity
             {
                 Repository
                     .Pull()
-                    // we need the error propagated from the original git command to handle things appropriately
-                    .Then(success => {
-                        if (!success)
-                        {
-                            // if Pull fails we need to parse the output of the command, figure out
-                            // whether pull triggered a merge or a rebase, and abort the operation accordingly
-                            // (either git rebase --abort or git merge --abort)
-                        }
-                    }, runOptions: TaskRunOptions.OnAlways)
                     .FinallyInUI((success, e) => {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementNumberOfPulls);
+                            TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarPull);
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
@@ -729,7 +720,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (success)
                     {
-                        TaskManager.Run(UsageTracker.IncrementNumberOfPushes);
+                        TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarPush);
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -752,7 +743,7 @@ namespace GitHub.Unity
                 .FinallyInUI((success, e) => {
                     if (!success)
                     {
-                        TaskManager.Run(UsageTracker.IncrementNumberOfFetches);
+                        TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarFetch);
 
                         EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
                             Localization.Ok);

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Globalization;
 using System.Threading;
 using Timer = System.Threading.Timer;
 using GitHub.Logging;
@@ -13,79 +12,38 @@ namespace GitHub.Unity
     {
         private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
 
-        private readonly NPath storePath;
         private readonly ISettings userSettings;
+        private readonly IUsageLoader usageLoader;
         private readonly IMetricsService metricsService;
         private readonly string userId;
+        private readonly string appVersion;
         private readonly string unityVersion;
         private readonly string instanceId;
         private Timer timer;
 
-        public UsageTracker(IMetricsService metricsService, ISettings userSettings, NPath storePath, string userId, string unityVersion, string instanceId)
+        public UsageTracker(IMetricsService metricsService, ISettings userSettings,
+            IEnvironment environment, string userId, string unityVersion, string instanceId)
+                : this(metricsService, userSettings, 
+                      new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
+                      userId, unityVersion, instanceId)
+        {
+        }
+
+        public UsageTracker(IMetricsService metricsService, ISettings userSettings,
+            IUsageLoader usageLoader,
+            string userId, string unityVersion, string instanceId)
         {
             this.userSettings = userSettings;
+            this.usageLoader = usageLoader;
             this.metricsService = metricsService;
             this.userId = userId;
-            this.storePath = storePath;
+            this.appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
             this.unityVersion = unityVersion;
             this.instanceId = instanceId;
 
             Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
                 RunTimer(3*60);
-        }
-
-        private UsageStore LoadUsage()
-        {
-            UsageStore result = null;
-            string json = null;
-            if (storePath.FileExists())
-            {
-                Logger.Trace("LoadUsage: \"{0}\"", storePath);
-
-                try
-                {
-                    json = storePath.ReadAllText(Encoding.UTF8);
-                    if (json != null)
-                    {
-                        result = json.FromJson<UsageStore>();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warning(ex, "Error Loading Usage: {0}; Deleting File", storePath);
-
-                    try
-                    {
-                        storePath.DeleteIfExists();
-                    }
-                    catch {}
-                }
-            }
-
-            if (result == null)
-                result = new UsageStore();
-
-            if (String.IsNullOrEmpty(result.Model.Guid))
-                result.Model.Guid = userId;
-
-            return result;
-        }
-
-        private void SaveUsage(UsageStore store)
-        {
-            var pathString = storePath.ToString();
-            Logger.Trace("SaveUsage: \"{0}\"", pathString);
-
-            try
-            {
-                var json = store.ToJson();
-                storePath.WriteAllText(json, Encoding.UTF8);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "SaveUsage Error: \"{0}\"", pathString);
-            }
         }
 
         private void RunTimer(int seconds)
@@ -104,7 +62,7 @@ namespace GitHub.Unity
 
         private async Task SendUsage()
         {
-            var usageStore = LoadUsage();
+            var usageStore = usageLoader.Load(userId);
 
             if (metricsService == null)
             {
@@ -148,124 +106,137 @@ namespace GitHub.Unity
                 {
                     usageStore.Model.RemoveReports(beforeDate);
                     usageStore.LastUpdated = currentTimeOffset;
-                    SaveUsage(usageStore);
+                    usageLoader.Save(usageStore);
                 }
             }
         }
 
-        private Usage GetCurrentUsage(UsageStore usageStore)
-        {
-            return usageStore.Model.GetCurrentUsage(ApplicationConfiguration.AssemblyName.Version.ToString(), unityVersion, instanceId);
-        }
-
         public void IncrementNumberOfStartups()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.NumberOfStartups++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .NumberOfStartups++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfCommits()
+        public void IncrementProjectsInitialized()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.Commits++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .ProjectsInitialized++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfFetches()
+        public void IncrementChangesViewButtonCommit()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.Fetches++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .ChangesViewButtonCommit++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfPushes()
+        public void IncrementHistoryViewToolbarFetch()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.Pushes++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .HistoryViewToolbarFetch++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfProjectsInitialized()
+        public void IncrementHistoryViewToolbarPush()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.ProjectsInitialized++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .HistoryViewToolbarPush++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfLocalBranchCreations()
+        public void IncrementHistoryViewToolbarPull()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.LocalBranchCreations++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .HistoryViewToolbarPull++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfLocalBranchDeletions()
+        public void IncrementBranchesViewButtonCreateBranch()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.LocalBranchDeletion++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .BranchesViewButtonCreateBranch++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfLocalBranchCheckouts()
+        public void IncrementBranchesViewButtonDeleteBranch()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.LocalBranchCheckouts++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .BranchesViewButtonDeleteBranch++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfRemoteBranchCheckouts()
+        public void IncrementBranchesViewButtonCheckoutLocalBranch()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.RemoteBranchCheckouts++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .BranchesViewButtonCheckoutLocalBranch++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfPulls()
+        public void IncrementBranchesViewButtonCheckoutRemoteBranch()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
-
-            usage.Measures.Pulls++;
-
-            SaveUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .BranchesViewButtonCheckoutRemoteBranch++;
+            usageLoader.Save(usage);
         }
 
-        public void IncrementNumberOfAuthentications()
+        public void IncrementSettingsViewButtonLfsUnlock()
         {
-            var usageStore = LoadUsage();
-            var usage = GetCurrentUsage(usageStore);
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .SettingsViewButtonLfsUnlock++;
+            usageLoader.Save(usage);
+        }
 
-            usage.Measures.Authentications++;
+        public void IncrementAuthenticationViewButtonAuthentication()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .AuthenticationViewButtonAuthentication++;
+            usageLoader.Save(usage);
+        }
 
-            SaveUsage(usageStore);
+        public void IncrementUnityProjectViewContextLfsLock()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .UnityProjectViewContextLfsLock++;
+            usageLoader.Save(usage);
+        }
+
+        public void IncrementUnityProjectViewContextLfsUnlock()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                .UnityProjectViewContextLfsUnlock++;
+            usageLoader.Save(usage);
+        }
+
+        public void IncrementPublishViewButtonPublish()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                 .PublishViewButtonPublish++;
+            usageLoader.Save(usage);
+        }
+
+        public void IncrementApplicationMenuMenuItemCommandLine()
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                 .ApplicationMenuMenuItemCommandLine++;
+            usageLoader.Save(usage);
         }
 
         public bool Enabled
@@ -288,6 +259,68 @@ namespace GitHub.Unity
                     timer.Dispose();
                     timer = null;
                 }
+            }
+        }
+    }
+
+    interface IUsageLoader
+    {
+        UsageStore Load(string userId);
+        void Save(UsageStore store);
+    }
+
+    class UsageLoader : IUsageLoader
+    {
+        private readonly NPath path;
+
+        public UsageLoader(NPath path)
+        {
+            this.path = path;
+        }
+
+        public UsageStore Load(string userId)
+        {
+            UsageStore result = null;
+            string json = null;
+            if (path.FileExists())
+            {
+                LogHelper.Instance.Trace("LoadUsage: \"{0}\"", path);
+
+                try
+                {
+                    json = path.ReadAllText(Encoding.UTF8);
+                    result = json?.FromJson<UsageStore>(lowerCase: true);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Instance.Warning(ex, "Error Loading Usage: {0}; Deleting File", path);
+                    try
+                    {
+                        path.DeleteIfExists();
+                    }
+                    catch {}
+                }
+            }
+
+            if (result == null)
+                result = new UsageStore();
+
+            if (String.IsNullOrEmpty(result.Model.Guid))
+                result.Model.Guid = userId;
+
+            return result;
+        }
+
+        public void Save(UsageStore store)
+        {
+            try
+            {
+                var json = store.ToJson(lowerCase: true);
+                path.WriteAllText(json, Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error(ex, "SaveUsage Error: \"{0}\"", path);
             }
         }
     }

@@ -115,7 +115,7 @@ namespace GitHub.Unity
                 })
                 .ThenInUI(() =>
                 {
-                    TaskManager.Run(UsageTracker.IncrementNumberOfProjectsInitialized);
+                    TaskManager.Run(UsageTracker.IncrementProjectsInitialized);
                     InitializeUI();
                 });
             return task;
@@ -138,8 +138,6 @@ namespace GitHub.Unity
         {
             //Logger.Trace("Setup metrics");
 
-            var usagePath = Environment.UserCachePath.Combine(Constants.UsageFile);
-
             string userId = null;
             if (UserSettings.Exists(Constants.GuidKey))
             {
@@ -159,7 +157,7 @@ namespace GitHub.Unity
                 Environment.NodeJsExecutablePath,
                 Environment.OctorunScriptPath);
 
-            UsageTracker = new UsageTracker(metricsService, UserSettings, usagePath, userId, unityVersion, instanceId.ToString());
+            UsageTracker = new UsageTracker(metricsService, UserSettings, Environment, userId, unityVersion, instanceId.ToString());
 
             if (firstRun)
             {
