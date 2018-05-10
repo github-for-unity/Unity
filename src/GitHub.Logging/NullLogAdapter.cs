@@ -1,6 +1,6 @@
 namespace GitHub.Logging
 {
-    class NullLogAdapter : LogAdapterBase
+    public class NullLogAdapter : LogAdapterBase
     {
         public override void Info(string context, string message)
         {

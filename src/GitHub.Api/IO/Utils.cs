@@ -80,11 +80,12 @@ namespace GitHub.Unity
 
             return success;
         }
-        public static bool VerifyFileIntegrity(NPath file, NPath md5file)
+        public static bool VerifyFileIntegrity(NPath file, string md5)
         {
-            var expected = md5file.ReadAllText();
+            if (!file.IsInitialized || !file.FileExists())
+                return false;
             var actual = file.CalculateMD5();
-            return expected.Equals(actual, StringComparison.InvariantCultureIgnoreCase);
+            return md5.Equals(actual, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

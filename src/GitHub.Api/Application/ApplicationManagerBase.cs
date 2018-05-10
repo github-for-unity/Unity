@@ -35,14 +35,6 @@ namespace GitHub.Unity
             // accessing Environment triggers environment initialization if it hasn't happened yet
             Platform = new Platform(Environment);
 
-            UserSettings = new UserSettings(Environment);
-            LocalSettings = new LocalSettings(Environment);
-            SystemSettings = new SystemSettings(Environment);
-
-            UserSettings.Initialize();
-            LocalSettings.Initialize();
-            SystemSettings.Initialize();
-
             LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
@@ -54,79 +46,34 @@ namespace GitHub.Unity
             Logger.Trace("Run - CurrentDirectory {0}", NPath.CurrentDirectory);
             isBusy = true;
 
-            var endTask = new ActionTask<GitInstaller.GitInstallationState>(CancellationToken,
-                    (_, state) => InitializeEnvironment(state))
-                { Affinity = TaskAffinity.UI };
+            var thread = new Thread(obj =>
+            {
+                CancellationToken token = (CancellationToken)obj;
+                var endTask = new ActionTask<GitInstaller.GitInstallationState>(token, (_, s) => InitializeEnvironment(s)) { Affinity = TaskAffinity.UI };
+                string path = null;
 
-            ITask<string> setExistingEnvironmentPath;
-            if (Environment.IsMac)
-            {
-                setExistingEnvironmentPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
-                           .Configure(ProcessManager, dontSetupGit: true)
-                           .Catch(e => true) // make sure this doesn't throw if the task fails
-                           .Then((success, path) => success ? path?.Split(new[] { "\"" }, StringSplitOptions.None)[1] : null);
-            }
-            else
-            {
-                setExistingEnvironmentPath = new FuncTask<string>(CancellationToken, () => null);
-            }
-
-            setExistingEnvironmentPath.OnEnd += (t, path, success, ex) =>
-            {
-                if (path != null)
+                if (Environment.IsMac)
                 {
-                    Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
-                    Environment.Path = path;
+                    var getEnvPath = new SimpleProcessTask(token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
+                               .Configure(ProcessManager, dontSetupGit: true)
+                               .Catch(e => true); // make sure this doesn't throw if the task fails
+                    path = getEnvPath.RunWithReturn(true);
+                    if (getEnvPath.Successful)
+                    {
+                        Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
+                        Environment.Path = path?.Split(new[] { "\"" }, StringSplitOptions.None)[1];
+                    }
                 }
-            };
-            
-            var setupOctorun = new OctorunInstaller(Environment, TaskManager).SetupOctorunIfNeeded();
-            var setOctorunEnvironment = new ActionTask<NPath>(CancellationToken,
-                (s, octorunPath) => Environment.OctorunScriptPath = octorunPath);
 
-            var getGitFromSettings = new FuncTask<NPath>(CancellationToken, () =>
-            {
-                var gitExecutablePath = SystemSettings.Get(Constants.GitInstallPathKey)?.ToNPath();
-                if (gitExecutablePath.HasValue && gitExecutablePath.Value.FileExists()) // we have a git path
-                {
-                    Logger.Trace("Using git install path from settings: {0}", gitExecutablePath);
-                    return gitExecutablePath.Value;
-                }
-                return NPath.Default;
+                Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager).SetupOctorunIfNeeded();
+
+                var state = new GitInstaller(Environment, ProcessManager, TaskManager, SystemSettings)
+                    { Progress = progressReporter }
+                    .SetupGitIfNeeded();
+                endTask.PreviousResult = state;
+                endTask.Start();
             });
-
-            getGitFromSettings.OnEnd += (t, path, _, __) =>
-            {
-                if (path.IsInitialized)
-                {
-                    var state = new GitInstaller.GitInstallationState {
-                        GitExecutablePath = path,
-                        GitIsValid = true
-                    };
-                    endTask.PreviousResult = state;
-                    endTask.Start();
-                    return;
-                }
-                Logger.Trace("Using portable git");
-
-                var setupGit = new GitInstaller(Environment, ProcessManager, TaskManager).SetupGitIfNeeded();
-                t.Then(setupGit);
-                setupGit.Finally((s, state) =>
-                {
-                    endTask.PreviousResult = state;
-                    endTask.Start();
-                });
-                setupGit.Progress(progressReporter.UpdateProgress);
-                // append installer task to top chain
-            };
-
-            var setupChain = setExistingEnvironmentPath.Then(setupOctorun);
-            setupChain.OnEnd += (t, path, _, __) =>
-            {
-                t.GetEndOfChain().Then(setOctorunEnvironment).Then(getGitFromSettings);
-            };
-
-            setupChain.Start();
+            thread.Start(CancellationToken);
         }
 
         public ITask InitializeRepository()
@@ -147,7 +94,7 @@ namespace GitHub.Unity
 
             var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-            var task = 
+            var task =
                 GitClient.Init()
                 .Then(GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local))
                 .Then(GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local))
@@ -218,7 +165,6 @@ namespace GitHub.Unity
             }
 #endif
         }
-
         protected abstract void SetupMetrics();
         protected abstract void InitializeUI();
         protected abstract void SetProjectToTextSerialization();
@@ -255,7 +201,7 @@ namespace GitHub.Unity
             {
                 var credHelperTask = GitClient.GetConfig("credential.helper", GitConfigSource.Global);
                 credHelperTask.OnEnd += (thisTask, credentialHelper, success, exception) =>
-                    {   
+                    {
                         if (!success || string.IsNullOrEmpty(credentialHelper))
                         {
                             Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
@@ -279,8 +225,16 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (TaskManager != null) TaskManager.Dispose();
-                if (repositoryManager != null) repositoryManager.Dispose();
+                if (TaskManager != null)
+                {
+                    TaskManager.Dispose();
+                    TaskManager = null;
+                }
+                if (repositoryManager != null)
+                {
+                    repositoryManager.Dispose();
+                    repositoryManager = null;
+                }
             }
         }
 
@@ -297,9 +251,9 @@ namespace GitHub.Unity
         public CancellationToken CancellationToken { get { return TaskManager.Token; } }
         public ITaskManager TaskManager { get; protected set; }
         public IGitClient GitClient { get; protected set; }
-        public ISettings LocalSettings { get; protected set; }
-        public ISettings SystemSettings { get; protected set; }
-        public ISettings UserSettings { get; protected set; }
+        public ISettings LocalSettings { get { return Environment.LocalSettings; } }
+        public ISettings SystemSettings { get { return Environment.SystemSettings; } }
+        public ISettings UserSettings { get { return Environment.UserSettings; } }
         public IUsageTracker UsageTracker { get; protected set; }
         public bool IsBusy { get { return isBusy; } }
         protected TaskScheduler UIScheduler { get; private set; }

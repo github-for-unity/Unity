@@ -29,7 +29,7 @@ fi
 if [ x"$OS" == x"Windows" ]; then
 	common/nuget restore GitHub.Unity.sln
 else
-	nuget restore GitHub.Unity.sln
+	mono common/nuget.exe restore GitHub.Unity.sln
 fi
 
 xbuild GitHub.Unity.sln /verbosity:minimal /property:Configuration=$Configuration /target:$Target || true

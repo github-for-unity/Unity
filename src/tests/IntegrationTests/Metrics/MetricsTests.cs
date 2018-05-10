@@ -52,7 +52,7 @@ namespace IntegrationTests
         [Test]
         public void LoadingWorks()
         {
-            InitializeEnvironment(TestBasePath, TestBasePath, false, false);
+            InitializeEnvironment(TestBasePath, false, false);
             var userId = Guid.NewGuid().ToString();
             var appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
             var unityVersion = "2017.3f1";

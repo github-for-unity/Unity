@@ -48,12 +48,13 @@ namespace GitHub.Unity
 
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath, dontSetupGit);
 
-            if (executable.Value.IsRelative)
+            string filename = executable.Value;
+            if (executable.Value.IsRelative && filename != "where" && filename != "which")
             {
-                executable = executable.Value.FileName.ToNPath();
-                executable = FindExecutableInPath(executable.Value, startInfo.EnvironmentVariables["PATH"]) ?? executable;
+                var file = FindExecutableInPath(executable.Value.FileName, false, startInfo.EnvironmentVariables["PATH"].ToNPathList(environment).ToArray());
+                filename = file.IsInitialized ? file : executable.Value.FileName;
             }
-            startInfo.FileName = executable;
+            startInfo.FileName = filename;
             startInfo.Arguments = arguments ?? processTask.ProcessArguments;
             processTask.Configure(startInfo);
             return processTask;
@@ -113,33 +114,14 @@ namespace GitHub.Unity
             return processTask;
         }
 
-        private NPath? FindExecutableInPath(NPath executable, string searchPaths = null)
+        public static NPath FindExecutableInPath(string executable, bool recurse = false, params NPath[] searchPaths)
         {
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
-            if (executable.IsRelative) return executable;
-
-            searchPaths = searchPaths ?? environment.GetEnvironmentVariable("PATH");
-            var executablePath = searchPaths.Split(Path.PathSeparator)
-                .Where(x => !String.IsNullOrEmpty(x))
-                .Select(directory =>
-                {
-                    try
-                    {
-                        var unquoted = directory.RemoveSurroundingQuotes();
-                        var expanded = environment.ExpandEnvironmentVariables(unquoted);
-                        return expanded.ToNPath().Combine(executable);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.Error("Error while looking for {0} in {1}\n{2}", executable, directory, e);
-                        return new NPath?();
-                    }
-                })
-                .Where(x => x != null)
-                .FirstOrDefault(x => x.Value.FileExists());
-
-            return executablePath;
+            return searchPaths
+                .Where(x => !x.IsRelative && x.DirectoryExists())
+                .SelectMany(x => x.Files(executable, recurse))
+                .FirstOrDefault();
         }
 
         public CancellationToken CancellationToken { get { return cancellationToken; } }

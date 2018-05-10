@@ -16,7 +16,11 @@
   <!-- Common includes and references -->
   <Target Name="BeforeBuild">
     <PropertyGroup>
-      <UnityDLLsMissingErrorText>Location of Unity dlls is not set. You'll need to install Unity in a known location (the default installation directory for your system), or copy UnityEngine.dll and UnityEditor.dll to the {0}lib folder</UnityDLLsMissingErrorText>
+      <UnityDLLsMissingErrorText>The location of Unity dlls is not set. You'll need to install Unity in a known location (the default installation directory for your system), or:
+        - Copy UnityEngine.dll and UnityEditor.dll to the {0}lib\Managed folder
+        - Copy UnityEngine.TestRunner.dll to the {0}lib\UnityExtensions/Unity/TestRunner folder
+        - Copy UnityEditor.TestRunner.dll to the {0}lib\UnityExtensions/Unity/TestRunner/Editor folder
+      </UnityDLLsMissingErrorText>
       <MissingOctokitProject>To build the OctokitDebugging solution you need to have https://github.com/github-for-unity/octokit.net checked out in {0}</MissingOctokitProject>
       <MissingHttpProject>To build the OctokitDebugging solution you need to have https://github.com/github-for-unity/dotnet-httpclient35 checked out in {0}</MissingHttpProject>
     </PropertyGroup>

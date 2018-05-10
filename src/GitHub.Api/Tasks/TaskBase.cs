@@ -52,6 +52,7 @@ namespace GitHub.Unity
 
         void UpdateProgress(long value, long total, string message = null);
         ITask GetEndOfChain();
+        void Run(bool success);
     }
 
     public interface ITask<TResult> : ITask
@@ -77,6 +78,7 @@ namespace GitHub.Unity
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
         new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
+        TResult RunWithReturn(bool success);
     }
 
     interface ITask<TData, T> : ITask<T>
@@ -93,10 +95,11 @@ namespace GitHub.Unity
         public event Action<ITask> OnStart;
         public event Action<ITask, bool, Exception> OnEnd;
 
-        protected bool previousSuccess = true;
+        protected bool? previousSuccess;
         protected Exception previousException;
         protected bool taskFailed = false;
         protected bool exceptionWasHandled = false;
+        protected bool hasRun = false;
         protected Exception exception;
 
         protected TaskBase continuationOnSuccess;
@@ -114,7 +117,13 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(token, "token");
 
             Token = token;
-            Task = new Task(() => Run(DependsOn?.Successful ?? previousSuccess), Token, TaskCreationOptions.None);
+            Task = new Task(() =>
+            {
+                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+                Run(previousIsSuccessful);
+            },
+            Token,
+            TaskCreationOptions.None);
         }
 
         protected TaskBase(Task task)
@@ -391,8 +400,11 @@ namespace GitHub.Unity
             return depends.GetTopMostTask(ret, onlyCreatedState);
         }
 
-        protected virtual void Run(bool success)
+        public virtual void Run(bool success)
         {
+            taskFailed = false;
+            hasRun = false;
+            exception = null;
         }
 
         protected virtual void RaiseOnStart()
@@ -423,6 +435,7 @@ namespace GitHub.Unity
         {
             OnEnd?.Invoke(this, !taskFailed, exception);
             SetupContinuations();
+            hasRun = true;
             //Logger.Trace($"Finished {ToString()}");
         }
 
@@ -482,10 +495,10 @@ namespace GitHub.Unity
             return $"{Task?.Id ?? -1} {Name} {GetType()}";
         }
 
-        public virtual bool Successful { get { return Task.Status == TaskStatus.RanToCompletion && Task.Status != TaskStatus.Faulted; } }
+        public virtual bool Successful { get { return !taskFailed || exceptionWasHandled; /*Task.Status == TaskStatus.RanToCompletion && Task.Status != TaskStatus.Faulted;*/ } }
         public string Errors { get; protected set; }
         public Task Task { get; protected set; }
-        public bool IsCompleted { get { return (Task as IAsyncResult).IsCompleted; } }
+        public bool IsCompleted { get { return hasRun; /*(Task as IAsyncResult).IsCompleted;*/ } }
         public WaitHandle AsyncWaitHandle { get { return (Task as IAsyncResult).AsyncWaitHandle; } }
         public object AsyncState { get { return (Task as IAsyncResult).AsyncState; } }
         public bool CompletedSynchronously { get { return (Task as IAsyncResult).CompletedSynchronously; } }
@@ -511,7 +524,8 @@ namespace GitHub.Unity
         {
             Task = new Task<TResult>(() =>
             {
-                var ret = RunWithReturn(DependsOn?.Successful ?? previousSuccess);
+                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+                var ret = RunWithReturn(previousIsSuccessful);
                 tcs.SetResult(ret);
                 return ret;
             }, Token, TaskCreationOptions.None);
@@ -611,7 +625,6 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             var ret = Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
-            DependsOn?.SetFaultHandler(ret);
             return ret;
         }
 
@@ -622,7 +635,6 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(continuation, "continuation");
             var ret = Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
-            DependsOn?.SetFaultHandler(ret);
             return ret;
         }
 
@@ -647,7 +659,7 @@ namespace GitHub.Unity
             return this;
         }
 
-        protected virtual TResult RunWithReturn(bool success)
+        public virtual TResult RunWithReturn(bool success)
         {
             base.Run(success);
             return result;
@@ -665,6 +677,7 @@ namespace GitHub.Unity
             this.result = data;
             OnEnd?.Invoke(this, result, !taskFailed, exception);
             SetupContinuations();
+            hasRun = true;
             //Logger.Trace($"Finished {ToString()} {result}");
         }
 
@@ -689,7 +702,9 @@ namespace GitHub.Unity
         {
             Task = new Task<TResult>(() =>
             {
-                var ret = RunWithData(DependsOn?.Successful ?? previousSuccess, (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : default(T));
+                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+                T prevResult = previousIsSuccessful && DependsOn != null && DependsOn is ITask<T> ? ((ITask<T>)DependsOn).Result : default(T);
+                var ret = RunWithData(previousIsSuccessful, prevResult);
                 tcs.SetResult(ret);
                 return ret;
             },

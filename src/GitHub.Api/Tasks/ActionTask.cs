@@ -40,7 +40,7 @@ namespace GitHub.Unity
             Name = "ActionTask(Task)";
         }
 
-        protected override void Run(bool success)
+        public override void Run(bool success)
         {
             base.Run(success);
 
@@ -183,7 +183,7 @@ namespace GitHub.Unity
             Name = $"FuncTask<{typeof(T)}>(Task)";
         }
 
-        protected override T RunWithReturn(bool success)
+        public override T RunWithReturn(bool success)
         {
             T result = base.RunWithReturn(success);
 
@@ -308,7 +308,7 @@ namespace GitHub.Unity
             : base(task)
         { }
 
-        protected override List<T> RunWithReturn(bool success)
+        public override List<T> RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 

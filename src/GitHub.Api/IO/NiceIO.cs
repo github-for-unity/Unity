@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,6 +36,7 @@ using System.Text;
 namespace GitHub.Unity
 {
     [Serializable]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public struct NPath : IEquatable<NPath>, IComparable
     {
         public static NPath Default;
@@ -627,7 +630,6 @@ namespace GitHub.Unity
         public NPath Copy(NPath dest, Func<NPath, bool> fileFilter)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             ThrowIfNotInitialized(dest);
 
             if (dest.IsRelative)
@@ -771,7 +773,6 @@ namespace GitHub.Unity
         {
             ThrowIfNotInitialized();
             ThrowIfNotInitialized(dest);
-            ThrowIfRelative();
 
             if (IsRoot)
                 throw new NotSupportedException("Move is not supported on a root level directory because it would be dangerous:" + ToString());
@@ -784,6 +785,7 @@ namespace GitHub.Unity
 
             if (FileExists())
             {
+                dest.DeleteIfExists();
                 dest.EnsureParentDirectoryExists();
                 FileSystem.FileMove(ToString(), dest.ToString());
                 return dest;
@@ -801,7 +803,6 @@ namespace GitHub.Unity
         public NPath WriteAllText(string contents)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             EnsureParentDirectoryExists();
             FileSystem.WriteAllText(ToString(), contents);
             return this;
@@ -810,14 +811,12 @@ namespace GitHub.Unity
         public string ReadAllText()
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             return FileSystem.ReadAllText(ToString());
         }
 
         public NPath WriteAllText(string contents, Encoding encoding)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             EnsureParentDirectoryExists();
             FileSystem.WriteAllText(ToString(), contents, encoding);
             return this;
@@ -826,14 +825,12 @@ namespace GitHub.Unity
         public string ReadAllText(Encoding encoding)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             return FileSystem.ReadAllText(ToString(), encoding);
         }
 
         public NPath WriteLines(string[] contents)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             EnsureParentDirectoryExists();
             FileSystem.WriteLines(ToString(), contents);
             return this;
@@ -842,7 +839,6 @@ namespace GitHub.Unity
         public NPath WriteAllLines(string[] contents)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             EnsureParentDirectoryExists();
             FileSystem.WriteAllLines(ToString(), contents);
             return this;
@@ -851,14 +847,12 @@ namespace GitHub.Unity
         public string[] ReadAllLines()
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             return FileSystem.ReadAllLines(ToString());
         }
 
         public NPath WriteAllBytes(byte[] contents)
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             EnsureParentDirectoryExists();
             FileSystem.WriteAllBytes(ToString(), contents);
             return this;
@@ -867,7 +861,6 @@ namespace GitHub.Unity
         public byte[] ReadAllBytes()
         {
             ThrowIfNotInitialized();
-            ThrowIfRelative();
             return FileSystem.ReadAllBytes(ToString());
         }
 
@@ -1117,6 +1110,8 @@ namespace GitHub.Unity
                 return _pathStringComparison.Value;
             }
         }
+
+        internal string DebuggerDisplay => ToString();
     }
 
     public static class Extensions

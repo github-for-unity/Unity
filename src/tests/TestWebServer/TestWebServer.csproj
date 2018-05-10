@@ -43,36 +43,33 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\GitHub.Api\PlatformResources\windows\git.zip">
-      <Link>files\git\windows\git.zip</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\GitHub.Api\PlatformResources\windows\git.zip.md5">
-      <Link>files\git\windows\git.zip.md5</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\GitHub.Api\PlatformResources\windows\git-lfs.zip">
-      <Link>files\git\windows\git-lfs.zip</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\GitHub.Api\PlatformResources\windows\git-lfs.zip.md5">
-      <Link>files\git\windows\git-lfs.zip.md5</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <!--None Include="..\..\GitHub.Api\PlatformResources\mac\git.zip">
-      <Link>files\git\mac\git.zip</Link>
+      <Link>files\unity\git\mac\git.zip</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\..\GitHub.Api\PlatformResources\mac\git.zip.md5">
-      <Link>files\git\mac\git.zip.md5</Link>
+      <Link>files\unity\git\mac\git.zip.md5</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None-->
-    <None Include="..\..\GitHub.Api\PlatformResources\mac\git-lfs.zip">
-      <Link>files\git\mac\git-lfs.zip</Link>
+    <None Include="files\unity\git\windows\git-lfs.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\GitHub.Api\PlatformResources\mac\git-lfs.zip.md5">
-      <Link>files\git\mac\git-lfs.zip.md5</Link>
+    <None Include="files\unity\git\windows\git-lfs.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="files\unity\git\windows\git.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="files\unity\git\windows\git.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="files\unity\git\windows\gitconfig">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="files\unity\latest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="files\unity\releases\github-for-unity-99.2.0-beta1.unitypackage">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -81,6 +78,9 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="files\unity\git\mac\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

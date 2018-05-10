@@ -501,13 +501,13 @@ namespace GitHub.Unity
 
         private void WatcherOnRemoteBranchesChanged()
         {
-            Logger.Trace("WatcherOnRemoteBranchesChanged");
+            //Logger.Trace("WatcherOnRemoteBranchesChanged");
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
         }
 
         private void WatcherOnLocalBranchesChanged()
         {
-            Logger.Trace("WatcherOnLocalBranchesChanged");
+            //Logger.Trace("WatcherOnLocalBranchesChanged");
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
             // the watcher should tell us what branch has changed so we can fire this only
             // when the active branch has changed
@@ -517,20 +517,20 @@ namespace GitHub.Unity
 
         private void WatcherOnRepositoryCommitted()
         {
-            Logger.Trace("WatcherOnRepositoryCommitted");
+            //Logger.Trace("WatcherOnRepositoryCommitted");
             DataNeedsRefreshing?.Invoke(CacheType.GitLog);
             DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void WatcherOnRepositoryChanged()
         {
-            Logger.Trace("WatcherOnRepositoryChanged");
+            //Logger.Trace("WatcherOnRepositoryChanged");
             DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void WatcherOnConfigChanged()
         {
-            Logger.Trace("WatcherOnConfigChanged");
+            //Logger.Trace("WatcherOnConfigChanged");
             config.Reset();
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
             DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
@@ -539,7 +539,7 @@ namespace GitHub.Unity
 
         private void WatcherOnHeadChanged()
         {
-            Logger.Trace("WatcherOnHeadChanged");
+            //Logger.Trace("WatcherOnHeadChanged");
             DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
             DataNeedsRefreshing?.Invoke(CacheType.GitLog);
             DataNeedsRefreshing?.Invoke(CacheType.GitAheadBehind);
@@ -547,13 +547,13 @@ namespace GitHub.Unity
 
         private void WatcherOnIndexChanged()
         {
-            Logger.Trace("WatcherOnIndexChanged");
+            //Logger.Trace("WatcherOnIndexChanged");
             DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void UpdateLocalBranches()
         {
-            Logger.Trace("UpdateLocalBranches");
+            //Logger.Trace("UpdateLocalBranches");
 
             var branches = new Dictionary<string, ConfigBranch>();
             UpdateLocalBranches(branches, repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
@@ -584,7 +584,7 @@ namespace GitHub.Unity
 
         private void UpdateRemoteBranches()
         {
-            Logger.Trace("UpdateRemoteBranches");
+            //Logger.Trace("UpdateRemoteBranches");
 
             var remotes = config.GetRemotes().ToArray().ToDictionary(x => x.Name, x => x);
             var remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
@@ -652,7 +652,7 @@ namespace GitHub.Unity
             {
                 if (isBusy != value)
                 {
-                    Logger.Trace("IsBusyChanged Value:{0}", value);
+                    //Logger.Trace("IsBusyChanged Value:{0}", value);
                     isBusy = value;
                     IsBusyChanged?.Invoke(isBusy);
                 }

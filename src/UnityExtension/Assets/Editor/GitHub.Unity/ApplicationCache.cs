@@ -36,7 +36,13 @@ namespace GitHub.Unity
 
                 if (!firstRunAtValue.HasValue)
                 {
-                    firstRunAtValue = DateTimeOffset.ParseExact(firstRunAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None);
+                    DateTimeOffset dt;
+                    if (!DateTimeOffset.TryParseExact(firstRunAtString, Constants.Iso8601Formats,
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                    {
+                        dt = DateTimeOffset.Now;
+                    }
+                    FirstRunAt = dt;
                 }
 
                 return firstRunAtValue.Value;

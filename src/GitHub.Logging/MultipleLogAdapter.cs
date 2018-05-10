@@ -1,6 +1,6 @@
 namespace GitHub.Logging
 {
-    class MultipleLogAdapter : LogAdapterBase
+    public class MultipleLogAdapter : LogAdapterBase
     {
         private readonly LogAdapterBase[] logAdapters;
 

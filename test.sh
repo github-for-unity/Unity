@@ -12,4 +12,4 @@ fi
 NunitDirectory="packages\NUnit.Runners.2.6.4\tools"
 ConsoleRunner="$NunitDirectory\nunit-console.exe"
 
-$ConsoleRunner "build\IntegrationTests\IntegrationTests.dll" "build\IntegrationTests\TestUtils.dll" "build\TaskSystemIntegrationTests\TaskSystemIntegrationTests.dll" "build\UnitTests\TestUtils.dll" "build\UnitTests\UnitTests.dll" "src\tests\TestUtils\bin\\$Configuration\TestUtils.dll" $Exclude
+$ConsoleRunner "build\UnityTests\UnityTests.dll" "build\IntegrationTests\IntegrationTests.dll" "build\TaskSystemIntegrationTests\TaskSystemIntegrationTests.dll" "build\UnitTests\UnitTests.dll" $Exclude
