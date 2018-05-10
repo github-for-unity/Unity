@@ -8,6 +8,7 @@ namespace GitHub.Unity
     {
         private const string versionRegex = @"(?<major>\d+)(\.?(?<minor>[^.]+))?(\.?(?<patch>[^.]+))?(\.?(?<build>.+))?";
         private const int PART_COUNT = 4;
+        public static TheVersion Default { get; } = default(TheVersion).Initialize(null);
 
         [NotSerialized] private int major;
         [NotSerialized] public int Major { get { Initialize(Version); return major; } }
@@ -37,16 +38,13 @@ namespace GitHub.Unity
 
         public static TheVersion Parse(string version)
         {
-            Guard.ArgumentNotNull(version, "version");
-            TheVersion ret = default(TheVersion);
-            ret.Initialize(version);
-            return ret;
+            return default(TheVersion).Initialize(version);
         }
 
-        private void Initialize(string version)
+        private TheVersion Initialize(string version)
         {
             if (initialized)
-                return;
+                return this;
 
             this.Version = version;
 
@@ -60,7 +58,7 @@ namespace GitHub.Unity
             parts = 0;
 
             if (String.IsNullOrEmpty(version))
-                return;
+                return this;
 
             intParts = new int[PART_COUNT];
             stringParts = new string[PART_COUNT];
@@ -72,7 +70,7 @@ namespace GitHub.Unity
             if (!match.Success)
             {
                 LogHelper.Error(new ArgumentException("Invalid version: " + version, "version"));
-                return;
+                return this;
             }
 
             major = int.Parse(match.Groups["major"].Value);
@@ -132,6 +130,7 @@ namespace GitHub.Unity
                 isBeta = special.IndexOf("beta") >= 0;
             }
             initialized = true;
+            return this;
         }
 
         public override string ToString()
