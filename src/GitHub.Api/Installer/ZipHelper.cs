@@ -23,7 +23,7 @@ namespace GitHub.Unity
         }
 
         public bool Extract(string archive, string outFolder, CancellationToken cancellationToken,
-            Func<long, long, bool> onProgress)
+            Func<long, long, bool> onProgress, Func<string, bool> onFilter = null)
         {
             const int chunkSize = 4096; // 4K is optimum
             ZipFile zf = null;
@@ -53,6 +53,8 @@ namespace GitHub.Unity
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var entryFileName = zipEntry.Name;
+                    if (!onFilter?.Invoke(entryFileName) ?? false)
+                        continue;
                     // to remove the folder from the entry:- entryFileName = Path.GetFileName(entryFileName);
                     // Optionally match entrynames against a selection list here to skip as desired.
                     // The unpacked length is available in the zipEntry.Size property.

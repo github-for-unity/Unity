@@ -34,7 +34,7 @@ namespace TestWebServer
         /// <param name="port">Port of the server.</param>
         public HttpServer(string path = null, int port = 0)
         {
-            if (path == null)
+            if (String.IsNullOrEmpty(path) || !Directory.Exists(path))
             {
                 path = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "files");
             }
@@ -105,6 +105,7 @@ namespace TestWebServer
             var filename = context.Request.Url.AbsolutePath;
             Logger.Info($"{filename}");
             filename = filename.TrimStart('/');
+            filename = filename.Replace('/', '\\');
             filename = Path.Combine(rootDirectory, filename);
 
             if (!File.Exists(filename))

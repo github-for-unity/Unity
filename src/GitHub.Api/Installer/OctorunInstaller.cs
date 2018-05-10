@@ -24,34 +24,26 @@ namespace GitHub.Unity
             this.taskManager = taskManager;
         }
 
-        public ITask<NPath> SetupOctorunIfNeeded()
+        public NPath SetupOctorunIfNeeded()
         {
-            //Logger.Trace("SetupOctorunIfNeeded");
+            NPath path = NPath.Default;
+            var isOctorunExtracted = IsOctorunExtracted();
+            if (isOctorunExtracted)
+                path = installDetails.ExecutablePath;
+            GrabZipFromResources();
 
-            var task = new FuncTask<NPath>(taskManager.Token, () =>
+            if (!path.IsInitialized)
             {
-                var isOctorunExtracted = IsOctorunExtracted();
-                Logger.Trace("isOctorunExtracted: {0}", isOctorunExtracted);
-                if (isOctorunExtracted)
-                    return installDetails.ExecutablePath;
-                GrabZipFromResources();
-                return NPath.Default;
-            });
-
-            task.OnEnd += (t, path, _, __) =>
-            {
-                if (!path.IsInitialized)
-                {
-                    var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
-                    var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
-                            tempZipExtractPath, sharpZipLibHelper,
-                            fileSystem)
-                        .Then((success, extractPath) => MoveOctorun(extractPath.Combine("octorun")));
-                    t.Then(unzipTask);
-                }
-            };
-
-            return task;
+                var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
+                var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
+                        tempZipExtractPath, sharpZipLibHelper,
+                        fileSystem);
+                var extractPath = unzipTask.RunWithReturn(true);
+                if (unzipTask.Successful)
+                    path = MoveOctorun(extractPath.Combine("octorun"));
+                tempZipExtractPath.DeleteIfExists();
+            }
+            return path;
         }
 
         private NPath GrabZipFromResources()
@@ -66,8 +58,6 @@ namespace GitHub.Unity
         private NPath MoveOctorun(NPath fromPath)
         {
             var toPath = installDetails.InstallationPath;
-            Logger.Trace($"Moving tempDirectory:'{fromPath}' to extractTarget:'{toPath}'");
-
             toPath.DeleteIfExists();
             toPath.EnsureParentDirectoryExists();
             fromPath.Move(toPath);
@@ -78,13 +68,11 @@ namespace GitHub.Unity
         {
             if (!installDetails.InstallationPath.DirectoryExists())
             {
-                //Logger.Warning($"{octorunPath} does not exist");
                 return false;
             }
 
             if (!installDetails.VersionFile.FileExists())
             {
-                //Logger.Warning($"{versionFilePath} does not exist");
                 return false;
             }
 

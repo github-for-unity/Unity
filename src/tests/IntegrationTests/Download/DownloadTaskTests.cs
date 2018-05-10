@@ -14,6 +14,12 @@ namespace IntegrationTests.Download
     [TestFixture]
     class TestsWithHttpServer : BaseTestWithHttpServer
     {
+        public override void OnSetup()
+        {
+            base.OnSetup();
+            InitializeEnvironment(TestBasePath, false, false);
+        }
+
         [Test]
         public async Task DownloadAndVerificationWorks()
         {
@@ -21,20 +27,22 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileUrl = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+            var package = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
 
             var downloader = new Downloader();
-            StartTrackTime(watch, logger, md5Url);
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
-            
+            downloader.QueueDownload(package.Uri, TestBasePath);
+
+            StartTrackTime(watch, logger, package.Url);
             var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
+
             Assert.AreEqual(downloader.Task, task);
             Assert.IsTrue(downloader.Successful);
             var result = await downloader.Task;
+
             Assert.AreEqual(1, result.Count);
-            Assert.AreEqual(TestBasePath.Combine(fileUrl.Filename), result[0].File);
+            Assert.AreEqual(TestBasePath.Combine(package.Uri.Filename), result[0].File);
+            Assert.AreEqual(package.Md5, result[0].File.CalculateMD5());
         }
 
         [Test]
@@ -44,12 +52,12 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileUrl = new UriString($"http://localhost:{server.Port}/nope");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+            var package = new Package { Url = $"http://localhost:{server.Port}/nope" };
 
             var downloader = new Downloader();
-            StartTrackTime(watch, logger, md5Url);
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            StartTrackTime(watch, logger, package.Url);
+            downloader.QueueDownload(package.Uri, TestBasePath);
+
             var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
             Assert.AreEqual(downloader.Task, task);
@@ -63,16 +71,23 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileUrl = new UriString($"http://localhost:{server.Port}/git/windows/git.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+            var gitPackage = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git.json"));
+            var gitLfsPackage = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
+
+            var package = new Package { Url = gitPackage.Url, Md5 = gitLfsPackage.Md5 };
 
             var downloader = new Downloader();
-            StartTrackTime(watch, logger, md5Url);
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            downloader.QueueDownload(package.Uri, TestBasePath);
+
+            StartTrackTime(watch, logger, package.Url);
             var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
+
             Assert.AreEqual(downloader.Task, task);
-            Assert.Throws(typeof(DownloadException), async () => await downloader.Task);
+            Assert.IsTrue(downloader.Successful);
+            var result = await downloader.Task;
+
+            Assert.AreNotEqual(package.Md5, result[0].File.CalculateMD5());
         }
 
         [Test]
@@ -83,12 +98,12 @@ namespace IntegrationTests.Download
             StartTest(out watch, out logger);
 
             var fileSystem = NPath.FileSystem;
-            var fileUrl = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+            var package = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
 
             var downloader = new Downloader();
-            StartTrackTime(watch, logger, md5Url);
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            StartTrackTime(watch, logger, package.Url);
+            downloader.QueueDownload(package.Uri, TestBasePath);
+
             var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
             Assert.AreEqual(downloader.Task, task);
@@ -104,7 +119,7 @@ namespace IntegrationTests.Download
 
             downloader = new Downloader();
             StartTrackTime(watch, logger, "resuming download");
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            downloader.QueueDownload(package.Uri, TestBasePath);
             task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
             Assert.AreEqual(downloader.Task, task);
@@ -112,8 +127,7 @@ namespace IntegrationTests.Download
             downloadData = result.FirstOrDefault();
 
             var md5Sum = downloadData.File.CalculateMD5();
-            var md5 = TestBasePath.Combine(md5Url.Filename).ReadAllText();
-            md5Sum.Should().BeEquivalentTo(md5);
+            md5Sum.Should().BeEquivalentTo(package.Md5);
         }
 
             [Test]
@@ -124,12 +138,12 @@ namespace IntegrationTests.Download
             StartTest(out watch, out logger);
 
             var fileSystem = NPath.FileSystem;
-            var fileUrl = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
-            var md5Url = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+            var package = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
 
             var downloader = new Downloader();
-            StartTrackTime(watch, logger, md5Url);
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            StartTrackTime(watch, logger, package.Url);
+            downloader.QueueDownload(package.Uri, TestBasePath);
+
             var task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
             Assert.AreEqual(downloader.Task, task);
@@ -138,7 +152,7 @@ namespace IntegrationTests.Download
 
             downloader = new Downloader();
             StartTrackTime(watch, logger, "downloading again");
-            downloader.QueueDownload(fileUrl, md5Url, TestBasePath);
+            downloader.QueueDownload(package.Uri, TestBasePath);
             task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
             Assert.AreEqual(downloader.Task, task);
@@ -146,8 +160,7 @@ namespace IntegrationTests.Download
             downloadPath = downloadData.FirstOrDefault().File;
 
             var md5Sum = downloadPath.CalculateMD5();
-            var md5 = TestBasePath.Combine(md5Url.Filename).ReadAllText();
-            md5Sum.Should().BeEquivalentTo(md5);
+            md5Sum.Should().BeEquivalentTo(package.Md5);
         }
 
         [Category("DoNotRunOnAppVeyor")]
@@ -157,16 +170,14 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
-            var fileUrl1 = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
-            var md5Url1 = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
-            var fileUrl2 = new UriString($"http://localhost:{server.Port}/git/windows/git.zip");
-            var md5Url2 = new UriString($"http://localhost:{server.Port}/git/windows/git.zip.md5");
+            var package1 = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
+            var package2 = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git.json"));
 
             var events = new List<string>();
 
             var downloader = new Downloader();
-            downloader.QueueDownload(fileUrl2, md5Url2, TestBasePath);
-            downloader.QueueDownload(fileUrl1, md5Url1, TestBasePath);
+            downloader.QueueDownload(package2.Uri, TestBasePath);
+            downloader.QueueDownload(package1.Uri, TestBasePath);
             downloader.DownloadStart += d => events.Add("start " + d.Url.Filename);
             downloader.DownloadComplete += d => events.Add("end " + d.Url.Filename);
             downloader.DownloadFailed += (d, _) => events.Add("failed " + d.Url.Filename);
@@ -198,35 +209,22 @@ namespace IntegrationTests.Download
             ILogging logger;
             StartTest(out watch, out logger);
 
+            InitializeEnvironment(TestBasePath, false, false);
+
             var fileSystem = NPath.FileSystem;
 
-            var gitLfs = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
-            var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+            var baseUrl = new UriString($"http://localhost:{server.Port}/unity/git/windows");
+            var package = Package.Load(Environment, baseUrl.ToString() + "/git-lfs.json");
 
-            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
+            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, package.Uri, TestBasePath);
 
-            StartTrackTime(watch, logger, gitLfsMd5);
+            StartTrackTime(watch, logger, package.Url);
             var task = await TaskEx.WhenAny(downloadTask.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
-
             task.ShouldBeEquivalentTo(downloadTask.Task);
+
             var downloadPath = await downloadTask.Task;
-            var md5 = downloadPath.ReadAllText();
-            Assert.NotNull(md5);
-
-            StartTrackTime(watch, logger, gitLfs);
-            downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
-
-            StartTrackTime(watch, logger, gitLfsMd5);
-            task = await TaskEx.WhenAny(downloadTask.Start().Task, TaskEx.Delay(Timeout));
-            StopTrackTimeAndLog(watch, logger);
-            task.ShouldBeEquivalentTo(downloadTask.Task);
-
-            downloadPath = await downloadTask.Task;
             Assert.NotNull(downloadPath);
-
-            var md5Sum = downloadPath.CalculateMD5();
-            md5Sum.Should().BeEquivalentTo(md5);
 
             var downloadPathBytes = downloadPath.ReadAllBytes();
             Logger.Trace("File size {0} bytes", downloadPathBytes.Length);
@@ -235,16 +233,16 @@ namespace IntegrationTests.Download
             downloadPath.Delete();
             new NPath(downloadPath + ".partial").WriteAllBytes(cutDownloadPathBytes);
 
-            downloadTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
+            downloadTask = new DownloadTask(TaskManager.Token, fileSystem, package.Uri, TestBasePath);
 
-            StartTrackTime(watch, logger, gitLfs);
+            StartTrackTime(watch, logger, package.Url);
             task = await TaskEx.WhenAny(downloadTask.Start().Task, TaskEx.Delay(Timeout));
             StopTrackTimeAndLog(watch, logger);
             task.ShouldBeEquivalentTo(downloadTask.Task);
             downloadPath = await downloadTask.Task;
 
-            md5Sum = downloadPath.CalculateMD5();
-            md5Sum.Should().BeEquivalentTo(md5);
+            var md5Sum = downloadPath.CalculateMD5();
+            md5Sum.Should().BeEquivalentTo(package.Md5);
         }
 
         [Test]
@@ -290,7 +288,7 @@ namespace IntegrationTests.Download
 
         //    var fileSystem = NPath.FileSystem;
 
-        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.zip.md5");
 
         //    var downloadTask = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
 
@@ -320,7 +318,7 @@ namespace IntegrationTests.Download
 
             var fileSystem = NPath.FileSystem;
 
-            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt");
+            var downloadTask = new DownloadTask(TaskManager.Token, fileSystem, "http://ggggithub.com/robots.txt", TestBasePath);
             var exceptionThrown = false;
 
             var autoResetEvent = new AutoResetEvent(false);
@@ -338,7 +336,7 @@ namespace IntegrationTests.Download
 
             exceptionThrown.Should().BeTrue();
         }
-        
+
         //[Test]
         //public void DownloadingAFileWithHashValidationWorks()
         //{
@@ -348,8 +346,8 @@ namespace IntegrationTests.Download
 
         //    var fileSystem = NPath.FileSystem;
 
-        //    var gitLfs = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
-        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip.md5");
+        //    var gitLfs = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.zip");
+        //    var gitLfsMd5 = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.zip.md5");
 
         //    var downloadGitLfsMd5Task = new DownloadTextTask(TaskManager.Token, fileSystem, gitLfsMd5, TestBasePath);
         //    var downloadGitLfsTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath);
@@ -391,7 +389,7 @@ namespace IntegrationTests.Download
             var evtFinally = new AutoResetEvent(false);
             Exception exception = null;
 
-            var gitLfs = new UriString($"http://localhost:{server.Port}/git/windows/git-lfs.zip");
+            var gitLfs = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.zip");
 
             StartTrackTime(watch, logger, gitLfs);
             var downloadGitTask = new DownloadTask(TaskManager.Token, fileSystem, gitLfs, TestBasePath)

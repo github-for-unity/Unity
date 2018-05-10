@@ -36,7 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <BuildConfid>Release</BuildConfid>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
@@ -136,6 +136,8 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Primitives\Package.cs" />
+    <Compile Include="Primitives\TheVersion.cs" />
     <Compile Include="Tasks\ActionTask.cs" />
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
     <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
@@ -266,32 +268,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PlatformResources\mac\git-lfs.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git-lfs.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="PlatformResources\linux\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.json" />
+    <None Include="PlatformResources\mac\git-lfs.zip" />
+    <None Include="PlatformResources\windows\git-lfs.zip" />
+    <None Include="PlatformResources\windows\git.zip" />
     <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
-    <Content Include="PlatformResources\linux\git-lfs.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\linux\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\mac\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="PlatformResources\linux\git-lfs.zip" />
     <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
     <EmbeddedResource Include="Resources\.gitattributes" />
     <EmbeddedResource Include="Resources\.gitignore" />
@@ -309,6 +293,8 @@
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\windows\git.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

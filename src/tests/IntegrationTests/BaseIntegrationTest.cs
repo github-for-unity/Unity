@@ -16,50 +16,38 @@ namespace IntegrationTests
     class BaseIntegrationTest
     {
         public IRepositoryManager RepositoryManager { get; set; }
-
         protected IApplicationManager ApplicationManager { get; set; }
-
-        protected NPath DotGitConfig { get; set; }
-
-        protected NPath DotGitHead { get; set; }
-
-        protected NPath DotGitIndex { get; set; }
-
-        protected NPath RemotesPath { get; set; }
-
-        protected NPath BranchesPath { get; set; }
-
-        protected NPath DotGitPath { get; set; }
-
-        protected NPath TestRepoMasterCleanSynchronized { get; set; }
-
-        protected NPath TestRepoMasterCleanUnsynchronized { get; set; }
-
-        protected NPath TestRepoMasterCleanUnsynchronizedRussianLanguage { get; set; }
-
-        protected NPath TestRepoMasterDirtyUnsynchronized { get; set; }
-
-        protected NPath TestRepoMasterTwoRemotes { get; set; }
-
-        protected static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
+        protected ILogging Logger { get; set; }
         protected ITaskManager TaskManager { get; set; }
-        protected SynchronizationContext SyncContext { get; set; }
-
         protected IPlatform Platform { get; set; }
         protected IProcessManager ProcessManager { get; set; }
         protected IProcessEnvironment GitEnvironment => Platform.GitEnvironment;
         protected IGitClient GitClient { get; set; }
+        public IEnvironment Environment { get; set; }
+
+        protected NPath DotGitConfig { get; set; }
+        protected NPath DotGitHead { get; set; }
+        protected NPath DotGitIndex { get; set; }
+        protected NPath RemotesPath { get; set; }
+        protected NPath BranchesPath { get; set; }
+        protected NPath DotGitPath { get; set; }
+        protected NPath TestRepoMasterCleanSynchronized { get; set; }
+        protected NPath TestRepoMasterCleanUnsynchronized { get; set; }
+        protected NPath TestRepoMasterCleanUnsynchronizedRussianLanguage { get; set; }
+        protected NPath TestRepoMasterDirtyUnsynchronized { get; set; }
+        protected NPath TestRepoMasterTwoRemotes { get; set; }
+
+        protected static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
+        protected SynchronizationContext SyncContext { get; set; }
+
 
         protected NPath TestBasePath { get; set; }
-        protected ILogging Logger { get; set; }
-        public IEnvironment Environment { get; set; }
         public IRepository Repository => Environment.Repository;
 
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
 
         protected void InitializeEnvironment(NPath repoPath,
-            NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool initializeRepository = true
             )
@@ -76,19 +64,16 @@ namespace IntegrationTests
             Environment = new IntegrationTestEnvironment(cacheContainer,
                 repoPath,
                 SolutionDirectory,
-                environmentPath,
-                enableEnvironmentTrace,
-                initializeRepository);
+                enableTrace: enableEnvironmentTrace,
+                initializeRepository: initializeRepository);
         }
 
-        protected void InitializePlatform(NPath repoPath, NPath? environmentPath = null,
+        protected void InitializePlatform(NPath repoPath,
             bool enableEnvironmentTrace = true,
             bool setupGit = true,
-            string testName = "",
-            bool initializeRepository = true)
+            string testName = "")
         {
             InitializeTaskManager();
-            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, initializeRepository);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
@@ -107,13 +92,13 @@ namespace IntegrationTests
         }
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,
-            NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool setupGit = true,
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
             [CallerMemberName] string testName = "")
         {
-            InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace, setupGit, testName);
+            InitializeEnvironment(repoPath, enableEnvironmentTrace, true);
+            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, setupGit: setupGit, testName: testName);
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -156,22 +141,14 @@ namespace IntegrationTests
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
             AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", zipArchivesPath, Environment);
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
 
-            NPath? result = null;
             Exception ex = null;
 
-            var setupTask = gitInstaller.SetupGitIfNeeded().Finally((success, state) =>
-                {
-                    result = state.GitExecutablePath;
-                    autoResetEvent.Set();
-                });
-            setupTask.Start();
+            var state = gitInstaller.SetupGitIfNeeded();
+            var result = state.GitExecutablePath;
 
-            if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(5)))
-                throw new TimeoutException($"Test setup unzipping {zipArchivesPath} to {pathToSetupGitInto} timed out");
-
-            if (result == null)
+            if (!result.IsInitialized)
             {
                 if (ex != null)
                 {
@@ -181,7 +158,7 @@ namespace IntegrationTests
                 throw new Exception("Did not install git");
             }
 
-            Environment.GitExecutablePath = result.Value;
+            Environment.GitExecutablePath = result;
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
         }
 

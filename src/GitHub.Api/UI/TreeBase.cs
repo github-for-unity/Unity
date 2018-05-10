@@ -38,8 +38,6 @@ namespace GitHub.Unity
 
         public void Load(IEnumerable<TData> treeDatas)
         {
-            //Logger.Trace("Load");
-
             var collapsedFolders = new HashSet<string>(GetCollapsedFolders());
             var checkedFiles = new HashSet<string>(GetCheckedFiles());
             var folders = new HashSet<string>();
@@ -74,8 +72,6 @@ namespace GitHub.Unity
                         {
                             if (PromoteNode(lastAddedNode, label))
                             {
-                                //Logger.Trace("Promoting Node Label:{0}", lastAddedNode.Label);
-
                                 parentIsPromoted = true;
                                 lastAddedNode.IsContainer = true;
                             }

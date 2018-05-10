@@ -37,5 +37,8 @@ namespace GitHub.Unity
         ICacheContainer CacheContainer { get; }
         NPath GitLfsInstallPath { get; }
         NPath GitLfsExecutablePath { get; set; }
+        ISettings LocalSettings { get; }
+        ISettings SystemSettings { get; }
+        ISettings UserSettings { get; }
     }
 }

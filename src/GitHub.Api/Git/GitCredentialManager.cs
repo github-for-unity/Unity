@@ -31,8 +31,6 @@ namespace GitHub.Unity
 
         public async Task Delete(UriString host)
         {
-            //Logger.Trace("Delete: {0}", host);
-
             if (!await LoadCredentialHelper())
                 return;
 
@@ -47,8 +45,6 @@ namespace GitHub.Unity
 
         public async Task<ICredential> Load(UriString host)
         {
-            //Logger.Trace("Load: {0}", host);
-
             if (credential == null)
             {
                 if (!await LoadCredentialHelper())
@@ -100,8 +96,6 @@ namespace GitHub.Unity
         {
             this.credential = cred;
 
-            //Logger.Trace("Save: {0}", credential.Host);
-
             if (!await LoadCredentialHelper())
                 return;
 
@@ -126,8 +120,6 @@ namespace GitHub.Unity
             if (credHelper != null)
                 return true;
 
-            //Logger.Trace("Loading Credential Helper");
-
             credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
                 .Configure(processManager)
                 .StartAwait();
@@ -145,8 +137,6 @@ namespace GitHub.Unity
 
         private ITask<string> RunCredentialHelper(string action, string[] lines)
         {
-            //Logger.Trace("RunCredentialHelper helper:\"{0}\" action:\"{1}\"", credHelper, action);
-
             SimpleProcessTask task;
             if (credHelper.StartsWith('!'))
             {

@@ -48,7 +48,6 @@ namespace GitHub.Unity
 
         private void RunTimer(int seconds)
         {
-            Logger.Trace($"Scheduling timer for {seconds} seconds from now");
             timer = new Timer(async _ =>
             {
                 try
@@ -72,8 +71,6 @@ namespace GitHub.Unity
 
             if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
             {
-                Logger.Trace("Sending Usage");
-
                 var currentTimeOffset = DateTimeOffset.UtcNow;
                 var beforeDate = currentTimeOffset.Date;
 
@@ -284,8 +281,6 @@ namespace GitHub.Unity
             string json = null;
             if (path.FileExists())
             {
-                LogHelper.Instance.Trace("LoadUsage: \"{0}\"", path);
-
                 try
                 {
                     json = path.ReadAllText(Encoding.UTF8);

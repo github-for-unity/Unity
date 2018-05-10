@@ -92,7 +92,7 @@ Alternatively, import the package by clicking Assets, Import Package, Custom Pac
 
 ##### macOS
 
-he extension log file can be found at `~/Library/Application Support/GitHubUnity/github-unity.log`
+The extension log file can be found at `~/Library/Logs/GitHubUnity/github-unity.log`
 
 ##### Windows
 

@@ -277,13 +277,20 @@ namespace GitHub.Unity
             {
                 return null;
             }
-
             return repositoryNameSegment.TrimEnd('/').TrimEnd(".git");
         }
 
         bool IEquatable<UriString>.Equals(UriString other)
         {
             return other != null && ToString().Equals(other.ToString());
+        }
+    }
+
+    public static class UriStringExtensions
+    {
+        public static UriString ToUriString(this string str)
+        {
+            return new UriString(str);
         }
     }
 }

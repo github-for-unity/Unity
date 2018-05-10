@@ -72,7 +72,6 @@ namespace GitHub.Unity
 
         public void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager)
         {
-            //Logger.Trace("Initialize");
             Guard.ArgumentNotNull(theRepositoryManager, nameof(theRepositoryManager));
             Guard.ArgumentNotNull(theTaskManager, nameof(theTaskManager));
 
@@ -442,19 +441,16 @@ namespace GitHub.Unity
 
         private void GitUserCacheOnCacheInvalidated()
         {
-            //Logger.Trace("GitUserCache Invalidated");
             UpdateUserAndEmail();
         }
 
         private void HandleUserCacheUpdatedEvent(CacheUpdateEvent cacheUpdateEvent)
         {
-            //Logger.Trace("GitUserCache Updated {0}", cacheUpdateEvent.UpdatedTime);
             Changed?.Invoke(cacheUpdateEvent);
         }
 
         private void UpdateUserAndEmail()
         {
-            //Logger.Trace("UpdateUserAndEmail");
             if (gitClient == null)
             {
                 needsRefresh = true;

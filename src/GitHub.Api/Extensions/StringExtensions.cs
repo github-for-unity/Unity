@@ -82,24 +82,6 @@ namespace GitHub.Unity
                 : string.Empty;
         }
 
-        public static string RemoveSurroundingQuotes(this string s)
-        {
-            Guard.ArgumentNotNull(s, "string");
-
-            if (s.Length < 2)
-                return s;
-
-            var quoteCharacters = new[] { '"', '\'' };
-            char firstCharacter = s[0];
-            if (!quoteCharacters.Contains(firstCharacter))
-                return s;
-
-            if (firstCharacter != s[s.Length - 1])
-                return s;
-
-            return s.Substring(1, s.Length - 2);
-        }
-
         public static string RightAfter(this string s, char search)
         {
             if (s == null) return null;

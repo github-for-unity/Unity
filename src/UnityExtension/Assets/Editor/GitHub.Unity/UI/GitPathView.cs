@@ -137,29 +137,18 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
 
-                        newGitExec = gitExec;
-                        CheckEnteredGitPath();
-
                         new FindExecTask("git", Manager.CancellationToken)
                             .Configure(Manager.ProcessManager, dontSetupGit: true)
                             .Catch(ex => true)
                             .FinallyInUI((success, ex, path) => {
                                 if (success)
                                 {
-                                    Logger.Trace("FindGit Path:{0}", path);
                                     newGitExec = path;
                                     CheckEnteredGitPath();
                                 }
                                 else
                                 {
-                                    if (ex != null)
-                                    {
-                                        Logger.Error(ex, "FindGit Error Path:{0}", path);
-                                    }
-                                    else
-                                    {
-                                        Logger.Error("FindGit Failed Path:{0}", path);
-                                    }
+                                    Logger.Error(ex, "FindGit Error Path:{0}", path);
                                 }
 
                                 isBusy = false;
@@ -207,7 +196,6 @@ namespace GitHub.Unity
                 {
                     newGitExec = gitExec = Environment.GitExecutablePath.ToString();
                     gitExecParent = Environment.GitExecutablePath.Parent.ToString();
-
                     CheckEnteredGitPath();
                 }
 
@@ -223,11 +211,8 @@ namespace GitHub.Unity
         private void CheckEnteredGitPath()
         {
             isValueChanged = !string.IsNullOrEmpty(newGitExec) && newGitExec != gitExec;
-
             isValueChangedAndFileExists = isValueChanged && newGitExec.ToNPath().FileExists();
-
             gitFileErrorMessage = isValueChanged && !isValueChangedAndFileExists ? ErrorInvalidPathMessage : null;
-
             gitVersionErrorMessage = null;
         }
 
@@ -237,16 +222,15 @@ namespace GitHub.Unity
 
             if (value == portableGitPath)
             {
-                Logger.Trace("Attempting to restore portable Git Path:{0}", value);
+                var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager,
+                    TaskManager, Manager.SystemSettings);
 
-                var gitInstaller = new GitInstaller(Environment, EntryPoint.ApplicationManager.ProcessManager,
-                    EntryPoint.ApplicationManager.TaskManager);
-
-                gitInstaller.SetupGitIfNeeded()
+                new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
+                    {
+                        return gitInstaller.SetupGitIfNeeded();
+                    })
                     .FinallyInUI((success, exception, installationState) =>
                     {
-                        Logger.Trace("Setup Git Using the installer:{0}", success);
-
                         if (!success)
                         {
                             Logger.Error(exception, ErrorInstallingInternalGit);
@@ -258,19 +242,14 @@ namespace GitHub.Unity
                             Environment.GitExecutablePath = installationState.GitExecutablePath;
                             Environment.GitLfsExecutablePath = installationState.GitLfsExecutablePath;
                             Environment.IsCustomGitExecutable = false;
-
                             gitExecHasChanged = true;
                         }
-
                         isBusy = false;
                     }).Start();
             }
             else
             {
-                //Logger.Trace("Validating Git Path:{0}", value);
-
                 gitVersionErrorMessage = null;
-
                 GitClient.ValidateGitInstall(value.ToNPath(), true)
                     .ThenInUI((success, result) =>
                     {
