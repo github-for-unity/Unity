@@ -190,8 +190,6 @@ namespace GitHub.Unity
 
         private void DoRequire2fa(string msg)
         {
-            Logger.Trace("Starting 2FA - Message:\"{0}\"", msg);
-
             need2fa = true;
             errorMessage = msg;
             isBusy = false;
@@ -208,10 +206,7 @@ namespace GitHub.Unity
 
         private void DoResult(bool success, string msg)
         {
-            Logger.Trace("DoResult - Success:{0} Message:\"{1}\"", success, msg);
-
             isBusy = false;
-
             if (success)
             {
                 TaskManager.Run(UsageTracker.IncrementAuthenticationViewButtonAuthentication);

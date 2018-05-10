@@ -9,5 +9,6 @@ namespace GitHub.Unity
         void Set<T>(string key, T value);
         void Unset(string key);
         void Rename(string oldKey, string newKey);
+        NPath SettingsPath { get; set; }
     }
 }

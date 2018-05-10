@@ -69,6 +69,20 @@ namespace GitHub.Unity
             LogHelper.Info("Initializing GitHubForUnity:'v{0}' Unity:'v{1}'", ApplicationInfo.Version, Environment.UnityVersion);
 
             ApplicationManager.Run(ApplicationCache.Instance.FirstRun);
+
+            //if (ApplicationCache.Instance.FirstRun)
+                UpdateCheckWindow.CheckForUpdates();
+        }
+
+        internal static void Restart()
+        {
+            if (appManager != null)
+            {
+                appManager.Dispose();
+                appManager = null;
+            }
+
+            Initialize();
         }
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,

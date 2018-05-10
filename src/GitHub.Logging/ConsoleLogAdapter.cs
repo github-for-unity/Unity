@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace GitHub.Logging
 {
-    class ConsoleLogAdapter : LogAdapterBase
+    public class ConsoleLogAdapter : LogAdapterBase
     {
         private string GetMessage(string level, string context, string message)
         {
@@ -14,7 +14,7 @@ namespace GitHub.Logging
 
         public override void Info(string context, string message)
         {
-            WriteLine("INFO", context, message);
+            Console.WriteLine(message);
         }
 
         public override void Debug(string context, string message)
@@ -34,7 +34,7 @@ namespace GitHub.Logging
 
         public override void Error(string context, string message)
         {
-            WriteLine("ERROR", context, message);
+            Console.Error.WriteLine(message);
         }
 
         private void WriteLine(string level, string context, string message)

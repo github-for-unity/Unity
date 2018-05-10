@@ -26,7 +26,7 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        protected override NPath RunWithReturn(bool success)
+        public override NPath RunWithReturn(bool success)
         {
             var ret = BaseRun(success);
 

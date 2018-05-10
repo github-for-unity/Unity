@@ -22,6 +22,7 @@ namespace IntegrationTests
             bool initializeRepository = true)
         {
             defaultEnvironment = new DefaultEnvironment(cacheContainer);
+
             defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
             environmentPath = environmentPath ??
                 defaultEnvironment.UserCachePath.EnsureDirectoryExists("IntegrationTests");
@@ -47,6 +48,9 @@ namespace IntegrationTests
         public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath unityContentsPath, NPath assetsPath)
         {
             defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, unityContentsPath, assetsPath);
+            defaultEnvironment.LocalSettings.SettingsPath.DeleteIfExists();
+            defaultEnvironment.UserSettings.SettingsPath.DeleteIfExists();
+            defaultEnvironment.SystemSettings.SettingsPath.DeleteIfExists();
         }
 
         public void InitializeRepository(NPath? expectedPath = null)
@@ -138,5 +142,8 @@ namespace IntegrationTests
         public string ExecutableExtension => defaultEnvironment.ExecutableExtension;
 
         public ICacheContainer CacheContainer => defaultEnvironment.CacheContainer;
+        public ISettings LocalSettings => defaultEnvironment.LocalSettings;
+        public ISettings SystemSettings => defaultEnvironment.SystemSettings;
+        public ISettings UserSettings => defaultEnvironment.UserSettings;
     }
 }

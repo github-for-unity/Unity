@@ -155,19 +155,16 @@ namespace GitHub.Unity
 
         public void Initialize()
         {
-            //Logger.Trace("Initialize");
             watcher.Initialize();
         }
 
         public void Start()
         {
-            //Logger.Trace("Start");
             watcher.Start();
         }
 
         public void Stop()
         {
-            //Logger.Trace("Stop");
             watcher.Stop();
         }
 
@@ -330,10 +327,7 @@ namespace GitHub.Unity
 
                     if (itemsToRevert.Any())
                     {
-                        var next = GitClient.Discard(itemsToRevert);
-                        HookupHandlers(next, true);
-                        task.OnEnd -= HookupEndHandlerWithWatcher;
-                        task.Then(next);
+                        task.Then(GitClient.Discard(itemsToRevert));
                     }
                 }
                 , () => gitStatusEntries);
@@ -393,9 +387,6 @@ namespace GitHub.Unity
             ConfigBranch? branch;
             ConfigRemote? remote;
             GetCurrentBranchAndRemote(out branch, out remote);
-
-            Logger.Trace("CurrentBranch: {0}", branch.HasValue ? branch.Value.ToString() : "[NULL]");
-            Logger.Trace("CurrentRemote: {0}", remote.HasValue ? remote.Value.ToString() : "[NULL]");
             CurrentBranchUpdated?.Invoke(branch, remote);
         }
 
@@ -450,48 +441,30 @@ namespace GitHub.Unity
             {
                 if (isExclusive)
                 {
-                    //Logger.Trace("Starting Operation - Setting Busy Flag");
                     IsBusy = true;
                 }
 
                 if (filesystemChangesExpected)
                 {
-                    //Logger.Trace("Starting Operation - Disable Watcher");
                     watcher.Stop();
                 }
             };
 
-            if (filesystemChangesExpected)
-                task.OnEnd += HookupEndHandlerWithWatcher;
-            else
-                task.OnEnd += HookupEndHandlerWithoutWatcher;
+            task.Finally(success =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+            });
             return task;
-        }
-
-        private void HookupEndHandlerWithWatcher(ITask task, bool success, Exception ex)
-        {
-            HookupEndHandler(task, true);
-        }
-
-        private void HookupEndHandlerWithoutWatcher(ITask task, bool success, Exception ex)
-        {
-            HookupEndHandler(task, false);
-        }
-
-        private void HookupEndHandler(ITask task, bool filesystemChangesExpected)
-        {
-            var isExclusive = task.IsChainExclusive();
-            if (filesystemChangesExpected)
-            {
-                //Logger.Trace("Ended Operation - Enable Watcher");
-                watcher.Start();
-            }
-
-            if (isExclusive)
-            {
-                //Logger.Trace("Ended Operation - Clearing Busy Flag");
-                IsBusy = false;
-            }
         }
 
         private string GetCurrentHead()
@@ -501,13 +474,11 @@ namespace GitHub.Unity
 
         private void WatcherOnRemoteBranchesChanged()
         {
-            Logger.Trace("WatcherOnRemoteBranchesChanged");
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
         }
 
         private void WatcherOnLocalBranchesChanged()
         {
-            Logger.Trace("WatcherOnLocalBranchesChanged");
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
             // the watcher should tell us what branch has changed so we can fire this only
             // when the active branch has changed
@@ -517,20 +488,17 @@ namespace GitHub.Unity
 
         private void WatcherOnRepositoryCommitted()
         {
-            Logger.Trace("WatcherOnRepositoryCommitted");
             DataNeedsRefreshing?.Invoke(CacheType.GitLog);
             DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void WatcherOnRepositoryChanged()
         {
-            Logger.Trace("WatcherOnRepositoryChanged");
             DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void WatcherOnConfigChanged()
         {
-            Logger.Trace("WatcherOnConfigChanged");
             config.Reset();
             DataNeedsRefreshing?.Invoke(CacheType.Branches);
             DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
@@ -539,7 +507,6 @@ namespace GitHub.Unity
 
         private void WatcherOnHeadChanged()
         {
-            Logger.Trace("WatcherOnHeadChanged");
             DataNeedsRefreshing?.Invoke(CacheType.RepositoryInfo);
             DataNeedsRefreshing?.Invoke(CacheType.GitLog);
             DataNeedsRefreshing?.Invoke(CacheType.GitAheadBehind);
@@ -547,18 +514,13 @@ namespace GitHub.Unity
 
         private void WatcherOnIndexChanged()
         {
-            Logger.Trace("WatcherOnIndexChanged");
             DataNeedsRefreshing?.Invoke(CacheType.GitStatus);
         }
 
         private void UpdateLocalBranches()
         {
-            Logger.Trace("UpdateLocalBranches");
-
             var branches = new Dictionary<string, ConfigBranch>();
             UpdateLocalBranches(branches, repositoryPaths.BranchesPath, config.GetBranches().Where(x => x.IsTracking), "");
-
-            Logger.Trace("OnLocalBranchListUpdated {0} branches", branches.Count);
             LocalBranchesUpdated?.Invoke(branches);
         }
 
@@ -584,8 +546,6 @@ namespace GitHub.Unity
 
         private void UpdateRemoteBranches()
         {
-            Logger.Trace("UpdateRemoteBranches");
-
             var remotes = config.GetRemotes().ToArray().ToDictionary(x => x.Name, x => x);
             var remoteBranches = new Dictionary<string, Dictionary<string, ConfigBranch>>();
 
@@ -607,9 +567,7 @@ namespace GitHub.Unity
                 }
             }
 
-            Logger.Trace("OnRemoteBranchListUpdated {0} remotes", remotes.Count);
             RemoteBranchesUpdated?.Invoke(remotes, remoteBranches);
-
             UpdateGitAheadBehindStatus();
         }
 
@@ -652,7 +610,6 @@ namespace GitHub.Unity
             {
                 if (isBusy != value)
                 {
-                    Logger.Trace("IsBusyChanged Value:{0}", value);
                     isBusy = value;
                     IsBusyChanged?.Invoke(isBusy);
                 }

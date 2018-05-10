@@ -106,7 +106,6 @@ namespace GitHub.Unity
             var password = keychainAdapter.Credential.Token;
             try
             {
-                logger.Trace("2FA Continue");
                 loginResultData = await TryLogin(host, username, password, twofacode);
 
                 if (loginResultData.Code == LoginResultCodes.Success)

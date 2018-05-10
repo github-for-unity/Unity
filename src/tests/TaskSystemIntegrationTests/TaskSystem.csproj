@@ -68,9 +68,9 @@
     <Compile Include="ThreadSynchronizationContext.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TestApp\TestApp.csproj">
+    <ProjectReference Include="..\CommandLine\CommandLine.csproj">
       <Project>{08b87d2a-8cf1-4211-b7aa-5209f00f72f8}</Project>
-      <Name>TestApp</Name>
+      <Name>CommandLine</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{B389ADAF-62CC-486E-85B4-2D8B078DF763}</Project>

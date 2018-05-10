@@ -2170,6 +2170,7 @@ namespace GitHub.Unity
         static JsonSerializationStrategy publicUpperCaseStrategy = new JsonSerializationStrategy(false, true);
         static JsonSerializationStrategy privateLowerCaseStrategy = new JsonSerializationStrategy(true, false);
         static JsonSerializationStrategy privateUpperCaseStrategy = new JsonSerializationStrategy(false, false);
+
         public static string ToJson<T>(this T model, bool lowerCase = false, bool onlyPublic = true)
         {
             return SimpleJson.SerializeObject(model, GetStrategy(lowerCase, onlyPublic));

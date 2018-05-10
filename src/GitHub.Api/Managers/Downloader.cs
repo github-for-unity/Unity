@@ -26,18 +26,18 @@ namespace GitHub.Unity
         public event Action<DownloadData> DownloadComplete;
         public event Action<DownloadData, Exception> DownloadFailed;
 
-        private readonly List<PairDownloader> downloaders = new List<PairDownloader>();
+        private readonly List<DownloaderTask> downloaders = new List<DownloaderTask>();
 
         public Downloader() : base(TaskManager.Instance.Token, RunDownloaders)
         {
             Name = "Downloader";
         }
 
-        public void QueueDownload(UriString url, UriString md5Url, NPath targetDirectory)
+        public void QueueDownload(UriString url, NPath targetDirectory)
         {
-            var pairDownloader = new PairDownloader();
-            pairDownloader.QueueDownload(url, md5Url, targetDirectory);
-            downloaders.Add(pairDownloader);
+            var downloaderTask = new DownloaderTask();
+            downloaderTask.QueueDownload(url, targetDirectory);
+            downloaders.Add(downloaderTask);
         }
 
         private static List<DownloadData> RunDownloaders(bool success, FuncListTask<DownloadData> source)
@@ -58,7 +58,7 @@ namespace GitHub.Unity
             return result;
         }
 
-        class PairDownloader
+        class DownloaderTask
         {
             public event Action<DownloadData> DownloadStart;
             public event Action<DownloadData> DownloadComplete;
@@ -69,12 +69,11 @@ namespace GitHub.Unity
             private readonly IFileSystem fs;
             private readonly CancellationToken cancellationToken;
 
-            private int finishedTaskCount;
             private volatile bool isSuccessful = true;
             private volatile Exception exception;
             private DownloadData result;
 
-            public PairDownloader()
+            public DownloaderTask()
             {
                 fs = NPath.FileSystem;
                 cancellationToken = TaskManager.Instance.Token;
@@ -91,55 +90,29 @@ namespace GitHub.Unity
                 return aggregateDownloads.Task;
             }
 
-            public Task<DownloadData> QueueDownload(UriString url, UriString md5Url, NPath targetDirectory)
+            public Task<DownloadData> QueueDownload(UriString url, NPath targetDirectory)
             {
                 var destinationFile = targetDirectory.Combine(url.Filename);
-                var destinationMd5 = targetDirectory.Combine(md5Url.Filename);
                 result = new DownloadData(url, destinationFile);
 
                 Action<ITask<NPath>, NPath, bool, Exception> verifyDownload = (t, res, success, ex) =>
                 {
-                    var count = Interlocked.Increment(ref finishedTaskCount);
                     isSuccessful &= success;
                     if (!success)
                         exception = ex;
-                    if (count == queuedTasks.Count)
+                    if (!isSuccessful)
                     {
-                        if (!isSuccessful)
-                        {
-                            DownloadFailed(result, exception);
-                        }
-                        else
-                        {
-                            if (!Utils.VerifyFileIntegrity(destinationFile, destinationMd5))
-                            {
-                                destinationMd5.Delete();
-                                destinationFile.Delete();
-                                DownloadFailed(result, new DownloadException($"Verification of {url} failed"));
-                            }
-                            else
-                                DownloadComplete(result);
-                        }
+                        DownloadFailed(result, exception);
+                    }
+                    else
+                    {
+                        DownloadComplete(result);
                     }
                 };
 
-                var md5Exists = destinationMd5.FileExists();
-                var fileExists = destinationFile.FileExists();
-
-                if (!md5Exists)
-                {
-                    var md5Download = DownloadFile(md5Url, targetDirectory, result, verifyDownload);
-                    md5Download.OnStart += _ => DownloadStart?.Invoke(result);
-                    queuedTasks.Add(md5Download);
-                }
-
-                if (!fileExists)
-                {
-                    var fileDownload = DownloadFile(url, targetDirectory, result, verifyDownload);
-                    if (md5Exists) // only invoke DownloadStart if it hasn't been invoked before in the md5 download
-                        fileDownload.OnStart += _ => DownloadStart?.Invoke(result);
-                    queuedTasks.Add(fileDownload);
-                }
+                var fileDownload = DownloadFile(url, targetDirectory, result, verifyDownload);
+                fileDownload.OnStart += _ => DownloadStart?.Invoke(result);
+                queuedTasks.Add(fileDownload);
                 return aggregateDownloads.Task;
             }
 

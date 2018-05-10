@@ -1,6 +1,7 @@
 using GitHub.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -15,15 +16,15 @@ namespace GitHub.Unity
         public abstract void Rename(string oldKey, string newKey);
         public abstract void Set<T>(string key, T value);
         public abstract void Unset(string key);
+        public NPath SettingsPath { get; set; }
 
         protected virtual string SettingsFileName { get; set; }
-        protected NPath SettingsPath { get; set; }
     }
 
     class JsonBackedSettings : BaseSettings
     {
         private string cachePath;
-        private CacheData cacheData = new CacheData();
+        private Dictionary<string, object> cacheData;
         private Action<string> dirCreate;
         private Func<string, bool> dirExists;
         private Action<string> fileDelete;
@@ -45,16 +46,16 @@ namespace GitHub.Unity
 
         public override void Initialize()
         {
-            logger.Debug($"Initializing settings {GetType()}");
             cachePath = SettingsPath.Combine(SettingsFileName);
-
-            logger.Debug("Initializing settings file at {0}", cachePath);
             LoadFromCache(cachePath);
         }
 
         public override bool Exists(string key)
         {
-            return cacheData.GitHubUnity.ContainsKey(key);
+            if (cacheData == null)
+                Initialize();
+
+            return cacheData.ContainsKey(key);
         }
 
         public override string Get(string key, string fallback = "")
@@ -64,27 +65,55 @@ namespace GitHub.Unity
 
         public override T Get<T>(string key, T fallback = default(T))
         {
+            if (cacheData == null)
+                Initialize();
+
             object value = null;
-            if (cacheData.GitHubUnity.TryGetValue(key, out value))
+            if (cacheData.TryGetValue(key, out value))
             {
-                logger.Debug("Get: {0}", key);
+                if (typeof(T) == typeof(DateTimeOffset))
+                {
+                    DateTimeOffset dt;
+                    if (DateTimeOffset.TryParseExact(value?.ToString(), Constants.Iso8601Formats,
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                    {
+                        value = dt;
+                        cacheData[key] = dt;
+                    }
+                }
+
+                if (!(value is T))
+                {
+                    try
+                    {
+                        value = value.FromObject<T>();
+                        cacheData[key] = value;
+                    }
+                    catch
+                    {
+                        value = fallback;
+                        cacheData[key] = fallback;
+                    }
+                }
                 return (T)value;
             }
-
-            logger.Debug("Miss: {0}", key);
             return fallback;
         }
 
         public override void Set<T>(string key, T value)
         {
+            if (cacheData == null)
+                Initialize();
+
             try
             {
-                logger.Trace("Set: {0}", key);
-
-                if (!cacheData.GitHubUnity.ContainsKey(key))
-                    cacheData.GitHubUnity.Add(key, value);
+                object val = value;
+                if (value is DateTimeOffset)
+                    val = ((DateTimeOffset)(object)value).ToString(Constants.Iso8601Format);
+                if (!cacheData.ContainsKey(key))
+                    cacheData.Add(key, val);
                 else
-                    cacheData.GitHubUnity[key] = value;
+                    cacheData[key] = val;
                 SaveToCache(cachePath);
             }
             catch (Exception e)
@@ -96,17 +125,23 @@ namespace GitHub.Unity
 
         public override void Unset(string key)
         {
-            if (cacheData.GitHubUnity.ContainsKey(key))
-                cacheData.GitHubUnity.Remove(key);
+            if (cacheData == null)
+                Initialize();
+
+            if (cacheData.ContainsKey(key))
+                cacheData.Remove(key);
             SaveToCache(cachePath);
         }
 
         public override void Rename(string oldKey, string newKey)
         {
+            if (cacheData == null)
+                Initialize();
+
             object value = null;
-            if (cacheData.GitHubUnity.TryGetValue(oldKey, out value))
+            if (cacheData.TryGetValue(oldKey, out value))
             {
-                cacheData.GitHubUnity.Remove(oldKey);
+                cacheData.Remove(oldKey);
                 Set(newKey, value);
             }
             SaveToCache(cachePath);
@@ -114,18 +149,33 @@ namespace GitHub.Unity
 
         private void LoadFromCache(string path)
         {
-            logger.Trace("LoadFromCache: {0}", path);
-
             EnsureCachePath(path);
 
             if (!fileExists(path))
+            {
+                cacheData = new Dictionary<string, object>();
                 return;
+            }
 
             var data = readAllText(path, Encoding.UTF8);
 
             try
             {
-                cacheData = data.FromJson<CacheData>();
+                var c = data.FromJson<Dictionary<string, object>>();
+                if (c != null)
+                {
+                    // upgrade from old format
+                    if (c.ContainsKey("GitHubUnity"))
+                    {
+                        var oldRoot = c["GitHubUnity"];
+                        cacheData = oldRoot.FromObject<Dictionary<string, object>>();
+                        SaveToCache(path);
+                    }
+                    else
+                        cacheData = c;
+                }
+                else
+                    cacheData = null;
             }
             catch(Exception ex)
             {
@@ -137,14 +187,12 @@ namespace GitHub.Unity
             {
                 // cache is corrupt, remove
                 fileDelete(path);
-                return;
+                cacheData = new Dictionary<string, object>();
             }
         }
 
         private bool SaveToCache(string path)
         {
-            logger.Trace("SaveToCache: {0}", path);
-
             EnsureCachePath(path);
 
             try
@@ -170,12 +218,6 @@ namespace GitHub.Unity
             if (!dirExists(di))
                 dirCreate(di);
         }
-
-        private class CacheData
-        {
-            public Dictionary<string, object> GitHubUnity { get; set; } = new Dictionary<string, object>();
-        }
-
     }
 
     class LocalSettings : JsonBackedSettings
@@ -193,11 +235,24 @@ namespace GitHub.Unity
 
     class UserSettings : JsonBackedSettings
     {
-        private const string settingsFileName = "settings.json";
+        private const string settingsFileName = "usersettings.json";
+        private const string oldSettingsFileName = "settings.json";
 
         public UserSettings(IEnvironment environment)
         {
             SettingsPath = environment.UserCachePath;
+        }
+
+        public override void Initialize()
+        {
+            var cachePath = SettingsPath.Combine(settingsFileName);
+            if (!cachePath.FileExists())
+            {
+                var oldSettings = SettingsPath.Combine(oldSettingsFileName);
+                if (oldSettings.FileExists())
+                    oldSettings.Copy(cachePath);
+            }
+            base.Initialize();
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }
@@ -205,11 +260,24 @@ namespace GitHub.Unity
 
     class SystemSettings : JsonBackedSettings
     {
-        private const string settingsFileName = "settings.json";
+        private const string settingsFileName = "systemsettings.json";
+        private const string oldSettingsFileName = "settings.json";
 
         public SystemSettings(IEnvironment environment)
         {
             SettingsPath = environment.SystemCachePath;
+        }
+
+        public override void Initialize()
+        {
+            var cachePath = SettingsPath.Combine(settingsFileName);
+            if (!cachePath.FileExists())
+            {
+                var oldSettings = SettingsPath.Combine(oldSettingsFileName);
+                if (oldSettings.FileExists())
+                    oldSettings.Copy(cachePath);
+            }
+            base.Initialize();
         }
 
         protected override string SettingsFileName { get { return settingsFileName; } }

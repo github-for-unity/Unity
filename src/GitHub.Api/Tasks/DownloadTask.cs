@@ -30,17 +30,17 @@ namespace GitHub.Unity
         protected readonly IFileSystem fileSystem;
 
         public DownloadTask(CancellationToken token,
-            IFileSystem fileSystem, UriString url,
-            NPath? targetDirectory = null,
-            string filename = null,
+            IFileSystem fileSystem,
+            UriString url,
+            NPath targetDirectory,
             int retryCount = 0)
             : base(token)
         {
             this.fileSystem = fileSystem;
             RetryCount = retryCount;
             Url = url;
-            Filename = filename ?? url.Filename;
-            TargetDirectory = targetDirectory ?? NPath.CreateTempDirectory("ghu");
+            Filename = url.Filename;
+            TargetDirectory = targetDirectory;
             this.Name = $"Download {Url}";
         }
 
@@ -49,7 +49,7 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        protected override NPath RunWithReturn(bool success)
+        public override NPath RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
@@ -87,6 +87,7 @@ namespace GitHub.Unity
             var attempts = 0;
             bool result = false;
             var partialFile = TargetDirectory.Combine(Filename + ".partial");
+            TargetDirectory.EnsureDirectoryExists();
             do
             {
                 exception = null;
@@ -116,8 +117,9 @@ namespace GitHub.Unity
                 catch (Exception ex)
                 {
                     exception = ex;
+                    result = false;
                 }
-            } while (attempts++ < RetryCount);
+            } while (!result && attempts++ < RetryCount);
 
             if (!result)
             {

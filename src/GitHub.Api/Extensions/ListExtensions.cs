@@ -12,7 +12,7 @@ namespace GitHub.Unity
                 return null;
             return String.Join(separator, list.Select(x => x?.ToString()).ToArray());
         }
-        
+
         public static IEnumerable<IList<string>> Spool<T>(this IEnumerable<T> items, int spoolLength)
         {
             var currentSpoolLength = 0;
@@ -39,6 +39,16 @@ namespace GitHub.Unity
             {
                 yield return currentList;
             }
+        }
+
+        public static T[] Append<T>(this T[] array, T item)
+        {
+            if (array == null)
+                return new T[] { item };
+            var ret = new T[array.Length];
+            array.CopyTo(ret, 0);
+            ret[ret.Length - 1] = item;
+            return ret;
         }
     }
 }
