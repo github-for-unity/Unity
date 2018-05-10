@@ -107,8 +107,6 @@ namespace GitHub.Unity
             var keychainAdapter = FindOrCreateAdapter(host);
             var connection = GetConnection(host);
 
-            //logger.Trace($@"Loading KeychainAdapter Host:""{host}"" Cached Username:""{cachedConnection.Username}""");
-
             var keychainItem = await credentialManager.Load(host);
             if (keychainItem == null)
             {
@@ -123,7 +121,6 @@ namespace GitHub.Unity
                     logger.Warning("Keychain Username:\"{0}\" does not match cached Username:\"{1}\"; Hopefully it works", keychainItem.Username, connection.Username);
                 }
 
-                //logger.Trace("Loaded from Credential Manager Host:\"{0}\" Username:\"{1}\"", keychainItem.Host, keychainItem.Username);
                 keychainAdapter.Set(keychainItem);
             }
             return keychainAdapter;
@@ -142,14 +139,11 @@ namespace GitHub.Unity
 
         public void Initialize()
         {
-            //logger.Trace("Initialize");
             LoadConnectionsFromDisk();
         }
 
         public async Task Clear(UriString host, bool deleteFromCredentialManager)
         {
-            //logger.Trace("Clear Host:{0}", host);
-
             Guard.ArgumentNotNull(host, nameof(host));
 
             RemoveConnection(host);
@@ -160,8 +154,6 @@ namespace GitHub.Unity
 
         public async Task Save(UriString host)
         {
-            //logger.Trace("Save: {0}", host);
-
             Guard.ArgumentNotNull(host, nameof(host));
 
             var keychainAdapter = await AddCredential(host);
@@ -170,8 +162,6 @@ namespace GitHub.Unity
 
         public void SetCredentials(ICredential credential)
         {
-            //logger.Trace("SetCredentials Host:{0}", credential.Host);
-
             Guard.ArgumentNotNull(credential, nameof(credential));
 
             var keychainAdapter = GetKeychainAdapter(credential.Host);
@@ -180,8 +170,6 @@ namespace GitHub.Unity
 
         public void SetToken(UriString host, string token, string username)
         {
-            //logger.Trace("SetToken Host:{0}", host);
-
             Guard.ArgumentNotNull(host, nameof(host));
             Guard.ArgumentNotNull(token, nameof(token));
             Guard.ArgumentNotNull(username, nameof(username));
@@ -192,7 +180,6 @@ namespace GitHub.Unity
 
         private void LoadConnectionsFromDisk()
         {
-            //logger.Trace("ReadCacheFromDisk Path:{0}", cachePath.ToString());
             if (cachePath.FileExists())
             {
                 var json = cachePath.ReadAllText();
@@ -216,7 +203,6 @@ namespace GitHub.Unity
 
         private void SaveConnectionsToDisk(bool raiseChangedEvent = true)
         {
-            //logger.Trace("WriteCacheToDisk Count:{0} Path:{1}", connectionCache.Count, cachePath.ToString());
             try
             {
                 var json = connections.Values.ToJson();

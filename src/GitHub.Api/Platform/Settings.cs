@@ -149,8 +149,6 @@ namespace GitHub.Unity
 
         private void LoadFromCache(string path)
         {
-            logger.Trace("LoadFromCache: {0}", path);
-
             EnsureCachePath(path);
 
             if (!fileExists(path))
@@ -195,8 +193,6 @@ namespace GitHub.Unity
 
         private bool SaveToCache(string path)
         {
-            logger.Trace("SaveToCache: {0}", path);
-
             EnsureCachePath(path);
 
             try

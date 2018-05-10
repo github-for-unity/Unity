@@ -34,7 +34,6 @@ namespace GitHub.Unity
 
         public GitInstallationState SetupGitIfNeeded()
         {
-            //Logger.Trace("SetupGitIfNeeded");
             var state = new GitInstallationState();
             state = VerifyGitFromSettings(state);
             if (state.GitIsValid && state.GitLfsIsValid)
@@ -233,7 +232,6 @@ namespace GitHub.Unity
                     var source = path;
                     target.DeleteIfExists();
                     target.EnsureParentDirectoryExists();
-                    Logger.Trace($"Moving '{source}' to '{target}'");
                     source.Move(target);
                     state.GitIsValid = true;
                 }
@@ -254,7 +252,6 @@ namespace GitHub.Unity
                     var source = path.Combine(installDetails.GitLfsExecutable);
                     target.DeleteIfExists();
                     target.EnsureParentDirectoryExists();
-                    Logger.Trace($"Moving '{source}' to '{target}'");
                     source.Move(target);
                     state.GitLfsIsValid = true;
                 }

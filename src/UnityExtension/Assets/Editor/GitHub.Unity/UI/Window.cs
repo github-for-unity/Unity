@@ -105,7 +105,6 @@ namespace GitHub.Unity
 
             if (!HasRepository)
             {
-                //Logger.Trace("Initialize set all tabs to InitProject");
                 changeTab = activeTab = SubTab.InitProject;
             }
         }
@@ -160,8 +159,6 @@ namespace GitHub.Unity
             {
                 if (activeTab == SubTab.InitProject)
                 {
-                    //Logger.Trace("OnRepositoryChanged set changeTab to History");
-
                     changeTab = SubTab.History;
                     UpdateActiveTab();
                 }
@@ -170,8 +167,6 @@ namespace GitHub.Unity
             {
                 if (activeTab != SubTab.InitProject)
                 {
-                    //Logger.Trace("OnRepositoryChanged set changeTab to InitProject");
-
                     changeTab = SubTab.InitProject;
                     UpdateActiveTab();
                 }
