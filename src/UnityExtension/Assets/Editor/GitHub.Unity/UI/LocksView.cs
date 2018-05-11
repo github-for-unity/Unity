@@ -119,7 +119,7 @@ namespace GitHub.Unity
             Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
             Styles.Label.Draw(iconRect, entry.Content, false, false, isSelected, hasKeyboardFocus);
             Styles.Label.Draw(pathRect, entry.GitLock.Path, false, false, isSelected, hasKeyboardFocus);
-            Styles.Label.Draw(userRect, entry.GitLock.User, false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(userRect, entry.GitLock.Owner.Name, false, false, isSelected, hasKeyboardFocus);
             Styles.Label.Draw(dateRect, DateTimeOffset.Now.ToString(), false, false, isSelected, hasKeyboardFocus);
         }
 
@@ -353,7 +353,7 @@ namespace GitHub.Unity
                         string unlockFile;
                         GenericMenu.MenuFunction menuFunction;
 
-                        if (entry.User == currentUsername)
+                        if (entry.Owner.Name == currentUsername)
                         {
                             unlockFile = "Unlock File";
                             menuFunction = UnlockSelectedEntry;
