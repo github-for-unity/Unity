@@ -310,6 +310,7 @@ namespace GitHub.Unity
 
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
+        [SerializeField] private string currentUsername;
 
         public override void OnEnable()
         {
@@ -349,8 +350,22 @@ namespace GitHub.Unity
                     },
                     entry => { }, 
                     entry => {
-                        GenericMenu menu = new GenericMenu();
-                        menu.AddItem(new GUIContent("Unlock File"), false, UnlockFile);
+                        string unlockFile;
+                        GenericMenu.MenuFunction menuFunction;
+
+                        if (entry.User == currentUsername)
+                        {
+                            unlockFile = "Unlock File";
+                            menuFunction = UnlockSelectedEntry;
+                        }
+                        else
+                        {
+                            unlockFile = "Force Unlock File";
+                            menuFunction = ForceUnlockSelectedEntry;
+                        }
+
+                        var menu = new GenericMenu();
+                        menu.AddItem(new GUIContent(unlockFile), false, menuFunction);
                         menu.ShowAsContext();
                     });
 
@@ -359,7 +374,14 @@ namespace GitHub.Unity
             }
         }
 
-        private void UnlockFile()
+        private void UnlockSelectedEntry()
+        {
+            Repository
+                .ReleaseLock(selectedEntry.Path, false)
+                .Start();
+        }
+
+        private void ForceUnlockSelectedEntry()
         {
             Repository
                 .ReleaseLock(selectedEntry.Path, true)
@@ -413,6 +435,10 @@ namespace GitHub.Unity
                 currentLocksHasUpdate = false;
 
                 lockedFiles = Repository.CurrentLocks;
+
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+                var keychainConnection = Platform.Keychain.Connections.First();
+                currentUsername = keychainConnection.Username;
 
                 BuildLocksControl();
             }
