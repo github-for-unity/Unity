@@ -166,7 +166,7 @@
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="Platform\Settings.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
-    <Compile Include="OutputProcessors\LockOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LocksOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
     <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />

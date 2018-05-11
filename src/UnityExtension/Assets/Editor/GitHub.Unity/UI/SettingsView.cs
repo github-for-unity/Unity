@@ -288,7 +288,7 @@ namespace GitHub.Unity
 
                             GUILayout.BeginHorizontal();
                             {
-                                GUILayout.Label("Locked by " + lck.User);
+                                GUILayout.Label("Locked by " + lck.Owner.Name);
                                 GUILayout.FlexibleSpace();
                                 if (GUILayout.Button("Unlock"))
                                 {

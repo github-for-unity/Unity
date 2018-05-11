@@ -171,7 +171,7 @@ namespace GitHub.Unity
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
         {
-            return new GitListLocksTask(new GitObjectFactory(environment), local, cancellationToken, processor)
+            return new GitListLocksTask(local, cancellationToken, processor)
                 .Configure(processManager);
         }
 
@@ -342,8 +342,8 @@ namespace GitHub.Unity
         public string name;
         public string email;
 
-        public string Name { get { return name; } }
-        public string Email { get { return email; } }
+        public string Name => name;
+        public string Email { get { return String.IsNullOrEmpty(email) ? String.Empty : email; } }
 
         public GitUser(string name, string email)
         {
@@ -355,7 +355,7 @@ namespace GitHub.Unity
         {
             int hash = 17;
             hash = hash * 23 + (name?.GetHashCode() ?? 0);
-            hash = hash * 23 + (email?.GetHashCode() ?? 0);
+            hash = hash * 23 + Email.GetHashCode();
             return hash;
         }
 
@@ -370,8 +370,7 @@ namespace GitHub.Unity
         {
             return
                 String.Equals(name, other.name) &&
-                String.Equals(email, other.email)
-                ;
+                Email.Equals(other.Email);
         }
 
         public static bool operator ==(GitUser lhs, GitUser rhs)
