@@ -200,7 +200,7 @@ namespace GitHub.Unity
 
         public void Load(List<GitLock> locks)
         {
-            var selectedLockId = !(SelectedEntry.GitLock == GitLock.Default)
+            var selectedLockId = SelectedEntry != null && SelectedEntry.GitLock != GitLock.Default
                 ? (int?) SelectedEntry.GitLock.ID 
                 : null;
 
