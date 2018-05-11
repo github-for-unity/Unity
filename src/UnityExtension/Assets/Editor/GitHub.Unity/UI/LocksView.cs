@@ -27,6 +27,14 @@ namespace GitHub.Unity
         {
             get { return gitLock; }
         }
+
+        public string PrettyTimeString
+        {
+            get
+            {
+                return gitLock.LockedAt.ToLocalTime().CreateRelativeTime(DateTimeOffset.Now);
+            }
+        }
     }
 
     [Serializable]
@@ -120,7 +128,7 @@ namespace GitHub.Unity
             Styles.Label.Draw(iconRect, entry.Content, false, false, isSelected, hasKeyboardFocus);
             Styles.Label.Draw(pathRect, entry.GitLock.Path, false, false, isSelected, hasKeyboardFocus);
             Styles.Label.Draw(userRect, entry.GitLock.Owner.Name, false, false, isSelected, hasKeyboardFocus);
-            Styles.Label.Draw(dateRect, DateTimeOffset.Now.ToString(), false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(dateRect, entry.PrettyTimeString, false, false, isSelected, hasKeyboardFocus);
         }
 
         private bool HandleInput(Rect rect, GitLockEntry entry, int index, Action<GitLock> singleClick = null,
