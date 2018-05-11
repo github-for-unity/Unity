@@ -10,8 +10,8 @@ namespace GitHub.Unity
     public interface IGitClient
     {
         ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit);
-        ITask Init(IOutputProcessor<string> processor = null);
-        ITask LfsInstall(IOutputProcessor<string> processor = null);
+        ITask<string> Init(IOutputProcessor<string> processor = null);
+        ITask<string> LfsInstall(IOutputProcessor<string> processor = null);
         ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null);
         ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null);
         ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null);
@@ -85,13 +85,13 @@ namespace GitHub.Unity
             return endTask;
         }
 
-        public ITask Init(IOutputProcessor<string> processor = null)
+        public ITask<string> Init(IOutputProcessor<string> processor = null)
         {
             return new GitInitTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask LfsInstall(IOutputProcessor<string> processor = null)
+        public ITask<string> LfsInstall(IOutputProcessor<string> processor = null)
         {
             return new GitLfsInstallTask(cancellationToken, processor)
                 .Configure(processManager);

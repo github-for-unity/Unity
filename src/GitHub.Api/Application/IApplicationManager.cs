@@ -18,9 +18,9 @@ namespace GitHub.Unity
         IGitClient GitClient { get; }
         IUsageTracker UsageTracker { get; }
         bool IsBusy { get; }
-        void Run(bool firstRun);
+        void Run();
         void RestartRepository();
-        ITask InitializeRepository();
+        void InitializeRepository();
         event Action<IProgress> OnProgress;
     }
 }

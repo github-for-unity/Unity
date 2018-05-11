@@ -37,7 +37,11 @@ namespace GitHub.Unity
             var state = new GitInstallationState();
             state = VerifyGitFromSettings(state);
             if (state.GitIsValid && state.GitLfsIsValid)
+            {
+                state.GitLastCheckTime = DateTimeOffset.Now;
+                systemSettings.Set(Constants.GitInstallationState, state);
                 return state;
+            }
 
             if (environment.IsWindows)
                 state = FindWindowsGit(state);
@@ -47,12 +51,18 @@ namespace GitHub.Unity
             state = VerifyGitInstallation(state);
 
             if (state.GitIsValid && state.GitLfsIsValid)
+            {
+                state.GitLastCheckTime = DateTimeOffset.Now;
+                systemSettings.Set(Constants.GitInstallationState, state);
                 return state;
+            }
 
             state = VerifyZipFiles(state);
             state = GrabZipFromResourcesIfNeeded(state);
             state = GetZipsIfNeeded(state);
             state = ExtractGit(state);
+            state.GitLastCheckTime = DateTimeOffset.Now;
+            systemSettings.Set(Constants.GitInstallationState, state);
             return state;
         }
 
@@ -69,6 +79,7 @@ namespace GitHub.Unity
             state.GitExecutablePath = gitExecutablePath;
             state.GitInstallationPath = state.GitExecutablePath.Parent.Parent;
             state.GitIsValid = true;
+            state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
             NPath gitLfsPath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
             state.GitLfsIsValid = gitLfsPath.IsInitialized;
             if (state.GitLfsIsValid)
@@ -125,7 +136,11 @@ namespace GitHub.Unity
                 if (state.GitPackage != null)
                 {
                     state.GitIsValid = VerifyExecutableMd5(state.GitExecutablePath, state.GitPackage);
-                    if (!state.GitIsValid)
+                    if (state.GitIsValid)
+                    {
+                        state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
+                    }
+                    else
                     {
                         Logger.Trace($"{installDetails.GitExecutablePath} is out of date");
                     }
@@ -234,6 +249,7 @@ namespace GitHub.Unity
                     target.EnsureParentDirectoryExists();
                     source.Move(target);
                     state.GitIsValid = true;
+                    state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
                 }
             }
 
@@ -273,6 +289,8 @@ namespace GitHub.Unity
             public NPath GitLfsExecutablePath { get; set; }
             public Package GitPackage { get; set; }
             public Package GitLfsPackage { get; set; }
+            public DateTimeOffset GitLastCheckTime { get; set; }
+            public bool IsCustomGitPath { get; set; }
         }
 
         public class GitInstallDetails

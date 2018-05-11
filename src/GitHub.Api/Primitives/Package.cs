@@ -27,7 +27,7 @@ namespace GitHub.Unity
         public static Package Load(IEnvironment environment, UriString packageFeed)
         {
             Package package = null;
-            var key = packageFeed.Filename.ToNPath().FileNameWithoutExtension + "_lastCheckTime";
+            var key = packageFeed.Filename.ToNPath().FileNameWithoutExtension + "_updatelastCheckTime";
             var now = DateTimeOffset.Now;
             NPath feed = environment.UserCachePath.Combine(packageFeed.Filename);
 
