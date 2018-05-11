@@ -40,9 +40,6 @@ namespace GitHub.Unity
         [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
         [NonSerialized] private int controlId;
 
-        private const string FilePathFormatString = "Path: {0}";
-        private const string UserNameFormatString = "User: {0}";
-
         public int SelectedIndex
         {
             get { return selectedIndex; }
@@ -107,17 +104,21 @@ namespace GitHub.Unity
         {
             var isSelected = index == SelectedIndex;
 
-            var iconRect = new Rect(entryRect.x, entryRect.y + Styles.BaseSpacing / 2, 32, 32);
-            var pathRect = new Rect(entryRect.x + 32, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksSummaryHeight + Styles.BaseSpacing);
-            var lastY = pathRect.y + pathRect.height;
-            var userRect = new Rect(entryRect.x + 32, lastY + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksUserHeight + Styles.BaseSpacing);
+            var iconRect = new Rect(entryRect.x + Styles.BaseSpacing / 2, entryRect.y + (Styles.LocksEntryHeight - 32) / 2, 32 + Styles.BaseSpacing, 32);
 
-            var hasKeyboardFocus = GUIUtility.keyboardControl == controlId; 
+            var xIconRectRightSidePadded = iconRect.x + iconRect.width;
+
+            var pathRect = new Rect(xIconRectRightSidePadded, entryRect.y + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksSummaryHeight + Styles.BaseSpacing);
+            var userRect = new Rect(xIconRectRightSidePadded, pathRect.y + pathRect.height + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksUserHeight + Styles.BaseSpacing);
+            var dateRect = new Rect(xIconRectRightSidePadded, userRect.y + userRect.height + Styles.BaseSpacing / 2, entryRect.width, Styles.LocksDateHeight + Styles.BaseSpacing);
+
+            var hasKeyboardFocus = GUIUtility.keyboardControl == controlId;
 
             Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
             Styles.Label.Draw(iconRect, entry.Content, false, false, isSelected, hasKeyboardFocus);
-            Styles.Label.Draw(pathRect, string.Format(FilePathFormatString, entry.GitLock.Path), false, false, isSelected, hasKeyboardFocus);
-            Styles.Label.Draw(userRect, string.Format(UserNameFormatString, entry.GitLock.User), false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(pathRect, entry.GitLock.Path, false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(userRect, entry.GitLock.User, false, false, isSelected, hasKeyboardFocus);
+            Styles.Label.Draw(dateRect, DateTimeOffset.Now.ToString(), false, false, isSelected, hasKeyboardFocus);
         }
 
         private bool HandleInput(Rect rect, GitLockEntry entry, int index, Action<GitLock> singleClick = null,
