@@ -210,9 +210,18 @@ namespace GitHub.Unity
 
             var scrollIndex = (int)(scrollValue / Styles.LocksEntryHeight);
 
+            assets.Clear();
+
             gitLockEntries = locks.Select(gitLock => {
                 var gitLockEntry = new GitLockEntry(gitLock);
                 LoadIcon(gitLockEntry);
+
+                var assetGuid = AssetDatabase.AssetPathToGUID(gitLock.Path);
+                if (!string.IsNullOrEmpty(assetGuid))
+                {
+                    assets.Add(assetGuid, gitLockEntry);
+                }
+
                 return gitLockEntry;
             }).ToList();
 
