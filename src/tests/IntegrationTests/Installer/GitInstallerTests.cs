@@ -62,7 +62,7 @@ namespace IntegrationTests
                 }
             }), Arg.Any<CancellationToken>(), Arg.Any<Func<long, long, bool>>()).Returns(true);
             ZipHelper.Instance = zipHelper;
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, null, installDetails: installDetails);
 
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
@@ -83,7 +83,7 @@ namespace IntegrationTests
             procTask.Process.StartInfo.EnvironmentVariables["PATH"].Should().StartWith(gitInstallationPath.ToString());
         }
 
-        [Test]
+        //[Test]
         public void MacSkipsInstallWhenSettingsGitExists()
         {
             DefaultEnvironment.OnMac = true;
@@ -113,7 +113,8 @@ namespace IntegrationTests
             var settings = Substitute.For<ISettings>();
             var settingsRet = gitExecutablePath.ToString();
             settings.Get(Arg.Is<string>(Constants.GitInstallPathKey), Arg.Any<string>()).Returns(settingsRet);
-            var installer = new GitInstaller(Environment, ProcessManager, TaskManager, settings, installDetails);
+            var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token, settings, installDetails);
+
             var result = installer.SetupGitIfNeeded();
             Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
             Assert.AreEqual(gitLfsInstallationPath, result.GitLfsInstallationPath);
@@ -121,7 +122,7 @@ namespace IntegrationTests
             Assert.AreEqual(gitLfsExecutablePath, result.GitLfsExecutablePath);
         }
 
-        [Test]
+        //[Test]
         public void WindowsSkipsInstallWhenSettingsGitExists()
         {
             DefaultEnvironment.OnMac = false;
@@ -151,7 +152,7 @@ namespace IntegrationTests
             var settings = Substitute.For<ISettings>();
             var settingsRet = gitExecutablePath.ToString();
             settings.Get(Arg.Is<string>(Constants.GitInstallPathKey), Arg.Any<string>()).Returns(settingsRet);
-            var installer = new GitInstaller(Environment, ProcessManager, TaskManager, settings, installDetails);
+            var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token, settings, installDetails);
             var result = installer.SetupGitIfNeeded();
             Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
             Assert.AreEqual(gitLfsInstallationPath, result.GitLfsInstallationPath);
@@ -190,14 +191,14 @@ namespace IntegrationTests
             var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
 
             var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
-            ZipHelper.Instance.Extract(installDetails.GitZipPath, gitExtractPath, TaskManager.Token, null, s => s.ToNPath().FileName == "git.exe");
+            ZipHelper.Instance.Extract(installDetails.GitZipPath, gitExtractPath, TaskManager.Token, null);
             var source = gitExtractPath;
             var target = installDetails.GitInstallationPath;
             target.DeleteIfExists();
             target.EnsureParentDirectoryExists();
             source.Move(target);
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, null, installDetails: installDetails);
 
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
@@ -222,7 +223,7 @@ namespace IntegrationTests
                     GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
                 };
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, Environment.SystemSettings, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, Environment.SystemSettings, installDetails: installDetails);
 
             var state = gitInstaller.SetupGitIfNeeded();
             state.Should().NotBeNull();

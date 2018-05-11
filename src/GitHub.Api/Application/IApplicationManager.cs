@@ -19,8 +19,9 @@ namespace GitHub.Unity
         IUsageTracker UsageTracker { get; }
         bool IsBusy { get; }
         void Run();
-        void RestartRepository();
         void InitializeRepository();
         event Action<IProgress> OnProgress;
+        void SetupGit(GitInstaller.GitInstallationState state);
+        void RestartRepository();
     }
 }

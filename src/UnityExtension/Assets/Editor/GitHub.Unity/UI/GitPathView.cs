@@ -222,12 +222,17 @@ namespace GitHub.Unity
 
             if (value == portableGitPath)
             {
-                var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager,
-                    TaskManager, Manager.SystemSettings);
-
                 new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                     {
-                        return gitInstaller.SetupGitIfNeeded();
+                        var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken, Manager.SystemSettings);
+                        var state = gitInstaller.SetupGitIfNeeded();
+                        if (state.GitIsValid && state.GitLfsIsValid)
+                        {
+                            Manager.SystemSettings.Unset(Constants.GitInstallPathKey);
+                            Manager.SetupGit(state);
+                            Manager.RestartRepository();
+                        }
+                        return state;
                     })
                     .FinallyInUI((success, exception, installationState) =>
                     {
@@ -238,10 +243,6 @@ namespace GitHub.Unity
                         }
                         else
                         {
-                            Manager.SystemSettings.Unset(Constants.GitInstallPathKey);
-                            Environment.GitExecutablePath = installationState.GitExecutablePath;
-                            Environment.GitLfsExecutablePath = installationState.GitLfsExecutablePath;
-                            Environment.IsCustomGitExecutable = false;
                             gitExecHasChanged = true;
                         }
                         isBusy = false;
@@ -250,40 +251,49 @@ namespace GitHub.Unity
             else
             {
                 gitVersionErrorMessage = null;
-                GitClient.ValidateGitInstall(value.ToNPath(), true)
-                    .ThenInUI((success, result) =>
+                GitClient.ValidateGitInstall(Manager.SystemSettings, value.ToNPath(), true)
+                    .Then((success, state) => 
+                    {
+                        if (state.GitIsValid && state.GitLfsIsValid)
+                        {
+                            Manager.SetupGit(state);
+                            Manager.RestartRepository();
+                        }
+                        return state;
+                    })
+                    .FinallyInUI((success, ex, state) =>
                     {
                         if (!success)
                         {
-                            Logger.Trace(ErrorValidatingGitPath);
-                            gitVersionErrorMessage = ErrorValidatingGitPath;
+                            Logger.Error(ex, ErrorValidatingGitPath);
+                            return;
                         }
-                        else if (!result.IsValid)
+
+                        if (!state.GitIsValid || !state.GitLfsIsValid)
                         {
+                            var errorMessageStringBuilder = new StringBuilder();
                             Logger.Warning(
                                 "Software versions do not meet minimums Git:{0} (Minimum:{1}) GitLfs:{2} (Minimum:{3})",
-                                result.GitVersion, Constants.MinimumGitVersion, result.GitLfsVersion,
+                                state.GitVersion, Constants.MinimumGitVersion, state.GitLfsVersion,
                                 Constants.MinimumGitLfsVersion);
 
-                            var errorMessageStringBuilder = new StringBuilder();
-
-                            if (result.GitVersion == null)
+                            if (state.GitVersion == TheVersion.Default)
                             {
                                 errorMessageStringBuilder.Append(ErrorGitNotFoundMessage);
                             }
-                            else if (result.GitLfsVersion == null)
+                            else if (state.GitLfsVersion == TheVersion.Default)
                             {
                                 errorMessageStringBuilder.Append(ErrorGitLfsNotFoundMessage);
                             }
                             else
                             {
-                                if (result.GitVersion < Constants.MinimumGitVersion)
+                                if (state.GitVersion < Constants.MinimumGitVersion)
                                 {
                                     errorMessageStringBuilder.AppendFormat(ErrorMinimumGitVersionMessageFormat,
-                                        result.GitVersion, Constants.MinimumGitVersion);
+                                        state.GitVersion, Constants.MinimumGitVersion);
                                 }
 
-                                if (result.GitLfsVersion < Constants.MinimumGitLfsVersion)
+                                if (state.GitLfsVersion < Constants.MinimumGitLfsVersion)
                                 {
                                     if (errorMessageStringBuilder.Length > 0)
                                     {
@@ -291,7 +301,7 @@ namespace GitHub.Unity
                                     }
 
                                     errorMessageStringBuilder.AppendFormat(ErrorMinimumGitLfsVersionMessageFormat,
-                                        result.GitLfsVersion, Constants.MinimumGitLfsVersion);
+                                        state.GitLfsVersion, Constants.MinimumGitLfsVersion);
                                 }
                             }
 
@@ -300,16 +310,11 @@ namespace GitHub.Unity
                         else
                         {
                             Logger.Trace("Software versions meet minimums Git:{0} GitLfs:{1}",
-                                result.GitVersion,
-                                result.GitLfsVersion);
-
-                            Manager.SystemSettings.Set(Constants.GitInstallPathKey, value);
-                            Environment.GitExecutablePath = value.ToNPath();
-                            Environment.IsCustomGitExecutable = true;
-
+                                state.GitVersion,
+                                state.GitLfsVersion);
+                           
                             gitExecHasChanged = true;
                         }
-
                         isBusy = false;
 
                     }).Start();

@@ -68,22 +68,37 @@ namespace GitHub.Unity
                 }
 
                 GitInstallationState state = new GitInstallationState();
-                var runInstallers = firstRun;
-
-                if (!runInstallers)
+                bool skipInstallers = false;
+                state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
+                var now = DateTimeOffset.Now;
+                if (now.Date == state.GitLastCheckTime.Date && state.GitIsValid && state.GitLfsIsValid)
                 {
-                    state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
-                    var now = DateTimeOffset.Now;
-                    runInstallers = now.Date != state.GitLastCheckTime.Date || (!(state.GitIsValid && state.GitLfsIsValid));
+                    // just check if the git/git lfs version is what we need
+                    if (firstRun)
+                    {
+                        var version = new GitVersionTask(token)
+                            .Configure(ProcessManager, state.GitExecutablePath, dontSetupGit: true)
+                            .Catch(e => true)
+                            .RunWithReturn(true);
+                        state.GitIsValid = version >= Constants.MinimumGitVersion;
+                        if (state.GitIsValid)
+                        {
+                            version = new GitLfsVersionTask(token)
+                            .Configure(ProcessManager, state.GitLfsExecutablePath, dontSetupGit: true)
+                            .Catch(e => true)
+                            .RunWithReturn(true);
+                            state.GitLfsIsValid = version >= Constants.MinimumGitLfsVersion;
+                        }
+                    }
                 }
 
-                if (runInstallers)
+                if (!skipInstallers)
                 {
                     Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
                         .SetupOctorunIfNeeded();
 
-                    state = new GitInstaller(Environment, ProcessManager, TaskManager, SystemSettings)
-                        { Progress = progressReporter }
+                    state = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
+                            { Progress = progressReporter }
                         .SetupGitIfNeeded();
                 }
 
@@ -109,7 +124,7 @@ namespace GitHub.Unity
             thread.Start(CancellationToken);
         }
 
-        private void SetupGit(GitInstaller.GitInstallationState state)
+        public void SetupGit(GitInstaller.GitInstallationState state)
         {
             if (!(state.GitIsValid && state.GitLfsIsValid))
                 return;
@@ -200,6 +215,8 @@ namespace GitHub.Unity
         {
             if (!Environment.RepositoryPath.IsInitialized)
                 return;
+
+            repositoryManager?.Dispose();
 
             repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.FileSystem, Environment.RepositoryPath);
             repositoryManager.Initialize();

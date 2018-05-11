@@ -18,36 +18,30 @@ namespace IntegrationTests
         }
 
         [Test]
-        public async Task ShouldGetGitVersion()
+        public void ShouldGetGitVersion()
         {
             if (!DefaultEnvironment.OnWindows)
                 return;
 
             InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
-            var task = GitClient.Version();
-            var taskDone = await TaskEx.WhenAny(task.Start().Task, TaskEx.Delay(Timeout));
-            Assert.AreEqual(task.Task, taskDone);
-            var result = await task.Task;
-
-            var expected = new Version(2,11,1);
-            result.Should().Be(expected);
+            var result = GitClient.Version().RunWithReturn(true);
+            var expected = TheVersion.Parse("2.11.1");
+            result.Major.Should().Be(expected.Major);
+            result.Minor.Should().Be(expected.Minor);
+            result.Patch.Should().Be(expected.Patch);
         }
 
         [Test]
-        public async Task ShouldGetGitLfsVersion()
+        public void ShouldGetGitLfsVersion()
         {
             if (!DefaultEnvironment.OnWindows)
                 return;
 
             InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
-            var task = GitClient.LfsVersion();
-            var taskDone = await TaskEx.WhenAny(task.Start().Task, TaskEx.Delay(Timeout));
-            Assert.AreEqual(task.Task, taskDone);
-            var result = await task.Task;
-
-            var expected = new Version(2,4,0);
+            var result = GitClient.LfsVersion().RunWithReturn(true);
+            var expected = TheVersion.Parse("2.4.0");
             result.Should().Be(expected);
         }
     }

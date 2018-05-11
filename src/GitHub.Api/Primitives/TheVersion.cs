@@ -46,7 +46,7 @@ namespace GitHub.Unity
             if (initialized)
                 return this;
 
-            this.Version = version;
+            this.Version = version?.Trim();
 
             isAlpha = false;
             isBeta = false;
@@ -86,7 +86,7 @@ namespace GitHub.Unity
                 parts++;
                 if (!int.TryParse(minorMatch.Value, out minor))
                 {
-                    special = minorMatch.Value;
+                    special = minorMatch.Value.TrimEnd();
                     stringParts[parts - 1] = special;
                 }
                 else
@@ -98,7 +98,7 @@ namespace GitHub.Unity
                         parts++;
                         if (!int.TryParse(patchMatch.Value, out patch))
                         {
-                            special = patchMatch.Value;
+                            special = patchMatch.Value.TrimEnd();
                             stringParts[parts - 1] = special;
                         }
                         else
@@ -110,7 +110,7 @@ namespace GitHub.Unity
                                 parts++;
                                 if (!int.TryParse(buildMatch.Value, out build))
                                 {
-                                    special = buildMatch.Value;
+                                    special = buildMatch.Value.TrimEnd();
                                     stringParts[parts - 1] = special;
                                 }
                                 else
@@ -235,7 +235,7 @@ namespace GitHub.Unity
             var lhsNumber = -1;
             if (lhsNonDigitPos > -1)
             {
-                lhsNumber = int.Parse(lhs.Substring(0, lhsNonDigitPos));
+                int.TryParse(lhs.Substring(0, lhsNonDigitPos), out lhsNumber);
             }
             else
             {
@@ -245,7 +245,7 @@ namespace GitHub.Unity
             var rhsNumber = -1;
             if (rhsNonDigitPos > -1)
             {
-                rhsNumber = int.Parse(rhs.Substring(0, rhsNonDigitPos));
+                int.TryParse(rhs.Substring(0, rhsNonDigitPos), out rhsNumber);
             }
             else
             {
