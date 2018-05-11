@@ -321,14 +321,6 @@ namespace TestUtils
                                     staged);
                             });
 
-            gitObjectFactory.CreateGitLock(Args.String, Args.String, Args.Int).Returns(info => {
-                var path = (string)info[0];
-                var user = (string)info[1];
-                var id = (int)info[2];
-
-                return new GitLock(path, gitRepoPath + @"\" + path, user, id);
-            });
-
             return gitObjectFactory;
         }
 
