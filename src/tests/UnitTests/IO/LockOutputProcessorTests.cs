@@ -2,6 +2,9 @@ using TestUtils;
 using System.Collections.Generic;
 using NUnit.Framework;
 using GitHub.Unity;
+using System;
+using System.Globalization;
+using FluentAssertions;
 
 namespace UnitTests
 {
@@ -10,18 +13,15 @@ namespace UnitTests
     {
         private void AssertProcessOutput(IEnumerable<string> lines, GitLock[] expected)
         {
-            var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);
-
             var results = new List<GitLock>();
-            var outputProcessor = new LockOutputProcessor(gitObjectFactory);
+            var outputProcessor = new LocksOutputProcessor();
             outputProcessor.OnEntry += gitLock => { results.Add(gitLock); };
 
             foreach (var line in lines)
             {
                 outputProcessor.LineReceived(line);
             }
-
-            results.AssertEqual(expected);
+            CollectionAssert.AreEqual(expected, results);
         }
 
         [Test]
@@ -53,54 +53,23 @@ namespace UnitTests
         [Test]
         public void ShouldParseTwoLocksFormat1()
         {
+            var now = DateTimeOffset.ParseExact(DateTimeOffset.UtcNow.ToString(Constants.Iso8601FormatZ), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
             var output = new[]
             {
-                "folder/somefile.png\tGitHub User\tID:12",
-                "somezip.zip\tGitHub User\tID:21",
+                @"[{""id"":""12"", ""path"":""folder/somefile.png"", ""owner"":{""name"":""GitHub User""}, ""locked_at"":""" + now.ToString(Constants.Iso8601FormatZ) + "\"}" +
+                @" ,{""id"":""21"", ""path"":""somezip.zip"", ""owner"":{""name"":""GitHub User""}, ""locked_at"":""" + now.ToString(Constants.Iso8601FormatZ) + "\"}]",
                 string.Empty,
                 "2 lock(s) matched query.",
                 null
             };
 
             var expected = new[] {
-                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User", 12),
-                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User", 21)
+                new GitLock(12, "folder/somefile.png".ToNPath(), new GitUser("GitHub User", ""), now),
+                new GitLock(21, "somezip.zip".ToNPath(), new GitUser("GitHub User", ""), now)
             };
 
-            AssertProcessOutput(output, expected);
-        }
 
-        [Test]
-        public void ShouldParseTwoLocksFormat2()
-        {
-            var output = new[]
-            {
-                "folder/somefile.png\tGitHub User\tID:12",
-                "somezip.zip\tGitHub User\tID:21",
-                null
-            };
-
-            var expected = new[] {
-                new GitLock("folder/somefile.png", TestRootPath + @"\folder/somefile.png", "GitHub User", 12),
-                new GitLock("somezip.zip", TestRootPath + @"\somezip.zip", "GitHub User", 21)
-            };
-
-            AssertProcessOutput(output, expected);
-        }
-
-        [Test]
-        public void ShouldParseLocksOnFileWithNumericFirstLetter()
-        {
-            var output = new[]
-            {
-                "2_TurtleDoves.jpg\tTree\tID:100",
-            };
-
-            var expected = new[] {
-                new GitLock("2_TurtleDoves.jpg", TestRootPath + @"\2_TurtleDoves.jpg", "Tree", 100)
-            };
-
-            AssertProcessOutput(output, expected);
+         AssertProcessOutput(output, expected);
         }
     }
 }

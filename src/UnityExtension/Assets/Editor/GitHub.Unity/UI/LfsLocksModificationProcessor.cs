@@ -12,7 +12,7 @@ namespace GitHub.Unity
         private static IPlatform platform;
         private static IEnvironment environment;
 
-        private static Dictionary<string, GitLock> locks = new Dictionary<string, GitLock>();
+        private static Dictionary<NPath, GitLock> locks = new Dictionary<NPath, GitLock>();
         private static CacheUpdateEvent lastLocksChangedEvent;
         private static string loggedInUser;
 
@@ -48,7 +48,7 @@ namespace GitHub.Unity
         public static bool IsOpenForEdit(string assetPath, out string message)
         {
             var lck = GetLock(assetPath);
-            message = lck.HasValue ? "File is locked for editing by " + lck.Value.User : null;
+            message = lck.HasValue ? "File is locked for editing by " + lck.Value.Owner : null;
             return !lck.HasValue;
         }
 
@@ -78,7 +78,7 @@ namespace GitHub.Unity
 
             GitLock lck;
             var repositoryPath = environment.GetRepositoryPath(assetPath.ToNPath());
-            if (!locks.TryGetValue(repositoryPath, out lck) || lck.User.Equals(loggedInUser))
+            if (!locks.TryGetValue(repositoryPath, out lck) || lck.Owner.Name.Equals(loggedInUser))
                 return null;
             return lck;
         }

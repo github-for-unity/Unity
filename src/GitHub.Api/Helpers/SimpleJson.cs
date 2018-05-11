@@ -1255,9 +1255,11 @@ namespace GitHub.Unity.Json
                                                                 @"yyyy-MM-dd\THH\:mm\:sszzz",
                                                                 @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
                                                                 @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
+                                                                @"yyyy-MM-dd\THH\:mm\:ssZ",
                                                                 @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
                                                                 @"yyyy-MM-dd\THH:mm:ss.fffzzz",
                                                                 @"yyyy-MM-dd\THH:mm:sszzz",
+                                                                @"yyyy-MM-dd\THH:mm:ss\Z",
                                                              };
 
         public PocoJsonSerializerStrategy()
@@ -1364,6 +1366,8 @@ namespace GitHub.Unity.Json
             {
                 if (str.Length != 0) // We know it can't be null now.
                 {
+                    if (type == typeof(NPath) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(NPath)))
+                        return new NPath(str);
                     if (type == typeof(DateTime) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(DateTime)))
                         return DateTime.ParseExact(str, Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
                     if (type == typeof(DateTimeOffset) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(DateTimeOffset)))
@@ -1495,7 +1499,9 @@ namespace GitHub.Unity.Json
         protected virtual bool TrySerializeKnownTypes(object input, out object output)
         {
             bool returnValue = true;
-            if (input is DateTime)
+            if (input is NPath)
+                output = input.ToString();
+            else if (input is DateTime)
                 output = ((DateTime)input).ToUniversalTime().ToString(Iso8601Format[0], CultureInfo.InvariantCulture);
             else if (input is DateTimeOffset)
                 output = ((DateTimeOffset)input).ToUniversalTime().ToString(Iso8601Format[0], CultureInfo.InvariantCulture);
@@ -2158,6 +2164,8 @@ namespace GitHub.Unity.Json
 
 namespace GitHub.Unity
 {
+    using GitHub.Unity.Json;
+    
     [System.AttributeUsage(System.AttributeTargets.Property |
                        System.AttributeTargets.Field)]
     public sealed class NotSerializedAttribute : Attribute

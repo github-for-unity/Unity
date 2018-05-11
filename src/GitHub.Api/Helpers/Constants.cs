@@ -11,10 +11,12 @@ namespace GitHub.Unity
         public const string TraceLoggingKey = "EnableTraceLogging";
         public const string WebTimeoutKey = "WebTimeout";
         public const string Iso8601Format = @"yyyy-MM-dd\THH\:mm\:ss.fffzzz";
+        public const string Iso8601FormatZ = @"yyyy-MM-dd\THH\:mm\:ss\Z";
         public static readonly string[] Iso8601Formats = {
+            @"yyyy-MM-dd\THH\:mm\:ss\Z",
             @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
             @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
-            @"yyyy-MM-dd\THH\:mm\:sszzz"
+            @"yyyy-MM-dd\THH\:mm\:sszzz",
         };
         public const string SkipVersionKey = "SkipVersion";
 
