@@ -104,7 +104,9 @@ namespace GitHub.Unity
         {
             var isSelected = index == SelectedIndex;
 
-            var iconRect = new Rect(entryRect.x + Styles.BaseSpacing / 2, entryRect.y + (Styles.LocksEntryHeight - 32) / 2, 32 + Styles.BaseSpacing, 32);
+            var iconWidth = 48;
+            var iconHeight = 48;
+            var iconRect = new Rect(entryRect.x + Styles.BaseSpacing / 2, entryRect.y + (Styles.LocksEntryHeight - iconHeight) / 2, iconWidth + Styles.BaseSpacing, iconHeight);
 
             var xIconRectRightSidePadded = iconRect.x + iconRect.width;
 
