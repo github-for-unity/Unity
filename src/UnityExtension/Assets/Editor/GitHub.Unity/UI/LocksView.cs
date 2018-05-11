@@ -1,13 +1,14 @@
-using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
 namespace GitHub.Unity
 {
+    [Serializable]
+    public class GitLockEntryDictionary : SerializableDictionary<string, GitLockEntry> { }
+
     [Serializable]
     public class GitLockEntry
     {
@@ -42,21 +43,35 @@ namespace GitHub.Unity
     {
         [SerializeField] private Vector2 scroll;
         [SerializeField] private List<GitLockEntry> gitLockEntries = new List<GitLockEntry>();
-        [SerializeField] private int selectedIndex = -1;
+        [SerializeField] public GitLockEntryDictionary assets = new GitLockEntryDictionary();
 
         [NonSerialized] private Action<GitLock> rightClickNextRender;
         [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
+        [NonSerialized] private GitLockEntry selectedEntry;
         [NonSerialized] private int controlId;
+        [NonSerialized] private UnityEngine.Object lastActivatedObject;
 
-        public int SelectedIndex
+        public GitLockEntry SelectedEntry
         {
-            get { return selectedIndex; }
-            set { selectedIndex = value; }
-        }
+            get
+            {
+                return selectedEntry;
+            }
+            set
+            {
+                selectedEntry = value;
 
-        public GitLockEntry SelectedGitLockEntry
-        {
-            get { return SelectedIndex < 0 ? GitLockEntry.Default : gitLockEntries[SelectedIndex]; }
+                var activeObject = selectedEntry != null
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path)
+                    : null;
+
+                lastActivatedObject = activeObject;
+
+                if (LocksControlHasFocus)
+                {
+                    Selection.activeObject = activeObject;
+                }
+            }
         }
 
         public bool Render(Rect containingRect, Action<GitLock> singleClick = null,
@@ -91,7 +106,7 @@ namespace GitHub.Unity
                     var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
                     if (shouldRenderEntry && Event.current.type == EventType.Repaint)
                     {
-                        RenderEntry(entryRect, entry, index);
+                        RenderEntry(entryRect, entry);
                     }
 
                     var entryRequiresRepaint =
@@ -108,9 +123,9 @@ namespace GitHub.Unity
             return requiresRepaint;
         }
 
-        private void RenderEntry(Rect entryRect, GitLockEntry entry, int index)
+        private void RenderEntry(Rect entryRect, GitLockEntry entry)
         {
-            var isSelected = index == SelectedIndex;
+            var isSelected = entry == SelectedEntry;
 
             var iconWidth = 48;
             var iconHeight = 48;
@@ -141,7 +156,7 @@ namespace GitHub.Unity
                 Event.current.Use();
                 GUIUtility.keyboardControl = controlId;
 
-                SelectedIndex = index;
+                SelectedEntry = entry;
                 requiresRepaint = true;
                 var clickCount = Event.current.clickCount;
                 var mouseButton = Event.current.button;
@@ -162,7 +177,7 @@ namespace GitHub.Unity
             }
 
             // Keyboard navigation if this child is the current selection
-            if (GUIUtility.keyboardControl == controlId && index == SelectedIndex && Event.current.type == EventType.KeyDown)
+            if (GUIUtility.keyboardControl == controlId && entry == SelectedEntry && Event.current.type == EventType.KeyDown)
             {
                 var directionY = Event.current.keyCode == KeyCode.UpArrow ? -1 : Event.current.keyCode == KeyCode.DownArrow ? 1 : 0;
                 if (directionY != 0)
@@ -171,11 +186,11 @@ namespace GitHub.Unity
 
                     if (directionY > 0)
                     {
-                        requiresRepaint = SelectNext(index) != index;
+                        requiresRepaint = SelectNext(index);
                     }
                     else
                     {
-                        requiresRepaint = SelectPrevious(index) != index;
+                        requiresRepaint = SelectPrevious(index);
                     }
                 }
             }
@@ -185,7 +200,10 @@ namespace GitHub.Unity
 
         public void Load(List<GitLock> locks)
         {
-            var selectedCommitId = SelectedGitLockEntry.GitLock.ID;
+            var selectedLockId = !(SelectedEntry.GitLock == GitLock.Default)
+                ? (int?) SelectedEntry.GitLock.ID 
+                : null;
+
             var scrollValue = scroll.y;
 
             var previousCount = gitLockEntries.Count;
@@ -201,10 +219,10 @@ namespace GitHub.Unity
             var selectionPresent = false;
             for (var index = 0; index < gitLockEntries.Count; index++)
             {
-                var gitLogEntry = gitLockEntries[index];
-                if (gitLogEntry.GitLock.ID.Equals(selectedCommitId))
+                var gitLockEntry = gitLockEntries[index];
+                if (selectedLockId.HasValue && selectedLockId.Value == gitLockEntry.GitLock.ID)
                 {
-                    selectedIndex = index;
+                    selectedEntry = gitLockEntry;
                     selectionPresent = true;
                     break;
                 }
@@ -212,7 +230,7 @@ namespace GitHub.Unity
 
             if (!selectionPresent)
             {
-                selectedIndex = -1;
+                selectedEntry = GitLockEntry.Default;
             }
 
             if (scrollIndex > gitLockEntries.Count)
@@ -269,41 +287,61 @@ namespace GitHub.Unity
             return nodeIcon;
         }
 
-        private int SelectNext(int index)
+        protected bool LocksControlHasFocus
+        {
+            get { return GUIUtility.keyboardControl == controlId; }
+        }
+
+        private bool SelectNext(int index)
         {
             index++;
 
             if (index < gitLockEntries.Count)
             {
-                SelectedIndex = index;
-            }
-            else
-            {
-                index = -1;
+                SelectedEntry = gitLockEntries[index];
+                return true;
             }
 
-            return index;
+            return false;
         }
 
-        private int SelectPrevious(int index)
+        private bool SelectPrevious(int index)
         {
             index--;
 
             if (index >= 0)
             {
-                SelectedIndex = index;
-            }
-            else
-            {
-                SelectedIndex = -1;
+                SelectedEntry = gitLockEntries[index];
+                return true;
             }
 
-            return index;
+            return false;
         }
 
         public void ScrollTo(int index, float offset = 0f)
         {
             scroll.Set(scroll.x, Styles.LocksEntryHeight * index + offset);
+        }
+
+        public bool OnSelectionChange()
+        {
+            if (!LocksControlHasFocus)
+            {
+                GitLockEntry gitLockEntry = GitLockEntry.Default;
+
+                if (Selection.activeObject != lastActivatedObject)
+                {
+                    var activeAssetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+                    var activeAssetGuid = AssetDatabase.AssetPathToGUID(activeAssetPath);
+
+                    assets.TryGetValue(activeAssetGuid, out gitLockEntry);
+                }
+
+                SelectedEntry = gitLockEntry;
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -460,9 +498,17 @@ namespace GitHub.Unity
 
             locksControl.Load(lockedFiles);
             if (!selectedEntry.Equals(GitLock.Default)
-                && selectedEntry.ID != locksControl.SelectedGitLockEntry.GitLock.ID)
+                && selectedEntry.ID != locksControl.SelectedEntry.GitLock.ID)
             {
                 selectedEntry = GitLock.Default;
+            }
+        }
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            if (locksControl.OnSelectionChange())
+            {
+                Redraw();
             }
         }
     }
