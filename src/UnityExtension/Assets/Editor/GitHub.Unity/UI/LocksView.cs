@@ -311,7 +311,6 @@ namespace GitHub.Unity
     class LocksView : Subview
     {
         [NonSerialized] private bool currentLocksHasUpdate;
-        [NonSerialized] private bool isBusy;
 
         [SerializeField] private LocksControl locksControl;
         [SerializeField] private GitLock selectedEntry = GitLock.Default;
@@ -465,11 +464,6 @@ namespace GitHub.Unity
             {
                 selectedEntry = GitLock.Default;
             }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }
