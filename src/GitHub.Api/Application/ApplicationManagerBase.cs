@@ -70,37 +70,43 @@ namespace GitHub.Unity
                         }
                     }
 
-                    bool skipInstallers = false;
                     state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
-                    var now = DateTimeOffset.Now;
-                    if (now.Date == state.GitLastCheckTime.Date && state.GitIsValid && state.GitLfsIsValid)
+                    if (state.GitIsValid && state.GitLfsIsValid)
                     {
-                        // just check if the git/git lfs version is what we need
                         if (firstRun)
                         {
+                            // just check if the git/git lfs version is what we need
                             var version = new GitVersionTask(token)
                                 .Configure(ProcessManager, state.GitExecutablePath, dontSetupGit: true)
-                                .Catch(e => true)
+                                .Catch(e =>
+                                {
+                                    Logger.Error(e, "Error getting git version");
+                                    return true;
+                                })
                                 .RunWithReturn(true);
                             state.GitIsValid = version >= Constants.MinimumGitVersion;
                             if (state.GitIsValid)
                             {
                                 version = new GitLfsVersionTask(token)
                                 .Configure(ProcessManager, state.GitLfsExecutablePath, dontSetupGit: true)
-                                .Catch(e => true)
+                                .Catch(e =>
+                                {
+                                    Logger.Error(e, "Error getting lfs version");
+                                    return true;
+                                })
                                 .RunWithReturn(true);
                                 state.GitLfsIsValid = version >= Constants.MinimumGitLfsVersion;
                             }
                         }
                     }
 
-                    if (!skipInstallers)
-                    {
-                        Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
-                            .SetupOctorunIfNeeded();
+                    Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
+                        .SetupOctorunIfNeeded();
 
+                    if (!state.GitIsValid || !state.GitLfsIsValid)
+                    {
                         state = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
-                        { Progress = progressReporter }
+                            { Progress = progressReporter }
                             .SetupGitIfNeeded();
                     }
 
@@ -167,7 +173,13 @@ namespace GitHub.Unity
                     })
                     .RunWithReturn(true);
 
-                GitClient.LfsInstall().RunWithReturn(true);
+                GitClient.LfsInstall()
+                    .Catch(e =>
+                    {
+                        Logger.Error(e, "Error running lfs install");
+                        return true;
+                    })
+                    .RunWithReturn(true);
 
                 if (Environment.IsWindows)
                 {
