@@ -71,9 +71,22 @@ namespace GitHub.Unity
                         }
                     }
 
-                    var installer = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
+                    var installer = new GitInstaller(Environment, ProcessManager, CancellationToken)
                                                     { Progress = progressReporter };
-                    state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
+                    state = Environment.GitInstallationState;
+                    if (!state.GitIsValid && !state.GitLfsIsValid && FirstRun)
+                    {
+                        // importing old settings
+                        NPath gitExecutablePath = Environment.SystemSettings.Get(Constants.GitInstallPathKey, NPath.Default);
+                        if (gitExecutablePath.IsInitialized)
+                        {
+                            Environment.SystemSettings.Unset(Constants.GitInstallPathKey);
+                            state.GitExecutablePath = gitExecutablePath;
+                            state.GitInstallationPath = gitExecutablePath.Parent.Parent;
+                            Environment.GitInstallationState = state;
+                        }
+                    }
+
                     if (state.GitIsValid && state.GitLfsIsValid)
                     {
                         if (firstRun)
@@ -145,11 +158,7 @@ namespace GitHub.Unity
                 return;
             }
 
-            Environment.GitInstallPath = state.GitInstallationPath;
-            Environment.GitExecutablePath = state.GitExecutablePath;
-            Environment.GitLfsInstallPath = state.GitLfsInstallationPath;
-            Environment.GitLfsExecutablePath = state.GitLfsExecutablePath;
-            Environment.IsCustomGitExecutable = state.IsCustomGitPath;
+            Environment.GitInstallationState = state;
             Environment.User.Initialize(GitClient);
 
             if (firstRun)

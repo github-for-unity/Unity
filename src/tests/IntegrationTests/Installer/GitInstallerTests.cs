@@ -62,7 +62,7 @@ namespace IntegrationTests
                 }
             }), Arg.Any<CancellationToken>(), Arg.Any<Func<long, long, bool>>()).Returns(true);
             ZipHelper.Instance = zipHelper;
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, null, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails: installDetails);
 
             var state = gitInstaller.SetupGitIfNeeded();
             state.Should().NotBeNull();
@@ -71,11 +71,7 @@ namespace IntegrationTests
             state.GitExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "cmd", "git" + Environment.ExecutableExtension));
             state.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "mingw32", "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
 
-            Environment.GitInstallPath = state.GitInstallationPath;
-            Environment.GitExecutablePath = state.GitExecutablePath;
-            Environment.GitLfsInstallPath = state.GitLfsInstallationPath;
-            Environment.GitLfsExecutablePath = state.GitLfsExecutablePath;
-            Environment.IsCustomGitExecutable = state.IsCustomGitPath;
+            Environment.GitInstallationState = state;
 
             var procTask = new SimpleProcessTask(TaskManager.Token, "something")
                 .Configure(ProcessManager);
@@ -112,7 +108,7 @@ namespace IntegrationTests
             var settings = Substitute.For<ISettings>();
             var settingsRet = gitExecutablePath.ToString();
             settings.Get(Arg.Is<string>(Constants.GitInstallPathKey), Arg.Any<string>()).Returns(settingsRet);
-            var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token, settings, installDetails);
+            var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails);
 
             var result = installer.SetupGitIfNeeded();
             Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
@@ -151,7 +147,7 @@ namespace IntegrationTests
             var settings = Substitute.For<ISettings>();
             var settingsRet = gitExecutablePath.ToString();
             settings.Get(Arg.Is<string>(Constants.GitInstallPathKey), Arg.Any<string>()).Returns(settingsRet);
-            var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token, settings, installDetails);
+            var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails);
             var result = installer.SetupGitIfNeeded();
             Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
             Assert.AreEqual(gitLfsInstallationPath, result.GitLfsInstallationPath);
@@ -197,7 +193,7 @@ namespace IntegrationTests
             target.EnsureParentDirectoryExists();
             source.Move(target);
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, null, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails: installDetails);
 
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
@@ -235,26 +231,24 @@ namespace IntegrationTests
             target.EnsureParentDirectoryExists();
             source.Move(target);
             var gitExec = customGitInstall.Combine("cmd/git.exe");
-            Environment.SystemSettings.Set(Constants.GitInstallPathKey, gitExec.ToString());
+            var state = new GitInstaller.GitInstallationState();
+            state.GitExecutablePath = gitExec;
+            Environment.GitInstallationState = state;
 
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, Environment.SystemSettings, installDetails: installDetails);
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails: installDetails);
 
-            var state = gitInstaller.SetupGitIfNeeded();
+            state = gitInstaller.SetupGitIfNeeded();
             state.Should().NotBeNull();
 
             var gitLfsBasePath = defaultGitInstall.Combine(installDetails.PackageNameWithVersion);
             var gitLfsExec = gitLfsBasePath.Combine("mingw32", "libexec", "git-core", "git-lfs.exe");
             state.GitInstallationPath.Should().Be(customGitInstall);
             state.GitExecutablePath.Should().Be(gitExec);
-            state.GitLfsInstallationPath.Should().Be(gitLfsBasePath);
+            state.GitLfsInstallationPath.Should().Be(gitLfsExec.Parent);
             state.GitLfsExecutablePath.Should().Be(gitLfsExec);
             gitLfsExec.FileExists().Should().BeTrue();
 
-            Environment.GitInstallPath = state.GitInstallationPath;
-            Environment.GitExecutablePath = state.GitExecutablePath;
-            Environment.GitLfsInstallPath = state.GitLfsInstallationPath;
-            Environment.GitLfsExecutablePath = state.GitLfsExecutablePath;
-            Environment.IsCustomGitExecutable = state.IsCustomGitPath;
+            Environment.GitInstallationState = state;
 
             var procTask = new SimpleProcessTask(TaskManager.Token, "something")
                 .Configure(ProcessManager);

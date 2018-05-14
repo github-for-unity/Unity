@@ -125,10 +125,9 @@ namespace IntegrationTests
         protected void SetupGit(NPath pathToSetupGitInto, string testName)
         {
             var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, Environment.IsWindows);
-            Environment.GitInstallPath = installDetails.GitInstallationPath;
-            Environment.GitExecutablePath = installDetails.GitExecutablePath;
-            Environment.GitLfsInstallPath = installDetails.GitInstallationPath;
-            Environment.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails);
+            var state = gitInstaller.SetDefaultPaths(new GitInstaller.GitInstallationState());
+            Environment.GitInstallationState = state;
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
 
             if (installDetails.GitExecutablePath.FileExists() && installDetails.GitLfsExecutablePath.FileExists())

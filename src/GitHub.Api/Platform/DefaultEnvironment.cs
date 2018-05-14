@@ -150,13 +150,26 @@ namespace GitHub.Unity
             }
         }
 
-        public bool IsCustomGitExecutable { get; set; }
+        public bool IsCustomGitExecutable => GitInstallationState?.IsCustomGitPath ?? false;
+        public NPath GitInstallPath => GitInstallationState?.GitInstallationPath ?? NPath.Default;
+        public NPath GitExecutablePath => GitInstallationState?.GitExecutablePath ?? NPath.Default;
+        public NPath GitLfsInstallPath => GitInstallationState?.GitLfsInstallationPath ?? NPath.Default;
+        public NPath GitLfsExecutablePath => GitInstallationState?.GitLfsExecutablePath ?? NPath.Default;
+        public GitInstaller.GitInstallationState GitInstallationState
+        {
+            get
+            {
+                return SystemSettings.Get<GitInstaller.GitInstallationState>(Constants.GitInstallationState, new GitInstaller.GitInstallationState());
+            }
+            set
+            {
+                if (value == null)
+                    SystemSettings.Unset(Constants.GitInstallationState);
+                else
+                    SystemSettings.Set<GitInstaller.GitInstallationState>(Constants.GitInstallationState, value);
+            }
+        }
 
-        public NPath GitInstallPath { get; set; }
-        public NPath GitExecutablePath { get; set; }
-
-        public NPath GitLfsInstallPath { get; set; }
-        public NPath GitLfsExecutablePath { get; set; }
 
         public NPath NodeJsExecutablePath
         {

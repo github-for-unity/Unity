@@ -191,9 +191,9 @@ namespace GitHub.Unity
         {
             if (lhs.Version == rhs.Version)
                 return false;
-            if (lhs.Version == null)
+            if (String.IsNullOrEmpty(lhs.Version))
                 return false;
-            if (rhs.Version == null)
+            if (String.IsNullOrEmpty(rhs.Version))
                 return true;
 
             for (var i = 0; i < PART_COUNT; i++)

@@ -12,8 +12,12 @@ namespace GitHub.Unity
 
         string Path { get; set; }
         string NewLine { get; }
-        bool IsCustomGitExecutable { get; set; }
-        NPath GitExecutablePath { get; set; }
+        GitInstaller.GitInstallationState GitInstallationState { get; set; }
+        bool IsCustomGitExecutable { get; }
+        NPath GitExecutablePath { get; }
+        NPath GitInstallPath { get; }
+        NPath GitLfsInstallPath { get; }
+        NPath GitLfsExecutablePath { get; }
         NPath NodeJsExecutablePath { get; }
         NPath OctorunScriptPath { get; set; }
         bool IsWindows { get; }
@@ -26,9 +30,6 @@ namespace GitHub.Unity
         NPath UnityProjectPath { get; }
         NPath ExtensionInstallPath { get; }
         NPath RepositoryPath { get; }
-        NPath GitInstallPath { get; set; }
-        NPath GitLfsInstallPath { get; set; }
-        NPath GitLfsExecutablePath { get; set; }
         NPath UserCachePath { get; set; }
         NPath SystemCachePath { get; set; }
         NPath LogPath { get; }

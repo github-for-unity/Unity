@@ -53,12 +53,9 @@ namespace IntegrationTests
             var platform = new Platform(env);
             ProcessManager = new ProcessManager(env, platform.GitEnvironment, Token);
             var processEnv = platform.GitEnvironment;
-            var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())
-                .Configure(ProcessManager, env.IsWindows ? "where" : "which", "git")
-                .RunWithReturn(true);
-
-            env.GitInstallPath = path.Parent.Parent;
-            env.GitExecutablePath = path;
+            var installer = new GitInstaller(env, ProcessManager, TaskManager.Token);
+            var state = installer.FindSystemGit(new GitInstaller.GitInstallationState());
+            env.GitInstallationState = state;
         }
 
         [TestFixtureTearDown]

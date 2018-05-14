@@ -8,7 +8,6 @@ namespace GitHub.Unity
 {
     public interface IGitClient
     {
-        ITask<GitInstallationState> ValidateGitInstall(ISettings settings, NPath path, bool isCustomGit);
         ITask<string> Init(IOutputProcessor<string> processor = null);
         ITask<string> LfsInstall(IOutputProcessor<string> processor = null);
         ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null);
@@ -55,26 +54,6 @@ namespace GitHub.Unity
             this.environment = environment;
             this.processManager = processManager;
             this.cancellationToken = cancellationToken;
-        }
-
-        public ITask<GitInstallationState> ValidateGitInstall(ISettings settings, NPath path, bool isCustomGit)
-        {
-            return new FuncTask<GitInstallationState>(cancellationToken, () =>
-            {
-                NPath existingPath = settings.Get(Constants.GitInstallPathKey).ToNPath();
-                settings.Set(Constants.GitInstallPathKey, path);
-                var state = new GitInstaller.GitInstallationState();
-                var installer = new GitInstaller(environment, processManager, cancellationToken, settings);
-                state = installer.VerifyGitFromSettings(state);
-                if (!state.GitIsValid)
-                {
-                    if (!existingPath.IsInitialized)
-                        settings.Unset(Constants.GitInstallPathKey);
-                    else
-                        settings.Set(Constants.GitInstallPathKey, existingPath);
-                }
-                return state;
-            });
         }
 
         public ITask<string> Init(IOutputProcessor<string> processor = null)

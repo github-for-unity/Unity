@@ -93,25 +93,12 @@ namespace IntegrationTests
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
 
-        public bool IsCustomGitExecutable { get; set; }
-
-        public NPath GitExecutablePath
-        {
-            get { return defaultEnvironment.GitExecutablePath; }
-            set
-            {
-                if (enableTrace)
-                {
-                    logger.Trace("Setting GitExecutablePath to " + value);
-                }
-                defaultEnvironment.GitExecutablePath = value;
-            }
-        }
-
-
-        public NPath GitInstallPath { get { return defaultEnvironment.GitInstallPath; } set { defaultEnvironment.GitInstallPath = value; } }
-        public NPath GitLfsInstallPath { get { return defaultEnvironment.GitLfsInstallPath; } set { defaultEnvironment.GitLfsInstallPath = value; } }
-        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
+        public bool IsCustomGitExecutable => defaultEnvironment.IsCustomGitExecutable;
+        public NPath GitExecutablePath => defaultEnvironment.GitExecutablePath;
+        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
+        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
+        public NPath GitLfsExecutablePath => defaultEnvironment.GitLfsExecutablePath;
+        public GitInstaller.GitInstallationState GitInstallationState { get { return defaultEnvironment.GitInstallationState; } set { defaultEnvironment.GitInstallationState = value; } }
 
         public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
 

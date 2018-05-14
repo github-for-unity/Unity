@@ -11,7 +11,6 @@ namespace GitHub.Unity
 
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
-        private readonly ISettings systemSettings;
         private readonly GitInstallDetails installDetails;
         private readonly IZipHelper sharpZipLibHelper;
 
@@ -19,40 +18,34 @@ namespace GitHub.Unity
 
         public GitInstaller(IEnvironment environment, IProcessManager processManager,
             CancellationToken token,
-            ISettings systemSettings,
             GitInstallDetails installDetails = null)
         {
             this.environment = environment;
             this.processManager = processManager;
-            this.systemSettings = systemSettings;
             this.sharpZipLibHelper = ZipHelper.Instance;
             this.cancellationToken = token;
             this.installDetails = installDetails ?? new GitInstallDetails(environment.UserCachePath, environment.IsWindows);
         }
 
-        public GitInstallationState SetupGitIfNeeded()
+        public GitInstallationState SetupGitIfNeeded(GitInstallationState state = null)
         {
-            var state = new GitInstallationState();
-            state = VerifyGitFromSettings(state);
+            state = VerifyGitSettings(state);
             if (state.GitIsValid && state.GitLfsIsValid)
             {
                 Logger.Trace("Using git install path from settings: {0}", state.GitExecutablePath);
                 state.GitLastCheckTime = DateTimeOffset.Now;
-                systemSettings?.Set(Constants.GitInstallationState, state);
                 return state;
             }
 
-            if (environment.IsWindows)
-                state = FindWindowsGit(state);
-            else
-                state = FindMacGit(state);
+            if (environment.IsMac)
+                state = FindSystemGit(state);
+            state = SetDefaultPaths(state);
 
             state = CheckForUpdates(state);
 
             if (state.GitIsValid && state.GitLfsIsValid)
             {
                 state.GitLastCheckTime = DateTimeOffset.Now;
-                systemSettings?.Set(Constants.GitInstallationState, state);
                 return state;
             }
 
@@ -61,35 +54,42 @@ namespace GitHub.Unity
             state = GrabZipFromResourcesIfNeeded(state);
             state = ExtractGit(state);
             state.GitLastCheckTime = DateTimeOffset.Now;
-            systemSettings?.Set(Constants.GitInstallationState, state);
             return state;
         }
 
-        public GitInstallationState VerifyGitFromSettings(GitInstallationState state)
+        public GitInstallationState VerifyGitSettings(GitInstallationState state = null)
         {
-            if (systemSettings == null)
+            state = state ?? environment.GitInstallationState;
+            if (!state.GitExecutablePath.IsInitialized && !state.GitLfsExecutablePath.IsInitialized)
                 return state;
 
-            NPath gitExecutablePath = systemSettings.Get(Constants.GitInstallPathKey).ToNPath();
-            if (!gitExecutablePath.IsInitialized || !gitExecutablePath.FileExists())
-                return state;
-
-            state.GitExecutablePath = gitExecutablePath;
             state = ValidateGitVersion(state);
             if (state.GitIsValid)
                 state.GitInstallationPath = state.GitExecutablePath.Parent.Parent;
-            state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
+
+            var isDefaultGitLfs = !state.GitLfsExecutablePath.IsInitialized || state.GitLfsInstallationPath == state.GitInstallationPath;
+            if (isDefaultGitLfs)
+                state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
+
             state = ValidateGitLfsVersion(state);
+
             if (state.GitLfsIsValid)
-                state.GitLfsInstallationPath = state.GitInstallationPath;
+            {
+                if (isDefaultGitLfs)
+                    state.GitLfsInstallationPath = state.GitInstallationPath;
+                else
+                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
+            }
+
             return state;
         }
 
-        private GitInstallationState FindMacGit(GitInstallationState state)
+        public GitInstallationState FindSystemGit(GitInstallationState state)
         {
             if (!state.GitIsValid)
             {
-                var gitPath = new FindExecTask("git", cancellationToken).Configure(processManager, dontSetupGit: true)
+                var gitPath = new FindExecTask("git", cancellationToken)
+                    .Configure(processManager, dontSetupGit: true)
                     .Catch(e => true)
                     .RunWithReturn(true);
                 state.GitExecutablePath = gitPath;
@@ -107,17 +107,12 @@ namespace GitHub.Unity
                 state.GitLfsExecutablePath = gitLfsPath;
                 state = ValidateGitLfsVersion(state);
                 if (state.GitLfsIsValid)
-                    state.GitLfsInstallationPath = gitLfsPath.Parent.Parent;
-                else
-                {
-                    state.GitLfsInstallationPath = installDetails.GitInstallationPath;
-                    state.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
-                }
+                    state.GitLfsInstallationPath = gitLfsPath.Parent;
             }
             return state;
         }
 
-        private GitInstallationState FindWindowsGit(GitInstallationState state)
+        public GitInstallationState SetDefaultPaths(GitInstallationState state)
         {
             if (!state.GitIsValid)
             {
@@ -128,8 +123,11 @@ namespace GitHub.Unity
 
             if (!state.GitLfsIsValid)
             {
-                state.GitLfsInstallationPath = installDetails.GitInstallationPath;
                 state.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
+                if (state.GitIsValid && state.GitInstallationPath != installDetails.GitInstallationPath)
+                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
+                else
+                    state.GitLfsInstallationPath = installDetails.GitInstallationPath;
                 state = ValidateGitLfsVersion(state);
             }
             return state;
