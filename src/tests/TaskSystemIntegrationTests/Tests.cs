@@ -42,9 +42,10 @@ namespace IntegrationTests
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
 
-            var env = new DefaultEnvironment();
+            var env = new DefaultEnvironment(new CacheContainer());
             TestBasePath = NPath.CreateTempDirectory("integration tests");
             env.FileSystem.SetCurrentDirectory(TestBasePath);
+            env.Initialize("5.6", TestBasePath, TestBasePath, TestBasePath, TestBasePath.Combine("Assets"));
 
             var repo = Substitute.For<IRepository>();
             repo.LocalPath.Returns(TestBasePath);
