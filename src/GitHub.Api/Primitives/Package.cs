@@ -43,7 +43,7 @@ namespace GitHub.Unity
             if (!feed.IsInitialized)
             {
                 // try from assembly resources
-                feed = AssemblyResources.ToFile(ResourceType.Platform, packageFeed.Filename, environment.UserCachePath.Combine(packageFeed.Filename), environment);
+                feed = AssemblyResources.ToFile(ResourceType.Platform, packageFeed.Filename, environment.UserCachePath, environment);
             }
 
             if (feed.IsInitialized)

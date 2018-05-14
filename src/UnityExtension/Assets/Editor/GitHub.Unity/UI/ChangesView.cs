@@ -118,8 +118,6 @@ namespace GitHub.Unity
 
         public override void OnFocusChanged()
         {
-            Logger.Debug("OnFocusChanged: {0}", HasFocus);
-
             base.OnFocusChanged();
             var hasFocus = HasFocus;
             if (treeChanges.ViewHasFocus != hasFocus)
