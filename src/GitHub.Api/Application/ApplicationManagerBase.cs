@@ -51,62 +51,70 @@ namespace GitHub.Unity
 
             var thread = new Thread(obj =>
             {
-                CancellationToken token = (CancellationToken)obj;
-                SetupMetrics(Environment.UnityVersion, firstRun, instanceId);
-
-                if (Environment.IsMac)
-                {
-                    var getEnvPath = new SimpleProcessTask(token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
-                               .Configure(ProcessManager, dontSetupGit: true)
-                               .Catch(e => true); // make sure this doesn't throw if the task fails
-                    var path = getEnvPath.RunWithReturn(true);
-                    if (getEnvPath.Successful)
-                    {
-                        Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
-                        Environment.Path = path?.Split(new[] { "\"" }, StringSplitOptions.None)[1];
-                    }
-                }
-
                 GitInstallationState state = new GitInstallationState();
-                bool skipInstallers = false;
-                state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
-                var now = DateTimeOffset.Now;
-                if (now.Date == state.GitLastCheckTime.Date && state.GitIsValid && state.GitLfsIsValid)
+                CancellationToken token = (CancellationToken)obj;
+                try
                 {
-                    // just check if the git/git lfs version is what we need
-                    if (firstRun)
+                    SetupMetrics(Environment.UnityVersion, firstRun, instanceId);
+
+                    if (Environment.IsMac)
                     {
-                        var version = new GitVersionTask(token)
-                            .Configure(ProcessManager, state.GitExecutablePath, dontSetupGit: true)
-                            .Catch(e => true)
-                            .RunWithReturn(true);
-                        state.GitIsValid = version >= Constants.MinimumGitVersion;
-                        if (state.GitIsValid)
+                        var getEnvPath = new SimpleProcessTask(token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
+                                   .Configure(ProcessManager, dontSetupGit: true)
+                                   .Catch(e => true); // make sure this doesn't throw if the task fails
+                        var path = getEnvPath.RunWithReturn(true);
+                        if (getEnvPath.Successful)
                         {
-                            version = new GitLfsVersionTask(token)
-                            .Configure(ProcessManager, state.GitLfsExecutablePath, dontSetupGit: true)
-                            .Catch(e => true)
-                            .RunWithReturn(true);
-                            state.GitLfsIsValid = version >= Constants.MinimumGitLfsVersion;
+                            Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
+                            Environment.Path = path?.Split(new[] { "\"" }, StringSplitOptions.None)[1];
                         }
                     }
+
+                    bool skipInstallers = false;
+                    state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
+                    var now = DateTimeOffset.Now;
+                    if (now.Date == state.GitLastCheckTime.Date && state.GitIsValid && state.GitLfsIsValid)
+                    {
+                        // just check if the git/git lfs version is what we need
+                        if (firstRun)
+                        {
+                            var version = new GitVersionTask(token)
+                                .Configure(ProcessManager, state.GitExecutablePath, dontSetupGit: true)
+                                .Catch(e => true)
+                                .RunWithReturn(true);
+                            state.GitIsValid = version >= Constants.MinimumGitVersion;
+                            if (state.GitIsValid)
+                            {
+                                version = new GitLfsVersionTask(token)
+                                .Configure(ProcessManager, state.GitLfsExecutablePath, dontSetupGit: true)
+                                .Catch(e => true)
+                                .RunWithReturn(true);
+                                state.GitLfsIsValid = version >= Constants.MinimumGitLfsVersion;
+                            }
+                        }
+                    }
+
+                    if (!skipInstallers)
+                    {
+                        Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
+                            .SetupOctorunIfNeeded();
+
+                        state = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
+                        { Progress = progressReporter }
+                            .SetupGitIfNeeded();
+                    }
+
+                    SetupGit(state);
+
+                    if (state.GitIsValid && state.GitLfsIsValid)
+                    {
+                        RestartRepository();
+                    }
+
                 }
-
-                if (!skipInstallers)
+                catch (Exception ex)
                 {
-                    Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
-                        .SetupOctorunIfNeeded();
-
-                    state = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
-                            { Progress = progressReporter }
-                        .SetupGitIfNeeded();
-                }
-
-                SetupGit(state);
-
-                if (state.GitIsValid && state.GitLfsIsValid)
-                {
-                    RestartRepository();
+                    Logger.Error(ex, "A problem ocurred setting up Git");
                 }
 
                 new ActionTask<bool>(token, (s, gitIsValid) =>
@@ -185,28 +193,43 @@ namespace GitHub.Unity
 
         public void InitializeRepository()
         {
+            isBusy = true;
             var thread = new Thread(obj =>
             {
+                var success = true;
                 CancellationToken token = (CancellationToken)obj;
-                var targetPath = NPath.CurrentDirectory;
+                try
+                {
+                    var targetPath = NPath.CurrentDirectory;
 
-                var gitignore = targetPath.Combine(".gitignore");
-                var gitAttrs = targetPath.Combine(".gitattributes");
-                var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
+                    var gitignore = targetPath.Combine(".gitignore");
+                    var gitAttrs = targetPath.Combine(".gitattributes");
+                    var assetsGitignore = targetPath.Combine("Assets", ".gitignore");
 
-                var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
+                    var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-                GitClient.Init().RunWithReturn(true);
-                GitClient.LfsInstall().RunWithReturn(true);
-                AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
-                AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
-                assetsGitignore.CreateFile();
-                GitClient.Add(filesForInitialCommit).RunWithReturn(true);
-                GitClient.Commit("Initial commit", null).RunWithReturn(true);
-                Environment.InitializeRepository();
-                RestartRepository();
-                UsageTracker.IncrementProjectsInitialized();
-                TaskManager.RunInUI(InitializeUI);
+                    GitClient.Init().RunWithReturn(true);
+                    GitClient.LfsInstall().RunWithReturn(true);
+                    AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
+                    AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
+                    assetsGitignore.CreateFile();
+                    GitClient.Add(filesForInitialCommit).RunWithReturn(true);
+                    GitClient.Commit("Initial commit", null).RunWithReturn(true);
+                    Environment.InitializeRepository();
+                    UsageTracker.IncrementProjectsInitialized();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "A problem ocurred initializing the repository");
+                    success = false;
+                }
+
+                if (success)
+                {
+                    RestartRepository();
+                    TaskManager.RunInUI(InitializeUI);
+                }
+                isBusy = false;
             });
             thread.Start(CancellationToken);
         }
