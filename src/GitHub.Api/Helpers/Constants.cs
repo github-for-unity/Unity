@@ -22,6 +22,6 @@ namespace GitHub.Unity
         public const string GitInstallationState = "GitInstallationState";
 
         public static readonly TheVersion MinimumGitVersion = TheVersion.Parse("2.11");
-        public static readonly TheVersion MinimumGitLfsVersion = TheVersion.Parse("2.4");
+        public static readonly TheVersion MinimumGitLfsVersion = TheVersion.Parse("2.0");
     }
 }
