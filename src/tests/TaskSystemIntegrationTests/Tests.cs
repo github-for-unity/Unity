@@ -942,7 +942,6 @@ namespace IntegrationTests
 
             await final.StartAndSwallowException();
 
-            Console.WriteLine(String.Join(",", callOrder.ToArray()));
             CollectionAssert.AreEqual(new string[] {
                 "chain start",
                 "failing",
