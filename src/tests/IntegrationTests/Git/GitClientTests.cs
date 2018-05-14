@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace IntegrationTests
 {
     [TestFixture]
-    class GitClientTests : BaseGitTestWithHttpServer
+    class A_GitClientTests : BaseGitTestWithHttpServer
     {
         protected override int Timeout { get; set; } = 5 * 60 * 1000;
 

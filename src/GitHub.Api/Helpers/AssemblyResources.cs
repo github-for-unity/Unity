@@ -39,24 +39,17 @@ namespace GitHub.Unity
                 : resourceType == ResourceType.Platform ? "PlatformResources"
                 : "Resources";
 
+            // all the resources are embedded in GitHub.Api
             var asm = Assembly.GetCallingAssembly();
-            if (!asm.FullName.StartsWith("IntegrationTests"))
+            if (resourceType != ResourceType.Icon)
                 asm = typeof(AssemblyResources).Assembly;
             var stream = asm.GetManifestResourceStream(
                                      String.Format("GitHub.Unity.{0}{1}.{2}", type, !string.IsNullOrEmpty(os) ? "." + os : os, resource));
             if (stream != null)
                 return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
 
-            // check the GitHub.Api assembly
-            if (!asm.FullName.StartsWith("GitHub.Api"))
-            {
-                asm = typeof(ApplicationManagerBase).Assembly;
-                stream = asm.GetManifestResourceStream(
-                                        String.Format("GitHub.Unity.{0}{1}.{2}", type, !string.IsNullOrEmpty(os) ? "." + os : os, resource));
-                if (stream != null)
-                    return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
-            }
-
+            // if we're not in the test runner, we might be running in a Unity-compiled GitHub.Unity assembly, which doesn't
+            // embed the resources in the assembly
             if (!Guard.InUnitTestRunner)
             {
                 // check the filesystem
