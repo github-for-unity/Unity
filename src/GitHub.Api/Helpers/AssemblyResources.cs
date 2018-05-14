@@ -28,6 +28,7 @@ namespace GitHub.Unity
                 If the resource is still not found, it attempts to find it in the file system
              */
 
+            var target = destinationPath.Combine(resource);
             var os = "";
             if (resourceType == ResourceType.Platform)
             {
@@ -46,7 +47,10 @@ namespace GitHub.Unity
             var stream = asm.GetManifestResourceStream(
                                      String.Format("GitHub.Unity.{0}{1}.{2}", type, !string.IsNullOrEmpty(os) ? "." + os : os, resource));
             if (stream != null)
-                return destinationPath.Combine(resource).WriteAllBytes(stream.ToByteArray());
+            {
+                target.DeleteIfExists();
+                return target.WriteAllBytes(stream.ToByteArray());
+            }
 
             // if we're not in the test runner, we might be running in a Unity-compiled GitHub.Unity assembly, which doesn't
             // embed the resources in the assembly
@@ -55,7 +59,10 @@ namespace GitHub.Unity
                 // check the filesystem
                 NPath possiblePath = environment.ExtensionInstallPath.Combine(type, os, resource);
                 if (possiblePath.FileExists())
-                    return possiblePath.Copy(destinationPath.Combine(resource));
+                {
+                    target.DeleteIfExists();
+                    return possiblePath.Copy(target);
+                }
             }
             return NPath.Default;
         }
