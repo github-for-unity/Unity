@@ -96,16 +96,12 @@ namespace GitHub.Unity
                 state = ValidateGitVersion(state);
                 if (state.GitIsValid)
                     state.GitInstallationPath = gitPath.Parent.Parent;
-                else
-                {
-                    state.GitInstallationPath = NPath.Default;
-                    state.GitExecutablePath = NPath.Default;
-                }
             }
 
             if (!state.GitLfsIsValid)
             {
-                var gitLfsPath = new FindExecTask("git-lfs", cancellationToken).Configure(processManager, dontSetupGit: true)
+                var gitLfsPath = new FindExecTask("git-lfs", cancellationToken)
+                    .Configure(processManager, dontSetupGit: true)
                     .Catch(e => true)
                     .RunWithReturn(true);
                 state.GitLfsExecutablePath = gitLfsPath;
@@ -139,7 +135,7 @@ namespace GitHub.Unity
             return state;
         }
 
-        private GitInstallationState ValidateGitVersion(GitInstallationState state)
+        public GitInstallationState ValidateGitVersion(GitInstallationState state)
         {
             if (!state.GitExecutablePath.IsInitialized || !state.GitExecutablePath.FileExists())
             {
@@ -155,7 +151,7 @@ namespace GitHub.Unity
             return state;
         }
 
-        private GitInstallationState ValidateGitLfsVersion(GitInstallationState state)
+        public GitInstallationState ValidateGitLfsVersion(GitInstallationState state)
         {
             if (!state.GitLfsExecutablePath.IsInitialized || !state.GitLfsExecutablePath.FileExists())
             {

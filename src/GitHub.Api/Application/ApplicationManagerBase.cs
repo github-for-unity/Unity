@@ -14,8 +14,10 @@ namespace GitHub.Unity
         private RepositoryManager repositoryManager;
         private Progress progressReporter;
         protected bool isBusy;
-        protected bool firstRun;
-        protected Guid instanceId;
+        private bool firstRun;
+        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }        
+        private Guid instanceId;
+        protected Guid InstanceId { get { return instanceId; } set { instanceId = value; } }
 
         public event Action<IProgress> OnProgress
         {
@@ -49,17 +51,16 @@ namespace GitHub.Unity
         {
             isBusy = true;
 
-            var thread = new Thread(obj =>
+            var thread = new Thread(() =>
             {
                 GitInstallationState state = new GitInstallationState();
-                CancellationToken token = (CancellationToken)obj;
                 try
                 {
-                    SetupMetrics(Environment.UnityVersion, firstRun, instanceId);
+                    SetupMetrics(Environment.UnityVersion, instanceId);
 
                     if (Environment.IsMac)
                     {
-                        var getEnvPath = new SimpleProcessTask(token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
+                        var getEnvPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
                                    .Configure(ProcessManager, dontSetupGit: true)
                                    .Catch(e => true); // make sure this doesn't throw if the task fails
                         var path = getEnvPath.RunWithReturn(true);
@@ -70,32 +71,17 @@ namespace GitHub.Unity
                         }
                     }
 
+                    var installer = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
+                                                    { Progress = progressReporter };
                     state = SystemSettings.Get<GitInstallationState>(Constants.GitInstallationState) ?? state;
                     if (state.GitIsValid && state.GitLfsIsValid)
                     {
                         if (firstRun)
                         {
-                            // just check if the git/git lfs version is what we need
-                            var version = new GitVersionTask(token)
-                                .Configure(ProcessManager, state.GitExecutablePath, dontSetupGit: true)
-                                .Catch(e =>
-                                {
-                                    Logger.Error(e, "Error getting git version");
-                                    return true;
-                                })
-                                .RunWithReturn(true);
-                            state.GitIsValid = version >= Constants.MinimumGitVersion;
+                            installer.ValidateGitVersion(state);
                             if (state.GitIsValid)
                             {
-                                version = new GitLfsVersionTask(token)
-                                .Configure(ProcessManager, state.GitLfsExecutablePath, dontSetupGit: true)
-                                .Catch(e =>
-                                {
-                                    Logger.Error(e, "Error getting lfs version");
-                                    return true;
-                                })
-                                .RunWithReturn(true);
-                                state.GitLfsIsValid = version >= Constants.MinimumGitLfsVersion;
+                                installer.ValidateGitLfsVersion(state);
                             }
                         }
                     }
@@ -105,9 +91,7 @@ namespace GitHub.Unity
 
                     if (!state.GitIsValid || !state.GitLfsIsValid)
                     {
-                        state = new GitInstaller(Environment, ProcessManager, CancellationToken, SystemSettings)
-                            { Progress = progressReporter }
-                            .SetupGitIfNeeded();
+                        state = installer.SetupGitIfNeeded();
                     }
 
                     SetupGit(state);
@@ -123,7 +107,7 @@ namespace GitHub.Unity
                     Logger.Error(ex, "A problem ocurred setting up Git");
                 }
 
-                new ActionTask<bool>(token, (s, gitIsValid) =>
+                new ActionTask<bool>(CancellationToken, (s, gitIsValid) =>
                     {
                         InitializationComplete();
                         if (gitIsValid)
@@ -135,13 +119,31 @@ namespace GitHub.Unity
                     { Affinity = TaskAffinity.UI }
                 .Start();
             });
-            thread.Start(CancellationToken);
+            thread.Start();
         }
 
         public void SetupGit(GitInstaller.GitInstallationState state)
         {
-            if (!(state.GitIsValid && state.GitLfsIsValid))
+            if (!state.GitIsValid || !state.GitLfsIsValid)
+            {
+                if (!state.GitExecutablePath.IsInitialized)
+                {
+                    Logger.Warning(Localization.GitNotFound);
+                }
+                else if (!state.GitLfsExecutablePath.IsInitialized)
+                {
+                    Logger.Warning(Localization.GitLFSNotFound);
+                }
+                else if (state.GitVersion < Constants.MinimumGitVersion)
+                {
+                    Logger.Warning(String.Format(Localization.GitVersionTooLow, state.GitExecutablePath, state.GitVersion, Constants.MinimumGitVersion));
+                }
+                else if (state.GitLfsVersion < Constants.MinimumGitLfsVersion)
+                {
+                    Logger.Warning(String.Format(Localization.GitLfsVersionTooLow, state.GitLfsExecutablePath, state.GitLfsVersion, Constants.MinimumGitLfsVersion));
+                }
                 return;
+            }
 
             Environment.GitInstallPath = state.GitInstallationPath;
             Environment.GitExecutablePath = state.GitExecutablePath;
@@ -208,10 +210,9 @@ namespace GitHub.Unity
         public void InitializeRepository()
         {
             isBusy = true;
-            var thread = new Thread(obj =>
+            var thread = new Thread(() =>
             {
                 var success = true;
-                CancellationToken token = (CancellationToken)obj;
                 try
                 {
                     var targetPath = NPath.CurrentDirectory;
@@ -245,7 +246,7 @@ namespace GitHub.Unity
                 }
                 isBusy = false;
             });
-            thread.Start(CancellationToken);
+            thread.Start();
         }
 
         public void RestartRepository()
@@ -263,7 +264,7 @@ namespace GitHub.Unity
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
         }
 
-        protected void SetupMetrics(string unityVersion, bool firstRun, Guid instanceId)
+        protected void SetupMetrics(string unityVersion, Guid instanceId)
         {
             string userId = null;
             if (UserSettings.Exists(Constants.GuidKey))
