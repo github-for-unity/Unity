@@ -31,8 +31,8 @@ namespace GitHub.Unity
         [NotSerialized] private string[] stringParts;
         [NotSerialized] private int parts;
         [NotSerialized] private bool initialized;
-
-        public string Version { get; set; }
+        [NotSerialized] private string version;
+        public string Version { get { if (version == null) version = String.Empty; return version; } set { version = value; } }
 
         private static readonly Regex regex = new Regex(versionRegex);
 
@@ -46,7 +46,7 @@ namespace GitHub.Unity
             if (initialized)
                 return this;
 
-            this.Version = version?.Trim();
+            this.Version = version?.Trim() ?? String.Empty;
 
             isAlpha = false;
             isBeta = false;
