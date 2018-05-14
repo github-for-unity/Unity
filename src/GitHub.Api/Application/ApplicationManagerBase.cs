@@ -137,7 +137,9 @@ namespace GitHub.Unity
             if (!(state.GitIsValid && state.GitLfsIsValid))
                 return;
 
+            Environment.GitInstallPath = state.GitInstallationPath;
             Environment.GitExecutablePath = state.GitExecutablePath;
+            Environment.GitLfsInstallPath = state.GitLfsInstallationPath;
             Environment.GitLfsExecutablePath = state.GitLfsExecutablePath;
             Environment.IsCustomGitExecutable = state.IsCustomGitPath;
             Environment.User.Initialize(GitClient);

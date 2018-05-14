@@ -26,7 +26,9 @@ namespace GitHub.Unity
         NPath UnityProjectPath { get; }
         NPath ExtensionInstallPath { get; }
         NPath RepositoryPath { get; }
-        NPath GitInstallPath { get; }
+        NPath GitInstallPath { get; set; }
+        NPath GitLfsInstallPath { get; set; }
+        NPath GitLfsExecutablePath { get; set; }
         NPath UserCachePath { get; set; }
         NPath SystemCachePath { get; set; }
         NPath LogPath { get; }
@@ -35,8 +37,6 @@ namespace GitHub.Unity
         IRepository Repository { get; set; }
         string ExecutableExtension { get; }
         ICacheContainer CacheContainer { get; }
-        NPath GitLfsInstallPath { get; }
-        NPath GitLfsExecutablePath { get; set; }
         ISettings LocalSettings { get; }
         ISettings SystemSettings { get; }
         ISettings UserSettings { get; }

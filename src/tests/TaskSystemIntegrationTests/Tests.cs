@@ -55,8 +55,10 @@ namespace IntegrationTests
             var processEnv = platform.GitEnvironment;
             var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())
                 .Configure(ProcessManager, env.IsWindows ? "where" : "which", "git")
-                .Start().Result;
-            env.GitExecutablePath = path.IsInitialized ? path : "git".ToNPath();
+                .RunWithReturn(true);
+
+            env.GitInstallPath = path.Parent.Parent;
+            env.GitExecutablePath = path;
         }
 
         [TestFixtureTearDown]

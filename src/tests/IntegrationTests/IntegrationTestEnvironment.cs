@@ -108,6 +108,11 @@ namespace IntegrationTests
             }
         }
 
+
+        public NPath GitInstallPath { get { return defaultEnvironment.GitInstallPath; } set { defaultEnvironment.GitInstallPath = value; } }
+        public NPath GitLfsInstallPath { get { return defaultEnvironment.GitLfsInstallPath; } set { defaultEnvironment.GitLfsInstallPath = value; } }
+        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
+
         public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
 
         public NPath OctorunScriptPath { get; set; }
@@ -131,10 +136,6 @@ namespace IntegrationTests
         public NPath LogPath => defaultEnvironment.LogPath;
 
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
-
-        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
-        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
-        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
 
         public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
         public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }
