@@ -54,15 +54,12 @@ namespace GitHub.Unity
 
             // if we're not in the test runner, we might be running in a Unity-compiled GitHub.Unity assembly, which doesn't
             // embed the resources in the assembly
-            if (!Guard.InUnitTestRunner)
+            // check the filesystem
+            NPath possiblePath = environment.ExtensionInstallPath.Combine(type, os, resource);
+            if (possiblePath.FileExists())
             {
-                // check the filesystem
-                NPath possiblePath = environment.ExtensionInstallPath.Combine(type, os, resource);
-                if (possiblePath.FileExists())
-                {
-                    target.DeleteIfExists();
-                    return possiblePath.Copy(target);
-                }
+                target.DeleteIfExists();
+                return possiblePath.Copy(target);
             }
             return NPath.Default;
         }
