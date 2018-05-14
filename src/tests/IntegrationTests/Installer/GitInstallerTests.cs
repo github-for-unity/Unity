@@ -213,15 +213,30 @@ namespace IntegrationTests
         {
             var defaultGitInstall = TestBasePath.Combine("DefaultInstall").CreateDirectory();
             var customGitInstall = TestBasePath.Combine("CustomGitInstall").CreateDirectory();
-            var gitExec = customGitInstall.Combine("cmd/git.exe");
-            gitExec.WriteAllText("");
-            Environment.SystemSettings.Set(Constants.GitInstallPathKey, gitExec.ToString());
 
             var installDetails = new GitInstaller.GitInstallDetails(defaultGitInstall, DefaultEnvironment.OnWindows)
                 {
                     GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
                     GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
                 };
+
+            var package = Package.Load(Environment, installDetails.GitPackageFeed);
+            var downloader = new Downloader();
+            downloader.Catch(e => true);
+            downloader.QueueDownload(package.Uri, installDetails.ZipPath);
+            downloader.RunWithReturn(true);
+
+            var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
+
+            var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+            ZipHelper.Instance.Extract(installDetails.GitZipPath, gitExtractPath, TaskManager.Token, null);
+            var source = gitExtractPath;
+            var target = customGitInstall;
+            target.DeleteIfExists();
+            target.EnsureParentDirectoryExists();
+            source.Move(target);
+            var gitExec = customGitInstall.Combine("cmd/git.exe");
+            Environment.SystemSettings.Set(Constants.GitInstallPathKey, gitExec.ToString());
 
             var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, Environment.SystemSettings, installDetails: installDetails);
 
