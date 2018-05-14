@@ -21,7 +21,6 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentBranchHasUpdate;
         [NonSerialized] private bool currentStatusEntriesHasUpdate;
         [NonSerialized] private bool currentLocksHasUpdate;
-        [NonSerialized] private bool isBusy;
 
         [NonSerialized] private GUIContent discardGuiContent;
 

@@ -59,7 +59,6 @@ namespace TestApp
             bool generatePackage = false;
             string version = null;
             string url = null;
-            string execMd5 = null;
             string readVersion = null;
             string msg = null;
 

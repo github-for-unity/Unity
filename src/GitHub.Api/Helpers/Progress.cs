@@ -26,9 +26,6 @@ namespace GitHub.Unity
         public string Message { get; internal set; }
 
         private long previousValue;
-        private float averageSpeed = -1f;
-        private float lastSpeed = 0f;
-        private float smoothing = 0.005f;
         public event Action<IProgress> OnProgress;
 
         public void UpdateProgress(IProgress progress)
