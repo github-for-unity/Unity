@@ -37,10 +37,6 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
-    <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)\lib\Mono.Security.dll</HintPath>
-    </Reference>
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
