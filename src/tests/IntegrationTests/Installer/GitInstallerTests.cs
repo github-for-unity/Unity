@@ -253,8 +253,8 @@ namespace IntegrationTests
             var procTask = new SimpleProcessTask(TaskManager.Token, "something")
                 .Configure(ProcessManager);
             var pathList = procTask.Process.StartInfo.EnvironmentVariables["PATH"].ToNPathList(Environment).TakeWhile(x => x != "END");
-            pathList.First().Should().Be(gitExec.Parent);
-            pathList.Any(x => x == gitLfsExec.Parent).Should().BeTrue();
+            pathList.First().Should().Be(gitLfsExec.Parent);
+            pathList.Skip(1).First().Should().Be(gitExec.Parent);
         }
     }
 }
