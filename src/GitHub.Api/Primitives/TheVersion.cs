@@ -41,12 +41,12 @@ namespace GitHub.Unity
             return default(TheVersion).Initialize(version);
         }
 
-        private TheVersion Initialize(string version)
+        private TheVersion Initialize(string theVersion)
         {
             if (initialized)
                 return this;
 
-            this.Version = version?.Trim() ?? String.Empty;
+            this.Version = theVersion?.Trim() ?? String.Empty;
 
             isAlpha = false;
             isBeta = false;
@@ -57,7 +57,7 @@ namespace GitHub.Unity
             special = null;
             parts = 0;
 
-            if (String.IsNullOrEmpty(version))
+            if (String.IsNullOrEmpty(theVersion))
                 return this;
 
             intParts = new int[PART_COUNT];
@@ -66,15 +66,16 @@ namespace GitHub.Unity
             for (var i = 0; i < PART_COUNT; i++)
                 stringParts[i] = intParts[i].ToString();
 
-            var match = regex.Match(version);
+            var match = regex.Match(theVersion);
             if (!match.Success)
             {
-                LogHelper.Error(new ArgumentException("Invalid version: " + version, "version"));
+                LogHelper.Error(new ArgumentException("Invalid version: " + theVersion, "theVersion"));
                 return this;
             }
 
             major = int.Parse(match.Groups["major"].Value);
-            intParts[0] = major;
+            intParts[parts] = major;
+            stringParts[parts] = major.ToString();
             parts = 1;
 
             var minorMatch = match.Groups["minor"];
@@ -83,39 +84,42 @@ namespace GitHub.Unity
 
             if (minorMatch.Success)
             {
-                parts++;
                 if (!int.TryParse(minorMatch.Value, out minor))
                 {
                     special = minorMatch.Value.TrimEnd();
-                    stringParts[parts - 1] = special;
+                    stringParts[parts] = special ?? "0";
                 }
                 else
                 {
-                    intParts[parts - 1] = minor;
+                    intParts[parts] = minor;
+                    stringParts[parts] = minor.ToString();
+                    parts++;
 
                     if (patchMatch.Success)
                     {
-                        parts++;
                         if (!int.TryParse(patchMatch.Value, out patch))
                         {
                             special = patchMatch.Value.TrimEnd();
-                            stringParts[parts - 1] = special;
+                            stringParts[parts] = special ?? "0";
                         }
                         else
                         {
-                            intParts[parts - 1] = patch;
+                            intParts[parts] = patch;
+                            stringParts[parts] = patch.ToString();
+                            parts++;
 
                             if (buildMatch.Success)
                             {
-                                parts++;
                                 if (!int.TryParse(buildMatch.Value, out build))
                                 {
                                     special = buildMatch.Value.TrimEnd();
-                                    stringParts[parts - 1] = special;
+                                    stringParts[parts] = special ?? "0";
                                 }
                                 else
                                 {
-                                    intParts[parts - 1] = build;
+                                    intParts[parts] = build;
+                                    stringParts[parts] = build.ToString();
+                                    parts++;
                                 }
                             }
                         }
@@ -196,7 +200,7 @@ namespace GitHub.Unity
             if (String.IsNullOrEmpty(rhs.Version))
                 return true;
 
-            for (var i = 0; i < PART_COUNT; i++)
+            for (var i = 0; i < lhs.parts && i < rhs.parts; i++)
             {
                 if (lhs.intParts[i] != rhs.intParts[i])
                     return lhs.intParts[i] > rhs.intParts[i];
@@ -204,11 +208,11 @@ namespace GitHub.Unity
 
             for (var i = 1; i < PART_COUNT; i++)
             {
-                if (lhs.stringParts[i] != rhs.stringParts[i])
-                {
-                    return GreaterThan(lhs.stringParts[i], rhs.stringParts[i]);
-                }
+                var ret = CompareVersionStrings(lhs.stringParts[i], rhs.stringParts[i]);
+                if (ret != 0)
+                    return ret > 0;
             }
+
             return false;
         }
 
@@ -227,35 +231,42 @@ namespace GitHub.Unity
             return lhs < rhs || lhs == rhs;
         }
 
-        private static bool GreaterThan(string lhs, string rhs)
+        private static int CompareVersionStrings(string lhs, string rhs)
         {
-            var lhsNonDigitPos = IndexOfFirstNonDigit(lhs);
-            var rhsNonDigitPos = IndexOfFirstNonDigit(rhs);
+            int lhsNonDigitPos;
+            var lhsNumber = GetNumberFromVersionString(lhs, out lhsNonDigitPos);
 
-            var lhsNumber = -1;
-            if (lhsNonDigitPos > -1)
-            {
-                int.TryParse(lhs.Substring(0, lhsNonDigitPos), out lhsNumber);
-            }
-            else
-            {
-                int.TryParse(lhs, out lhsNumber);
-            }
-
-            var rhsNumber = -1;
-            if (rhsNonDigitPos > -1)
-            {
-                int.TryParse(rhs.Substring(0, rhsNonDigitPos), out rhsNumber);
-            }
-            else
-            {
-                int.TryParse(rhs, out rhsNumber);
-            }
+            int rhsNonDigitPos;
+            var rhsNumber = GetNumberFromVersionString(rhs, out rhsNonDigitPos);
 
             if (lhsNumber != rhsNumber)
-                return lhsNumber > rhsNumber;
+                return lhsNumber.CompareTo(rhsNumber);
 
-            return lhs.Substring(lhsNonDigitPos > -1 ? lhsNonDigitPos : 0).CompareTo(rhs.Substring(rhsNonDigitPos > -1 ? rhsNonDigitPos : 0)) > 0;
+            if (lhsNonDigitPos < 0 && rhsNonDigitPos < 0)
+                return 0;
+
+            // versions with alphanumeric characters are always lower than ones without
+            // i.e. 1.1alpha is lower than 1.1
+            if (lhsNonDigitPos < 0)
+                return 1;
+            if (rhsNonDigitPos < 0)
+                return -1;
+            return lhs.Substring(lhsNonDigitPos).CompareTo(rhs.Substring(rhsNonDigitPos));
+        }
+
+        private static int GetNumberFromVersionString(string lhs, out int nonDigitPos)
+        {
+            nonDigitPos = IndexOfFirstNonDigit(lhs);
+            var number = -1;
+            if (nonDigitPos > -1)
+            {
+                int.TryParse(lhs.Substring(0, nonDigitPos), out number);
+            }
+            else
+            {
+                int.TryParse(lhs, out number);
+            }
+            return number;
         }
 
         private static int IndexOfFirstNonDigit(string str)
