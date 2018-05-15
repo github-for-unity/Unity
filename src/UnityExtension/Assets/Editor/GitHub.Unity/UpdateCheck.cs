@@ -54,14 +54,18 @@ namespace GitHub.Unity
 #if DEBUG
         "http://localhost:50000/unity/latest.json"
 #else
-        "https://ghfvs-installer.github.com/unity/latest.json"
+        "http://github-vs.s3.amazonaws.com/unity/latest.json"
 #endif
         ;
 
         public static void CheckForUpdates()
         {
             var download = new DownloadTask(TaskManager.Instance.Token, EntryPoint.Environment.FileSystem, UpdateFeedUrl, EntryPoint.Environment.UserCachePath)
-                .Catch(e => true);
+                .Catch(e =>
+                {
+                    LogHelper.Trace(e, "Failed to download " + UpdateFeedUrl);
+                    return true;
+                });
             download.OnEnd += (thisTask, result, success, exception) =>
             {
                 if (success)
