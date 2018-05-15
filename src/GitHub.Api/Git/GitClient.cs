@@ -1,17 +1,15 @@
 ﻿using GitHub.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using static GitHub.Unity.GitInstaller;
 
 namespace GitHub.Unity
 {
     public interface IGitClient
     {
-        ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit);
-        ITask Init(IOutputProcessor<string> processor = null);
-        ITask LfsInstall(IOutputProcessor<string> processor = null);
+        ITask<string> Init(IOutputProcessor<string> processor = null);
+        ITask<string> LfsInstall(IOutputProcessor<string> processor = null);
         ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null);
         ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null);
         ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null);
@@ -35,11 +33,11 @@ namespace GitHub.Unity
         ITask<string> DiscardAll(IOutputProcessor<string> processor = null);
         ITask<string> Remove(IList<string> files, IOutputProcessor<string> processor = null);
         ITask<string> AddAndCommit(IList<string> files, string message, string body, IOutputProcessor<string> processor = null);
-        ITask<string> Lock(string file, IOutputProcessor<string> processor = null);
-        ITask<string> Unlock(string file, bool force, IOutputProcessor<string> processor = null);
+        ITask<string> Lock(NPath file, IOutputProcessor<string> processor = null);
+        ITask<string> Unlock(NPath file, bool force, IOutputProcessor<string> processor = null);
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
-        ITask<Version> Version(IOutputProcessor<Version> processor = null);
-        ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
+        ITask<TheVersion> Version(IOutputProcessor<TheVersion> processor = null);
+        ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null);
         ITask<GitUser> SetConfigNameAndEmail(string username, string email);
     }
 
@@ -58,40 +56,13 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit)
-        {
-            Version gitVersion = null;
-            Version gitLfsVersion = null;
-
-            var endTask = new FuncTask<ValidateGitInstallResult>(cancellationToken,
-                () => new ValidateGitInstallResult(
-                    gitVersion?.CompareTo(Constants.MinimumGitVersion) >= 0 &&
-                    gitLfsVersion?.CompareTo(Constants.MinimumGitLfsVersion) >= 0,
-                    gitVersion, gitLfsVersion));
-
-            if (path.FileExists())
-            {
-                var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken)
-                    .Configure(processManager, path, dontSetupGit: isCustomGit);
-                gitLfsVersionTask.OnEnd += (t, v, _, __) => gitLfsVersion = v;
-                var gitVersionTask = new GitVersionTask(cancellationToken)
-                    .Configure(processManager, path, dontSetupGit: isCustomGit);
-                gitVersionTask.OnEnd += (t, v, _, __) => gitVersion = v;
-
-                gitVersionTask
-                    .Then(gitLfsVersionTask)
-                    .Finally(endTask);
-            }
-            return endTask;
-        }
-
-        public ITask Init(IOutputProcessor<string> processor = null)
+        public ITask<string> Init(IOutputProcessor<string> processor = null)
         {
             return new GitInitTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask LfsInstall(IOutputProcessor<string> processor = null)
+        public ITask<string> LfsInstall(IOutputProcessor<string> processor = null)
         {
             return new GitLfsInstallTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -115,13 +86,13 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<Version> Version(IOutputProcessor<Version> processor = null)
+        public ITask<TheVersion> Version(IOutputProcessor<TheVersion> processor = null)
         {
             return new GitVersionTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null)
+        public ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null)
         {
             return new GitLfsVersionTask(cancellationToken, processor)
                 .Configure(processManager);
@@ -318,14 +289,14 @@ namespace GitHub.Unity
                     .Configure(processManager));
         }
 
-        public ITask<string> Lock(string file,
+        public ITask<string> Lock(NPath file,
             IOutputProcessor<string> processor = null)
         {
             return new GitLockTask(file, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> Unlock(string file, bool force,
+        public ITask<string> Unlock(NPath file, bool force,
             IOutputProcessor<string> processor = null)
         {
             return new GitUnlockTask(file, force, cancellationToken, processor)

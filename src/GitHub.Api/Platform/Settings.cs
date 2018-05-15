@@ -24,7 +24,7 @@ namespace GitHub.Unity
     class JsonBackedSettings : BaseSettings
     {
         private string cachePath;
-        private Dictionary<string, object> cacheData;
+        protected Dictionary<string, object> cacheData;
         private Action<string> dirCreate;
         private Func<string, bool> dirExists;
         private Action<string> fileDelete;
@@ -82,7 +82,12 @@ namespace GitHub.Unity
                     }
                 }
 
-                if (!(value is T))
+                if (value == null && fallback != null)
+                {
+                    value = fallback;
+                    cacheData[key] = fallback;
+                }
+                else if (!(value is T))
                 {
                     try
                     {
@@ -147,7 +152,7 @@ namespace GitHub.Unity
             SaveToCache(cachePath);
         }
 
-        private void LoadFromCache(string path)
+        protected virtual void LoadFromCache(string path)
         {
             EnsureCachePath(path);
 
@@ -191,7 +196,7 @@ namespace GitHub.Unity
             }
         }
 
-        private bool SaveToCache(string path)
+        protected virtual bool SaveToCache(string path)
         {
             EnsureCachePath(path);
 

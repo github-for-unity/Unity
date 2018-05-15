@@ -65,7 +65,7 @@ namespace GitHub.Unity
                     {
                         if (GUILayout.Button(Localization.InitializeRepositoryButtonText, "Button"))
                         {
-                            Manager.InitializeRepository().Start();
+                            Manager.InitializeRepository();
                         }
                     }
                     EditorGUI.EndDisabledGroup();

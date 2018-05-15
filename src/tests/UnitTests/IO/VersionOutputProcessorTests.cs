@@ -15,17 +15,17 @@ namespace UnitTests
         {
             yield return new TestCaseData(
                 $"git version 2.11.1.windows.1{Environment.NewLine}",
-                new Version(2, 11, 1)).SetName("Windows 2.11.1");
+                TheVersion.Parse("2.11.1.windows.1")).SetName("Windows 2.11.1");
 
             yield return new TestCaseData(
                 $"git version 2.12.2{Environment.NewLine}",
-                new Version(2, 12, 2)).SetName("Mac 2.12.2");
+                TheVersion.Parse("2.12.2")).SetName("Mac 2.12.2");
         }
 
         [TestCaseSource(nameof(ShouldParseVersionOutputs_TestCases))]
-        public void ShouldParseVersionOutputs(string line, Version expected)
+        public void ShouldParseVersionOutputs(string line, TheVersion expected)
         {
-            Version version = null;
+            TheVersion version = TheVersion.Default;
 
             var outputProcessor = new VersionOutputProcessor();
             outputProcessor.OnEntry += output => { version = output; };

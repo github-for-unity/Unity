@@ -42,9 +42,10 @@ namespace IntegrationTests
             var syncContext = new ThreadSynchronizationContext(Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(syncContext);
 
-            var env = new DefaultEnvironment();
+            var env = new DefaultEnvironment(new CacheContainer());
             TestBasePath = NPath.CreateTempDirectory("integration tests");
             env.FileSystem.SetCurrentDirectory(TestBasePath);
+            env.Initialize("5.6", TestBasePath, TestBasePath, TestBasePath, TestBasePath.Combine("Assets"));
 
             var repo = Substitute.For<IRepository>();
             repo.LocalPath.Returns(TestBasePath);
@@ -53,10 +54,9 @@ namespace IntegrationTests
             var platform = new Platform(env);
             ProcessManager = new ProcessManager(env, platform.GitEnvironment, Token);
             var processEnv = platform.GitEnvironment;
-            var path = new ProcessTask<NPath>(TaskManager.Token, new FirstLineIsPathOutputProcessor())
-                .Configure(ProcessManager, env.IsWindows ? "where" : "which", "git")
-                .Start().Result;
-            env.GitExecutablePath = path.IsInitialized ? path : "git".ToNPath();
+            var installer = new GitInstaller(env, ProcessManager, TaskManager.Token);
+            var state = installer.FindSystemGit(new GitInstaller.GitInstallationState());
+            env.GitInstallationState = state;
         }
 
         [TestFixtureTearDown]
@@ -942,7 +942,6 @@ namespace IntegrationTests
 
             await final.StartAndSwallowException();
 
-            Console.WriteLine(String.Join(",", callOrder.ToArray()));
             CollectionAssert.AreEqual(new string[] {
                 "chain start",
                 "failing",

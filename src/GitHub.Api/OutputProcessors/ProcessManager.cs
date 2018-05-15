@@ -119,7 +119,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
 
             return searchPaths
-                .Where(x => !x.IsRelative && x.DirectoryExists())
+                .Where(x => x.IsInitialized && !x.IsRelative && x.DirectoryExists())
                 .SelectMany(x => x.Files(executable, recurse))
                 .FirstOrDefault();
         }

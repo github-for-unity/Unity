@@ -70,7 +70,6 @@ namespace IntegrationTests
 
         protected void InitializePlatform(NPath repoPath,
             bool enableEnvironmentTrace = true,
-            bool setupGit = true,
             string testName = "")
         {
             InitializeTaskManager();
@@ -79,9 +78,6 @@ namespace IntegrationTests
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
 
             Platform.Initialize(ProcessManager, TaskManager);
-
-            if (setupGit)
-                SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), testName);
         }
 
         protected void InitializeTaskManager()
@@ -93,12 +89,12 @@ namespace IntegrationTests
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,
             bool enableEnvironmentTrace = false,
-            bool setupGit = true,
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
             [CallerMemberName] string testName = "")
         {
             InitializeEnvironment(repoPath, enableEnvironmentTrace, true);
-            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, setupGit: setupGit, testName: testName);
+            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, testName: testName);
+            SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), testName);
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -128,38 +124,40 @@ namespace IntegrationTests
 
         protected void SetupGit(NPath pathToSetupGitInto, string testName)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-
             var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, Environment.IsWindows);
-
-            var zipArchivesPath = pathToSetupGitInto.Combine("downloads").CreateDirectory();
-
-            Logger.Trace($"Saving git zips into {zipArchivesPath} and unzipping to {pathToSetupGitInto}");
-
-            AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
-            AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", zipArchivesPath, Environment);
-            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
-            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", zipArchivesPath, Environment);
-
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, null, installDetails: installDetails);
-
-            Exception ex = null;
-
-            var state = gitInstaller.SetupGitIfNeeded();
-            var result = state.GitExecutablePath;
-
-            if (!result.IsInitialized)
-            {
-                if (ex != null)
-                {
-                    throw ex;
-                }
-
-                throw new Exception("Did not install git");
-            }
-
-            Environment.GitExecutablePath = result;
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails);
+            var state = gitInstaller.SetDefaultPaths(new GitInstaller.GitInstallationState());
+            Environment.GitInstallationState = state;
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
+
+            if (installDetails.GitExecutablePath.FileExists() && installDetails.GitLfsExecutablePath.FileExists())
+                return;
+
+            installDetails.GitInstallationPath.DeleteIfExists();
+
+            installDetails.GitZipPath.EnsureParentDirectoryExists();
+            installDetails.GitLfsZipPath.EnsureParentDirectoryExists();
+
+            AssemblyResources.ToFile(ResourceType.Platform, "git.zip", installDetails.GitZipPath.Parent, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git.json", installDetails.GitZipPath.Parent, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", installDetails.GitZipPath.Parent, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.json", installDetails.GitZipPath.Parent, Environment);
+
+            var tempZipExtractPath = TestBasePath.Combine("setup", "git_zip_extract_zip_paths").EnsureDirectoryExists();
+            var extractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+            var path = new UnzipTask(TaskManager.Token, installDetails.GitZipPath, extractPath, null, Environment.FileSystem)
+                .Catch(e => true)
+                .RunWithReturn(true);
+            var source = path;
+            installDetails.GitInstallationPath.EnsureParentDirectoryExists();
+            source.Move(installDetails.GitInstallationPath);
+
+            extractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
+            path = new UnzipTask(TaskManager.Token, installDetails.GitLfsZipPath, extractPath, null, Environment.FileSystem)
+                .Catch(e => true)
+                .RunWithReturn(true);
+            source = path.Combine(installDetails.GitLfsExecutable);
+            source.Move(installDetails.GitLfsExecutablePath);
         }
 
         [TestFixtureSetUp]

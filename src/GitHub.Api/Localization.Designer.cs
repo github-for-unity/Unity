@@ -77,7 +77,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("Cancel", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to {0} changed files.
         /// </summary>
@@ -151,6 +151,42 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to We could not find Git in the system..
+        /// </summary>
+        public static string GitLFSNotFound {
+            get {
+                return ResourceManager.GetString("GitLFSNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The detected LFS at {0} has version {1}, which is too low. The minimum LFS version is {2}..
+        /// </summary>
+        public static string GitLfsVersionTooLow {
+            get {
+                return ResourceManager.GetString("GitLfsVersionTooLow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We could not find Git in the system..
+        /// </summary>
+        public static string GitNotFound {
+            get {
+                return ResourceManager.GetString("GitNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The detected Git at {0} has version {1}, which is too low. The minimum Git version is {2}..
+        /// </summary>
+        public static string GitVersionTooLow {
+            get {
+                return ResourceManager.GetString("GitVersionTooLow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (All).
         /// </summary>
         public static string HistoryFocusAll {
@@ -169,7 +205,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Initialize repository.
+        ///   Looks up a localized string similar to Initialize a git repository for this project.
         /// </summary>
         public static string InitializeRepositoryButtonText {
             get {
@@ -527,7 +563,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("SwitchBranchFailedDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Switch branch.
         /// </summary>
@@ -536,7 +572,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("SwitchBranchTitle", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to GitHub.
         /// </summary>

@@ -8,7 +8,7 @@ namespace GitHub.Unity
         private const string TaskName = "git lfs unlock";
         private readonly string arguments;
 
-        public GitUnlockTask(string path, bool force,
+        public GitUnlockTask(NPath path, bool force,
             CancellationToken token, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
@@ -23,7 +23,7 @@ namespace GitHub.Unity
             }
 
             stringBuilder.Append("\"");
-            stringBuilder.Append(path);
+            stringBuilder.Append(path.ToString(SlashMode.Forward));
             stringBuilder.Append("\"");
 
             arguments = stringBuilder.ToString();
