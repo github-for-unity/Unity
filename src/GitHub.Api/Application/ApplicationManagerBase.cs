@@ -57,7 +57,7 @@ namespace GitHub.Unity
                 GitInstallationState state = new GitInstallationState();
                 try
                 {
-                    SetupMetrics(Environment.UnityVersion, instanceId);
+                    SetupMetrics(Environment.UnityVersion);
 
                     if (Environment.IsMac)
                     {
@@ -279,7 +279,7 @@ namespace GitHub.Unity
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
         }
 
-        protected void SetupMetrics(string unityVersion, Guid instanceId)
+        protected void SetupMetrics(string unityVersion)
         {
             string userId = null;
             if (UserSettings.Exists(Constants.GuidKey))
@@ -300,7 +300,7 @@ namespace GitHub.Unity
                 Environment.NodeJsExecutablePath,
                 Environment.OctorunScriptPath);
 
-            UsageTracker = new UsageTracker(metricsService, UserSettings, Environment, userId, unityVersion, instanceId.ToString());
+            UsageTracker = new UsageTracker(metricsService, UserSettings, Environment, userId, unityVersion, InstanceId.ToString());
 
             if (firstRun)
             {

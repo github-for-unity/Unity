@@ -229,7 +229,7 @@ namespace GitHub.Unity
                         }
                         return state;
                     })
-                    .FinallyInUI((success, exception, installationState) =>
+                    .FinallyInUI((success, exception, state) =>
                     {
                         if (!success)
                         {
