@@ -62,8 +62,12 @@ namespace GitHub.Unity
                     if (Environment.IsMac)
                     {
                         var getEnvPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
-                                   .Configure(ProcessManager, dontSetupGit: true)
-                                   .Catch(e => true); // make sure this doesn't throw if the task fails
+                                    .Configure(ProcessManager, dontSetupGit: true)
+                                    .Catch(e =>
+                                    {
+                                        Logger.Trace(e, "Error running path_helper");
+                                        return true;
+                                    });
                         var path = getEnvPath.RunWithReturn(true);
                         if (getEnvPath.Successful)
                         {
@@ -142,19 +146,19 @@ namespace GitHub.Unity
             {
                 if (!state.GitExecutablePath.IsInitialized)
                 {
-                    Logger.Warning(Localization.GitNotFound);
+                    Logger.Trace(Localization.GitNotFound);
                 }
                 else if (!state.GitLfsExecutablePath.IsInitialized)
                 {
-                    Logger.Warning(Localization.GitLFSNotFound);
+                    Logger.Trace(Localization.GitLFSNotFound);
                 }
                 else if (state.GitVersion < Constants.MinimumGitVersion)
                 {
-                    Logger.Warning(String.Format(Localization.GitVersionTooLow, state.GitExecutablePath, state.GitVersion, Constants.MinimumGitVersion));
+                    Logger.Trace(String.Format(Localization.GitVersionTooLow, state.GitExecutablePath, state.GitVersion, Constants.MinimumGitVersion));
                 }
                 else if (state.GitLfsVersion < Constants.MinimumGitLfsVersion)
                 {
-                    Logger.Warning(String.Format(Localization.GitLfsVersionTooLow, state.GitLfsExecutablePath, state.GitLfsVersion, Constants.MinimumGitLfsVersion));
+                    Logger.Trace(String.Format(Localization.GitLfsVersionTooLow, state.GitLfsExecutablePath, state.GitLfsVersion, Constants.MinimumGitLfsVersion));
                 }
                 return;
             }
@@ -182,13 +186,13 @@ namespace GitHub.Unity
                     var credentialHelper = GitClient.GetConfig("credential.helper", GitConfigSource.Global)
                         .Catch(e =>
                         {
-                            Logger.Error(e, "Error getting the credential helper");
+                            Logger.Trace(e, "Error getting the credential helper");
                             return true;
                         }).RunWithReturn(true);
 
                     if (string.IsNullOrEmpty(credentialHelper))
                     {
-                        Logger.Warning("No Windows CredentialHelper found: Setting to wincred");
+                        Logger.Info("No credential helper found: Setting to wincred");
                         GitClient.SetConfig("credential.helper", "wincred", GitConfigSource.Global)
                             .Catch(e =>
                             {
