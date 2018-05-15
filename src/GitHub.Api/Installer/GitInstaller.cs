@@ -218,7 +218,12 @@ namespace GitHub.Unity
                 return state;
 
             var downloader = new Downloader();
-            downloader.Catch(e => true);
+            downloader
+                .Catch(e =>
+                {
+                    LogHelper.Trace(e, "Failed to download");
+                    return true;
+                });
             downloader.Progress(p => ((Progress)Progress)?.UpdateProgress(20 + (long)(20 * p.Percentage), 100, downloader.Name));
             if (!state.GitZipExists && !state.GitIsValid && state.GitPackage != null)
                 downloader.QueueDownload(state.GitPackage.Uri, installDetails.ZipPath);
@@ -255,7 +260,11 @@ namespace GitHub.Unity
                 var unzipTask = new UnzipTask(cancellationToken, installDetails.GitZipPath,
                         gitExtractPath, sharpZipLibHelper,
                         environment.FileSystem)
-                    .Catch(e => true);
+                    .Catch(e =>
+                    {
+                        LogHelper.Trace(e, "Failed to unzip " + installDetails.GitZipPath);
+                        return true;
+                    });
                 unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Name));
                 var path = unzipTask.RunWithReturn(true);
                 var target = state.GitInstallationPath;
@@ -276,7 +285,11 @@ namespace GitHub.Unity
                 var unzipTask = new UnzipTask(cancellationToken, installDetails.GitLfsZipPath,
                         gitLfsExtractPath, sharpZipLibHelper,
                         environment.FileSystem)
-                    .Catch(e => true);
+                    .Catch(e =>
+                    {
+                        LogHelper.Trace(e, "Failed to unzip " + installDetails.GitLfsZipPath);
+                        return true;
+                    });
                 unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Name));
                 var path = unzipTask.RunWithReturn(true);
                 var target = state.GitLfsExecutablePath;
