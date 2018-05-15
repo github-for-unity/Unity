@@ -17,8 +17,8 @@ namespace GitHub.Unity
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
             : base(synchronizationContext as SynchronizationContext)
         {
-            firstRun = ApplicationCache.Instance.FirstRun;
-            instanceId = ApplicationCache.Instance.InstanceId;
+            FirstRun = ApplicationCache.Instance.FirstRun;
+            InstanceId = ApplicationCache.Instance.InstanceId;
 
             ListenToUnityExit();
             Initialize();

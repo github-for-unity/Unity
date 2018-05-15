@@ -34,8 +34,8 @@ namespace GitHub.Unity
         ITask SwitchBranch(string branch);
         ITask DeleteBranch(string branch, bool deleteUnmerged = false);
         ITask CreateBranch(string branch, string baseBranch);
-        ITask LockFile(string file);
-        ITask UnlockFile(string file, bool force);
+        ITask LockFile(NPath file);
+        ITask UnlockFile(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] gitStatusEntries);
         void UpdateGitLog();
         void UpdateGitStatus();
@@ -255,13 +255,13 @@ namespace GitHub.Unity
             return HookupHandlers(task, false);
         }
 
-        public ITask LockFile(string file)
+        public ITask LockFile(NPath file)
         {
             var task = GitClient.Lock(file);
             return HookupHandlers(task, false).Then(UpdateLocks);
         }
 
-        public ITask UnlockFile(string file, bool force)
+        public ITask UnlockFile(NPath file, bool force)
         {
             var task = GitClient.Unlock(file, force);
             return HookupHandlers(task, false).Then(UpdateLocks);

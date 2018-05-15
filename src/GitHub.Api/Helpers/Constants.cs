@@ -1,5 +1,3 @@
-using System;
-
 namespace GitHub.Unity
 {
     static class Constants
@@ -21,7 +19,9 @@ namespace GitHub.Unity
         public const string SkipVersionKey = "SkipVersion";
         public const string GitInstallationState = "GitInstallationState";
 
-        public static readonly Version MinimumGitVersion = new Version(2, 11, 0);
-        public static readonly Version MinimumGitLfsVersion = new Version(2, 4, 0);
+        public static readonly TheVersion MinimumGitVersion = TheVersion.Parse("2.0");
+        public static readonly TheVersion MinimumGitLfsVersion = TheVersion.Parse("2.0");
+        public static readonly TheVersion DesiredGitVersion = TheVersion.Parse("2.11");
+        public static readonly TheVersion DesiredGitLfsVersion = TheVersion.Parse("2.4");
     }
 }

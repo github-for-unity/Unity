@@ -3,11 +3,11 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class GitVersionTask : ProcessTask<Version>
+    class GitVersionTask : ProcessTask<TheVersion>
     {
         private const string TaskName = "git --version";
 
-        public GitVersionTask(CancellationToken token, IOutputProcessor<Version> processor = null)
+        public GitVersionTask(CancellationToken token, IOutputProcessor<TheVersion> processor = null)
             : base(token, processor ?? new VersionOutputProcessor())
         {
             Name = TaskName;

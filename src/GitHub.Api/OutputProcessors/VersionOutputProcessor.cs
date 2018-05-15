@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    class VersionOutputProcessor : BaseOutputProcessor<Version>
+    class VersionOutputProcessor : BaseOutputProcessor<TheVersion>
     {
-        public static Regex GitVersionRegex = new Regex(@"git version ([\d]+)\.([\d]+)\.([\d]+)");
+        public static Regex GitVersionRegex = new Regex(@"git version (.*)");
 
         public override void LineReceived(string line)
         {
@@ -15,13 +15,9 @@ namespace GitHub.Unity
                 return;
 
             var match = GitVersionRegex.Match(line);
-
             if (match.Groups.Count > 0)
             {
-                var major = Int32.Parse(match.Groups[1].Value);
-                var minor = Int32.Parse(match.Groups[2].Value);
-                var build = Int32.Parse(match.Groups[3].Value);
-                var version = new Version(major, minor, build);
+                var version = TheVersion.Parse(match.Groups[0].Value);
                 RaiseOnEntry(version);
             }
         }

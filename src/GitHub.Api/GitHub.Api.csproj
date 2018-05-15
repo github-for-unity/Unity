@@ -104,7 +104,6 @@
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
     <Compile Include="Git\TreeData.cs" />
-    <Compile Include="Git\ValidateGitInstallResult.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
