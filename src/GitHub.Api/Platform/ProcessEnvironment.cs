@@ -37,6 +37,7 @@ namespace GitHub.Unity
             var pathEntries = new List<string>();
             string separator = Environment.IsWindows ? ";" : ":";
 
+            NPath libexecPath = NPath.Default;
             if (Environment.GitInstallPath.IsInitialized)
             {
                 var gitPathRoot = Environment.GitExecutablePath.Resolve().Parent.Parent;
@@ -53,9 +54,9 @@ namespace GitHub.Unity
                     binPath = baseExecPath.Combine("bin");
                 }
 
-                var execPath = baseExecPath.Combine("libexec", "git-core");
-                if (!execPath.DirectoryExists())
-                    execPath = NPath.Default;
+                libexecPath = baseExecPath.Combine("libexec", "git-core");
+                if (!libexecPath.DirectoryExists())
+                    libexecPath = NPath.Default;
 
                 if (Environment.IsWindows)
                 {
@@ -66,17 +67,17 @@ namespace GitHub.Unity
                     pathEntries.Add(gitExecutableDir.ToString());
                 }
 
-                if (execPath.IsInitialized)
-                    pathEntries.Add(execPath);
+                if (libexecPath.IsInitialized)
+                    pathEntries.Add(libexecPath);
                 pathEntries.Add(binPath);
 
                 // we can only set this env var if there is a libexec/git-core. git will bypass internally bundled tools if this env var
                 // is set, which will break Apple's system git on certain tools (like osx-credentialmanager)
-                if (execPath.IsInitialized)
-                    psi.EnvironmentVariables["GIT_EXEC_PATH"] = execPath.ToString();
+                if (libexecPath.IsInitialized)
+                    psi.EnvironmentVariables["GIT_EXEC_PATH"] = libexecPath.ToString();
             }
 
-            if (Environment.GitLfsInstallPath.IsInitialized && Environment.GitInstallPath != Environment.GitLfsInstallPath)
+            if (Environment.GitLfsInstallPath.IsInitialized && libexecPath != Environment.GitLfsInstallPath)
             {
                 pathEntries.Add(Environment.GitLfsInstallPath);
             }
