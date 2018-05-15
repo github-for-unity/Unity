@@ -33,8 +33,12 @@ namespace GitHub.Unity
             if (!feed.FileExists() || now.Date > environment.UserSettings.Get<DateTimeOffset>(key).Date)
             {
                 feed = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem, packageFeed, environment.UserCachePath)
-                        .Catch(e => true)
-                        .RunWithReturn(true);
+                    .Catch(e =>
+                    {
+                        LogHelper.Trace(e, "Failed to download " + packageFeed);
+                        return true;
+                    })
+                    .RunWithReturn(true);
 
                 if (feed.IsInitialized)
                     environment.UserSettings.Set<DateTimeOffset>(key, now);

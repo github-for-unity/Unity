@@ -279,6 +279,8 @@ namespace GitHub.Unity
             {
                 if (repoBranch == null || repoRemote == null || currentBranchAndRemoteHasUpdate)
                 {
+                    currentBranchAndRemoteHasUpdate = false;
+
                     var repositoryCurrentBranch = Repository.CurrentBranch;
                     var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
 
