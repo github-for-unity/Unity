@@ -29,7 +29,7 @@ namespace IntegrationTests
         public void IncrementMetricsWorks(string measureName)
         {
             var userId = Guid.NewGuid().ToString();
-            var appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
+            var appVersion = ApplicationInfo.Version;
             var unityVersion = "2017.3f1";
             var instanceId = Guid.NewGuid().ToString();
             var usageLoader = Substitute.For<IUsageLoader>();
@@ -54,7 +54,7 @@ namespace IntegrationTests
         {
             InitializeEnvironment(TestBasePath, false, false);
             var userId = Guid.NewGuid().ToString();
-            var appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
+            var appVersion = ApplicationInfo.Version;
             var unityVersion = "2017.3f1";
             var instanceId = Guid.NewGuid().ToString();
             var usageStore = new UsageStore();

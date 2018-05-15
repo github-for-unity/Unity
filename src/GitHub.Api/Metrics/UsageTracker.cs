@@ -37,7 +37,7 @@ namespace GitHub.Unity
             this.usageLoader = usageLoader;
             this.metricsService = metricsService;
             this.userId = userId;
-            this.appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
+            this.appVersion = ApplicationInfo.Version;
             this.unityVersion = unityVersion;
             this.instanceId = instanceId;
 
