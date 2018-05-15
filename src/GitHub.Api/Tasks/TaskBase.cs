@@ -491,7 +491,7 @@ namespace GitHub.Unity
             return $"{Task?.Id ?? -1} {Name} {GetType()}";
         }
 
-        public virtual bool Successful { get { return !taskFailed || exceptionWasHandled; /*Task.Status == TaskStatus.RanToCompletion && Task.Status != TaskStatus.Faulted;*/ } }
+        public virtual bool Successful { get { return !taskFailed || exceptionWasHandled; } }
         public string Errors { get; protected set; }
         public Task Task { get; protected set; }
         public bool IsCompleted { get { return hasRun; /*(Task as IAsyncResult).IsCompleted;*/ } }
