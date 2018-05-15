@@ -46,6 +46,7 @@ namespace GitHub.Unity
             {
                 LogPath = UserCachePath.Combine(logFile);
             }
+            LogPath.EnsureParentDirectoryExists();
         }
 
         public DefaultEnvironment(ICacheContainer cacheContainer) : this()
