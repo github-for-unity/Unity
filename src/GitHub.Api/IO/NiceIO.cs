@@ -476,9 +476,9 @@ namespace GitHub.Unity
                 hash = hash * 23 + _isInitialized.GetHashCode();
                 hash = hash * 23 + _isRelative.GetHashCode();
                 foreach (var element in _elements)
-                    hash = hash * 23 + (IsLinux ? element : element.ToUpperInvariant()).GetHashCode();
+                    hash = hash * 23 + (IsUnix ? element : element.ToUpperInvariant()).GetHashCode();
                 if (_driveLetter != null)
-                    hash = hash * 23 + (IsLinux ? _driveLetter : _driveLetter.ToUpperInvariant()).GetHashCode();
+                    hash = hash * 23 + (IsUnix ? _driveLetter : _driveLetter.ToUpperInvariant()).GetHashCode();
                 return hash;
             }
         }
@@ -1087,14 +1087,14 @@ namespace GitHub.Unity
             }
         }
 
-        private static bool? _isLinux;
-        internal static bool IsLinux
+        private static bool? _isUnix;
+        internal static bool IsUnix
         {
             get
             {
-                if (!_isLinux.HasValue)
-                    _isLinux = FileSystem.DirectoryExists("/proc");
-                return _isLinux.Value;
+                if (!_isUnix.HasValue)
+                    _isUnix = Environment.OSVersion.Platform == PlatformID.MacOSX || Environment.OSVersion.Platform == PlatformID.Unix;
+                return _isUnix.Value;
             }
         }
 
@@ -1103,10 +1103,10 @@ namespace GitHub.Unity
         {
             get
             {
-                // this is lazily evaluated because IsLinux uses the FileSystem object and that can be set
+                // this is lazily evaluated because IsUnix uses the FileSystem object and that can be set
                 // after static constructors happen here
                 if (!_pathStringComparison.HasValue)
-                    _pathStringComparison = IsLinux ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                    _pathStringComparison = IsUnix ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 return _pathStringComparison.Value;
             }
         }
@@ -1165,7 +1165,7 @@ namespace GitHub.Unity
         {
             // Add a reference to Mono.Posix with an .rsp file in the Assets folder with the line "-r:Mono.Posix.dll" for this to work
 #if ENABLE_MONO
-			if (!path.IsInitialized || !NPath.IsLinux /* nothing to resolve on windows */ || path.IsRelative || !path.FileExists())
+			if (!path.IsInitialized || !NPath.IsUnix /* nothing to resolve on windows */ || path.IsRelative || !path.FileExists())
 				return path;
 			return new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path.ToString()));
 #else
