@@ -319,7 +319,7 @@ namespace GitHub.Unity
 #if DEBUG
             private const string packageFeed = "http://localhost:50000/unity/git/";
 #else
-            private const string packageFeed = "https://ghfvs-installer.github.com/unity/git/";
+            private const string packageFeed = "http://github-vs.s3.amazonaws.com/unity/git/";
 #endif
 
             private const string PackageVersion = "f02737a78695063deace08e96d5042710d3e32db";

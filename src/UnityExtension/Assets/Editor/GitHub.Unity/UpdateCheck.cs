@@ -54,7 +54,7 @@ namespace GitHub.Unity
 #if DEBUG
         "http://localhost:50000/unity/latest.json"
 #else
-        "https://ghfvs-installer.github.com/unity/latest.json"
+        "http://github-vs.s3.amazonaws.com/unity/latest.json"
 #endif
         ;
 
