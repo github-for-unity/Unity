@@ -163,34 +163,37 @@ namespace GitHub.Unity
 
             if (firstRun)
             {
-                var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
+                if (Environment.RepositoryPath.IsInitialized)
+                {
+                    var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
+                    var yamlMergeCommand = Environment.IsWindows
+                        ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
+                        : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
 
-                var yamlMergeCommand = Environment.IsWindows
-                    ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
-                    : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
+                    GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local)
+                        .Catch(e =>
+                        {
+                            Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
+                            return true;
+                        })
+                        .RunWithReturn(true);
 
-                GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local)
-                    .Catch(e =>
-                    {
-                        Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
-                        return true;
-                    })
-                    .RunWithReturn(true);
-                GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local)
-                    .Catch(e =>
-                    {
-                        Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
-                        return true;
-                    })
-                    .RunWithReturn(true);
+                    GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local)
+                        .Catch(e =>
+                        {
+                            Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
+                            return true;
+                        })
+                        .RunWithReturn(true);
 
-                GitClient.LfsInstall()
-                    .Catch(e =>
-                    {
-                        Logger.Error(e, "Error running lfs install");
-                        return true;
-                    })
-                    .RunWithReturn(true);
+                    GitClient.LfsInstall()
+                        .Catch(e =>
+                        {
+                            Logger.Error(e, "Error running lfs install");
+                            return true;
+                        })
+                        .RunWithReturn(true);
+                }
 
                 if (Environment.IsWindows)
                 {
