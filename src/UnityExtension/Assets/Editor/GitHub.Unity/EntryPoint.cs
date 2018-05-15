@@ -68,9 +68,9 @@ namespace GitHub.Unity
                 );
             LogHelper.Info("Initializing GitHubForUnity:'v{0}' Unity:'v{1}'", ApplicationInfo.Version, Environment.UnityVersion);
 
-            ApplicationManager.Run(ApplicationCache.Instance.FirstRun);
+            ApplicationManager.Run();
 
-            //if (ApplicationCache.Instance.FirstRun)
+            if (ApplicationCache.Instance.FirstRun)
                 UpdateCheckWindow.CheckForUpdates();
         }
 

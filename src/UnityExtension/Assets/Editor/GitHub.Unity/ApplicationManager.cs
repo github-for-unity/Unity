@@ -17,13 +17,11 @@ namespace GitHub.Unity
         public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
             : base(synchronizationContext as SynchronizationContext)
         {
+            FirstRun = ApplicationCache.Instance.FirstRun;
+            InstanceId = ApplicationCache.Instance.InstanceId;
+
             ListenToUnityExit();
             Initialize();
-        }
-
-        protected override void SetupMetrics()
-        {
-            SetupMetrics(Environment.UnityVersion, ApplicationCache.Instance.FirstRun, ApplicationCache.Instance.InstanceId);
         }
 
         protected override void InitializeUI()
@@ -37,11 +35,17 @@ namespace GitHub.Unity
             var window = Window.GetWindow();
             if (window != null)
                 window.InitializeWindow(this);
+            SetProjectToTextSerialization();
         }
 
-        protected override void SetProjectToTextSerialization()
+        protected void SetProjectToTextSerialization()
         {
             EditorSettings.serializationMode = SerializationMode.ForceText;
+        }
+
+        protected override void InitializationComplete()
+        {
+            ApplicationCache.Instance.Initialized = true;
         }
 
         private void ListenToUnityExit()

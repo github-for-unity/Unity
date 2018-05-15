@@ -93,20 +93,12 @@ namespace IntegrationTests
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
 
-        public bool IsCustomGitExecutable { get; set; }
-
-        public NPath GitExecutablePath
-        {
-            get { return defaultEnvironment.GitExecutablePath; }
-            set
-            {
-                if (enableTrace)
-                {
-                    logger.Trace("Setting GitExecutablePath to " + value);
-                }
-                defaultEnvironment.GitExecutablePath = value;
-            }
-        }
+        public bool IsCustomGitExecutable => defaultEnvironment.IsCustomGitExecutable;
+        public NPath GitExecutablePath => defaultEnvironment.GitExecutablePath;
+        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
+        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
+        public NPath GitLfsExecutablePath => defaultEnvironment.GitLfsExecutablePath;
+        public GitInstaller.GitInstallationState GitInstallationState { get { return defaultEnvironment.GitInstallationState; } set { defaultEnvironment.GitInstallationState = value; } }
 
         public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
 
@@ -131,10 +123,6 @@ namespace IntegrationTests
         public NPath LogPath => defaultEnvironment.LogPath;
 
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
-
-        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
-        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
-        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
 
         public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
         public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }

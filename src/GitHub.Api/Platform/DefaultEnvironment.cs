@@ -12,8 +12,6 @@ namespace GitHub.Unity
         private static bool? onLinux;
         private static bool? onMac;
 
-        private NPath gitExecutablePath;
-        private NPath gitLfsExecutablePath;
         private NPath nodeJsExecutablePath;
         private NPath octorunScriptPath;
 
@@ -152,30 +150,26 @@ namespace GitHub.Unity
             }
         }
 
-        public bool IsCustomGitExecutable { get; set; }
-
-        public NPath GitExecutablePath
+        public bool IsCustomGitExecutable => GitInstallationState?.IsCustomGitPath ?? false;
+        public NPath GitInstallPath => GitInstallationState?.GitInstallationPath ?? NPath.Default;
+        public NPath GitExecutablePath => GitInstallationState?.GitExecutablePath ?? NPath.Default;
+        public NPath GitLfsInstallPath => GitInstallationState?.GitLfsInstallationPath ?? NPath.Default;
+        public NPath GitLfsExecutablePath => GitInstallationState?.GitLfsExecutablePath ?? NPath.Default;
+        public GitInstaller.GitInstallationState GitInstallationState
         {
-            get { return gitExecutablePath; }
+            get
+            {
+                return SystemSettings.Get<GitInstaller.GitInstallationState>(Constants.GitInstallationState, new GitInstaller.GitInstallationState());
+            }
             set
             {
-                gitExecutablePath = value;
-                if (!gitExecutablePath.IsInitialized)
-                    GitInstallPath = NPath.Default;
+                if (value == null)
+                    SystemSettings.Unset(Constants.GitInstallationState);
                 else
-                    GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
+                    SystemSettings.Set<GitInstaller.GitInstallationState>(Constants.GitInstallationState, value);
             }
         }
 
-        public NPath GitLfsExecutablePath
-        {
-            get { return gitLfsExecutablePath; }
-            set
-            {
-                gitLfsExecutablePath = value;
-                GitLfsInstallPath = gitLfsExecutablePath.IsInitialized ? gitLfsExecutablePath.Parent : NPath.Default;
-            }
-        }
 
         public NPath NodeJsExecutablePath
         {
@@ -190,8 +184,6 @@ namespace GitHub.Unity
                 return nodeJsExecutablePath;
             }
         }
-        public NPath GitInstallPath { get; private set; }
-        public NPath GitLfsInstallPath { get; private set; }
         public NPath RepositoryPath { get; private set; }
         public ICacheContainer CacheContainer { get; private set; }
         public IRepository Repository { get; set; }

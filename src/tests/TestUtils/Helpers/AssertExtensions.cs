@@ -114,44 +114,5 @@ namespace TestUtils
             Action action = () => gitStatus.AssertEqual(other);
             action.ShouldThrow<AssertionException>();
         }
-   
-        public static void AssertEqual(this GitLock gitLock, GitLock other)
-        {
-            gitLock.Path.Should().Be(other.Path);
-            gitLock.FullPath.Should().Be(other.FullPath);
-            gitLock.User.Should().Be(other.User);
-        }
-
-        public static void AssertNotEqual(this GitLock gitLock, GitLock other)
-        {
-            Action action = () => gitLock.AssertEqual(other);
-            action.ShouldThrow<AssertionException>();
-        }
-
-        public static void AssertEqual(this IList<GitLock> gitLocks, IList<GitLock> others)
-        {
-            if (gitLocks == null)
-            {
-                others.Should().BeNull();
-                return;
-            }
-
-            others.Should().NotBeNull();
-            gitLocks.Count.Should().Be(others.Count);
-
-            for (var i = 0; i < gitLocks.Count; i++)
-            {
-                var gitLock = gitLocks[i];
-                var other = others[i];
-
-                gitLock.AssertEqual(other);
-            }
-        }
-
-        public static void AssertNotEqual(this IList<GitLock> gitLocks, IList<GitLock> others)
-        {
-            Action action = () => gitLocks.AssertEqual(others);
-            action.ShouldThrow<AssertionException>();
-        }
     }
 }

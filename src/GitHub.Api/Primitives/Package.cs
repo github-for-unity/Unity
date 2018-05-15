@@ -21,13 +21,12 @@ namespace GitHub.Unity
         public string ReleaseNotes { get; set; }
         public string ReleaseNotesUrl { get; set; }
         public string Message { get; set; }
-        public string ExecutableMd5 { get; set; }
         [NotSerialized] public TheVersion Version { get { return TheVersion.Parse(version); } set { version = value.ToString(); } }
 
         public static Package Load(IEnvironment environment, UriString packageFeed)
         {
             Package package = null;
-            var key = packageFeed.Filename.ToNPath().FileNameWithoutExtension + "_lastCheckTime";
+            var key = packageFeed.Filename.ToNPath().FileNameWithoutExtension + "_updatelastCheckTime";
             var now = DateTimeOffset.Now;
             NPath feed = environment.UserCachePath.Combine(packageFeed.Filename);
 
@@ -44,7 +43,7 @@ namespace GitHub.Unity
             if (!feed.IsInitialized)
             {
                 // try from assembly resources
-                feed = AssemblyResources.ToFile(ResourceType.Platform, packageFeed.Filename, environment.UserCachePath.Combine(packageFeed.Filename), environment);
+                feed = AssemblyResources.ToFile(ResourceType.Platform, packageFeed.Filename, environment.UserCachePath, environment);
             }
 
             if (feed.IsInitialized)

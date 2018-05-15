@@ -90,7 +90,7 @@ namespace GitHub.Unity
                             progress: (totalRead, timeToFinish) =>
                             {
                                 totalBytes += totalRead;
-                                return onProgress(totalBytes, totalSize);
+                                return onProgress?.Invoke(totalBytes, totalSize) ?? true;
                             }))
                             return false;
                     }

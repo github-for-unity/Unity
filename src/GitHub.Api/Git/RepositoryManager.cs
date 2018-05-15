@@ -34,8 +34,8 @@ namespace GitHub.Unity
         ITask SwitchBranch(string branch);
         ITask DeleteBranch(string branch, bool deleteUnmerged = false);
         ITask CreateBranch(string branch, string baseBranch);
-        ITask LockFile(string file);
-        ITask UnlockFile(string file, bool force);
+        ITask LockFile(NPath file);
+        ITask UnlockFile(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] gitStatusEntries);
         void UpdateGitLog();
         void UpdateGitStatus();
@@ -255,13 +255,13 @@ namespace GitHub.Unity
             return HookupHandlers(task, false);
         }
 
-        public ITask LockFile(string file)
+        public ITask LockFile(NPath file)
         {
             var task = GitClient.Lock(file);
             return HookupHandlers(task, false).Then(UpdateLocks);
         }
 
-        public ITask UnlockFile(string file, bool force)
+        public ITask UnlockFile(NPath file, bool force)
         {
             var task = GitClient.Unlock(file, force);
             return HookupHandlers(task, false).Then(UpdateLocks);
@@ -327,10 +327,7 @@ namespace GitHub.Unity
 
                     if (itemsToRevert.Any())
                     {
-                        var next = GitClient.Discard(itemsToRevert);
-                        HookupHandlers(next, true);
-                        task.OnEnd -= HookupEndHandlerWithWatcher;
-                        task.Then(next);
+                        task.Then(GitClient.Discard(itemsToRevert));
                     }
                 }
                 , () => gitStatusEntries);
@@ -453,35 +450,21 @@ namespace GitHub.Unity
                 }
             };
 
-            if (filesystemChangesExpected)
-                task.OnEnd += HookupEndHandlerWithWatcher;
-            else
-                task.OnEnd += HookupEndHandlerWithoutWatcher;
+            task.Finally(success =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+            });
             return task;
-        }
-
-        private void HookupEndHandlerWithWatcher(ITask task, bool success, Exception ex)
-        {
-            HookupEndHandler(task, true);
-        }
-
-        private void HookupEndHandlerWithoutWatcher(ITask task, bool success, Exception ex)
-        {
-            HookupEndHandler(task, false);
-        }
-
-        private void HookupEndHandler(ITask task, bool filesystemChangesExpected)
-        {
-            var isExclusive = task.IsChainExclusive();
-            if (filesystemChangesExpected)
-            {
-                watcher.Start();
-            }
-
-            if (isExclusive)
-            {
-                IsBusy = false;
-            }
         }
 
         private string GetCurrentHead()

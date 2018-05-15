@@ -21,7 +21,6 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentBranchHasUpdate;
         [NonSerialized] private bool currentStatusEntriesHasUpdate;
         [NonSerialized] private bool currentLocksHasUpdate;
-        [NonSerialized] private bool isBusy;
 
         [NonSerialized] private GUIContent discardGuiContent;
 
@@ -32,7 +31,7 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 treeScroll;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
 
-        [SerializeField] private HashSet<string> gitLocks;
+        [SerializeField] private HashSet<NPath> gitLocks;
         [SerializeField] private List<GitStatusEntry> gitStatusEntries;
 
         [SerializeField] private string changedFilesText = NoChangedFilesLabel;
@@ -119,8 +118,6 @@ namespace GitHub.Unity
 
         public override void OnFocusChanged()
         {
-            Logger.Debug("OnFocusChanged: {0}", HasFocus);
-
             base.OnFocusChanged();
             var hasFocus = HasFocus;
             if (treeChanges.ViewHasFocus != hasFocus)
@@ -259,7 +256,7 @@ namespace GitHub.Unity
                 currentStatusEntriesHasUpdate = false;
                 currentLocksHasUpdate = false;
 
-                gitLocks = new HashSet<string>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
+                gitLocks = new HashSet<NPath>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
                 gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
 
                 changedFilesText = gitStatusEntries.Count == 0
@@ -275,7 +272,7 @@ namespace GitHub.Unity
         private void BuildTree()
         {
             treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
-            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path))));
+            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path.ToNPath()))));
             Redraw();
         }
 

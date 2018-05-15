@@ -18,8 +18,8 @@ namespace GitHub.Unity
         ITask Push();
         ITask Fetch();
         ITask Revert(string changeset);
-        ITask RequestLock(string file);
-        ITask ReleaseLock(string file, bool force);
+        ITask RequestLock(NPath file);
+        ITask ReleaseLock(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] discardEntries);
         void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent);
 
