@@ -42,6 +42,7 @@ namespace GitHub.Unity
             Platform = new Platform(Environment);
 
             LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
+            ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
