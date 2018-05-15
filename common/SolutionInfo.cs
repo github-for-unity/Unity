@@ -32,8 +32,8 @@ namespace System
 {
     internal static class AssemblyVersionInformation {
         // this is for the AssemblyVersion and AssemblyVersion attributes, which can't handle alphanumerics
-        internal const string VersionForAssembly = "0.33.1";
+        internal const string VersionForAssembly = "0.34.0";
         // Actual real version
-        internal const string Version = "0.33.1-beta";
+        internal const string Version = "0.34.0-beta";
     }
 }
