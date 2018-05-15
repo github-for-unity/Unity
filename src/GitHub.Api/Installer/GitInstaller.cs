@@ -67,19 +67,16 @@ namespace GitHub.Unity
             if (state.GitIsValid)
                 state.GitInstallationPath = state.GitExecutablePath.Parent.Parent;
 
-            var isDefaultGitLfs = !state.GitLfsExecutablePath.IsInitialized || state.GitLfsInstallationPath == state.GitInstallationPath;
-            if (isDefaultGitLfs)
-                state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
+            if (!state.GitLfsExecutablePath.IsInitialized)
+            {
+                // look for it in the directory where we would install it from the bundle
+                state.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
+            }
 
             state = ValidateGitLfsVersion(state);
 
             if (state.GitLfsIsValid)
-            {
-                if (isDefaultGitLfs)
-                    state.GitLfsInstallationPath = state.GitInstallationPath;
-                else
-                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
-            }
+                state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
 
             return state;
         }
@@ -107,7 +104,7 @@ namespace GitHub.Unity
                 state.GitLfsExecutablePath = gitLfsPath;
                 state = ValidateGitLfsVersion(state);
                 if (state.GitLfsIsValid)
-                    state.GitLfsInstallationPath = gitLfsPath.Parent;
+                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
             }
             return state;
         }
@@ -124,10 +121,7 @@ namespace GitHub.Unity
             if (!state.GitLfsIsValid)
             {
                 state.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
-                if (state.GitIsValid && state.GitInstallationPath != installDetails.GitInstallationPath)
-                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
-                else
-                    state.GitLfsInstallationPath = installDetails.GitInstallationPath;
+                state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
                 state = ValidateGitLfsVersion(state);
             }
             return state;
