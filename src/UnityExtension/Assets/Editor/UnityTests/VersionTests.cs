@@ -157,9 +157,21 @@ public class VersionTests
         version2 = TheVersion.Parse("1.2.3alpha1");
         Assert.IsTrue(version1 >= version2);
 
-        version1 = TheVersion.Parse("0.32.0");
-        version2 = TheVersion.Parse("0.33.0-beta");
+        version1 = TheVersion.Parse("0.33.0-beta");
+        version2 = TheVersion.Parse("0.32.0");
+        Assert.IsTrue(version1 > version2);
+
+        version1 = TheVersion.Parse("0.33.2");
+        version2 = TheVersion.Parse("0.33.3-beta");
         Assert.IsTrue(version1 < version2);
+
+        version1 = TheVersion.Parse("0.33.3-alpha");
+        version2 = TheVersion.Parse("0.33.3-beta");
+        Assert.IsTrue(version1 < version2);
+
+        version1 = TheVersion.Parse("0.33.3");
+        version2 = TheVersion.Parse("0.33.3-beta");
+        Assert.IsTrue(version1 > version2);
     }
 
     [Test]
