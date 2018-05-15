@@ -67,9 +67,13 @@ namespace GitHub.Unity
             if (state.GitIsValid)
                 state.GitInstallationPath = state.GitExecutablePath.Parent.Parent;
 
-            var isDefaultGitLfs = !state.GitLfsExecutablePath.IsInitialized || state.GitLfsInstallationPath == state.GitInstallationPath;
+            var isDefaultGitLfs = !state.GitLfsExecutablePath.IsInitialized;
             if (isDefaultGitLfs)
-                state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
+            {
+                state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, false, state.GitExecutablePath.Parent);
+                if (!state.GitLfsExecutablePath.IsInitialized)
+                    state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
+            }
 
             state = ValidateGitLfsVersion(state);
 
