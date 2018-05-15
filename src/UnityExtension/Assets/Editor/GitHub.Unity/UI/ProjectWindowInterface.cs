@@ -34,6 +34,7 @@ namespace GitHub.Unity
             {
                 repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
+                ValidateCachedData(repository);
             }
         }
 
