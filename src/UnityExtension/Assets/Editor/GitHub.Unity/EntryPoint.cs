@@ -70,7 +70,7 @@ namespace GitHub.Unity
 
             ApplicationManager.Run();
 
-            //if (ApplicationCache.Instance.FirstRun)
+            if (ApplicationCache.Instance.FirstRun)
                 UpdateCheckWindow.CheckForUpdates();
         }
 
