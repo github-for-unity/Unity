@@ -124,6 +124,7 @@ namespace GitHub.Unity
                         if (EditorGUI.EndChangeCheck())
                         {
                             changingManually = true;
+                            errorMessage = "";
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -156,6 +157,7 @@ namespace GitHub.Unity
                         resetToBundled = true;
                         resetToSystem = false;
                         changingManually = false;
+                        errorMessage = "";
                     }
 
                     //Find button - for attempting to locate a new install
@@ -189,6 +191,7 @@ namespace GitHub.Unity
                                 resetToBundled = false;
                                 resetToSystem = true;
                                 changingManually = false;
+                                errorMessage = "";
                                 Redraw();
                             })
                         .Start();

@@ -38,6 +38,7 @@ namespace GitHub.Unity
             string separator = Environment.IsWindows ? ";" : ":";
 
             NPath libexecPath = NPath.Default;
+            List<string> gitPathEntries = new List<string>();
             if (Environment.GitInstallPath.IsInitialized)
             {
                 var gitPathRoot = Environment.GitExecutablePath.Resolve().Parent.Parent;
@@ -60,16 +61,16 @@ namespace GitHub.Unity
 
                 if (Environment.IsWindows)
                 {
-                    pathEntries.AddRange(new[] { gitPathRoot.Combine("cmd").ToString(), gitPathRoot.Combine("usr", "bin") });
+                    gitPathEntries.AddRange(new[] { gitPathRoot.Combine("cmd").ToString(), gitPathRoot.Combine("usr", "bin") });
                 }
                 else
                 {
-                    pathEntries.Add(gitExecutableDir.ToString());
+                    gitPathEntries.Add(gitExecutableDir.ToString());
                 }
 
                 if (libexecPath.IsInitialized)
-                    pathEntries.Add(libexecPath);
-                pathEntries.Add(binPath);
+                    gitPathEntries.Add(libexecPath);
+                gitPathEntries.Add(binPath);
 
                 // we can only set this env var if there is a libexec/git-core. git will bypass internally bundled tools if this env var
                 // is set, which will break Apple's system git on certain tools (like osx-credentialmanager)
@@ -81,6 +82,8 @@ namespace GitHub.Unity
             {
                 pathEntries.Add(Environment.GitLfsInstallPath);
             }
+            if (gitPathEntries.Count > 0)
+                pathEntries.AddRange(gitPathEntries);
 
             pathEntries.Add("END");
 
