@@ -105,7 +105,7 @@ namespace TestWebServer
             var filename = context.Request.Url.AbsolutePath;
             Logger.Info($"{filename}");
             filename = filename.TrimStart('/');
-            filename = filename.Replace('/', '\\');
+            filename = filename.Replace('/', Path.DirectorySeparatorChar);
             filename = Path.Combine(rootDirectory, filename);
 
             if (!File.Exists(filename))
