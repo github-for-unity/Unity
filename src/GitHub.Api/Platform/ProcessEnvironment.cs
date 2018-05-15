@@ -39,7 +39,7 @@ namespace GitHub.Unity
 
             if (Environment.GitInstallPath.IsInitialized)
             {
-                var gitPathRoot = Environment.GitInstallPath;
+                var gitPathRoot = Environment.GitExecutablePath.Resolve().Parent.Parent;
                 var gitExecutableDir = Environment.GitExecutablePath.Parent; // original path to git (might be different from install path if it's a symlink)
 
                 var baseExecPath = gitPathRoot;

@@ -31,8 +31,8 @@ namespace GitHub.Unity
         [NotSerialized] private string[] stringParts;
         [NotSerialized] private int parts;
         [NotSerialized] private bool initialized;
-
-        public string Version { get; set; }
+        [NotSerialized] private string version;
+        public string Version { get { if (version == null) version = String.Empty; return version; } set { version = value; } }
 
         private static readonly Regex regex = new Regex(versionRegex);
 
@@ -46,7 +46,7 @@ namespace GitHub.Unity
             if (initialized)
                 return this;
 
-            this.Version = version;
+            this.Version = version?.Trim() ?? String.Empty;
 
             isAlpha = false;
             isBeta = false;
@@ -86,7 +86,7 @@ namespace GitHub.Unity
                 parts++;
                 if (!int.TryParse(minorMatch.Value, out minor))
                 {
-                    special = minorMatch.Value;
+                    special = minorMatch.Value.TrimEnd();
                     stringParts[parts - 1] = special;
                 }
                 else
@@ -98,7 +98,7 @@ namespace GitHub.Unity
                         parts++;
                         if (!int.TryParse(patchMatch.Value, out patch))
                         {
-                            special = patchMatch.Value;
+                            special = patchMatch.Value.TrimEnd();
                             stringParts[parts - 1] = special;
                         }
                         else
@@ -110,7 +110,7 @@ namespace GitHub.Unity
                                 parts++;
                                 if (!int.TryParse(buildMatch.Value, out build))
                                 {
-                                    special = buildMatch.Value;
+                                    special = buildMatch.Value.TrimEnd();
                                     stringParts[parts - 1] = special;
                                 }
                                 else
@@ -191,9 +191,9 @@ namespace GitHub.Unity
         {
             if (lhs.Version == rhs.Version)
                 return false;
-            if (lhs.Version == null)
+            if (String.IsNullOrEmpty(lhs.Version))
                 return false;
-            if (rhs.Version == null)
+            if (String.IsNullOrEmpty(rhs.Version))
                 return true;
 
             for (var i = 0; i < PART_COUNT; i++)
@@ -235,7 +235,7 @@ namespace GitHub.Unity
             var lhsNumber = -1;
             if (lhsNonDigitPos > -1)
             {
-                lhsNumber = int.Parse(lhs.Substring(0, lhsNonDigitPos));
+                int.TryParse(lhs.Substring(0, lhsNonDigitPos), out lhsNumber);
             }
             else
             {
@@ -245,7 +245,7 @@ namespace GitHub.Unity
             var rhsNumber = -1;
             if (rhsNonDigitPos > -1)
             {
-                rhsNumber = int.Parse(rhs.Substring(0, rhsNonDigitPos));
+                int.TryParse(rhs.Substring(0, rhsNonDigitPos), out rhsNumber);
             }
             else
             {

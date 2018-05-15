@@ -59,7 +59,6 @@ namespace TestApp
             bool generatePackage = false;
             string version = null;
             string url = null;
-            string execMd5 = null;
             string readVersion = null;
             string msg = null;
 
@@ -79,7 +78,6 @@ namespace TestApp
                 .Add("p|gen-package", "Pass --version --url --path --md5 --rn --msg to generate a package", v => generatePackage = true)
                 .Add("u=|url=", v => url = v)
                 .Add("path=", v => path = v.ToNPath())
-                .Add("md5=", v => execMd5 = v)
                 .Add("rn=", "Path to file with release notes", v => releaseNotes = v.ReadAllTextIfFileExists())
                 .Add("msg=", "Path to file with message for package", v => msg = v.ReadAllTextIfFileExists())
                 .Add("readVersion=", v => readVersion = v)
@@ -94,7 +92,6 @@ namespace TestApp
                 url += "/" + path.FileName;
                 var package = new Package
                 {
-                    ExecutableMd5 = execMd5,
                     Message = msg,
                     Md5 = md5,
                     ReleaseNotes = releaseNotes,

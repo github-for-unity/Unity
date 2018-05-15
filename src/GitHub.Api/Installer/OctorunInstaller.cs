@@ -29,30 +29,24 @@ namespace GitHub.Unity
             NPath path = NPath.Default;
             var isOctorunExtracted = IsOctorunExtracted();
             if (isOctorunExtracted)
-                path = installDetails.ExecutablePath;
+                return installDetails.ExecutablePath;
+
             GrabZipFromResources();
 
-            if (!path.IsInitialized)
-            {
-                var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
-                var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
-                        tempZipExtractPath, sharpZipLibHelper,
-                        fileSystem);
-                var extractPath = unzipTask.RunWithReturn(true);
-                if (unzipTask.Successful)
-                    path = MoveOctorun(extractPath.Combine("octorun"));
-                tempZipExtractPath.DeleteIfExists();
-            }
+            var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
+            var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
+                    tempZipExtractPath, sharpZipLibHelper,
+                    fileSystem)
+                    .Catch(e => { Logger.Error(e, "Error extracting octorun"); return true; });
+            var extractPath = unzipTask.RunWithReturn(true);
+            if (unzipTask.Successful)
+                path = MoveOctorun(extractPath.Combine("octorun"));
             return path;
         }
 
         private NPath GrabZipFromResources()
         {
-            installDetails.ZipFile.DeleteIfExists();
-            
-            AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
-            
-            return installDetails.ZipFile;
+            return AssemblyResources.ToFile(ResourceType.Generic, "octorun.zip", installDetails.BaseZipPath, environment);
         }
 
         private NPath MoveOctorun(NPath fromPath)
@@ -61,6 +55,7 @@ namespace GitHub.Unity
             toPath.DeleteIfExists();
             toPath.EnsureParentDirectoryExists();
             fromPath.Move(toPath);
+            fromPath.Parent.Delete();
             return installDetails.ExecutablePath;
         }
 

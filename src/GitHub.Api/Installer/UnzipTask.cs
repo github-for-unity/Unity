@@ -16,7 +16,7 @@ namespace GitHub.Unity
         {
             this.archiveFilePath = archiveFilePath;
             this.extractedPath = extractedPath;
-            this.zipHelper = zipHelper;
+            this.zipHelper = zipHelper ?? ZipHelper.Instance;
             this.fileSystem = fileSystem;
             Name = $"Unzip {archiveFilePath.FileName}";
         }
