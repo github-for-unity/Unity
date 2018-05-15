@@ -14,10 +14,8 @@ namespace GitHub.Unity
         private const string GitRepositoryTitle = "Repository Configuration";
         private const string GitRepositoryRemoteLabel = "Remote";
         private const string GitRepositorySave = "Save Repository";
-        private const string GeneralSettingsTitle = "General";
         private const string DebugSettingsTitle = "Debug";
         private const string PrivacyTitle = "Privacy";
-        private const string WebTimeoutLabel = "Timeout of web requests";
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
@@ -40,7 +38,6 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteUrl;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
-        [SerializeField] private int webTimeout;
 
         public override void InitializeView(IView parent)
         {
@@ -110,7 +107,6 @@ namespace GitHub.Unity
 
                 gitPathView.OnGUI();
                 OnPrivacyGui();
-                OnGeneralSettingsGui();
                 OnLoggingSettingsGui();
             }
 
@@ -349,27 +345,6 @@ namespace GitHub.Unity
             }
             EditorGUI.EndDisabledGroup();
         }
-
-        private void OnGeneralSettingsGui()
-        {
-            GUILayout.Label(GeneralSettingsTitle, EditorStyles.boldLabel);
-
-            EditorGUI.BeginDisabledGroup(IsBusy);
-            {
-                webTimeout = ApplicationConfiguration.WebTimeout;
-                EditorGUI.BeginChangeCheck();
-                {
-                    webTimeout = EditorGUILayout.IntField(WebTimeoutLabel, webTimeout);
-                }
-                if (EditorGUI.EndChangeCheck())
-                {
-                    ApplicationConfiguration.WebTimeout = webTimeout;
-                    Manager.UserSettings.Set(Constants.WebTimeoutKey, webTimeout);
-                }
-            }
-            EditorGUI.EndDisabledGroup();
-        }
-
 
         public override bool IsBusy
         {

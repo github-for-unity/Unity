@@ -7,7 +7,6 @@ namespace GitHub.Unity
         public const string UsageFile = "metrics.json";
         public const string GitInstallPathKey = "GitInstallPath";
         public const string TraceLoggingKey = "EnableTraceLogging";
-        public const string WebTimeoutKey = "WebTimeout";
         public const string Iso8601Format = @"yyyy-MM-dd\THH\:mm\:ss.fffzzz";
         public const string Iso8601FormatZ = @"yyyy-MM-dd\THH\:mm\:ss\Z";
         public static readonly string[] Iso8601Formats = {
