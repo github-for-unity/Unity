@@ -36,9 +36,9 @@ namespace GitHub.Unity
             if (!feed.FileExists() || now.Date > environment.UserSettings.Get<DateTimeOffset>(key).Date)
             {
                 feed = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem, packageFeed, environment.UserCachePath)
-                    .Catch(e =>
+                    .Catch(ex =>
                     {
-                        LogHelper.Trace(e, "Failed to download " + packageFeed);
+                        LogHelper.Warning(@"Error downloading package feed:{0} ""{1}"" Message:""{2}""", packageFeed, ex.GetType().ToString(), ex.Message);
                         return true;
                     })
                     .RunWithReturn(true);
