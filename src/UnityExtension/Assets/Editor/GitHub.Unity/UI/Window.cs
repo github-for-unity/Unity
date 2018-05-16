@@ -22,12 +22,10 @@ namespace GitHub.Unity
         private const string Window_RepoUrlTooltip = "Url of the {0} remote";
         private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
         private const string Window_RepoBranchTooltip = "Active branch";
-        private const float SpinnerAnimationDuration = 4f;
 
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private double timeSinceLastRotation = -1f;
         [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
-        [NonSerialized] private bool gitExecutableIsSet;
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress progress;
         [NonSerialized] private float progressValue;
@@ -269,7 +267,6 @@ namespace GitHub.Unity
                 progressMessage = progress.Message;
             }
 
-            gitExecutableIsSet = !String.IsNullOrEmpty(Environment.GitExecutablePath);
             string updatedRepoRemote = null;
             string updatedRepoUrl = DefaultRepoUrl;
 
