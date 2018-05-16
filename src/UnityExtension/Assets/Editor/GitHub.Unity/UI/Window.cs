@@ -23,10 +23,28 @@ namespace GitHub.Unity
         private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
         private const string Window_RepoBranchTooltip = "Active branch";
         private const float SpinnerAnimationDuration = 4f;
+        private const string FetchActionTitle = "Fetch Changes";
+        private const string FetchButtonText = "Fetch";
+        private const string FetchFailureDescription = "Could not fetch changes";
+        private const string PullButton = "Pull";
+        private const string PullButtonCount = "Pull (<b>{0}</b>)";
+        private const string PushButton = "Push";
+        private const string PushButtonCount = "Push (<b>{0}</b>)";
+        private const string PullConfirmTitle = "Pull Changes?";
+        private const string PullConfirmDescription = "Would you like to pull changes from remote '{0}'?";
+        private const string PullConfirmYes = "Pull";
+        private const string PullConfirmCancel = "Cancel";
+        private const string PushConfirmTitle = "Push Changes?";
+        private const string PushConfirmDescription = "Would you like to push changes to remote '{0}'?";
+        private const string PushConfirmYes = "Push";
+        private const string PushConfirmCancel = "Cancel";
+        private const string PublishButton = "Publish";
+
+        [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
+        [NonSerialized] private bool currentTrackingStatusHasUpdate;
 
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private double timeSinceLastRotation = -1f;
-        [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress progress;
         [NonSerialized] private float progressValue;
@@ -40,12 +58,20 @@ namespace GitHub.Unity
         [SerializeField] private HistoryView historyView = new HistoryView();
         [SerializeField] private SettingsView settingsView = new SettingsView();
 
-        [SerializeField] private string repoRemote;
-        [SerializeField] private string repoBranch;
-        [SerializeField] private string repoUrl;
-        [SerializeField] private GUIContent repoBranchContent;
-        [SerializeField] private GUIContent repoUrlContent;
+        [SerializeField] private bool hasRemote;
+        [SerializeField] private string currentRemoteName;
+        [SerializeField] private string currentBranch;
+        [SerializeField] private string currentRemoteUrl;
+
+        [SerializeField] private int statusAhead;
+        [SerializeField] private int statusBehind;
+        [SerializeField] private bool hasItemsToCommit;
+
+        [SerializeField] private GUIContent currentBranchContent;
+        [SerializeField] private GUIContent currentRemoteUrlContent;
+
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
 
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
@@ -197,6 +223,7 @@ namespace GitHub.Unity
                 DoHeaderGUI();
             }
 
+            DoActionbarGUI();
             DoToolbarGUI();
 
             var rect = GUILayoutUtility.GetLastRect();
@@ -273,9 +300,26 @@ namespace GitHub.Unity
 
             var shouldUpdateContentFields = false;
 
+            if (currentTrackingStatusHasUpdate)
+            {
+                currentTrackingStatusHasUpdate = false;
+
+                statusAhead = Repository.CurrentAhead;
+                statusBehind = Repository.CurrentBehind;
+
+                var currentChanges = Repository.CurrentChanges;
+                hasItemsToCommit = currentChanges != null
+                    && currentChanges.Any(entry => entry.Status != GitFileStatus.Ignored && !entry.Staged);
+            }
+
+            if (currentBranchAndRemoteHasUpdate)
+            {
+                hasRemote = false;
+            }
+
             if (Repository != null)
             {
-                if (repoBranch == null || repoRemote == null || currentBranchAndRemoteHasUpdate)
+                if (currentBranch == null || currentRemoteName == null || currentBranchAndRemoteHasUpdate)
                 {
                     currentBranchAndRemoteHasUpdate = false;
 
@@ -285,6 +329,7 @@ namespace GitHub.Unity
                     var repositoryCurrentRemote = Repository.CurrentRemote;
                     if (repositoryCurrentRemote.HasValue)
                     {
+                        hasRemote = true;
                         updatedRepoRemote = repositoryCurrentRemote.Value.Name;
                         if (!string.IsNullOrEmpty(repositoryCurrentRemote.Value.Url))
                         {
@@ -292,57 +337,57 @@ namespace GitHub.Unity
                         }
                     }
 
-                    if (repoRemote != updatedRepoRemote)
+                    if (currentRemoteName != updatedRepoRemote)
                     {
-                        repoRemote = updatedRepoBranch;
+                        currentRemoteName = updatedRepoBranch;
                         shouldUpdateContentFields = true;
                     }
 
-                    if (repoBranch != updatedRepoBranch)
+                    if (currentBranch != updatedRepoBranch)
                     {
-                        repoBranch = updatedRepoBranch;
+                        currentBranch = updatedRepoBranch;
                         shouldUpdateContentFields = true;
                     }
 
-                    if (repoUrl != updatedRepoUrl)
+                    if (currentRemoteUrl != updatedRepoUrl)
                     {
-                        repoUrl = updatedRepoUrl;
+                        currentRemoteUrl = updatedRepoUrl;
                         shouldUpdateContentFields = true;
                     }
                 }
             }
             else
             {
-                if (repoRemote != null)
+                if (currentRemoteName != null)
                 {
-                    repoRemote = null;
+                    currentRemoteName = null;
                     shouldUpdateContentFields = true;
                 }
 
-                if (repoBranch != null)
+                if (currentBranch != null)
                 {
-                    repoBranch = null;
+                    currentBranch = null;
                     shouldUpdateContentFields = true;
                 }
 
-                if (repoUrl != DefaultRepoUrl)
+                if (currentRemoteUrl != DefaultRepoUrl)
                 {
-                    repoUrl = DefaultRepoUrl;
+                    currentRemoteUrl = DefaultRepoUrl;
                     shouldUpdateContentFields = true;
                 }
             }
 
-            if (shouldUpdateContentFields || repoBranchContent == null || repoUrlContent == null)
+            if (shouldUpdateContentFields || currentBranchContent == null || currentRemoteUrlContent == null)
             {
-                repoBranchContent = new GUIContent(repoBranch, Window_RepoBranchTooltip);
+                currentBranchContent = new GUIContent(currentBranch, Window_RepoBranchTooltip);
 
-                if (repoRemote != null)
+                if (currentRemoteName != null)
                 {
-                    repoUrlContent = new GUIContent(repoUrl, string.Format(Window_RepoUrlTooltip, repoRemote));
+                    currentRemoteUrlContent = new GUIContent(currentRemoteUrl, string.Format(Window_RepoUrlTooltip, currentRemoteName));
                 }
                 else
                 {
-                    repoUrlContent = new GUIContent(repoUrl, Window_RepoNoUrlTooltip);
+                    currentRemoteUrlContent = new GUIContent(currentRemoteUrl, Window_RepoNoUrlTooltip);
                 }
             }
         }
@@ -352,6 +397,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
+            repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
         }
 
         private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -360,6 +406,16 @@ namespace GitHub.Unity
             {
                 lastCurrentBranchAndRemoteChangedEvent = cacheUpdateEvent;
                 currentBranchAndRemoteHasUpdate = true;
+                Redraw();
+            }
+        }
+
+        private void RepositoryOnTrackingStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastTrackingStatusChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastTrackingStatusChangedEvent = cacheUpdateEvent;
+                currentTrackingStatusHasUpdate = true;
                 Redraw();
             }
         }
@@ -392,9 +448,9 @@ namespace GitHub.Unity
                 {
                     GUILayout.Space(3);
 
-                    GUILayout.Label(repoUrlContent, Styles.HeaderRepoLabelStyle);
+                    GUILayout.Label(currentRemoteUrlContent, Styles.HeaderRepoLabelStyle);
                     GUILayout.Space(-2);
-                    GUILayout.Label(repoBranchContent, Styles.HeaderBranchLabelStyle);
+                    GUILayout.Label(currentBranchContent, Styles.HeaderBranchLabelStyle);
                 }
                 GUILayout.EndVertical();
             }
@@ -432,6 +488,139 @@ namespace GitHub.Unity
                     DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DoActionbarGUI()
+        {
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            {
+                GUILayout.FlexibleSpace();
+
+                if (hasRemote)
+                {
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null);
+                    {
+                        // Fetch button
+                        var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                        if (fetchClicked)
+                        {
+                            Fetch();
+                        }
+
+                        // Pull button
+                        var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
+                        var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+
+                        if (pullClicked &&
+                            EditorUtility.DisplayDialog(PullConfirmTitle,
+                                String.Format(PullConfirmDescription, currentRemoteName),
+                                PullConfirmYes,
+                                PullConfirmCancel)
+                        )
+                        {
+                            Pull();
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+
+                    // Push button
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusBehind != 0);
+                    {
+                        var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
+                        var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+
+                        if (pushClicked &&
+                            EditorUtility.DisplayDialog(PushConfirmTitle,
+                                String.Format(PushConfirmDescription, currentRemoteName),
+                                PushConfirmYes,
+                                PushConfirmCancel)
+                        )
+                        {
+                            Push();
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+                }
+                else
+                {
+                    // Publishing a repo
+                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
+                    if (publishedClicked)
+                    {
+                        PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void Pull()
+        {
+            if (hasItemsToCommit)
+            {
+                EditorUtility.DisplayDialog("Pull", "You need to commit your changes before pulling.", "Cancel");
+            }
+            else
+            {
+                Repository
+                    .Pull()
+                    .FinallyInUI((success, e) => {
+                        if (success)
+                        {
+                            TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPull);
+
+                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                                String.Format(Localization.PullSuccessDescription, currentRemoteName),
+                            Localization.Ok);
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
+                                Localization.PullFailureDescription,
+                            Localization.Ok);
+                        }
+                    })
+                    .Start();
+            }
+        }
+
+        private void Push()
+        {
+            Repository
+                .Push()
+                .FinallyInUI((success, e) => {
+                    if (success)
+                    {
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPush);
+
+                        EditorUtility.DisplayDialog(Localization.PushActionTitle,
+                            String.Format(Localization.PushSuccessDescription, currentRemoteName),
+                        Localization.Ok);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.PushActionTitle,
+                            Localization.PushFailureDescription,
+                        Localization.Ok);
+                    }
+                })
+                .Start();
+        }
+
+        private void Fetch()
+        {
+            Repository
+                .Fetch()
+                .FinallyInUI((success, e) => {
+                    if (!success)
+                    {
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch);
+
+                        EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
+                            Localization.Ok);
+                    }
+                })
+                .Start();
         }
 
         private void UpdateActiveTab()
