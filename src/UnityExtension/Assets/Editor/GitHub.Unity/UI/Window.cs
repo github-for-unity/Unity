@@ -27,7 +27,6 @@ namespace GitHub.Unity
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private double timeSinceLastRotation = -1f;
         [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
-        [NonSerialized] private bool gitExecutableIsSet;
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress progress;
         [NonSerialized] private float progressValue;
@@ -269,7 +268,6 @@ namespace GitHub.Unity
                 progressMessage = progress.Message;
             }
 
-            gitExecutableIsSet = !String.IsNullOrEmpty(Environment.GitExecutablePath);
             string updatedRepoRemote = null;
             string updatedRepoUrl = DefaultRepoUrl;
 
