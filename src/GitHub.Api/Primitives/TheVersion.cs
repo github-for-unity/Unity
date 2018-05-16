@@ -6,7 +6,7 @@ namespace GitHub.Unity
 {
     public struct TheVersion : IComparable<TheVersion>
     {
-        private const string versionRegex = @"(?<major>\d+)(\.?(?<minor>[^.]+))?(\.?(?<patch>[^.]+))?(\.?(?<build>.+))?";
+        private const string versionRegex = @"^(?<major>\d+)(\.?(?<minor>[^.]+))?(\.?(?<patch>[^.]+))?(\.?(?<build>.+))?";
         private const int PART_COUNT = 4;
         public static TheVersion Default { get; } = default(TheVersion).Initialize(null);
 
