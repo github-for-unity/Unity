@@ -70,6 +70,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Branches.
+        /// </summary>
+        public static string BranchesTitle {
+            get {
+                return ResourceManager.GetString("BranchesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to cancel.
         /// </summary>
         public static string Cancel {
@@ -84,6 +93,15 @@ namespace GitHub.Unity {
         public static string ChangedFilesLabel {
             get {
                 return ResourceManager.GetString("ChangedFilesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes.
+        /// </summary>
+        public static string ChangesTitle {
+            get {
+                return ResourceManager.GetString("ChangesTitle", resourceCulture);
             }
         }
         
@@ -115,11 +133,47 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No remote configured.
+        /// </summary>
+        public static string DefaultRepoUrl {
+            get {
+                return ResourceManager.GetString("DefaultRepoUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Commit description.
         /// </summary>
         public static string DescriptionLabel {
             get {
                 return ResourceManager.GetString("DescriptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch Changes.
+        /// </summary>
+        public static string FetchActionTitle {
+            get {
+                return ResourceManager.GetString("FetchActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch.
+        /// </summary>
+        public static string FetchButtonText {
+            get {
+                return ResourceManager.GetString("FetchButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not fetch changes.
+        /// </summary>
+        public static string FetchFailureDescription {
+            get {
+                return ResourceManager.GetString("FetchFailureDescription", resourceCulture);
             }
         }
         
@@ -205,11 +259,29 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to History.
+        /// </summary>
+        public static string HistoryTitle {
+            get {
+                return ResourceManager.GetString("HistoryTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize a git repository for this project.
         /// </summary>
         public static string InitializeRepositoryButtonText {
             get {
                 return ResourceManager.GetString("InitializeRepositoryButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize.
+        /// </summary>
+        public static string InitializeTitle {
+            get {
+                return ResourceManager.GetString("InitializeTitle", resourceCulture);
             }
         }
         
@@ -327,6 +399,15 @@ namespace GitHub.Unity {
         public static string OneChangedFileLabel {
             get {
                 return ResourceManager.GetString("OneChangedFileLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Publish.
+        /// </summary>
+        public static string PublishButton {
+            get {
+                return ResourceManager.GetString("PublishButton", resourceCulture);
             }
         }
         
@@ -547,6 +628,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string SettingsTitle {
+            get {
+                return ResourceManager.GetString("SettingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Commit summary.
         /// </summary>
         public static string SummaryLabel {
@@ -615,6 +705,33 @@ namespace GitHub.Unity {
         public static string ViewModeSettingsTab {
             get {
                 return ResourceManager.GetString("ViewModeSettingsTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active branch.
+        /// </summary>
+        public static string Window_RepoBranchTooltip {
+            get {
+                return ResourceManager.GetString("Window_RepoBranchTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a remote in the Settings tab.
+        /// </summary>
+        public static string Window_RepoNoUrlTooltip {
+            get {
+                return ResourceManager.GetString("Window_RepoNoUrlTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Url of the {0} remote.
+        /// </summary>
+        public static string Window_RepoUrlTooltip {
+            get {
+                return ResourceManager.GetString("Window_RepoUrlTooltip", resourceCulture);
             }
         }
         
