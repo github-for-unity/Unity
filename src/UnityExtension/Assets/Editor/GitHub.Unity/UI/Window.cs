@@ -429,6 +429,7 @@ namespace GitHub.Unity
             if (repository == null)
                 return;
             repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
+            repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
         }
 
         private void DoHeaderGUI()
