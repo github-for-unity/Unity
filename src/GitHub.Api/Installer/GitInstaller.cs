@@ -67,19 +67,16 @@ namespace GitHub.Unity
             if (state.GitIsValid)
                 state.GitInstallationPath = state.GitExecutablePath.Parent.Parent;
 
-            var isDefaultGitLfs = !state.GitLfsExecutablePath.IsInitialized || state.GitLfsInstallationPath == state.GitInstallationPath;
-            if (isDefaultGitLfs)
-                state.GitLfsExecutablePath = ProcessManager.FindExecutableInPath(installDetails.GitLfsExecutable, true, state.GitInstallationPath);
+            if (!state.GitLfsExecutablePath.IsInitialized)
+            {
+                // look for it in the directory where we would install it from the bundle
+                state.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
+            }
 
             state = ValidateGitLfsVersion(state);
 
             if (state.GitLfsIsValid)
-            {
-                if (isDefaultGitLfs)
-                    state.GitLfsInstallationPath = state.GitInstallationPath;
-                else
-                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
-            }
+                state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
 
             return state;
         }
@@ -107,7 +104,7 @@ namespace GitHub.Unity
                 state.GitLfsExecutablePath = gitLfsPath;
                 state = ValidateGitLfsVersion(state);
                 if (state.GitLfsIsValid)
-                    state.GitLfsInstallationPath = gitLfsPath.Parent;
+                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
             }
             return state;
         }
@@ -124,10 +121,7 @@ namespace GitHub.Unity
             if (!state.GitLfsIsValid)
             {
                 state.GitLfsExecutablePath = installDetails.GitLfsExecutablePath;
-                if (state.GitIsValid && state.GitInstallationPath != installDetails.GitInstallationPath)
-                    state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
-                else
-                    state.GitLfsInstallationPath = installDetails.GitInstallationPath;
+                state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
                 state = ValidateGitLfsVersion(state);
             }
             return state;
@@ -224,7 +218,12 @@ namespace GitHub.Unity
                 return state;
 
             var downloader = new Downloader();
-            downloader.Catch(e => true);
+            downloader
+                .Catch(e =>
+                {
+                    LogHelper.Trace(e, "Failed to download");
+                    return true;
+                });
             downloader.Progress(p => ((Progress)Progress)?.UpdateProgress(20 + (long)(20 * p.Percentage), 100, downloader.Name));
             if (!state.GitZipExists && !state.GitIsValid && state.GitPackage != null)
                 downloader.QueueDownload(state.GitPackage.Uri, installDetails.ZipPath);
@@ -261,7 +260,11 @@ namespace GitHub.Unity
                 var unzipTask = new UnzipTask(cancellationToken, installDetails.GitZipPath,
                         gitExtractPath, sharpZipLibHelper,
                         environment.FileSystem)
-                    .Catch(e => true);
+                    .Catch(e =>
+                    {
+                        LogHelper.Trace(e, "Failed to unzip " + installDetails.GitZipPath);
+                        return true;
+                    });
                 unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Name));
                 var path = unzipTask.RunWithReturn(true);
                 var target = state.GitInstallationPath;
@@ -282,7 +285,11 @@ namespace GitHub.Unity
                 var unzipTask = new UnzipTask(cancellationToken, installDetails.GitLfsZipPath,
                         gitLfsExtractPath, sharpZipLibHelper,
                         environment.FileSystem)
-                    .Catch(e => true);
+                    .Catch(e =>
+                    {
+                        LogHelper.Trace(e, "Failed to unzip " + installDetails.GitLfsZipPath);
+                        return true;
+                    });
                 unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Name));
                 var path = unzipTask.RunWithReturn(true);
                 var target = state.GitLfsExecutablePath;
@@ -325,7 +332,7 @@ namespace GitHub.Unity
 #if DEBUG
             private const string packageFeed = "http://localhost:50000/unity/git/";
 #else
-            private const string packageFeed = "https://ghfvs-installer.github.com/unity/git/";
+            private const string packageFeed = "http://github-vs.s3.amazonaws.com/unity/git/";
 #endif
 
             private const string PackageVersion = "f02737a78695063deace08e96d5042710d3e32db";

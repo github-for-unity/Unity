@@ -42,6 +42,7 @@ namespace GitHub.Unity
             Platform = new Platform(Environment);
 
             LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
+            ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
             ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
@@ -56,7 +57,7 @@ namespace GitHub.Unity
                 GitInstallationState state = new GitInstallationState();
                 try
                 {
-                    SetupMetrics(Environment.UnityVersion, instanceId);
+                    SetupMetrics(Environment.UnityVersion);
 
                     if (Environment.IsMac)
                     {
@@ -163,34 +164,18 @@ namespace GitHub.Unity
 
             if (firstRun)
             {
-                var unityYamlMergeExec = Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
+                if (Environment.RepositoryPath.IsInitialized)
+                {
+                    ConfigureMergeSettings();
 
-                var yamlMergeCommand = Environment.IsWindows
-                    ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
-                    : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
-
-                GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local)
-                    .Catch(e =>
-                    {
-                        Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
-                        return true;
-                    })
-                    .RunWithReturn(true);
-                GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local)
-                    .Catch(e =>
-                    {
-                        Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
-                        return true;
-                    })
-                    .RunWithReturn(true);
-
-                GitClient.LfsInstall()
-                    .Catch(e =>
-                    {
-                        Logger.Error(e, "Error running lfs install");
-                        return true;
-                    })
-                    .RunWithReturn(true);
+                    GitClient.LfsInstall()
+                        .Catch(e =>
+                        {
+                            Logger.Error(e, "Error running lfs install");
+                            return true;
+                        })
+                        .RunWithReturn(true);
+                }
 
                 if (Environment.IsWindows)
                 {
@@ -233,6 +218,8 @@ namespace GitHub.Unity
                     var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
                     GitClient.Init().RunWithReturn(true);
+
+                    ConfigureMergeSettings();
                     GitClient.LfsInstall().RunWithReturn(true);
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
@@ -258,6 +245,25 @@ namespace GitHub.Unity
             thread.Start();
         }
 
+        private void ConfigureMergeSettings()
+        {
+            var unityYamlMergeExec =
+                Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
+            var yamlMergeCommand = Environment.IsWindows
+                ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
+                : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
+
+            GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
+                return true;
+            }).RunWithReturn(true);
+
+            GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
+                return true;
+            }).RunWithReturn(true);
+        }
+
         public void RestartRepository()
         {
             if (!Environment.RepositoryPath.IsInitialized)
@@ -273,7 +279,7 @@ namespace GitHub.Unity
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
         }
 
-        protected void SetupMetrics(string unityVersion, Guid instanceId)
+        protected void SetupMetrics(string unityVersion)
         {
             string userId = null;
             if (UserSettings.Exists(Constants.GuidKey))
@@ -294,7 +300,7 @@ namespace GitHub.Unity
                 Environment.NodeJsExecutablePath,
                 Environment.OctorunScriptPath);
 
-            UsageTracker = new UsageTracker(metricsService, UserSettings, Environment, userId, unityVersion, instanceId.ToString());
+            UsageTracker = new UsageTracker(metricsService, UserSettings, Environment, userId, unityVersion, InstanceId.ToString());
 
             if (firstRun)
             {

@@ -30,13 +30,13 @@ if [ $# -ge 7 ]; then
 	MSG="$7"
 fi
 
-EXEC="mono"
+EXEC="mono "
 if [ -e "/c/" ]; then
 	EXEC=""
 fi
 
-if [ ! -e "$DIR/build/CommandLine/CommandLine.exe" ]; then
+if [ ! -e "build/CommandLine/CommandLine.exe" ]; then
 	>&2 xbuild /target:CommandLine "$DIR/GitHub.Unity.sln" /verbosity:minimal
 fi
 
-"$EXEC""$DIR/build/CommandLine/CommandLine.exe" --gen-package --version "$3" --path "$4" --url "$URL" --rn "$RN" --msg "$MSG"
+$EXEC build/CommandLine/CommandLine.exe --gen-package --version "$3" --path "$4" --url "$URL" --rn "$RN" --msg "$MSG"

@@ -13,4 +13,4 @@ if [ ! -e build/CommandLine/CommandLine.exe ]; then
 	>&2 xbuild /target:CommandLine GitHub.Unity.sln /verbosity:minimal
 fi
 
-"$EXEC"build/CommandLine/CommandLine.exe --web --port $PORT
+$EXEC build/CommandLine/CommandLine.exe --web --port $PORT

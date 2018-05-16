@@ -213,6 +213,7 @@ namespace GitHub.Unity
     {
         private IOutputProcessor<T> outputProcessor;
         private ProcessWrapper wrapper;
+        private bool finished = false;
 
         public event Action<string> OnErrorData;
         public event Action<IProcess> OnStartProcess;
@@ -302,6 +303,7 @@ namespace GitHub.Unity
                 RaiseOnStart,
                 () =>
                 {
+                    finished = true;
                     try
                     {
                         if (outputProcessor != null)
@@ -350,7 +352,7 @@ namespace GitHub.Unity
 
         public Process Process { get; set; }
         public int ProcessId { get { return Process.Id; } }
-        public override bool Successful { get { return !taskFailed && Task.Status == TaskStatus.RanToCompletion && Process.ExitCode == 0; } }
+        public override bool Successful { get { return finished && ((!taskFailed && Process.ExitCode == 0) || (taskFailed && exceptionWasHandled)); } }
         public StreamWriter StandardInput { get { return wrapper?.Input; } }
         public virtual string ProcessName { get; protected set; }
         public virtual string ProcessArguments { get; }

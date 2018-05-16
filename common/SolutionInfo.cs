@@ -6,8 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyProduct("GitHub for Unity")]
-[assembly: AssemblyVersion(System.AssemblyVersionInformation.Version)]
-[assembly: AssemblyFileVersion(System.AssemblyVersionInformation.Version)]
+[assembly: AssemblyVersion(System.AssemblyVersionInformation.VersionForAssembly)]
+[assembly: AssemblyFileVersion(System.AssemblyVersionInformation.VersionForAssembly)]
 [assembly: AssemblyInformationalVersion(System.AssemblyVersionInformation.Version)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyCompany("GitHub, Inc.")]
@@ -31,6 +31,9 @@ using System.Runtime.InteropServices;
 namespace System
 {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "0.33.0";
+        // this is for the AssemblyVersion and AssemblyVersion attributes, which can't handle alphanumerics
+        internal const string VersionForAssembly = "0.34.1";
+        // Actual real version
+        internal const string Version = "0.34.1-beta";
     }
 }

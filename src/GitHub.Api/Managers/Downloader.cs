@@ -116,10 +116,10 @@ namespace GitHub.Unity
                 return aggregateDownloads.Task;
             }
 
-            private ITask<NPath> DownloadFile(UriString url, NPath targetDirectory, DownloadData result, Action<ITask<NPath>, NPath, bool, Exception> verifyDownload)
+            private ITask<NPath> DownloadFile(UriString url, NPath targetDirectory, DownloadData res, Action<ITask<NPath>, NPath, bool, Exception> verifyDownload)
             {
                 var download = new DownloadTask(cancellationToken, fs, url, targetDirectory)
-                    .Catch(e => { DownloadFailed(result, e); return true; });
+                    .Catch(e => { DownloadFailed(res, e); return true; });
                 download.OnEnd += verifyDownload;
                 return download;
             }

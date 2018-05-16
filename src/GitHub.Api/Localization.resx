@@ -306,4 +306,43 @@
   <data name="GitVersionTooLow" xml:space="preserve">
     <value>The detected Git at {0} has version {1}, which is too low. The minimum Git version is {2}.</value>
   </data>
+  <data name="BranchesTitle" xml:space="preserve">
+    <value>Branches</value>
+  </data>
+  <data name="ChangesTitle" xml:space="preserve">
+    <value>Changes</value>
+  </data>
+  <data name="DefaultRepoUrl" xml:space="preserve">
+    <value>No remote configured</value>
+  </data>
+  <data name="FetchActionTitle" xml:space="preserve">
+    <value>Fetch Changes</value>
+  </data>
+  <data name="FetchButtonText" xml:space="preserve">
+    <value>Fetch</value>
+  </data>
+  <data name="FetchFailureDescription" xml:space="preserve">
+    <value>Could not fetch changes</value>
+  </data>
+  <data name="HistoryTitle" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="InitializeTitle" xml:space="preserve">
+    <value>Initialize</value>
+  </data>
+  <data name="PublishButton" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Window_RepoBranchTooltip" xml:space="preserve">
+    <value>Active branch</value>
+  </data>
+  <data name="Window_RepoNoUrlTooltip" xml:space="preserve">
+    <value>Add a remote in the Settings tab</value>
+  </data>
+  <data name="Window_RepoUrlTooltip" xml:space="preserve">
+    <value>Url of the {0} remote</value>
+  </data>
 </root>

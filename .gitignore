@@ -1,5 +1,6 @@
 .vs/
 .idea/
+.vscode/
 packages/
 _NCrunch_GitHub.Unity
 *.user

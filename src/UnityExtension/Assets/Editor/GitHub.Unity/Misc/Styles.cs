@@ -230,6 +230,7 @@ namespace GitHub.Unity
                     headerBranchLabelStyle = new GUIStyle(EditorStyles.label);
                     headerBranchLabelStyle.name = "HeaderBranchLabelStyle";
                     headerBranchLabelStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerBranchLabelStyle.wordWrap = true;
                 }
                 return headerBranchLabelStyle;
             }
@@ -244,6 +245,7 @@ namespace GitHub.Unity
                     headerRepoLabelStyle = new GUIStyle(EditorStyles.boldLabel);
                     headerRepoLabelStyle.name = "HeaderRepoLabelStyle";
                     headerRepoLabelStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerRepoLabelStyle.wordWrap = true;
                 }
                 return headerRepoLabelStyle;
             }

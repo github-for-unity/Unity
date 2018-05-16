@@ -63,9 +63,6 @@
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>$(SolutionDir)lib\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>$(SolutionDir)lib\Mono.Security.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Posix">
       <HintPath>$(SolutionDir)lib\Mono.Posix.dll</HintPath>
     </Reference>
