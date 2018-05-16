@@ -219,10 +219,12 @@ namespace GitHub.Unity
 
             if (HasRepository)
             {
+                DoActionbarGUI();
+                GUILayout.BeginVertical(Styles.HeaderBoxStyle);
                 DoHeaderGUI();
+                GUILayout.EndVertical();
             }
 
-            DoActionbarGUI();
             DoToolbarGUI();
 
             var rect = GUILayoutUtility.GetLastRect();
@@ -434,7 +436,7 @@ namespace GitHub.Unity
 
         private void DoHeaderGUI()
         {
-            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            GUILayout.BeginHorizontal();
             {
                 GUILayout.Space(3);
                 GUILayout.BeginVertical(GUILayout.Width(16));
@@ -483,9 +485,6 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
-
-                if (GUILayout.Button("Account", EditorStyles.toolbarDropDown))
-                    DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -494,8 +493,6 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                GUILayout.FlexibleSpace();
-
                 if (hasRemote)
                 {
                     EditorGUI.BeginDisabledGroup(currentRemoteName == null);
@@ -550,6 +547,11 @@ namespace GitHub.Unity
                         PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
                     }
                 }
+
+                GUILayout.FlexibleSpace();
+
+                if (GUILayout.Button("Account", EditorStyles.toolbarDropDown))
+                    DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
         }
