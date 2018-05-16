@@ -220,9 +220,7 @@ namespace GitHub.Unity
             if (HasRepository)
             {
                 DoActionbarGUI();
-                GUILayout.BeginVertical(Styles.HeaderBoxStyle);
                 DoHeaderGUI();
-                GUILayout.EndVertical();
             }
 
             DoToolbarGUI();
@@ -436,7 +434,7 @@ namespace GitHub.Unity
 
         private void DoHeaderGUI()
         {
-            GUILayout.BeginHorizontal();
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
                 GUILayout.Space(3);
                 GUILayout.BeginVertical(GUILayout.Width(16));
