@@ -26,16 +26,19 @@ namespace GitHub.Unity
         public static Package Load(IEnvironment environment, UriString packageFeed)
         {
             Package package = null;
-            var key = packageFeed.Filename.ToNPath().FileNameWithoutExtension + "_updatelastCheckTime";
+            var filename = packageFeed.Filename.ToNPath();
+            if (!filename.IsInitialized || filename.IsRoot)
+                return package;
+            var key = filename.FileNameWithoutExtension + "_updatelastCheckTime";
             var now = DateTimeOffset.Now;
             NPath feed = environment.UserCachePath.Combine(packageFeed.Filename);
 
             if (!feed.FileExists() || now.Date > environment.UserSettings.Get<DateTimeOffset>(key).Date)
             {
                 feed = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem, packageFeed, environment.UserCachePath)
-                    .Catch(e =>
+                    .Catch(ex =>
                     {
-                        LogHelper.Trace(e, "Failed to download " + packageFeed);
+                        LogHelper.Warning(@"Error downloading package feed:{0} ""{1}"" Message:""{2}""", packageFeed, ex.GetType().ToString(), ex.Message);
                         return true;
                     })
                     .RunWithReturn(true);
