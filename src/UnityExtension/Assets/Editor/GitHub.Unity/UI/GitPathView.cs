@@ -96,7 +96,7 @@ namespace GitHub.Unity
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
-                            changingManually = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
+                            changingManually = ViewHasChanges;
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -123,7 +123,7 @@ namespace GitHub.Unity
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
-                            changingManually = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;;
+                            changingManually = ViewHasChanges;
                             errorMessage = "";
                         }
                     }
@@ -160,7 +160,7 @@ namespace GitHub.Unity
                             if (Environment.IsWindows)
                                 gitPath = installDetails.GitExecutablePath;
                             gitLfsPath = installDetails.GitLfsExecutablePath;
-                            resetToBundled = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
+                            resetToBundled = ViewHasChanges;
                             resetToSystem = false;
                             changingManually = false;
                             errorMessage = "";
@@ -197,7 +197,7 @@ namespace GitHub.Unity
                                 }
                                 isBusy = false;
                                 resetToBundled = false;
-                                resetToSystem = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
+                                resetToSystem = ViewHasChanges;
                                 changingManually = false;
                                 errorMessage = "";
                                 Redraw();
@@ -335,6 +335,14 @@ namespace GitHub.Unity
                         Redraw();
 
                     }).Start();
+            }
+        }
+
+        public bool ViewHasChanges
+        {
+            get
+            {
+                return gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
             }
         }
 
