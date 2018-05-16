@@ -12,11 +12,9 @@ namespace GitHub.Unity
         private const string Title = "GitHub";
         private const string Menu_Window_GitHub = "Window/GitHub";
         private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
-        private const string BadNotificationDelayError = "A delay of {0} is shorter than the default delay and thus would get pre-empted.";
 
         [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
         [NonSerialized] private bool currentTrackingStatusHasUpdate;
-
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private double timeSinceLastRotation = -1f;
         [NonSerialized] private Spinner spinner;
@@ -31,19 +29,15 @@ namespace GitHub.Unity
         [SerializeField] private ChangesView changesView = new ChangesView();
         [SerializeField] private HistoryView historyView = new HistoryView();
         [SerializeField] private SettingsView settingsView = new SettingsView();
-
         [SerializeField] private bool hasRemote;
         [SerializeField] private string currentRemoteName;
         [SerializeField] private string currentBranch;
         [SerializeField] private string currentRemoteUrl;
-
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
         [SerializeField] private bool hasItemsToCommit;
-
         [SerializeField] private GUIContent currentBranchContent;
         [SerializeField] private GUIContent currentRemoteUrlContent;
-
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
 
@@ -677,8 +671,6 @@ namespace GitHub.Unity
 
         public void ShowNotification(GUIContent content, float timeout)
         {
-            Debug.Assert(timeout <= DefaultNotificationTimeout, String.Format(BadNotificationDelayError, timeout));
-
             notificationClearTime = timeout < DefaultNotificationTimeout ? EditorApplication.timeSinceStartup + timeout : -1f;
             base.ShowNotification(content);
         }
