@@ -57,14 +57,13 @@ namespace GitHub.Unity
             special = null;
             parts = 0;
 
-            if (String.IsNullOrEmpty(theVersion))
-                return this;
-
             intParts = new int[PART_COUNT];
             stringParts = new string[PART_COUNT];
-
             for (var i = 0; i < PART_COUNT; i++)
                 stringParts[i] = intParts[i].ToString();
+
+            if (String.IsNullOrEmpty(theVersion))
+                return this;
 
             var match = regex.Match(theVersion);
             if (!match.Success)
@@ -195,9 +194,9 @@ namespace GitHub.Unity
         {
             if (lhs.Version == rhs.Version)
                 return false;
-            if (String.IsNullOrEmpty(lhs.Version))
+            if (!lhs.initialized)
                 return false;
-            if (String.IsNullOrEmpty(rhs.Version))
+            if (!rhs.initialized)
                 return true;
 
             for (var i = 0; i < lhs.parts && i < rhs.parts; i++)
