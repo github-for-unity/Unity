@@ -22,7 +22,6 @@ namespace GitHub.Unity
         private const string Window_RepoUrlTooltip = "Url of the {0} remote";
         private const string Window_RepoNoUrlTooltip = "Add a remote in the Settings tab";
         private const string Window_RepoBranchTooltip = "Active branch";
-        private const float SpinnerAnimationDuration = 4f;
         private const string FetchActionTitle = "Fetch Changes";
         private const string FetchButtonText = "Fetch";
         private const string FetchFailureDescription = "Could not fetch changes";
