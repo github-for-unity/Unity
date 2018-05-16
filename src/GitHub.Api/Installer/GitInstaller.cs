@@ -29,6 +29,8 @@ namespace GitHub.Unity
 
         public GitInstallationState SetupGitIfNeeded(GitInstallationState state = null)
         {
+            var skipSystemProbing = state != null;
+
             state = VerifyGitSettings(state);
             if (state.GitIsValid && state.GitLfsIsValid)
             {
@@ -37,9 +39,12 @@ namespace GitHub.Unity
                 return state;
             }
 
-            if (environment.IsMac)
-                state = FindSystemGit(state);
-            state = SetDefaultPaths(state);
+            if (!skipSystemProbing)
+            {
+                if (environment.IsMac)
+                    state = FindSystemGit(state);
+                state = SetDefaultPaths(state);
+            }
 
             state = CheckForUpdates(state);
 
@@ -111,7 +116,7 @@ namespace GitHub.Unity
 
         public GitInstallationState SetDefaultPaths(GitInstallationState state)
         {
-            if (!state.GitIsValid)
+            if (!state.GitIsValid && environment.IsWindows)
             {
                 state.GitInstallationPath = installDetails.GitInstallationPath;
                 state.GitExecutablePath = installDetails.GitExecutablePath;
@@ -292,10 +297,10 @@ namespace GitHub.Unity
                     });
                 unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Name));
                 var path = unzipTask.RunWithReturn(true);
-                var target = state.GitLfsExecutablePath;
+                var target = state.GitLfsInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path.Combine(installDetails.GitLfsExecutable);
+                    var source = path;
                     target.DeleteIfExists();
                     target.EnsureParentDirectoryExists();
                     source.Move(target);
@@ -335,8 +340,8 @@ namespace GitHub.Unity
             private const string packageFeed = "http://github-vs.s3.amazonaws.com/unity/git/";
 #endif
 
-            private const string PackageVersion = "f02737a78695063deace08e96d5042710d3e32db";
-            private const string PackageName = "PortableGit";
+            public const string GitDirectory = "git";
+            public const string GitLfsDirectory = "git-lfs";
 
             private const string gitZip = "git.zip";
             private const string gitLfsZip = "git-lfs.zip";
@@ -352,46 +357,33 @@ namespace GitHub.Unity
                 GitZipPath = ZipPath.Combine(gitZip);
                 GitLfsZipPath = ZipPath.Combine(gitLfsZip);
 
-                var gitInstallPath = baseDataPath.Combine(PackageNameWithVersion);
-                GitInstallationPath = gitInstallPath;
+                GitInstallationPath = baseDataPath.Combine(GitDirectory);
+                GitExecutablePath = GitInstallationPath.Combine(onWindows ? "cmd" : "bin", "git" + DefaultEnvironment.ExecutableExt);
+
+                GitLfsInstallationPath = baseDataPath.Combine(GitLfsDirectory);
+                GitLfsExecutablePath = GitLfsInstallationPath.Combine("git-lfs" + DefaultEnvironment.ExecutableExt);
 
                 if (onWindows)
                 {
-                    GitExecutable += "git.exe";
-                    GitLfsExecutable += "git-lfs.exe";
-                    GitExecutablePath = gitInstallPath.Combine("cmd", GitExecutable);
                     GitPackageFeed = packageFeed + $"windows/{GitPackageName}";
                     GitLfsPackageFeed = packageFeed + $"windows/{GitLfsPackageName}";
                 }
                 else
                 {
-                    GitExecutable = "git";
-                    GitLfsExecutable = "git-lfs";
-                    GitExecutablePath = gitInstallPath.Combine("bin", GitExecutable);
                     GitPackageFeed = packageFeed + $"mac/{GitPackageName}";
                     GitLfsPackageFeed = packageFeed + $"mac/{GitLfsPackageName}";
                 }
-                GitLfsExecutablePath = GetGitLfsExecutablePath(gitInstallPath);
-            }
-
-            public NPath GetGitLfsExecutablePath(NPath gitInstallRoot)
-            {
-                return onWindows
-                    ? gitInstallRoot.Combine("mingw32", "libexec", "git-core", GitLfsExecutable)
-                    : gitInstallRoot.Combine("libexec", "git-core", GitLfsExecutable);
             }
 
             public NPath ZipPath { get; }
             public NPath GitZipPath { get; }
             public NPath GitLfsZipPath { get; }
             public NPath GitInstallationPath { get; }
-            public string GitExecutable { get; }
+            public NPath GitLfsInstallationPath { get; }
             public NPath GitExecutablePath { get; }
-            public string GitLfsExecutable { get; }
             public NPath GitLfsExecutablePath { get; }
             public UriString GitPackageFeed { get; set; }
             public UriString GitLfsPackageFeed { get; set; }
-            public string PackageNameWithVersion => PackageName + "_" + PackageVersion;
         }
     }
 }

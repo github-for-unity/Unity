@@ -156,8 +156,8 @@ namespace IntegrationTests
             path = new UnzipTask(TaskManager.Token, installDetails.GitLfsZipPath, extractPath, null, Environment.FileSystem)
                 .Catch(e => true)
                 .RunWithReturn(true);
-            source = path.Combine(installDetails.GitLfsExecutable);
-            source.Move(installDetails.GitLfsExecutablePath);
+            installDetails.GitLfsInstallationPath.EnsureParentDirectoryExists();
+            path.Move(installDetails.GitLfsInstallationPath);
         }
 
         [TestFixtureSetUp]

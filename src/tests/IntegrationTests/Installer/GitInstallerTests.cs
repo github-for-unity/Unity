@@ -67,9 +67,9 @@ namespace IntegrationTests
             var state = gitInstaller.SetupGitIfNeeded();
             state.Should().NotBeNull();
 
-            Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), state.GitInstallationPath);
-            state.GitExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "cmd", "git" + Environment.ExecutableExtension));
-            state.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "mingw32", "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
+            Assert.AreEqual(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitDirectory), state.GitInstallationPath);
+            state.GitExecutablePath.Should().Be(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitDirectory, "cmd", "git" + Environment.ExecutableExtension));
+            state.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitLfsDirectory, "git-lfs" + Environment.ExecutableExtension));
 
             Environment.GitInstallationState = state;
 
@@ -102,7 +102,7 @@ namespace IntegrationTests
                 };
 
             var ret = new string[] { gitLfsExecutablePath };
-            filesystem.GetFiles(Arg.Any<string>(), Arg.Is<string>(installDetails.GitLfsExecutable), Arg.Any<SearchOption>())
+            filesystem.GetFiles(Arg.Any<string>(), Arg.Is<string>(installDetails.GitLfsExecutablePath.FileName), Arg.Any<SearchOption>())
                       .Returns(ret);
 
             var settings = Substitute.For<ISettings>();
@@ -141,7 +141,7 @@ namespace IntegrationTests
                 };
 
             var ret = new string[] { gitLfsExecutablePath };
-            filesystem.GetFiles(Arg.Any<string>(), Arg.Is<string>(installDetails.GitLfsExecutable), Arg.Any<SearchOption>())
+            filesystem.GetFiles(Arg.Any<string>(), Arg.Is<string>(installDetails.GitLfsExecutablePath.FileName), Arg.Any<SearchOption>())
                 .Returns(ret);
 
             var settings = Substitute.For<ISettings>();
@@ -198,9 +198,9 @@ namespace IntegrationTests
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
 
-            Assert.AreEqual(gitInstallationPath.Combine(installDetails.PackageNameWithVersion), result.GitInstallationPath);
-            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "cmd", "git" + Environment.ExecutableExtension));
-            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(installDetails.PackageNameWithVersion, "mingw32", "libexec", "git-core", "git-lfs" + Environment.ExecutableExtension));
+            Assert.AreEqual(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitDirectory), result.GitInstallationPath);
+            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitDirectory, "cmd", "git" + Environment.ExecutableExtension));
+            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitLfsDirectory, "git-lfs" + Environment.ExecutableExtension));
         }
 
         [Test]
@@ -240,8 +240,8 @@ namespace IntegrationTests
             state = gitInstaller.SetupGitIfNeeded();
             state.Should().NotBeNull();
 
-            var gitLfsBasePath = defaultGitInstall.Combine(installDetails.PackageNameWithVersion);
-            var gitLfsExec = gitLfsBasePath.Combine("mingw32", "libexec", "git-core", "git-lfs.exe");
+            var gitLfsBasePath = defaultGitInstall.Combine(GitInstaller.GitInstallDetails.GitLfsDirectory);
+            var gitLfsExec = gitLfsBasePath.Combine("git-lfs.exe");
             state.GitInstallationPath.Should().Be(customGitInstall);
             state.GitExecutablePath.Should().Be(gitExec);
             state.GitLfsInstallationPath.Should().Be(gitLfsExec.Parent);
