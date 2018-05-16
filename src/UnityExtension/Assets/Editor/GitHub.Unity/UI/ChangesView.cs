@@ -18,9 +18,9 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
-        [NonSerialized] private bool currentBranchHasUpdate;
-        [NonSerialized] private bool currentStatusEntriesHasUpdate;
-        [NonSerialized] private bool currentLocksHasUpdate;
+        [SerializeField] private bool currentBranchHasUpdate;
+        [SerializeField] private bool currentStatusEntriesHasUpdate;
+        [SerializeField] private bool currentLocksHasUpdate;
 
         [NonSerialized] private GUIContent discardGuiContent;
 

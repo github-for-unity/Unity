@@ -13,8 +13,6 @@ namespace GitHub.Unity
         private const string Menu_Window_GitHub = "Window/GitHub";
         private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
 
-        [NonSerialized] private bool currentBranchAndRemoteHasUpdate;
-        [NonSerialized] private bool currentTrackingStatusHasUpdate;
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private double timeSinceLastRotation = -1f;
         [NonSerialized] private Spinner spinner;
@@ -22,6 +20,9 @@ namespace GitHub.Unity
         [NonSerialized] private float progressValue;
         [NonSerialized] private string progressMessage;
 
+        [SerializeField] private bool currentBranchAndRemoteHasUpdate;
+        [SerializeField] private bool currentTrackingStatusHasUpdate;
+        [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private SubTab changeTab = SubTab.InitProject;
         [SerializeField] private SubTab activeTab = SubTab.InitProject;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
@@ -40,6 +41,7 @@ namespace GitHub.Unity
         [SerializeField] private GUIContent currentRemoteUrlContent;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
 
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
@@ -271,13 +273,16 @@ namespace GitHub.Unity
             if (currentTrackingStatusHasUpdate)
             {
                 currentTrackingStatusHasUpdate = false;
-
                 statusAhead = Repository.CurrentAhead;
                 statusBehind = Repository.CurrentBehind;
+            }
 
+            if (currentStatusEntriesHasUpdate)
+            {
+                currentStatusEntriesHasUpdate = false;
                 var currentChanges = Repository.CurrentChanges;
-                hasItemsToCommit = currentChanges != null
-                    && currentChanges.Any(entry => entry.Status != GitFileStatus.Ignored && !entry.Staged);
+                hasItemsToCommit = currentChanges != null &&
+                    currentChanges.Any(entry => entry.Status != GitFileStatus.Ignored && !entry.Staged);
             }
 
             if (currentBranchAndRemoteHasUpdate)
@@ -366,6 +371,7 @@ namespace GitHub.Unity
                 return;
             repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
             repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
         }
 
         private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -388,6 +394,16 @@ namespace GitHub.Unity
             }
         }
 
+        private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastStatusEntriesChangedEvent = cacheUpdateEvent;
+                currentStatusEntriesHasUpdate = true;
+                Redraw();
+            }
+        }
+
         private void OnProgress(IProgress progr)
         {
             progress = progr;
@@ -399,6 +415,7 @@ namespace GitHub.Unity
                 return;
             repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
             repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
         }
 
         private void DoHeaderGUI()

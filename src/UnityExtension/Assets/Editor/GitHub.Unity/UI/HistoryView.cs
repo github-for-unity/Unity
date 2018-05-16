@@ -308,8 +308,8 @@ namespace GitHub.Unity
         private const string CommitDetailsTitle = "Commit details";
         private const string ClearSelectionButton = "×";
 
-        [NonSerialized] private bool currentLogHasUpdate;
-        [NonSerialized] private bool currentTrackingStatusHasUpdate;
+        [SerializeField] private bool currentLogHasUpdate;
+        [SerializeField] private bool currentTrackingStatusHasUpdate;
 
         [SerializeField] private HistoryControl historyControl;
         [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
