@@ -491,10 +491,10 @@ namespace GitHub.Unity
             return $"{Task?.Id ?? -1} {Name} {GetType()}";
         }
 
-        public virtual bool Successful { get { return !taskFailed || exceptionWasHandled; } }
+        public virtual bool Successful { get { return hasRun && !taskFailed; } }
+        public bool IsCompleted { get { return hasRun; } }
         public string Errors { get; protected set; }
         public Task Task { get; protected set; }
-        public bool IsCompleted { get { return hasRun; /*(Task as IAsyncResult).IsCompleted;*/ } }
         public WaitHandle AsyncWaitHandle { get { return (Task as IAsyncResult).AsyncWaitHandle; } }
         public object AsyncState { get { return (Task as IAsyncResult).AsyncState; } }
         public bool CompletedSynchronously { get { return (Task as IAsyncResult).CompletedSynchronously; } }
