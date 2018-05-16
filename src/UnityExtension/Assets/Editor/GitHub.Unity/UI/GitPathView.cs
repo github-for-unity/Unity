@@ -227,8 +227,13 @@ namespace GitHub.Unity
                     {
                         var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken);
                         var state = new GitInstaller.GitInstallationState();
+                        state = gitInstaller.SetDefaultPaths(state);
+                        // on non-windows we only bundle git-lfs
                         if (!Environment.IsWindows)
+                        {
                             state.GitExecutablePath = installationState.GitExecutablePath;
+                            state.GitInstallationPath = installationState.GitInstallationPath;
+                        }
                         state = gitInstaller.SetupGitIfNeeded(state);
                         if (state.GitIsValid && state.GitLfsIsValid)
                         {

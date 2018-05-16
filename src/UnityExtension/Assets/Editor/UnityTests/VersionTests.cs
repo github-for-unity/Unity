@@ -172,6 +172,10 @@ public class VersionTests
         version1 = TheVersion.Parse("0.33.3");
         version2 = TheVersion.Parse("0.33.3-beta");
         Assert.IsTrue(version1 > version2);
+
+        version1 = TheVersion.Parse("git version 2.11.1.windows.1");
+        version2 = TheVersion.Parse("2.17.0.windows.1");
+        Assert.IsTrue(version1 < version2);
     }
 
     [Test]
@@ -207,6 +211,8 @@ public class VersionTests
         ret = TheVersion.Parse("");
         Assert.AreEqual(TheVersion.Default, ret);
         ret = TheVersion.Parse("bla");
+        Assert.AreEqual(TheVersion.Default, ret);
+        ret = TheVersion.Parse("git version 2.11.1.windows.1");
         Assert.AreEqual(TheVersion.Default, ret);
     }
 }

@@ -15,9 +15,9 @@ namespace GitHub.Unity
                 return;
 
             var match = GitVersionRegex.Match(line);
-            if (match.Groups.Count > 0)
+            if (match.Groups.Count > 1)
             {
-                var version = TheVersion.Parse(match.Groups[0].Value);
+                var version = TheVersion.Parse(match.Groups[1].Value);
                 RaiseOnEntry(version);
             }
         }
