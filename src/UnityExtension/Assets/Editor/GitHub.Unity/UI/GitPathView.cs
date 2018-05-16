@@ -12,7 +12,7 @@ namespace GitHub.Unity
         private const string PathToGit = "Path to Git";
         private const string PathToGitLfs = "Path to Git LFS";
         private const string GitPathSaveButton = "Save";
-        private const string UseInternalGitButton = "Use bundled git";
+        private const string SetToBundledGitButton = "Set to bundled git";
         private const string FindSystemGitButton = "Find system git";
         private const string BrowseButton = "...";
         private const string GitInstallBrowseTitle = "Select executable";
@@ -96,7 +96,7 @@ namespace GitHub.Unity
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
-                            changingManually = true;
+                            changingManually = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -123,7 +123,7 @@ namespace GitHub.Unity
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
-                            changingManually = true;
+                            changingManually = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;;
                             errorMessage = "";
                         }
                     }
@@ -147,18 +147,26 @@ namespace GitHub.Unity
                     }
                     EditorGUI.EndDisabledGroup();
 
-                    if (GUILayout.Button(UseInternalGitButton, GUILayout.ExpandWidth(false)))
+                    // disable the button if the paths are already pointing to the bundled git
+                    // both on windows, only lfs on mac
+                    EditorGUI.BeginDisabledGroup(
+                        (!Environment.IsWindows || gitPath == installDetails.GitExecutablePath) &&
+                         gitLfsPath == installDetails.GitLfsExecutablePath);
                     {
-                        GUI.FocusControl(null);
+                        if (GUILayout.Button(SetToBundledGitButton, GUILayout.ExpandWidth(false)))
+                        {
+                            GUI.FocusControl(null);
 
-                        if (Environment.IsWindows)
-                            gitPath = installDetails.GitExecutablePath;
-                        gitLfsPath = installDetails.GitLfsExecutablePath;
-                        resetToBundled = true;
-                        resetToSystem = false;
-                        changingManually = false;
-                        errorMessage = "";
+                            if (Environment.IsWindows)
+                                gitPath = installDetails.GitExecutablePath;
+                            gitLfsPath = installDetails.GitLfsExecutablePath;
+                            resetToBundled = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
+                            resetToSystem = false;
+                            changingManually = false;
+                            errorMessage = "";
+                        }
                     }
+                    EditorGUI.EndDisabledGroup();
 
                     //Find button - for attempting to locate a new install
                     if (GUILayout.Button(FindSystemGitButton, GUILayout.ExpandWidth(false)))
@@ -189,7 +197,7 @@ namespace GitHub.Unity
                                 }
                                 isBusy = false;
                                 resetToBundled = false;
-                                resetToSystem = true;
+                                resetToSystem = gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
                                 changingManually = false;
                                 errorMessage = "";
                                 Redraw();
