@@ -42,7 +42,7 @@ namespace GitHub.Unity
             if (!skipSystemProbing)
             {
                 if (environment.IsMac)
-                    state = FindSystemGit(state);
+                    state = FindGit(state);
                 state = SetDefaultPaths(state);
             }
 
@@ -58,6 +58,12 @@ namespace GitHub.Unity
             state = GetZipsIfNeeded(state);
             state = GrabZipFromResourcesIfNeeded(state);
             state = ExtractGit(state);
+
+            // if installing from zip failed (internet down maybe?), try to find a usable system git
+            if (!state.GitIsValid && state.GitInstallationPath == installDetails.GitInstallationPath)
+                state = FindGit(state);
+            if (!state.GitLfsIsValid && state.GitLfsInstallationPath == installDetails.GitLfsInstallationPath)
+                state = FindGitLfs(state);
             state.GitLastCheckTime = DateTimeOffset.Now;
             return state;
         }
@@ -88,18 +94,13 @@ namespace GitHub.Unity
 
         public GitInstallationState FindSystemGit(GitInstallationState state)
         {
-            if (!state.GitIsValid)
-            {
-                var gitPath = new FindExecTask("git", cancellationToken)
-                    .Configure(processManager, dontSetupGit: true)
-                    .Catch(e => true)
-                    .RunWithReturn(true);
-                state.GitExecutablePath = gitPath;
-                state = ValidateGitVersion(state);
-                if (state.GitIsValid)
-                    state.GitInstallationPath = gitPath.Parent.Parent;
-            }
+            state = FindGit(state);
+            state = FindGitLfs(state);
+            return state;
+        }
 
+        private GitInstallationState FindGitLfs(GitInstallationState state)
+        {
             if (!state.GitLfsIsValid)
             {
                 var gitLfsPath = new FindExecTask("git-lfs", cancellationToken)
@@ -110,6 +111,22 @@ namespace GitHub.Unity
                 state = ValidateGitLfsVersion(state);
                 if (state.GitLfsIsValid)
                     state.GitLfsInstallationPath = state.GitLfsExecutablePath.Parent;
+            }
+            return state;
+        }
+
+        private GitInstallationState FindGit(GitInstallationState state)
+        {
+            if (!state.GitIsValid)
+            {
+                var gitPath = new FindExecTask("git", cancellationToken)
+                    .Configure(processManager, dontSetupGit: true)
+                    .Catch(e => true)
+                    .RunWithReturn(true);
+                state.GitExecutablePath = gitPath;
+                state = ValidateGitVersion(state);
+                if (state.GitIsValid)
+                    state.GitInstallationPath = gitPath.Parent.Parent;
             }
             return state;
         }
@@ -155,8 +172,7 @@ namespace GitHub.Unity
                 state.GitLfsIsValid = false;
                 return state;
             }
-            var version =
-                new ProcessTask<TheVersion>(cancellationToken, "version", new LfsVersionOutputProcessor())
+            var version = new ProcessTask<TheVersion>(cancellationToken, "version", new LfsVersionOutputProcessor())
                     .Configure(processManager, state.GitLfsExecutablePath, dontSetupGit: true)
                     .Catch(e => true)
                     .RunWithReturn(true);

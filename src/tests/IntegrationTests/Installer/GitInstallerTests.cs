@@ -169,71 +169,70 @@ namespace IntegrationTests
         [Test]
         public void GitLfsIsInstalledIfMissing()
         {
-            var gitInstallationPath = TestBasePath.Combine("GitInstall").CreateDirectory();
+            var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
+            var gitInstallationPath = TestBasePath.Combine("GitInstall").Combine(GitInstaller.GitInstallDetails.GitDirectory);
+            var gitLfsInstallationPath = TestBasePath.Combine("GitInstall").Combine(GitInstaller.GitInstallDetails.GitLfsDirectory);
 
-            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath, DefaultEnvironment.OnWindows)
-                {
-                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
-                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
-                };
-
-            var package = Package.Load(Environment, installDetails.GitPackageFeed);
+            var gitZipUri = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-slim.zip");
             var downloader = new Downloader();
-            downloader.Catch(e => true);
-            downloader.QueueDownload(package.Uri, installDetails.ZipPath);
+            downloader.QueueDownload(gitZipUri, tempZipExtractPath);
             downloader.RunWithReturn(true);
 
-            var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
-
             var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
-            ZipHelper.Instance.Extract(installDetails.GitZipPath, gitExtractPath, TaskManager.Token, null);
+            ZipHelper.Instance.Extract(tempZipExtractPath.Combine(gitZipUri.Filename), gitExtractPath, TaskManager.Token, null);
             var source = gitExtractPath;
-            var target = installDetails.GitInstallationPath;
+            var target = gitInstallationPath;
             target.DeleteIfExists();
             target.EnsureParentDirectoryExists();
             source.Move(target);
+
+            var installDetails = new GitInstaller.GitInstallDetails(gitInstallationPath.Parent, DefaultEnvironment.OnWindows)
+                {
+                    GitPackageFeed = "http://nope",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
+                };
 
             var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails: installDetails);
 
             var result = gitInstaller.SetupGitIfNeeded();
             result.Should().NotBeNull();
 
-            Assert.AreEqual(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitDirectory), result.GitInstallationPath);
-            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitDirectory, "cmd", "git" + Environment.ExecutableExtension));
-            result.GitLfsExecutablePath.Should().Be(gitInstallationPath.Combine(GitInstaller.GitInstallDetails.GitLfsDirectory, "git-lfs" + Environment.ExecutableExtension));
+            Assert.AreEqual(gitInstallationPath, result.GitInstallationPath);
+            result.GitExecutablePath.Should().Be(gitInstallationPath.Combine("cmd", "git" + Environment.ExecutableExtension));
+            result.GitLfsExecutablePath.Should().Be(gitLfsInstallationPath.Combine("git-lfs" + Environment.ExecutableExtension));
         }
 
         [Test]
         public void GitLfsIsInstalledIfMissingWithCustomGitPath()
         {
-            var defaultGitInstall = TestBasePath.Combine("DefaultInstall").CreateDirectory();
-            var customGitInstall = TestBasePath.Combine("CustomGitInstall").CreateDirectory();
+            var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
+            var customGitInstall = TestBasePath.Combine("CustomGitInstall").Combine(GitInstaller.GitInstallDetails.GitDirectory);
 
-            var installDetails = new GitInstaller.GitInstallDetails(defaultGitInstall, DefaultEnvironment.OnWindows)
-                {
-                    GitPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitPackageName}",
-                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
-                };
-
-            var package = Package.Load(Environment, installDetails.GitPackageFeed);
+            var gitZipUri = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-slim.zip");
             var downloader = new Downloader();
-            downloader.Catch(e => true);
-            downloader.QueueDownload(package.Uri, installDetails.ZipPath);
+            downloader.QueueDownload(gitZipUri, tempZipExtractPath);
             downloader.RunWithReturn(true);
 
-            var tempZipExtractPath = TestBasePath.Combine("Temp", "git_zip_extract_zip_paths");
-
             var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
-            ZipHelper.Instance.Extract(installDetails.GitZipPath, gitExtractPath, TaskManager.Token, null);
+            ZipHelper.Instance.Extract(tempZipExtractPath.Combine(gitZipUri.Filename), gitExtractPath, TaskManager.Token, null);
             var source = gitExtractPath;
             var target = customGitInstall;
             target.DeleteIfExists();
             target.EnsureParentDirectoryExists();
             source.Move(target);
             var gitExec = customGitInstall.Combine("cmd/git.exe");
+
             var state = new GitInstaller.GitInstallationState();
             state.GitExecutablePath = gitExec;
             Environment.GitInstallationState = state;
+
+            var defaultGitInstall = TestBasePath.Combine("DefaultInstall");
+
+            var installDetails = new GitInstaller.GitInstallDetails(defaultGitInstall, DefaultEnvironment.OnWindows)
+                {
+                    GitPackageFeed = "http://nope",
+                    GitLfsPackageFeed = $"http://localhost:{server.Port}/unity/git/windows/{GitInstaller.GitInstallDetails.GitLfsPackageName}",
+                };
 
             var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails: installDetails);
 
