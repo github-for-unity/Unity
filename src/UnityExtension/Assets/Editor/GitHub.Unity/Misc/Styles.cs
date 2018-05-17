@@ -66,7 +66,7 @@ namespace GitHub.Unity
                                 headerRepoLabelStyle,
                                 headerTitleStyle,
                                 headerDescriptionStyle,
-                                historyToolbarButtonStyle,
+                                toolbarButtonStyle,
                                 historyLockStyle,
                                 historyEntrySummaryStyle,
                                 historyEntryDetailsStyle,
@@ -382,18 +382,18 @@ namespace GitHub.Unity
             }
         }
 
-        public static GUIStyle HistoryToolbarButtonStyle
+        public static GUIStyle ToolbarButtonStyle
         {
             get
             {
-                if (historyToolbarButtonStyle == null)
+                if (toolbarButtonStyle == null)
                 {
-                    historyToolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
-                    historyToolbarButtonStyle.name = "HistoryToolbarButtonStyle";
-                    historyToolbarButtonStyle.richText = true;
-                    historyToolbarButtonStyle.wordWrap = true;
+                    toolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
+                    toolbarButtonStyle.name = "HistoryToolbarButtonStyle";
+                    toolbarButtonStyle.richText = true;
+                    toolbarButtonStyle.wordWrap = true;
                 }
-                return historyToolbarButtonStyle;
+                return toolbarButtonStyle;
             }
         }
 
