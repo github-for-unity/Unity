@@ -100,7 +100,6 @@ namespace GitHub.Unity
         private readonly IGitConfig config;
         private readonly IGitClient gitClient;
         private readonly IRepositoryPathConfiguration repositoryPaths;
-        private readonly IFileSystem fileSystem;
         private readonly CancellationToken token;
         private readonly IRepositoryWatcher watcher;
 
@@ -118,13 +117,12 @@ namespace GitHub.Unity
         public event Action<CacheType> DataNeedsRefreshing;
 
         public RepositoryManager(IGitConfig gitConfig,
-            IRepositoryWatcher repositoryWatcher, IGitClient gitClient,
-            IFileSystem fileSystem,
+            IRepositoryWatcher repositoryWatcher,
+            IGitClient gitClient,
             CancellationToken token,
             IRepositoryPathConfiguration repositoryPaths)
         {
             this.repositoryPaths = repositoryPaths;
-            this.fileSystem = fileSystem;
             this.token = token;
             this.gitClient = gitClient;
             this.watcher = repositoryWatcher;
@@ -140,7 +138,7 @@ namespace GitHub.Unity
         }
 
         public static RepositoryManager CreateInstance(IPlatform platform, ITaskManager taskManager, IGitClient gitClient,
-            IFileSystem fileSystem, NPath repositoryRoot)
+            NPath repositoryRoot)
         {
             var repositoryPathConfiguration = new RepositoryPathConfiguration(repositoryRoot);
             string filePath = repositoryPathConfiguration.DotGitConfig;
@@ -149,7 +147,7 @@ namespace GitHub.Unity
             var repositoryWatcher = new RepositoryWatcher(platform, repositoryPathConfiguration, taskManager.Token);
 
             return new RepositoryManager(gitConfig, repositoryWatcher,
-                gitClient, fileSystem,
+                gitClient, 
                 taskManager.Token, repositoryPathConfiguration);
         }
 
@@ -302,14 +300,14 @@ namespace GitHub.Unity
             ActionTask<GitStatusEntry[]> task = null;
             task = new ActionTask<GitStatusEntry[]>(token, (_, entries) =>
                 {
-                    var itemsToDelete = new List<string>();
+                    var itemsToDelete = new List<NPath>();
                     var itemsToRevert = new List<string>();
 
                     foreach (var gitStatusEntry in gitStatusEntries)
                     {
                         if (gitStatusEntry.status == GitFileStatus.Added || gitStatusEntry.status == GitFileStatus.Untracked)
                         {
-                            itemsToDelete.Add(gitStatusEntry.path);
+                            itemsToDelete.Add(gitStatusEntry.path.ToNPath().MakeAbsolute());
                         }
                         else
                         {
@@ -321,7 +319,7 @@ namespace GitHub.Unity
                     {
                         foreach (var itemToDelete in itemsToDelete)
                         {
-                            fileSystem.FileDelete(itemToDelete);
+                            itemToDelete.DeleteIfExists();
                         }
                     }
 

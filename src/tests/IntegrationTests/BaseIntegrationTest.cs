@@ -110,7 +110,7 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
 
-            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.FileSystem, repoPath);
+            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
             onRepositoryManagerCreated?.Invoke(RepositoryManager);
