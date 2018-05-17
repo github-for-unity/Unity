@@ -251,12 +251,13 @@ namespace GitHub.Unity
                 currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
             }
 
-            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
+            if (currentLocksHasUpdate)
             {
-                currentStatusEntriesHasUpdate = false;
-                currentLocksHasUpdate = false;
-
                 gitLocks = new HashSet<NPath>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
+            }
+
+            if (currentStatusEntriesHasUpdate)
+            {
                 gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
 
                 changedFilesText = gitStatusEntries.Count == 0
@@ -264,6 +265,12 @@ namespace GitHub.Unity
                     : gitStatusEntries.Count == 1
                         ? OneChangedFileLabel
                         : String.Format(ChangedFilesLabel, gitStatusEntries.Count);
+            }
+
+            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
+            {
+                currentStatusEntriesHasUpdate = false;
+                currentLocksHasUpdate = false;
 
                 BuildTree();
             }
