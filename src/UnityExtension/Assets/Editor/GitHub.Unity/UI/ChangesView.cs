@@ -363,10 +363,10 @@ namespace GitHub.Unity
                         if (success)
                         {
                             TaskManager.Run(UsageTracker.IncrementChangesViewButtonCommit);
-                        }
 
-                        commitMessage = "";
-                        commitBody = "";
+                            commitMessage = "";
+                            commitBody = "";
+                        }
                     }).Start();
         }
     }
