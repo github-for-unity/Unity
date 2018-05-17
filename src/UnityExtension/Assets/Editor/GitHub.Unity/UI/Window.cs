@@ -509,7 +509,7 @@ namespace GitHub.Unity
                     EditorGUI.EndDisabledGroup();
 
                     // Push button
-                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusBehind != 0);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusAhead == 0);
                     {
                         var pushButtonText = statusAhead > 0 ? String.Format(Localization.PushButtonCount, statusAhead) : Localization.PushButton;
                         var pushClicked = GUILayout.Button(pushButtonText, Styles.ToolbarButtonStyle);
