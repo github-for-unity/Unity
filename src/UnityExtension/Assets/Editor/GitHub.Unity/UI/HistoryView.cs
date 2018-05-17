@@ -345,6 +345,13 @@ namespace GitHub.Unity
             DetachHandlers(Repository);
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Repository.Refresh(CacheType.GitLog);
+            Repository.Refresh(CacheType.GitAheadBehind);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
@@ -389,11 +396,11 @@ namespace GitHub.Unity
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
-                    if (GUILayout.Button(CommitDetailsTitle, Styles.HistoryToolbarButtonStyle))
+                    if (GUILayout.Button(CommitDetailsTitle, Styles.ToolbarButtonStyle))
                     {
                         historyControl.ScrollTo(historyControl.SelectedIndex);
                     }
-                    if (GUILayout.Button(ClearSelectionButton, Styles.HistoryToolbarButtonStyle, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(ClearSelectionButton, Styles.ToolbarButtonStyle, GUILayout.ExpandWidth(false)))
                     {
                         selectedEntry = GitLogEntry.Default;
                         historyControl.SelectedIndex = -1;

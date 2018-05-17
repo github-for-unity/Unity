@@ -87,6 +87,8 @@ namespace GitHub.Unity
             base.Refresh();
             gitPathView.Refresh();
             userSettingsView.Refresh();
+            if (Repository != null)
+                Repository.Refresh(CacheType.GitLocks);
         }
 
         public override void OnGUI()

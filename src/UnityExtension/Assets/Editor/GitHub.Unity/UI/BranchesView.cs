@@ -92,6 +92,13 @@ namespace GitHub.Unity
             DetachHandlers(Repository);
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Repository.Refresh(CacheType.Branches);
+            Repository.Refresh(CacheType.RepositoryInfo);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
