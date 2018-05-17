@@ -78,5 +78,6 @@ namespace GitHub.Unity
         ITask DeleteBranch(string branch, bool force);
         ITask CreateBranch(string branch, string baseBranch);
         ITask SwitchBranch(string branch);
+        void Refresh(CacheType cacheType);
     }
 }

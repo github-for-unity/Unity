@@ -60,6 +60,14 @@ namespace GitHub.Unity
             DetachHandlers(Repository);
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Repository.Refresh(CacheType.GitStatus);
+            Repository.Refresh(CacheType.RepositoryInfo);
+            Repository.Refresh(CacheType.GitLocks);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
