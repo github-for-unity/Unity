@@ -482,7 +482,7 @@ namespace GitHub.Unity
                     EditorGUI.BeginDisabledGroup(currentRemoteName == null);
                     {
                         // Fetch button
-                        var fetchClicked = GUILayout.Button(Localization.FetchButtonText, Styles.HistoryToolbarButtonStyle);
+                        var fetchClicked = GUILayout.Button(Localization.FetchButtonText, Styles.ToolbarButtonStyle);
                         if (fetchClicked)
                         {
                             Fetch();
@@ -490,7 +490,7 @@ namespace GitHub.Unity
 
                         // Pull button
                         var pullButtonText = statusBehind > 0 ? String.Format(Localization.PullButtonCount, statusBehind) : Localization.PullButton;
-                        var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
+                        var pullClicked = GUILayout.Button(pullButtonText, Styles.ToolbarButtonStyle);
 
                         if (pullClicked &&
                             EditorUtility.DisplayDialog(Localization.PullConfirmTitle,
@@ -508,7 +508,7 @@ namespace GitHub.Unity
                     EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusAhead == 0);
                     {
                         var pushButtonText = statusAhead > 0 ? String.Format(Localization.PushButtonCount, statusAhead) : Localization.PushButton;
-                        var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
+                        var pushClicked = GUILayout.Button(pushButtonText, Styles.ToolbarButtonStyle);
 
                         if (pushClicked &&
                             EditorUtility.DisplayDialog(Localization.PushConfirmTitle,
@@ -525,11 +525,15 @@ namespace GitHub.Unity
                 else
                 {
                     // Publishing a repo
-                    var publishedClicked = GUILayout.Button(Localization.PublishButton, Styles.HistoryToolbarButtonStyle);
-                    if (publishedClicked)
+                    if (GUILayout.Button(Localization.PublishButton, Styles.ToolbarButtonStyle))
                     {
                         PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
                     }
+                }
+
+                if (GUILayout.Button(Localization.RefreshButton, Styles.ToolbarButtonStyle))
+                {
+                    Refresh();
                 }
 
                 GUILayout.FlexibleSpace();
