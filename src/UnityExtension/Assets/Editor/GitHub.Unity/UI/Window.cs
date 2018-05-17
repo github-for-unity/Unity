@@ -602,12 +602,13 @@ namespace GitHub.Unity
             Repository
                 .Fetch()
                 .FinallyInUI((success, e) => {
-                    if (!success)
+                    if (success)
                     {
                         TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch);
-
-                        EditorUtility.DisplayDialog(Localization.FetchActionTitle, e.Message,
-                            Localization.Ok);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.FetchActionTitle, e.Message, Localization.Ok);
                     }
                 })
                 .Start();
