@@ -14,7 +14,7 @@ namespace GitHub.Unity
                            BroadModeBranchesMinWidth = 200f,
                            BroadModeBranchesRatio = .4f,
                            InitialStateAreaWidth = 200f,
-                           LocksEntryHeight = 65f,
+                           LocksEntryHeight = 42f,
                            LocksSummaryHeight = 5f,
                            LocksUserHeight = 5f,
                            LocksDateHeight = 5f,
@@ -1092,6 +1092,40 @@ namespace GitHub.Unity
                 }
 
                 return focusedActiveTreeNode;
+            }
+        }
+
+        private static GUIStyle lockPathStyle;
+        public static GUIStyle LockPathStyle
+        {
+            get
+            {
+                if (lockPathStyle == null)
+                {
+                    lockPathStyle = new GUIStyle(GUI.skin.label);
+                    lockPathStyle.name = "Custom LockPathStyle";
+
+                    lockPathStyle.fontSize = 11;
+                }
+
+                return lockPathStyle;
+            }
+        }
+
+        private static GUIStyle lockMetaDataStyle;
+        public static GUIStyle LockMetaDataStyle
+        {
+            get
+            {
+                if (lockMetaDataStyle == null)
+                {
+                    lockMetaDataStyle = new GUIStyle(GUI.skin.label);
+                    lockMetaDataStyle.name = "Custom LockMetaDataStyle";
+
+                    lockMetaDataStyle.fontSize = 10;
+                }
+
+                return lockMetaDataStyle;
             }
         }
     }
