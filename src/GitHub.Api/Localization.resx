@@ -181,13 +181,13 @@
     <value>Pull</value>
   </data>
   <data name="PullButtonCount" xml:space="preserve">
-    <value />
+    <value>Pull ({0})</value>
   </data>
   <data name="PushButton" xml:space="preserve">
     <value>Push</value>
   </data>
   <data name="PushButtonCount" xml:space="preserve">
-    <value />
+    <value>Push ({0})</value>
   </data>
   <data name="PullConfirmTitle" xml:space="preserve">
     <value>Pull Changes?</value>
