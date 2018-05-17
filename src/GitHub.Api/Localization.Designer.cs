@@ -430,7 +430,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Pull ({0}).
         /// </summary>
         public static string PullButtonCount {
             get {
@@ -511,7 +511,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Push ({0}).
         /// </summary>
         public static string PushButtonCount {
             get {
