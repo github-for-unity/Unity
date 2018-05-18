@@ -63,7 +63,7 @@ namespace GitHub.Unity
             var download = new DownloadTask(TaskManager.Instance.Token, EntryPoint.Environment.FileSystem, UpdateFeedUrl, EntryPoint.Environment.UserCachePath)
                 .Catch(ex =>
                 {
-                    LogHelper.Warning(@"Error downloading update check:{0} ""{1}"" Message:""{2}""", UpdateFeedUrl, ex.GetType().ToString(), ex.Message);
+                    LogHelper.Warning(@"Error downloading update check:{0} ""{1}""", UpdateFeedUrl, ex.GetExceptionMessageShort());
                     return true;
                 });
             download.OnEnd += (thisTask, result, success, exception) =>
