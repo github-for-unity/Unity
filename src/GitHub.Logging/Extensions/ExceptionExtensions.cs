@@ -20,5 +20,17 @@ namespace GitHub.Logging
             message += Environment.NewLine + String.Join(Environment.NewLine, stack.Skip(1).SkipWhile(x => x.Contains("GitHub.Logging")).ToArray());
             return message;
         }
+
+        public static string GetExceptionMessageShort(this Exception ex)
+        {
+            var message = ex.ToString();
+            var inner = ex.InnerException;
+            while (inner != null)
+            {
+                message += Environment.NewLine + inner.ToString();
+                inner = inner.InnerException;
+            }
+            return message;
+        }
     }
 }
