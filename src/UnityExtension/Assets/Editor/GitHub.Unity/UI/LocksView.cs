@@ -429,10 +429,8 @@ namespace GitHub.Unity
                 var lockControlRect = new Rect(rect.x, rect.y, Position.width, Position.height - rect.height);
 
                 var requiresRepaint = locksControl.Render(lockControlRect,
-                    entry =>
-                    {
-                    },
-                    entry => { },
+                    entry => {},
+                    entry => {},
                     entry =>
                     {
                         var menu = new GenericMenu();
@@ -453,6 +451,7 @@ namespace GitHub.Unity
             }
 
             EditorGUI.EndDisabledGroup();
+            DoProgressGUI();
         }
 
         private void UnlockSelectedEntry()
@@ -464,7 +463,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                     }
                     else
                     {
@@ -487,7 +486,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                     }
                     else
                     {

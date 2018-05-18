@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    interface IView : ICanRenderEmpty
+    interface IView : IUIEmpty, IUIProgress
     {
         void OnEnable();
         void OnDisable();
@@ -23,8 +23,14 @@ namespace GitHub.Unity
         bool HasFocus { get; }
     }
 
-    interface ICanRenderEmpty
+    interface IUIEmpty
     {
         void DoEmptyGUI();
+    }
+
+    interface IUIProgress
+    {
+        void DoProgressGUI();
+        void UpdateProgress(IProgress progress);
     }
 }

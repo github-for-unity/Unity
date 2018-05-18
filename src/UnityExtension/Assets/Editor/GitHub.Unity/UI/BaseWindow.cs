@@ -65,9 +65,6 @@ namespace GitHub.Unity
         public virtual void OnRepositoryChanged(IRepository oldRepository)
         {}
 
-        public virtual void DoEmptyGUI()
-        {}
-
         // OnGUI calls this everytime, so override it to render as you would OnGUI
         public virtual void OnUI() {}
 
@@ -119,6 +116,13 @@ namespace GitHub.Unity
         {
             IsRefreshing = false;
         }
+
+        public virtual void DoEmptyGUI()
+        {}
+        public virtual void DoProgressGUI()
+        {}
+        public virtual void UpdateProgress(IProgress progress)
+        {}
 
         public Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }

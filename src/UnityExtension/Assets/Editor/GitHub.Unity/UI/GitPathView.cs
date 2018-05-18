@@ -268,7 +268,7 @@ namespace GitHub.Unity
                 newState.GitExecutablePath = gitPath.ToNPath();
                 newState.GitLfsExecutablePath = gitLfsPath.ToNPath();
                 var installer = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
-                installer.Progress.OnProgress += ProgressRenderer.UpdateProgress;
+                installer.Progress.OnProgress += UpdateProgress;
 
                 new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                     {
@@ -285,7 +285,7 @@ namespace GitHub.Unity
                     })
                     .FinallyInUI((success, ex, state) =>
                     {
-                        installer.Progress.OnProgress -= ProgressRenderer.UpdateProgress;
+                        installer.Progress.OnProgress -= UpdateProgress;
                         if (!success)
                         {
                             Logger.Error(ex, ErrorValidatingGitPath);

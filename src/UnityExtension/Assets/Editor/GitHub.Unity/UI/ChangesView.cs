@@ -92,8 +92,7 @@ namespace GitHub.Unity
             }
             EditorGUI.BeginDisabledGroup(isBusy);
 
-            if (ProgressRenderer != null)
-                ProgressRenderer.DoProgressGUI();
+            DoProgressGUI();
 
             // Do the commit details area
             DoCommitGUI();
@@ -381,6 +380,7 @@ namespace GitHub.Unity
 
         private void Commit()
         {
+            isBusy = true;
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
 
@@ -403,6 +403,7 @@ namespace GitHub.Unity
                             commitMessage = "";
                             commitBody = "";
                         }
+                        isBusy = false;
                     }).Start();
         }
 

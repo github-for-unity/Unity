@@ -5,14 +5,8 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    interface IUIProgress
-    {
-        void DoProgressGUI();
-        void UpdateProgress(IProgress progress);
-    }
-
     [Serializable]
-    class Window : BaseWindow, IUIProgress, ICanRenderEmpty
+    class Window : BaseWindow
     {
         private const float DefaultNotificationTimeout = 2f;
         private const string Title = "GitHub";
@@ -407,7 +401,7 @@ namespace GitHub.Unity
         }
 
         private static object lck = new object();
-        public void UpdateProgress(IProgress progress)
+        public override void UpdateProgress(IProgress progress)
         {
             lock (lck)
             {
@@ -484,7 +478,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void DoProgressGUI()
+        public override void DoProgressGUI()
         {
             Rect rect1 = GUILayoutUtility.GetRect(position.width, 20);
             if (Event.current.GetTypeForControl(GUIUtility.GetControlID("ghu_ProgressBar".GetHashCode(), FocusType.Keyboard, position)) == EventType.Repaint)

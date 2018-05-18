@@ -221,8 +221,7 @@ namespace GitHub.Unity
                     Redraw();
                 }
             }
-            if (ProgressRenderer != null)
-                ProgressRenderer.DoProgressGUI();
+            DoProgressGUI();
         }
 
         private void BuildTree()

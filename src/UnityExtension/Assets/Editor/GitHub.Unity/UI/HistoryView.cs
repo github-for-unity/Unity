@@ -391,8 +391,7 @@ namespace GitHub.Unity
                     Redraw();
             }
 
-            if (ProgressRenderer != null)
-                ProgressRenderer.DoProgressGUI();
+            DoProgressGUI();
 
             if (!selectedEntry.Equals(GitLogEntry.Default))
             {

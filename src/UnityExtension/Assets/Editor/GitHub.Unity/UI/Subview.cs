@@ -56,6 +56,16 @@ namespace GitHub.Unity
             Parent.DoEmptyGUI();
         }
 
+        public void DoProgressGUI()
+        {
+            Parent.DoProgressGUI();
+        }
+
+        public void UpdateProgress(IProgress progress)
+        {
+            Parent.UpdateProgress(progress);
+        }
+
         protected void Refresh(CacheType type)
         {
             if (Repository == null)
@@ -87,7 +97,6 @@ namespace GitHub.Unity
         }
 
         protected IView Parent { get; private set; }
-        protected IUIProgress ProgressRenderer { get { return Parent is Subview ? ((Subview)Parent).ProgressRenderer : Parent as IUIProgress; } }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }
         public bool HasRepository { get { return Parent.HasRepository; } }

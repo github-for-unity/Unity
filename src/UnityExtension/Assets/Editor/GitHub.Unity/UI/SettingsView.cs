@@ -107,8 +107,7 @@ namespace GitHub.Unity
 
             GUILayout.EndScrollView();
 
-            if (ProgressRenderer != null)
-                ProgressRenderer.DoProgressGUI();
+            DoProgressGUI();
         }
 
         private void AttachHandlers(IRepository repository)
