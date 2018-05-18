@@ -110,8 +110,11 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 
@@ -162,8 +165,11 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 
@@ -214,8 +220,11 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 

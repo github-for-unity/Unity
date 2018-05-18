@@ -92,7 +92,9 @@ namespace GitHub.Unity
                                 selectedLabel,
                                 progressAreaBackStyle,
                                 labelNoWrap,
-                                invisibleLabel;
+                                invisibleLabel,
+                                locksViewLockedByStyle,
+                                locksViewLockedBySelectedStyle;
 
         private static Texture2D branchIcon,
                                  activeBranchIcon,
@@ -630,6 +632,45 @@ namespace GitHub.Unity
                     historyDetailsMetaInfoStyle.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
                 }
                 return historyDetailsMetaInfoStyle;
+            }
+        }
+
+        public static GUIStyle LocksViewLockedByStyle
+        {
+            get
+            {
+                if (locksViewLockedByStyle == null)
+                {
+                    locksViewLockedByStyle = new GUIStyle(EditorStyles.miniLabel);
+                    locksViewLockedByStyle.name = "LocksViewLockedByStyle";
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    locksViewLockedByStyle.onNormal.background = hierarchyStyle.onNormal.background;
+                    locksViewLockedByStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedByStyle.onFocused.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedByStyle.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                }
+                return locksViewLockedByStyle;
+            }
+        }
+
+        public static GUIStyle LocksViewLockedBySelectedStyle
+        {
+            get
+            {
+                if (locksViewLockedBySelectedStyle == null)
+                {
+                    locksViewLockedBySelectedStyle = new GUIStyle(EditorStyles.miniLabel);
+                    locksViewLockedBySelectedStyle.name = "LocksViewLockedBySelectedStyle";
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    locksViewLockedBySelectedStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.onNormal.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.onFocused.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.onFocused.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.normal.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.normal.textColor = hierarchyStyle.onNormal.textColor;
+                }
+                return locksViewLockedBySelectedStyle;
             }
         }
 

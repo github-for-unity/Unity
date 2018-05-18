@@ -150,7 +150,7 @@ namespace GitHub.Unity
             }
             GUILayout.BeginVertical();
             GUILayout.Label(entry.GitLock.Path, isSelected ? Styles.SelectedLabel : Styles.Label);
-            GUILayout.Label(string.Format("Locked {0} by {1}", entry.LockedAt, entry.GitLock.Owner.Name), isSelected ? Styles.SelectedLabel : Styles.Label);
+            GUILayout.Label(string.Format("Locked {0} by {1}", entry.LockedAt, entry.GitLock.Owner.Name), isSelected ? Styles.LocksViewLockedBySelectedStyle : Styles.LocksViewLockedByStyle);
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             var itemRect = GUILayoutUtility.GetLastRect();
@@ -467,8 +467,11 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 
@@ -490,8 +493,11 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 
