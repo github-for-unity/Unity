@@ -38,7 +38,7 @@ namespace GitHub.Unity
                 feed = new DownloadTask(TaskManager.Instance.Token, environment.FileSystem, packageFeed, environment.UserCachePath)
                     .Catch(ex =>
                     {
-                        LogHelper.Warning(@"Error downloading package feed:{0} ""{1}"" Message:""{2}""", packageFeed, ex.GetType().ToString(), ex.Message);
+                        LogHelper.Warning(@"Error downloading package feed:{0} ""{1}"" Message:""{2}""", packageFeed, ex.GetType().ToString(), ex.GetExceptionMessageShort());
                         return true;
                     })
                     .RunWithReturn(true);

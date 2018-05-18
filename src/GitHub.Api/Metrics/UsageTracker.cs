@@ -95,7 +95,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.Message);
+                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
                     }
                 }
 
