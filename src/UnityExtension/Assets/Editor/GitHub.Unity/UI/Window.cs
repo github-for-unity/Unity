@@ -55,12 +55,6 @@ namespace GitHub.Unity
         [SerializeField] private float appManagerProgressValue;
         [SerializeField] private string appManagerProgressMessage;
 
-        [MenuItem("GitHub/Select")]
-        public static void Select()
-        {
-            Selection.activeObject = SceneView.currentDrawingSceneView;
-        }
-
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
         {
