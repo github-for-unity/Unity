@@ -687,7 +687,7 @@ namespace GitHub.Unity
                         {
                             SetProgressMessage(Localization.MessagePullFailed, 100);
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                Localization.PullFailureDescription,
+                                e.Message,
                             Localization.Ok);
                         }
                     })
@@ -715,7 +715,7 @@ namespace GitHub.Unity
                     {
                         SetProgressMessage(Localization.MessagePushFailed, 100);
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                            Localization.PushFailureDescription,
+                            e.Message,
                         Localization.Ok);
                     }
                 })
@@ -737,8 +737,7 @@ namespace GitHub.Unity
                     else
                     {
                         SetProgressMessage(Localization.MessageFetchFailed, 100);
-                        EditorUtility.DisplayDialog(Localization.FetchActionTitle, Localization.FetchFailureDescription,
-                            Localization.Ok);
+                        EditorUtility.DisplayDialog(Localization.FetchActionTitle, e.Message, Localization.Ok);
                     }
                 })
                 .Start();

@@ -592,7 +592,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Pull ({0}).
         /// </summary>
         public static string PullButtonCount {
             get {
@@ -673,7 +673,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Push ({0}).
         /// </summary>
         public static string PushButtonCount {
             get {
@@ -745,6 +745,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Release Lock.
+        /// </summary>
+        public static string ReleaseLockActionTitle {
+            get {
+                return ResourceManager.GetString("ReleaseLockActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access.
         /// </summary>
         public static string RemoteAccessTitle {
@@ -786,6 +795,15 @@ namespace GitHub.Unity {
         public static string RemoteUserTitle {
             get {
                 return ResourceManager.GetString("RemoteUserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request Lock.
+        /// </summary>
+        public static string RequestLockActionTitle {
+            get {
+                return ResourceManager.GetString("RequestLockActionTitle", resourceCulture);
             }
         }
         
