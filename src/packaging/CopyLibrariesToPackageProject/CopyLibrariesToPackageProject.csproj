@@ -71,12 +71,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(SolutionDir)EULA.txt">
-      <Link>EULA.txt</Link>
+    <None Include="$(SolutionDir)eula.txt">
+      <Link>eula.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(SolutionDir)CREDITS.txt">
-      <Link>CREDITS.txt</Link>
+    <None Include="$(SolutionDir)credits.txt">
+      <Link>credits.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
