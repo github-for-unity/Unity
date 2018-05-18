@@ -566,7 +566,7 @@ namespace GitHub.Unity
                         else
                         {
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                Localization.PullFailureDescription,
+                                e.Message,
                             Localization.Ok);
                         }
                     })
@@ -590,7 +590,7 @@ namespace GitHub.Unity
                     else
                     {
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                            Localization.PushFailureDescription,
+                            e.Message,
                         Localization.Ok);
                     }
                 })
@@ -602,12 +602,13 @@ namespace GitHub.Unity
             Repository
                 .Fetch()
                 .FinallyInUI((success, e) => {
-                    if (!success)
+                    if (success)
                     {
                         TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch);
-
-                        EditorUtility.DisplayDialog(Localization.FetchActionTitle, Localization.FetchFailureDescription,
-                            Localization.Ok);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.FetchActionTitle, e.Message, Localization.Ok);
                     }
                 })
                 .Start();

@@ -345,4 +345,10 @@
   <data name="Window_RepoUrlTooltip" xml:space="preserve">
     <value>Url of the {0} remote</value>
   </data>
+  <data name="ReleaseLockActionTitle" xml:space="preserve">
+    <value>Release Lock</value>
+  </data>
+  <data name="RequestLockActionTitle" xml:space="preserve">
+    <value>Request Lock</value>
+  </data>
 </root>

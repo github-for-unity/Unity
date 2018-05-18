@@ -108,6 +108,12 @@ namespace GitHub.Unity
                     {
                         EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsLock);
                     }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
+                            ex.Message,
+                            Localization.Ok);
+                    }
 
                     isBusy = false;
                     Selection.activeGameObject = null;
@@ -154,6 +160,13 @@ namespace GitHub.Unity
                     {
                         EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
                     }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
+                            ex.Message,
+                            Localization.Ok);
+                    }
+
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();
