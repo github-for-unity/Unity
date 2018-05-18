@@ -17,16 +17,18 @@ namespace GitHub.Unity
     {
         public static GitLockEntry Default = new GitLockEntry(GitLock.Default, GitFileStatus.None);
 
-        [SerializeField] private GitLock gitLock;
-        [SerializeField] private GitFileStatus gitFileStatus;
-
         [NonSerialized] public Texture Icon;
         [NonSerialized] public Texture IconBadge;
+
+        [SerializeField] private GitLock gitLock;
+        [SerializeField] private GitFileStatus gitFileStatus;
+        [SerializeField] private string lockedAt;
 
         public GitLockEntry(GitLock gitLock, GitFileStatus gitFileStatus)
         {
             this.gitLock = gitLock;
             this.gitFileStatus = gitFileStatus;
+            this.lockedAt = gitLock.LockedAt.ToLocalTime().CreateRelativeTime(DateTimeOffset.Now);
         }
 
         public GitLock GitLock
@@ -39,28 +41,22 @@ namespace GitHub.Unity
             get { return gitFileStatus; }
         }
 
-        public string PrettyTimeString
-        {
-            get
-            {
-                return gitLock.LockedAt.ToLocalTime().CreateRelativeTime(DateTimeOffset.Now);
-            }
-        }
+        public string LockedAt { get { return lockedAt; } }
     }
 
     [Serializable]
     class LocksControl
     {
+        [NonSerialized] private Action<GitLock> rightClickNextRender;
+        [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
+        [NonSerialized] private int controlId;
+        [NonSerialized] private UnityEngine.Object lastActivatedObject;
+
         [SerializeField] private Vector2 scroll;
         [SerializeField] private List<GitLockEntry> gitLockEntries = new List<GitLockEntry>();
         [SerializeField] public GitLockEntryDictionary assets = new GitLockEntryDictionary();
         [SerializeField] public GitStatusDictionary gitStatusDictionary = new GitStatusDictionary();
-
-        [NonSerialized] private Action<GitLock> rightClickNextRender;
-        [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
-        [NonSerialized] private GitLockEntry selectedEntry;
-        [NonSerialized] private int controlId;
-        [NonSerialized] private UnityEngine.Object lastActivatedObject;
+        [SerializeField] private GitLockEntry selectedEntry;
 
         public GitLockEntry SelectedEntry
         {
@@ -72,8 +68,8 @@ namespace GitHub.Unity
             {
                 selectedEntry = value;
 
-                var activeObject = selectedEntry != null
-                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path)
+                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath))
                     : null;
 
                 lastActivatedObject = activeObject;
@@ -115,16 +111,16 @@ namespace GitHub.Unity
                     var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.LocksEntryHeight);
 
                     var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
-                    if (shouldRenderEntry && Event.current.type == EventType.Repaint)
+                    if (shouldRenderEntry)
                     {
-                        RenderEntry(entryRect, entry);
+                        entryRect = RenderEntry(entryRect, entry);
                     }
 
                     var entryRequiresRepaint =
                         HandleInput(entryRect, entry, index, singleClick, doubleClick, rightClick);
                     requiresRepaint = requiresRepaint || entryRequiresRepaint;
 
-                    rect.y += Styles.LocksEntryHeight;
+                    rect.y += entryRect.height;
                 }
 
                 GUILayout.Space(rect.y - containingRect.y);
@@ -134,30 +130,30 @@ namespace GitHub.Unity
             return requiresRepaint;
         }
 
-        private void RenderEntry(Rect entryRect, GitLockEntry entry)
+        private Rect RenderEntry(Rect entryRect, GitLockEntry entry)
         {
             var isSelected = entry == SelectedEntry;
-
             var iconWidth = 32;
             var iconHeight = 32;
-            var iconRect = new Rect(entryRect.x + Styles.BaseSpacing / 2, entryRect.y + (Styles.LocksEntryHeight - iconHeight) / 2, iconWidth, iconHeight);
-
             var iconBadgeWidth = 16;
-            var iconBasgeHeight = 16;
-            var iconBadgeRect = new Rect(iconRect.x + iconBadgeWidth, iconRect.y + iconBasgeHeight, iconBadgeWidth, iconBasgeHeight);
-
-            var entryBodyX = iconRect.x + iconRect.width + Styles.BaseSpacing / 2;
-
-            var pathRect = new Rect(entryBodyX, entryRect.y + Styles.BaseSpacing, entryRect.width - entryBodyX, 11f * 2);
-            var metaDataRect = new Rect(entryBodyX, pathRect.y + pathRect.height + 2, entryRect.width - entryBodyX, 9f * 2);
-
+            var iconBadgeHeight = 16;
             var hasKeyboardFocus = GUIUtility.keyboardControl == controlId;
 
-            Styles.Label.Draw(entryRect, GUIContent.none, false, false, isSelected, hasKeyboardFocus);
-            Styles.Label.Draw(iconRect, entry.Icon, false, false, isSelected, hasKeyboardFocus);
-            Styles.Label.Draw(iconBadgeRect, entry.IconBadge, false, false, isSelected, hasKeyboardFocus);
-            Styles.LockPathStyle.Draw(pathRect, entry.GitLock.Path, false, false, isSelected, hasKeyboardFocus);
-            Styles.LockMetaDataStyle.Draw(metaDataRect, string.Format("Locked {0} by {1}", entry.PrettyTimeString, entry.GitLock.Owner.Name), false, false, isSelected, hasKeyboardFocus);
+            GUILayout.BeginHorizontal(isSelected ? Styles.SelectedArea : Styles.Label);
+            GUILayout.Label(entry.Icon, GUILayout.Height(iconWidth), GUILayout.Width(iconHeight));
+            if (Event.current.type == EventType.Repaint)
+            {
+                var iconRect = GUILayoutUtility.GetLastRect();
+                var iconBadgeRect = new Rect(iconRect.x + iconBadgeWidth, iconRect.y + iconBadgeHeight, iconBadgeWidth, iconBadgeHeight);
+                Styles.Label.Draw(iconBadgeRect, entry.IconBadge, false, false, false, hasKeyboardFocus);
+            }
+            GUILayout.BeginVertical();
+            GUILayout.Label(entry.GitLock.Path, isSelected ? Styles.SelectedLabel : Styles.Label);
+            GUILayout.Label(string.Format("Locked {0} by {1}", entry.LockedAt, entry.GitLock.Owner.Name), isSelected ? Styles.SelectedLabel : Styles.Label);
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            var itemRect = GUILayoutUtility.GetLastRect();
+            return itemRect;
         }
 
         private bool HandleInput(Rect rect, GitLockEntry entry, int index, Action<GitLock> singleClick = null,
@@ -214,32 +210,32 @@ namespace GitHub.Unity
 
         public void Load(List<GitLock> locks, List<GitStatusEntry> gitStatusEntries)
         {
-            var statusEntries = gitStatusEntries.ToDictionary(entry => entry.Path.ToNPath().ToString(SlashMode.Forward), entry => entry.status);
-
+            var statusEntries = new Dictionary<string, int>();
+            for (int i = 0; i < gitStatusEntries.Count; i++)
+                statusEntries.Add(gitStatusEntries[i].Path.ToNPath().ToString(SlashMode.Forward), i);
             var selectedLockId = SelectedEntry != null && SelectedEntry.GitLock != GitLock.Default
                 ? (int?) SelectedEntry.GitLock.ID 
                 : null;
 
             var scrollValue = scroll.y;
-
             var previousCount = gitLockEntries.Count;
-
             var scrollIndex = (int)(scrollValue / Styles.LocksEntryHeight);
 
             assets.Clear();
 
-            gitLockEntries = locks.Select(gitLock => {
-
-                GitFileStatus gitFileStatus;
-                if (!statusEntries.TryGetValue(gitLock.Path.ToString(SlashMode.Forward), out gitFileStatus))
+            gitLockEntries = locks.Select(gitLock =>
+            {
+                int index = -1;
+                GitFileStatus gitFileStatus = GitFileStatus.None;
+                if (statusEntries.TryGetValue(gitLock.Path.ToString(SlashMode.Forward), out index))
                 {
-                    gitFileStatus = GitFileStatus.None;
+                    gitFileStatus = gitStatusEntries[index].Status;
                 }
 
                 var gitLockEntry = new GitLockEntry(gitLock, gitFileStatus);
                 LoadIcon(gitLockEntry, true);
-
-                var assetGuid = AssetDatabase.AssetPathToGUID(gitLock.Path);
+                var path = gitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath);
+                var assetGuid = AssetDatabase.AssetPathToGUID(path);
                 if (!string.IsNullOrEmpty(assetGuid))
                 {
                     assets.Add(assetGuid, gitLockEntry);
@@ -359,12 +355,10 @@ namespace GitHub.Unity
             if (!LocksControlHasFocus)
             {
                 GitLockEntry gitLockEntry = GitLockEntry.Default;
-
                 if (Selection.activeObject != lastActivatedObject)
                 {
                     var activeAssetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
                     var activeAssetGuid = AssetDatabase.AssetPathToGUID(activeAssetPath);
-
                     assets.TryGetValue(activeAssetGuid, out gitLockEntry);
                 }
 
@@ -383,7 +377,6 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentLocksHasUpdate;
 
         [SerializeField] private LocksControl locksControl;
-        [SerializeField] private GitLock selectedEntry = GitLock.Default;
 
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
@@ -430,11 +423,10 @@ namespace GitHub.Unity
             var rect = GUILayoutUtility.GetLastRect();
             if (locksControl != null)
             {
-                var lockControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
+                var lockControlRect = new Rect(rect.x, rect.y, Position.width, Position.height - rect.height);
 
                 var requiresRepaint = locksControl.Render(lockControlRect,
                     entry => {
-                        selectedEntry = entry;
                     },
                     entry => { }, 
                     entry => {
@@ -446,11 +438,8 @@ namespace GitHub.Unity
                             unlockFile = "Unlock File";
                             menuFunction = UnlockSelectedEntry;
                         }
-                        else
-                        {
-                            unlockFile = "Force Unlock File";
-                            menuFunction = ForceUnlockSelectedEntry;
-                        }
+                        unlockFile = "Force Unlock File";
+                        menuFunction = ForceUnlockSelectedEntry;
 
                         var menu = new GenericMenu();
                         menu.AddItem(new GUIContent(unlockFile), false, menuFunction);
@@ -465,14 +454,14 @@ namespace GitHub.Unity
         private void UnlockSelectedEntry()
         {
             Repository
-                .ReleaseLock(selectedEntry.Path, false)
+                .ReleaseLock(locksControl.SelectedEntry.GitLock.Path, false)
                 .Start();
         }
 
         private void ForceUnlockSelectedEntry()
         {
             Repository
-                .ReleaseLock(selectedEntry.Path, true)
+                .ReleaseLock(locksControl.SelectedEntry.GitLock.Path, true)
                 .Start();
         }
 
@@ -549,7 +538,6 @@ namespace GitHub.Unity
             {
                 currentStatusEntriesHasUpdate = false;
                 currentLocksHasUpdate = false;
-
                 BuildLocksControl();
             }
         }
@@ -562,12 +550,6 @@ namespace GitHub.Unity
             }
 
             locksControl.Load(lockedFiles, gitStatusEntries);
-
-            if (!selectedEntry.Equals(GitLock.Default)
-                && selectedEntry.ID != locksControl.SelectedEntry.GitLock.ID)
-            {
-                selectedEntry = GitLock.Default;
-            }
         }
         public override void OnSelectionChange()
         {

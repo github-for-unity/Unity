@@ -86,7 +86,9 @@ namespace GitHub.Unity
                                 historyDetailsTitleStyle,
                                 historyDetailsMetaInfoStyle,
                                 genericBoxStyle,
-                                hyperlinkStyle;
+                                hyperlinkStyle,
+                                selectedArea,
+                                selectedLabel;
 
         private static Texture2D branchIcon,
                                  activeBranchIcon,
@@ -202,6 +204,23 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle SelectedArea
+        {
+            get
+            {
+                if (selectedArea == null)
+                {
+                    selectedArea = new GUIStyle(GUI.skin.label);
+                    selectedArea.name = "SelectedArea";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    selectedArea.normal.background = hierarchyStyle.onFocused.background;
+                    selectedArea.focused.background = hierarchyStyle.onFocused.background;
+                }
+                return selectedArea;
+            }
+        }
+
         public static GUIStyle Label
         {
             get
@@ -216,8 +235,31 @@ namespace GitHub.Unity
                     label.onNormal.textColor = hierarchyStyle.onNormal.textColor;
                     label.onFocused.background = hierarchyStyle.onFocused.background;
                     label.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    label.wordWrap = true;
                 }
                 return label;
+            }
+        }
+
+        public static GUIStyle SelectedLabel
+        {
+            get
+            {
+                if (selectedLabel == null)
+                {
+                    selectedLabel = new GUIStyle(GUI.skin.label);
+                    selectedLabel.name = "SelectedLabel";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    selectedLabel.onNormal.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.onNormal.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.onFocused.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.normal.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.normal.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.wordWrap = true;
+                }
+                return selectedLabel;
             }
         }
 
