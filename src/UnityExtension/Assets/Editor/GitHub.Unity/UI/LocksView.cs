@@ -577,8 +577,11 @@ namespace GitHub.Unity
             if (currentUserHasUpdate)
             {
                 //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                var keychainConnection = Platform.Keychain.Connections.First();
-                currentUsername = keychainConnection.Username;
+                var keychainConnection = Platform.Keychain.Connections.FirstOrDefault();
+                if (keychainConnection != null)
+                    currentUsername = keychainConnection.Username;
+                else
+                    currentUsername = "";
                 currentUserHasUpdate = false;
             }
 
