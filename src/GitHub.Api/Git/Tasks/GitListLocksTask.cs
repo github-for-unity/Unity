@@ -19,5 +19,6 @@ namespace GitHub.Unity
         }
 
         public override string ProcessArguments => args;
+        public override string Message { get; set; } = "Reading locks...";
     }
 }

@@ -61,6 +61,7 @@ namespace GitHub.Unity
                                 deletedFileLabel,
                                 longMessageStyle,
                                 headerBoxStyle,
+                                headerStyle,
                                 headerBranchLabelStyle,
                                 headerUrlLabelStyle,
                                 headerRepoLabelStyle,
@@ -88,7 +89,12 @@ namespace GitHub.Unity
                                 genericBoxStyle,
                                 hyperlinkStyle,
                                 selectedArea,
-                                selectedLabel;
+                                selectedLabel,
+                                progressAreaBackStyle,
+                                labelNoWrap,
+                                invisibleLabel,
+                                locksViewLockedByStyle,
+                                locksViewLockedBySelectedStyle;
 
         private static Texture2D branchIcon,
                                  activeBranchIcon,
@@ -241,6 +247,46 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle LabelNoWrap
+        {
+            get
+            {
+                if (labelNoWrap == null)
+                {
+                    labelNoWrap = new GUIStyle(GUI.skin.label);
+                    labelNoWrap.name = "LabelNoWrap";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    labelNoWrap.onNormal.background = hierarchyStyle.onNormal.background;
+                    labelNoWrap.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    labelNoWrap.onFocused.background = hierarchyStyle.onFocused.background;
+                    labelNoWrap.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    labelNoWrap.wordWrap = false;
+                }
+                return labelNoWrap;
+            }
+        }
+
+        public static GUIStyle InvisibleLabel
+        {
+            get
+            {
+                if (invisibleLabel == null)
+                {
+                    invisibleLabel = new GUIStyle(GUI.skin.label);
+                    invisibleLabel.name = "InvisibleLabel";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    invisibleLabel.onNormal.background = hierarchyStyle.onNormal.background;
+                    invisibleLabel.onNormal.textColor = new Color(255, 0, 0, 0);
+                    invisibleLabel.onFocused.background = hierarchyStyle.onFocused.background;
+                    invisibleLabel.onFocused.textColor = new Color(255, 0, 0, 0);
+                    invisibleLabel.wordWrap = true;
+                }
+                return invisibleLabel;
+            }
+        }
+
         public static GUIStyle SelectedLabel
         {
             get
@@ -352,6 +398,21 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle HeaderStyle
+        {
+            get
+            {
+                if (headerStyle == null)
+                {
+                    headerStyle = new GUIStyle("IN BigTitle");
+                    headerStyle.name = "HeaderStyle";
+                    headerStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerStyle.padding = new RectOffset(0, 0, 0, 0);
+                }
+                return headerStyle;
+            }
+        }
+
         public static GUIStyle BoldLabel
         {
             get
@@ -458,7 +519,7 @@ namespace GitHub.Unity
             {
                 if (historyEntrySummaryStyle == null)
                 {
-                    historyEntrySummaryStyle = new GUIStyle(Label);
+                    historyEntrySummaryStyle = new GUIStyle(LabelNoWrap);
                     historyEntrySummaryStyle.name = "HistoryEntrySummaryStyle";
 
                     historyEntrySummaryStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
@@ -574,6 +635,45 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle LocksViewLockedByStyle
+        {
+            get
+            {
+                if (locksViewLockedByStyle == null)
+                {
+                    locksViewLockedByStyle = new GUIStyle(EditorStyles.miniLabel);
+                    locksViewLockedByStyle.name = "LocksViewLockedByStyle";
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    locksViewLockedByStyle.onNormal.background = hierarchyStyle.onNormal.background;
+                    locksViewLockedByStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedByStyle.onFocused.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedByStyle.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                }
+                return locksViewLockedByStyle;
+            }
+        }
+
+        public static GUIStyle LocksViewLockedBySelectedStyle
+        {
+            get
+            {
+                if (locksViewLockedBySelectedStyle == null)
+                {
+                    locksViewLockedBySelectedStyle = new GUIStyle(EditorStyles.miniLabel);
+                    locksViewLockedBySelectedStyle.name = "LocksViewLockedBySelectedStyle";
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    locksViewLockedBySelectedStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.onNormal.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.onFocused.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.onFocused.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.normal.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.normal.textColor = hierarchyStyle.onNormal.textColor;
+                }
+                return locksViewLockedBySelectedStyle;
+            }
+        }
+
         public static GUIStyle CommitFileAreaStyle
         {
             get
@@ -583,6 +683,7 @@ namespace GitHub.Unity
                     commitFileAreaStyle = new GUIStyle(GUI.skin.box);
                     commitFileAreaStyle.name = "CommitFileAreaStyle";
                     commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
+                    commitFileAreaStyle.padding = new RectOffset(0, 0, 2, 2);
                 }
                 return commitFileAreaStyle;
             }
@@ -615,6 +716,22 @@ namespace GitHub.Unity
                     textFieldStyle.padding = new RectOffset(HalfSpacing, HalfSpacing, 4, 0);
                 }
                 return textFieldStyle;
+            }
+        }
+
+        public static GUIStyle ProgressAreaBackStyle
+        {
+            get
+            {
+                if (progressAreaBackStyle == null)
+                {
+                    progressAreaBackStyle = new GUIStyle(GUI.skin.FindStyle("ProgressBarBack"));
+                    progressAreaBackStyle.name = "ProgressAreaBackStyle";
+                    //progressAreaBackStyle.normal.background = Utility.GetTextureFromColor(new Color(194f/255f, 194f/255f, 194f/255f));
+                    progressAreaBackStyle.margin = new RectOffset(0, 0, 0, 0);
+                    progressAreaBackStyle.padding = new RectOffset(0, 0, 0, 0);
+                }
+                return progressAreaBackStyle;
             }
         }
 

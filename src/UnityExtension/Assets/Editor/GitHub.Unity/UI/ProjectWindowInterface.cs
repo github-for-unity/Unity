@@ -106,12 +106,15 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsLock);
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 
@@ -158,12 +161,15 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 
@@ -210,12 +216,15 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                     }
                     else
                     {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
                         EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                            ex.Message,
+                            error,
                             Localization.Ok);
                     }
 

@@ -28,6 +28,8 @@ namespace GitHub.Unity
 
         private readonly List<DownloaderTask> downloaders = new List<DownloaderTask>();
 
+        public override string Message { get; set; } = "Downloading...";
+
         public Downloader() : base(TaskManager.Instance.Token, RunDownloaders)
         {
             Name = "Downloader";

@@ -13,5 +13,6 @@ namespace GitHub.Unity
         }
 
         public override string ProcessArguments { get { return "remote -v"; } }
+        public override string Message { get; set; } = "Listing remotes...";
     }
 }

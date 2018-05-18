@@ -318,7 +318,7 @@
   <data name="FetchActionTitle" xml:space="preserve">
     <value>Fetch Changes</value>
   </data>
-  <data name="FetchButtonText" xml:space="preserve">
+  <data name="FetchButton" xml:space="preserve">
     <value>Fetch</value>
   </data>
   <data name="FetchFailureDescription" xml:space="preserve">
@@ -371,5 +371,59 @@
   </data>
   <data name="UnlockFileMenuItem" xml:space="preserve">
     <value>Release Lock</value>
+  </data>
+  <data name="AccountButton" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="MessageBranchCreated" xml:space="preserve">
+    <value>Created branch {0}</value>
+  </data>
+  <data name="MessageBranchDeleted" xml:space="preserve">
+    <value>Deleted branch {0}</value>
+  </data>
+  <data name="MessageBranchSwitched" xml:space="preserve">
+    <value>Switched to branch {0}</value>
+  </data>
+  <data name="MessageCommitFailed" xml:space="preserve">
+    <value>Commit failed</value>
+  </data>
+  <data name="MessageCommitted" xml:space="preserve">
+    <value>Committed</value>
+  </data>
+  <data name="MessageCommitting" xml:space="preserve">
+    <value>Committing</value>
+  </data>
+  <data name="MessageFetched" xml:space="preserve">
+    <value>Fetched</value>
+  </data>
+  <data name="MessageFetchFailed" xml:space="preserve">
+    <value>Fetch failed</value>
+  </data>
+  <data name="MessageFetching" xml:space="preserve">
+    <value>Fetching</value>
+  </data>
+  <data name="MessagePulled" xml:space="preserve">
+    <value>Pulled</value>
+  </data>
+  <data name="MessagePullFailed" xml:space="preserve">
+    <value>Failed to pull</value>
+  </data>
+  <data name="MessagePulling" xml:space="preserve">
+    <value>Pulling</value>
+  </data>
+  <data name="MessagePushed" xml:space="preserve">
+    <value>Pushed</value>
+  </data>
+  <data name="MessagePushFailed" xml:space="preserve">
+    <value>Failed to push</value>
+  </data>
+  <data name="MessagePushing" xml:space="preserve">
+    <value>Pushing</value>
+  </data>
+  <data name="MessageRefreshed" xml:space="preserve">
+    <value>Refreshed</value>
+  </data>
+  <data name="MessageRefreshing" xml:space="preserve">
+    <value>Refreshing</value>
   </data>
 </root>

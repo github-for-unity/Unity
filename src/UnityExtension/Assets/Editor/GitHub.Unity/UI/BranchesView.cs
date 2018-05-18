@@ -95,8 +95,8 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            Repository.Refresh(CacheType.Branches);
-            Repository.Refresh(CacheType.RepositoryInfo);
+            Refresh(CacheType.Branches);
+            Refresh(CacheType.RepositoryInfo);
         }
 
         public override void OnDataUpdate()
@@ -126,6 +126,7 @@ namespace GitHub.Unity
         {
             if (!lastCurrentBranchAndRemoteChange.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastCurrentBranchAndRemoteChange = cacheUpdateEvent;
                 currentBranchAndRemoteChangeHasUpdate = true;
                 Redraw();
@@ -137,6 +138,7 @@ namespace GitHub.Unity
         {
             if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
                 localAndRemoteBranchListHasUpdate = true;
                 Redraw();
@@ -219,6 +221,7 @@ namespace GitHub.Unity
                     Redraw();
                 }
             }
+            DoProgressGUI();
         }
 
         private void BuildTree()
@@ -316,7 +319,7 @@ namespace GitHub.Unity
                             {
                                 if (success)
                                 {
-                                    TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCreateBranch);
+                                    TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCreateBranch, null);
                                     Redraw();
                                 }
                                 else
@@ -486,7 +489,7 @@ namespace GitHub.Unity
                         {
                             if (success)
                             {
-                                TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutRemoteBranch);
+                                TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutRemoteBranch, null);
                                 Redraw();
                             }
                             else
@@ -509,7 +512,7 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutLocalBranch);
+                            TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutLocalBranch, null);
                             Redraw();
                         }
                         else

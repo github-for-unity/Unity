@@ -13,10 +13,8 @@ namespace GitHub.Unity
             Name = TaskName;
         }
 
-        public override string ProcessArguments
-        {
-            get { return Arguments ; }
-        }
+        public override string ProcessArguments => Arguments;
+        public override string Message { get; set; } = "Listing local branches...";
     }
 
 
@@ -31,9 +29,7 @@ namespace GitHub.Unity
             Name = TaskName;
         }
 
-        public override string ProcessArguments
-        {
-            get { return Arguments; }
-        }
+        public override string ProcessArguments => Arguments;
+        public override string Message { get; set; } = "Listing remote branches...";
     }
 }

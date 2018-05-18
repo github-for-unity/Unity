@@ -25,6 +25,6 @@ namespace GitHub.Unity
         /// </summary>
         /// <param name="hostAddress">The address of the server.</param>
         /// <inheritdoc/>
-        Task Logout(UriString hostAddress);
+        ITask Logout(UriString hostAddress);
     }
 }

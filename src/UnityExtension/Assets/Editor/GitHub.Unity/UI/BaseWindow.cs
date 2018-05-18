@@ -65,9 +65,6 @@ namespace GitHub.Unity
         public virtual void OnRepositoryChanged(IRepository oldRepository)
         {}
 
-        public virtual void DoEmptyGUI()
-        {}
-
         // OnGUI calls this everytime, so override it to render as you would OnGUI
         public virtual void OnUI() {}
 
@@ -115,9 +112,22 @@ namespace GitHub.Unity
         public virtual void OnSelectionChange()
         {}
 
+        public virtual void DoneRefreshing()
+        {
+            IsRefreshing = false;
+        }
+
+        public virtual void DoEmptyGUI()
+        {}
+        public virtual void DoProgressGUI()
+        {}
+        public virtual void UpdateProgress(IProgress progress)
+        {}
+
         public Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
         public abstract bool IsBusy { get; }
+        public bool IsRefreshing { get; private set; }
         public bool HasFocus { get; private set; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
         public bool HasRepository { get { return Repository != null; } }

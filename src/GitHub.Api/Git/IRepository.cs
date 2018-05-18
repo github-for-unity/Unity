@@ -78,5 +78,6 @@ namespace GitHub.Unity
         ITask CreateBranch(string branch, string baseBranch);
         ITask SwitchBranch(string branch);
         void Refresh(CacheType cacheType);
+        event Action<IProgress> OnProgress;
     }
 }

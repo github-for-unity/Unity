@@ -348,8 +348,8 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            Repository.Refresh(CacheType.GitLog);
-            Repository.Refresh(CacheType.GitAheadBehind);
+            Refresh(CacheType.GitLog);
+            Refresh(CacheType.GitAheadBehind);
         }
 
         public override void OnDataUpdate()
@@ -390,6 +390,8 @@ namespace GitHub.Unity
                 if (requiresRepaint)
                     Redraw();
             }
+
+            DoProgressGUI();
 
             if (!selectedEntry.Equals(GitLogEntry.Default))
             {
@@ -495,6 +497,7 @@ namespace GitHub.Unity
         {
             if (!lastTrackingStatusChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastTrackingStatusChangedEvent = cacheUpdateEvent;
                 currentTrackingStatusHasUpdate = true;
                 Redraw();
@@ -505,6 +508,7 @@ namespace GitHub.Unity
         {
             if (!lastLogChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastLogChangedEvent = cacheUpdateEvent;
                 currentLogHasUpdate = true;
                 Redraw();

@@ -40,14 +40,9 @@ namespace GitHub.Unity
                 octorunScript: octorunScriptPath);
         }
 
-        public async Task Logout(UriString host)
+        public ITask Logout(UriString host)
         {
-            await LogoutInternal(host);
-        }
-
-        private async Task LogoutInternal(UriString host)
-        {
-            await loginManager.Logout(host);
+            return loginManager.Logout(host);
         }
 
         public async Task CreateRepository(string name, string description, bool isPrivate, Action<GitHubRepository, Exception> callback, string organization = null)

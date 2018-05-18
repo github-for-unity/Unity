@@ -14,7 +14,7 @@ namespace GitHub.Unity
         private readonly GitInstallDetails installDetails;
         private readonly IZipHelper sharpZipLibHelper;
 
-        public IProgress Progress { get; set; }
+        public IProgress Progress { get; } = new Progress(TaskBase.Default);
 
         public GitInstaller(IEnvironment environment, IProcessManager processManager,
             CancellationToken token,
@@ -250,7 +250,7 @@ namespace GitHub.Unity
                     LogHelper.Trace(e, "Failed to download");
                     return true;
                 });
-            downloader.Progress(p => ((Progress)Progress)?.UpdateProgress(20 + (long)(20 * p.Percentage), 100, downloader.Name));
+            downloader.Progress(p => Progress.UpdateProgress(20 + (long)(20 * p.Percentage), 100, downloader.Message));
             if (!state.GitZipExists && !state.GitIsValid && state.GitPackage != null)
                 downloader.QueueDownload(state.GitPackage.Uri, installDetails.ZipPath);
             if (!state.GitLfsZipExists && !state.GitLfsIsValid && state.GitLfsPackage != null)
@@ -259,7 +259,7 @@ namespace GitHub.Unity
 
             state.GitZipExists = installDetails.GitZipPath.FileExists();
             state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
-            ((Progress)Progress)?.UpdateProgress(30, 100);
+            Progress.UpdateProgress(30, 100);
 
             return state;
         }
@@ -294,7 +294,7 @@ namespace GitHub.Unity
                         LogHelper.Trace(e, "Failed to unzip " + installDetails.GitZipPath);
                         return true;
                     });
-                unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Name));
+                unzipTask.Progress(p => Progress.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Message));
                 var path = unzipTask.RunWithReturn(true);
                 var target = state.GitInstallationPath;
                 if (unzipTask.Successful)
@@ -319,7 +319,7 @@ namespace GitHub.Unity
                         LogHelper.Trace(e, "Failed to unzip " + installDetails.GitLfsZipPath);
                         return true;
                     });
-                unzipTask.Progress(p => ((Progress)Progress)?.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Name));
+                unzipTask.Progress(p => Progress.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Message));
                 var path = unzipTask.RunWithReturn(true);
                 var target = state.GitLfsInstallationPath;
                 if (unzipTask.Successful)
