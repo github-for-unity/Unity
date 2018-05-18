@@ -57,6 +57,7 @@ namespace GitHub.Unity
         [SerializeField] public GitLockEntryDictionary assets = new GitLockEntryDictionary();
         [SerializeField] public GitStatusDictionary gitStatusDictionary = new GitStatusDictionary();
         [SerializeField] private GitLockEntry selectedEntry;
+        public bool IsEmpty { get { return gitLockEntries.Count == 0; } }
 
         public GitLockEntry SelectedEntry
         {
@@ -423,15 +424,17 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(IsBusy);
 
-            if (locksControl != null)
+            if (locksControl != null && !locksControl.IsEmpty)
             {
                 var lockControlRect = new Rect(rect.x, rect.y, Position.width, Position.height - rect.height);
 
                 var requiresRepaint = locksControl.Render(lockControlRect,
-                    entry => {
+                    entry =>
+                    {
                     },
-                    entry => { }, 
-                    entry => {
+                    entry => { },
+                    entry =>
+                    {
                         var menu = new GenericMenu();
                         if (entry.Owner.Name == currentUsername)
                         {
@@ -443,6 +446,10 @@ namespace GitHub.Unity
 
                 if (requiresRepaint)
                     Redraw();
+            }
+            else
+            {
+                DoEmptyGUI();
             }
 
             EditorGUI.EndDisabledGroup();

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
-    class Window : BaseWindow
+    class Window : BaseWindow, ICanRenderEmpty
     {
         private const float DefaultNotificationTimeout = 4f;
         private const string Title = "GitHub";
@@ -184,7 +184,6 @@ namespace GitHub.Unity
                 ActiveView.Refresh();
             Repaint();
         }
-
 
         public override void OnUI()
         {
@@ -545,6 +544,21 @@ namespace GitHub.Unity
                     DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        public override void DoEmptyGUI()
+        {
+            GUILayout.BeginVertical();
+            GUILayout.FlexibleSpace();
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(Styles.EmptyStateInit, GUILayout.MaxWidth(265), GUILayout.MaxHeight(136));
+                GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.EndVertical();
         }
 
         private void Pull()
