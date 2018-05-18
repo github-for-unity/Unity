@@ -1,9 +1,6 @@
 using GitHub.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +8,9 @@ namespace GitHub.Unity
 {
     class ProjectWindowInterface : AssetPostprocessor
     {
+        private const string AssetsMenuRequestLock = "Assets/Request Lock";
+        private const string AssetsMenuReleaseLock = "Assets/Release Lock";
+        private const string AssetsMenuReleaseLockForced = "Assets/Release Lock (forced)";
         private static readonly List<GitStatusEntry> entries = new List<GitStatusEntry>();
         private static List<GitLock> locks = new List<GitLock>();
 
@@ -65,7 +65,7 @@ namespace GitHub.Unity
             }
         }
 
-        [MenuItem("Assets/Request Lock", true)]
+        [MenuItem(AssetsMenuRequestLock, true)]
         private static bool ContextMenu_CanLock()
         {
             if (isBusy)
@@ -91,7 +91,7 @@ namespace GitHub.Unity
             return !alreadyLocked && status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
         }
 
-        [MenuItem("Assets/Request Lock")]
+        [MenuItem(AssetsMenuRequestLock)]
         private static void ContextMenu_Lock()
         {
             isBusy = true;
@@ -122,7 +122,7 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        [MenuItem("Assets/Release lock", true, 1000)]
+        [MenuItem(AssetsMenuReleaseLock, true, 1000)]
         private static bool ContextMenu_CanUnlock()
         {
             if (isBusy)
@@ -143,7 +143,7 @@ namespace GitHub.Unity
             return isLocked;
         }
 
-        [MenuItem("Assets/Release lock", false, 1000)]
+        [MenuItem(AssetsMenuReleaseLock, false, 1000)]
         private static void ContextMenu_Unlock()
         {
             isBusy = true;
@@ -159,6 +159,58 @@ namespace GitHub.Unity
                     if (success)
                     {
                         EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
+                            ex.Message,
+                            Localization.Ok);
+                    }
+
+                    isBusy = false;
+                    Selection.activeGameObject = null;
+                    EditorApplication.RepaintProjectWindow();
+                })
+                .Start();
+        }
+
+        [MenuItem(AssetsMenuReleaseLockForced, true, 1000)]
+        private static bool ContextMenu_CanUnlockForce()
+        {
+            if (isBusy)
+                return false;
+            if (repository == null || !repository.CurrentRemote.HasValue)
+                return false;
+
+            var selected = Selection.activeObject;
+            if (selected == null)
+                return false;
+            if (locks == null || locks.Count == 0)
+                return false;
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
+            var isLocked = locks.Any(x => repositoryPath == x.Path);
+            return isLocked;
+        }
+
+        [MenuItem(AssetsMenuReleaseLockForced, false, 1000)]
+        private static void ContextMenu_UnlockForce()
+        {
+            isBusy = true;
+            var selected = Selection.activeObject;
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
+            repository
+                .ReleaseLock(repositoryPath, false)
+                .FinallyInUI((success, ex) =>
+                {
+                    if (success)
+                    {
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
                     }
                     else
                     {

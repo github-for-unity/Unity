@@ -187,6 +187,24 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assets/Release Lock (forced).
+        /// </summary>
+        public static string ForceUnlockFileAssetsMenuItem {
+            get {
+                return ResourceManager.GetString("ForceUnlockFileAssetsMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Release Lock (forced).
+        /// </summary>
+        public static string ForceUnlockFileMenuItem {
+            get {
+                return ResourceManager.GetString("ForceUnlockFileMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ....
         /// </summary>
         public static string GitInitBrowseButton {
@@ -327,6 +345,33 @@ namespace GitHub.Unity {
         public static string LockedOut {
             get {
                 return ResourceManager.GetString("LockedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assets/Request Lock.
+        /// </summary>
+        public static string LockFileAssetsMenuItem {
+            get {
+                return ResourceManager.GetString("LockFileAssetsMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request Lock.
+        /// </summary>
+        public static string LockFileMenuItem {
+            get {
+                return ResourceManager.GetString("LockFileMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locks.
+        /// </summary>
+        public static string LocksTitle {
+            get {
+                return ResourceManager.GetString("LocksTitle", resourceCulture);
             }
         }
         
@@ -858,6 +903,24 @@ namespace GitHub.Unity {
         public static string UnknownViewModeError {
             get {
                 return ResourceManager.GetString("UnknownViewModeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assets/Release Lock.
+        /// </summary>
+        public static string UnlockFileAssetsMenuItem {
+            get {
+                return ResourceManager.GetString("UnlockFileAssetsMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Release Lock.
+        /// </summary>
+        public static string UnlockFileMenuItem {
+            get {
+                return ResourceManager.GetString("UnlockFileMenuItem", resourceCulture);
             }
         }
         

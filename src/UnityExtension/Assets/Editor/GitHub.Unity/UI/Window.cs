@@ -12,7 +12,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class Window : BaseWindow, IUIProgress
+    class Window : BaseWindow, IUIProgress, ICanRenderEmpty
     {
         private const float DefaultNotificationTimeout = 2f;
         private const string Title = "GitHub";
@@ -38,6 +38,7 @@ namespace GitHub.Unity
         [SerializeField] private ChangesView changesView = new ChangesView();
         [SerializeField] private HistoryView historyView = new HistoryView();
         [SerializeField] private SettingsView settingsView = new SettingsView();
+        [SerializeField] private LocksView locksView = new LocksView();
         [SerializeField] private bool hasRemote;
         [SerializeField] private string currentRemoteName;
         [SerializeField] private string currentBranch;
@@ -118,6 +119,7 @@ namespace GitHub.Unity
             ChangesView.InitializeView(this);
             BranchesView.InitializeView(this);
             SettingsView.InitializeView(this);
+            LocksView.InitializeView(this);
             InitProjectView.InitializeView(this);
 
             titleContent = new GUIContent(Title, Styles.SmallLogo);
@@ -535,6 +537,7 @@ namespace GitHub.Unity
                     if (HasRepository)
                     {
                         changeTab = TabButton(SubTab.Changes, Localization.ChangesTitle, changeTab);
+                        changeTab = TabButton(SubTab.Locks, Localization.LocksTitle, changeTab);
                         changeTab = TabButton(SubTab.History, Localization.HistoryTitle, changeTab);
                         changeTab = TabButton(SubTab.Branches, Localization.BranchesTitle, changeTab);
                     }
@@ -659,6 +662,21 @@ namespace GitHub.Unity
                         EditorGUI.ProgressBar(rect, appManagerProgressValue, appManagerProgressMessage);
                 }
             }
+        }
+
+        public override void DoEmptyGUI()
+        {
+            GUILayout.BeginVertical();
+            GUILayout.FlexibleSpace();
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(Styles.EmptyStateInit, GUILayout.MaxWidth(265), GUILayout.MaxHeight(136));
+                GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.EndVertical();
         }
 
         private void Pull()
@@ -867,6 +885,8 @@ namespace GitHub.Unity
                     return branchesView;
                 case SubTab.Settings:
                     return settingsView;
+                case SubTab.Locks:
+                    return locksView;
                 default:
                     throw new ArgumentOutOfRangeException("tab");
             }
@@ -892,6 +912,11 @@ namespace GitHub.Unity
             get { return settingsView; }
         }
 
+        public LocksView LocksView
+        {
+            get { return locksView; }
+        }
+
         public InitProjectView InitProjectView
         {
             get { return initProjectView; }
@@ -914,7 +939,8 @@ namespace GitHub.Unity
             History,
             Changes,
             Branches,
-            Settings
+            Settings,
+            Locks
         }
     }
 }

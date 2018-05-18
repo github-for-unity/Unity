@@ -51,6 +51,10 @@ namespace GitHub.Unity
             Parent.Finish(result);
         }
 
+        public void DoEmptyGUI()
+        {
+            Parent.DoEmptyGUI();
+        }
 
         protected void Refresh(CacheType type)
         {

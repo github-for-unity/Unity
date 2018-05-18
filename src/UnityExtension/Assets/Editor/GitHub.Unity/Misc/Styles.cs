@@ -14,6 +14,10 @@ namespace GitHub.Unity
                            BroadModeBranchesMinWidth = 200f,
                            BroadModeBranchesRatio = .4f,
                            InitialStateAreaWidth = 200f,
+                           LocksEntryHeight = 42f,
+                           LocksSummaryHeight = 5f,
+                           LocksUserHeight = 5f,
+                           LocksDateHeight = 5f,
                            HistoryEntryHeight = 40f,
                            HistorySummaryHeight = 16f,
                            HistoryDetailsHeight = 16f,
@@ -84,6 +88,8 @@ namespace GitHub.Unity
                                 historyDetailsMetaInfoStyle,
                                 genericBoxStyle,
                                 hyperlinkStyle,
+                                selectedArea,
+                                selectedLabel,
                                 progressAreaBackStyle;
 
         private static Texture2D branchIcon,
@@ -200,6 +206,23 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle SelectedArea
+        {
+            get
+            {
+                if (selectedArea == null)
+                {
+                    selectedArea = new GUIStyle(GUI.skin.label);
+                    selectedArea.name = "SelectedArea";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    selectedArea.normal.background = hierarchyStyle.onFocused.background;
+                    selectedArea.focused.background = hierarchyStyle.onFocused.background;
+                }
+                return selectedArea;
+            }
+        }
+
         public static GUIStyle Label
         {
             get
@@ -214,8 +237,31 @@ namespace GitHub.Unity
                     label.onNormal.textColor = hierarchyStyle.onNormal.textColor;
                     label.onFocused.background = hierarchyStyle.onFocused.background;
                     label.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    label.wordWrap = true;
                 }
                 return label;
+            }
+        }
+
+        public static GUIStyle SelectedLabel
+        {
+            get
+            {
+                if (selectedLabel == null)
+                {
+                    selectedLabel = new GUIStyle(GUI.skin.label);
+                    selectedLabel.name = "SelectedLabel";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    selectedLabel.onNormal.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.onNormal.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.onFocused.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.normal.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.normal.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.wordWrap = true;
+                }
+                return selectedLabel;
             }
         }
 
@@ -1122,6 +1168,40 @@ namespace GitHub.Unity
                 }
 
                 return focusedActiveTreeNode;
+            }
+        }
+
+        private static GUIStyle lockPathStyle;
+        public static GUIStyle LockPathStyle
+        {
+            get
+            {
+                if (lockPathStyle == null)
+                {
+                    lockPathStyle = new GUIStyle(GUI.skin.label);
+                    lockPathStyle.name = "Custom LockPathStyle";
+
+                    lockPathStyle.fontSize = 11;
+                }
+
+                return lockPathStyle;
+            }
+        }
+
+        private static GUIStyle lockMetaDataStyle;
+        public static GUIStyle LockMetaDataStyle
+        {
+            get
+            {
+                if (lockMetaDataStyle == null)
+                {
+                    lockMetaDataStyle = new GUIStyle(GUI.skin.label);
+                    lockMetaDataStyle.name = "Custom LockMetaDataStyle";
+
+                    lockMetaDataStyle.fontSize = 10;
+                }
+
+                return lockMetaDataStyle;
             }
         }
     }

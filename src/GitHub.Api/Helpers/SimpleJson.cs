@@ -1255,7 +1255,7 @@ namespace GitHub.Unity.Json
                                                                 @"yyyy-MM-dd\THH\:mm\:sszzz",
                                                                 @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
                                                                 @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ssZ",
+                                                                @"yyyy-MM-dd\THH\:mm\:ss\Z",
                                                                 @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
                                                                 @"yyyy-MM-dd\THH:mm:ss.fffzzz",
                                                                 @"yyyy-MM-dd\THH:mm:sszzz",

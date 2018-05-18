@@ -79,7 +79,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers();
 
-            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
         }
 
         public override void OnDisable()

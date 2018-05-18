@@ -39,6 +39,7 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
+        [SerializeField] private bool isBusy;
 
         public override void OnEnable()
         {
@@ -76,47 +77,27 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            GUILayout.BeginHorizontal();
+            DoButtonBarGUI();
+            if (gitStatusEntries.Count == 0)
             {
-                EditorGUI.BeginDisabledGroup(gitStatusEntries == null || !gitStatusEntries.Any());
-                {
-                    if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
-                    {
-                        SelectAll();
-                    }
-
-                    if (GUILayout.Button(SelectNoneButton, EditorStyles.miniButtonRight))
-                    {
-                        SelectNone();
-                    }
-                }
+                GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
+                DoEmptyGUI();
+                GUILayout.EndVertical();
+            }
+            else
+            {
+                EditorGUI.BeginDisabledGroup(isBusy);
+                DoChangesTreeGUI();
                 EditorGUI.EndDisabledGroup();
-
-                GUILayout.FlexibleSpace();
-
-                GUILayout.Label(changedFilesText, EditorStyles.miniLabel);
             }
-            GUILayout.EndHorizontal();
-
-            var rect = GUILayoutUtility.GetLastRect();
-            GUILayout.BeginHorizontal();
-            GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
-            {
-                treeScroll = GUILayout.BeginScrollView(treeScroll);
-                {
-                    OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
-                }
-                GUILayout.EndScrollView();
-            }
+            EditorGUI.BeginDisabledGroup(isBusy);
 
             if (ProgressRenderer != null)
                 ProgressRenderer.DoProgressGUI();
 
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
-
             // Do the commit details area
             DoCommitGUI();
+            EditorGUI.EndDisabledGroup();
         }
 
         public override void OnSelectionChange()
@@ -137,6 +118,47 @@ namespace GitHub.Unity
                 treeChanges.ViewHasFocus = hasFocus;
                 Redraw();
             }
+        }
+
+        private void DoChangesTreeGUI()
+        {
+            var rect = GUILayoutUtility.GetLastRect();
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
+            {
+                treeScroll = GUILayout.BeginScrollView(treeScroll);
+                {
+                    OnTreeGUI(new Rect(0f, 0f, Position.width, Position.height - rect.height + Styles.CommitAreaPadding));
+                }
+                GUILayout.EndScrollView();
+            }
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+        }
+
+        private void DoButtonBarGUI()
+        {
+            GUILayout.BeginHorizontal();
+            {
+                EditorGUI.BeginDisabledGroup(gitStatusEntries == null || gitStatusEntries.Count == 0);
+                {
+                    if (GUILayout.Button(SelectAllButton, EditorStyles.miniButtonLeft))
+                    {
+                        SelectAll();
+                    }
+
+                    if (GUILayout.Button(SelectNoneButton, EditorStyles.miniButtonRight))
+                    {
+                        SelectNone();
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+
+                GUILayout.FlexibleSpace();
+
+                GUILayout.Label(changedFilesText, EditorStyles.miniLabel);
+            }
+            GUILayout.EndHorizontal();
         }
 
         private void OnTreeGUI(Rect rect)
@@ -382,6 +404,11 @@ namespace GitHub.Unity
                             commitBody = "";
                         }
                     }).Start();
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy || base.IsBusy; }
         }
     }
 }

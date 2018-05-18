@@ -89,7 +89,6 @@ namespace GitHub.Unity
                             return;
                         }
 
-
                         TaskManager.Instance.RunInUI(() =>
                         {
                             NotifyOfNewUpdate(current, package);
@@ -97,7 +96,7 @@ namespace GitHub.Unity
                     }
                     catch(Exception ex)
                     {
-                        Debug.LogError(ex);
+                        LogHelper.GetLogger<UpdateCheckWindow>().Error(ex);
                     }
                 }
             };

@@ -28,7 +28,8 @@ Details about how the team is organizing and shipping GitHub for Unity:
  - **[Roadmap](process/roadmap.md)** - how we plan for the future
  - **[Release](process/release-process.md)** - how we review contributions
 
-## Technical
+## Using
 
-These documents contain more details about the internals of GitHub for Unity
-and how things work:
+These documents contain more details on how to use the GitHub for Unity plugin:
+- **[Installing and Updating the GitHub for Unity package](https://github.com/github-for-unity/Unity/blob/master/docs/using/how-to-install-and-update.md)**
+- **[Getting Started with the GitHub for Unity package](https://github.com/github-for-unity/Unity/blob/master/docs/using/getting-started.md)**

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    interface IView
+    interface IView : ICanRenderEmpty
     {
         void OnEnable();
         void OnDisable();
@@ -21,5 +21,10 @@ namespace GitHub.Unity
         bool IsBusy { get; }
         bool IsRefreshing { get; }
         bool HasFocus { get; }
+    }
+
+    interface ICanRenderEmpty
+    {
+        void DoEmptyGUI();
     }
 }

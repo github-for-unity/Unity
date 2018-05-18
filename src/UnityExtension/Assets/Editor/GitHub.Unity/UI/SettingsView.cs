@@ -22,7 +22,6 @@ namespace GitHub.Unity
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
 
-        [NonSerialized] private bool currentLocksHasUpdate;
         [NonSerialized] private bool currentRemoteHasUpdate;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool metricsHasChanged;
@@ -30,10 +29,6 @@ namespace GitHub.Unity
         [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool hasRemote;
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
-        [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
-        [SerializeField] private int lockedFileSelection = -1;
-        [SerializeField] private Vector2 lockScrollPos;
         [SerializeField] private bool metricsEnabled;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private string repositoryRemoteName;
@@ -63,7 +58,6 @@ namespace GitHub.Unity
 
             metricsHasChanged = true;
         }
-
 
         public override void OnDisable()
         {
@@ -102,11 +96,6 @@ namespace GitHub.Unity
                 if (Repository != null)
                 {
                     OnRepositorySettingsGUI();
-
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                    OnGitLfsLocksGUI();
-
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
                 }
 
@@ -130,17 +119,6 @@ namespace GitHub.Unity
             }
 
             repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
-            repository.LocksChanged += RepositoryOnLocksChanged;
-        }
-
-        private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastLocksChangedEvent = cacheUpdateEvent;
-                currentLocksHasUpdate = true;
-                Redraw();
-            }
         }
 
         private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -159,12 +137,13 @@ namespace GitHub.Unity
             {
                 return;
             }
+
+            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
         }
 
         private void ValidateCachedData(IRepository repository)
         {
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -174,9 +153,6 @@ namespace GitHub.Unity
                 metricsEnabled = Manager.UsageTracker != null ? Manager.UsageTracker.Enabled : false;
                 metricsHasChanged = false;
             }
-
-            if (lockedFiles == null)
-                lockedFiles = new List<GitLock>();
 
             if (Repository == null)
                 return;
@@ -196,16 +172,6 @@ namespace GitHub.Unity
                     repositoryRemoteName = currentRemote.Value.Name;
                     newRepositoryRemoteUrl = repositoryRemoteUrl = currentRemote.Value.Url;
                 }
-            }
-
-            if (currentLocksHasUpdate)
-            {
-                currentLocksHasUpdate = false;
-                var repositoryCurrentLocks = Repository.CurrentLocks;
-                lockedFileSelection = -1;
-                lockedFiles = repositoryCurrentLocks != null
-                    ? repositoryCurrentLocks.ToList()
-                    : new List<GitLock>();
             }
         }
 
@@ -239,89 +205,6 @@ namespace GitHub.Unity
                     }
                 }
                 EditorGUI.EndDisabledGroup();
-            }
-            EditorGUI.EndDisabledGroup();
-        }
-
-        private void OnGitLfsLocksGUI()
-        {
-            EditorGUI.BeginDisabledGroup(IsBusy || Repository == null);
-            {
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.Label("Locked files", EditorStyles.boldLabel);
-
-                    lockScrollPos = EditorGUILayout.BeginScrollView(lockScrollPos, Styles.GenericTableBoxStyle,
-                        GUILayout.Height(125));
-                    {
-                        GUILayout.BeginVertical();
-                        {
-                            var lockedFilesCount = lockedFiles.Count;
-                            for (var index = 0; index < lockedFilesCount; ++index)
-                            {
-                                GUIStyle rowStyle = (lockedFileSelection == index)
-                                    ? Styles.LockedFileRowSelectedStyle
-                                    : Styles.LockedFileRowStyle;
-                                GUILayout.Box(lockedFiles[index].Path, rowStyle);
-
-                                if (Event.current.type == EventType.MouseDown &&
-                                    GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                                {
-                                    var currentEvent = Event.current;
-
-                                    if (currentEvent.button == 0)
-                                    {
-                                        lockedFileSelection = index;
-                                    }
-
-                                    Event.current.Use();
-                                }
-                            }
-                        }
-
-                        GUILayout.EndVertical();
-                    }
-
-                    EditorGUILayout.EndScrollView();
-
-                    if (lockedFileSelection > -1)
-                    {
-                        GUILayout.BeginVertical();
-                        {
-                            var lck = lockedFiles[lockedFileSelection];
-                            GUILayout.Label(lck.Path, EditorStyles.boldLabel);
-
-                            GUILayout.BeginHorizontal();
-                            {
-                                GUILayout.Label("Locked by " + lck.Owner.Name);
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button("Unlock"))
-                                {
-                                    Repository.ReleaseLock(lck.Path, true)
-                                        .FinallyInUI((success, ex) =>
-                                        {
-                                            if (success)
-                                            {
-                                                TaskManager.Run(UsageTracker.IncrementSettingsViewButtonLfsUnlock);
-                                            }
-                                            else
-                                            {
-                                                EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
-                                                    ex.Message,
-                                                    Localization.Ok);
-                                            }
-                                        })
-                                        .Start();
-                                }
-                            }
-                            GUILayout.EndHorizontal();
-                        }
-                        GUILayout.EndVertical();
-                    }
-                }
-
-                GUILayout.EndVertical();
-
             }
             EditorGUI.EndDisabledGroup();
         }
@@ -386,7 +269,6 @@ namespace GitHub.Unity
             }
             EditorGUI.EndDisabledGroup();
         }
-
 
         public override bool IsBusy
         {
