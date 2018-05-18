@@ -1,7 +1,7 @@
 # Installation and Updating Guide
-[Installing from a Downloaded Package File](#Installing-from-a-Package-File)  
-[Installing from the Unity Asset Store](#Installing-from-the-Asset-Store)  
-[Updating a Previously Installed Version](#Updating-the-GitHub-for-Unity-Package)
+[Installing from a Downloaded Package File](#installing-from-a-package-file)  
+[Installing from the Unity Asset Store](#installing-from-the-asset-store)  
+[Updating a Previously Installed Version](#updating-the-github-for-unity-package)
 
 
 # Installing from a Package File
