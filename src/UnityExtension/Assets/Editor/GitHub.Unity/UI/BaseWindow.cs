@@ -65,6 +65,9 @@ namespace GitHub.Unity
         public virtual void OnRepositoryChanged(IRepository oldRepository)
         {}
 
+        public virtual void DoEmptyGUI()
+        {}
+
         // OnGUI calls this everytime, so override it to render as you would OnGUI
         public virtual void OnUI() {}
 

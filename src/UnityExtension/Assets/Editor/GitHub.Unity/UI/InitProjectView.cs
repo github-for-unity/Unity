@@ -30,7 +30,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers();
 
-            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
         }
 
         public override void OnDisable()
@@ -46,13 +46,7 @@ namespace GitHub.Unity
                 GUILayout.FlexibleSpace();
                 GUILayout.Space(-140);
 
-                GUILayout.BeginHorizontal();
-                {
-                  GUILayout.FlexibleSpace();
-                  GUILayout.Label(Styles.EmptyStateInit, GUILayout.MaxWidth(265), GUILayout.MaxHeight(136));
-                  GUILayout.FlexibleSpace();
-                }
-                GUILayout.EndHorizontal();
+                DoEmptyGUI();
 
                 GUILayout.Label(NoRepoTitle, Styles.BoldCenteredLabel);
                 GUILayout.Space(4);

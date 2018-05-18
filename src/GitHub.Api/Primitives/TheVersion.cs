@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
+    [Serializable]
     public struct TheVersion : IComparable<TheVersion>
     {
         private const string versionRegex = @"^(?<major>\d+)(\.?(?<minor>[^.]+))?(\.?(?<patch>[^.]+))?(\.?(?<build>.+))?";

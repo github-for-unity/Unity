@@ -351,4 +351,25 @@
   <data name="RequestLockActionTitle" xml:space="preserve">
     <value>Request Lock</value>
   </data>
+  <data name="ForceUnlockFileAssetsMenuItem" xml:space="preserve">
+    <value>Assets/Release Lock (forced)</value>
+  </data>
+  <data name="ForceUnlockFileMenuItem" xml:space="preserve">
+    <value>Release Lock (forced)</value>
+  </data>
+  <data name="LockFileAssetsMenuItem" xml:space="preserve">
+    <value>Assets/Request Lock</value>
+  </data>
+  <data name="LockFileMenuItem" xml:space="preserve">
+    <value>Request Lock</value>
+  </data>
+  <data name="LocksTitle" xml:space="preserve">
+    <value>Locks</value>
+  </data>
+  <data name="UnlockFileAssetsMenuItem" xml:space="preserve">
+    <value>Assets/Release Lock</value>
+  </data>
+  <data name="UnlockFileMenuItem" xml:space="preserve">
+    <value>Release Lock</value>
+  </data>
 </root>

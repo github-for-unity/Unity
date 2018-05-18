@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 
 namespace GitHub.Unity
 {
+    public interface IBackedByCache
+    {
+        void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent);
+    }
+
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     sealed class Repository : IEquatable<Repository>, IRepository
     {
@@ -380,12 +384,11 @@ namespace GitHub.Unity
             CloneUrl, LocalPath, CurrentBranch, CurrentRemote);
     }
 
-    public interface IUser
+    public interface IUser : IBackedByCache
     {
         string Name { get; }
         string Email { get; }
         event Action<CacheUpdateEvent> Changed;
-        void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void Initialize(IGitClient client);
         void SetNameAndEmail(string name, string email);
     }
@@ -406,7 +409,7 @@ namespace GitHub.Unity
             cacheContainer.CacheUpdated += (type, dt) => { if (type == CacheType.GitUser) CacheHasBeenUpdated(dt); };
         }
 
-        public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, cacheUpdateEvent);
+        public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, cacheUpdateEvent);
 
         public void Initialize(IGitClient client)
         {

@@ -7,6 +7,22 @@ using System.Text;
 
 namespace GitHub.Unity
 {
+    static class DateTimeOffsetExtensions
+    {
+        private const string Today = "Today";
+        private const string Yesterday = "Yesterday";
+
+        public static string CreateRelativeTime(this DateTimeOffset @from, DateTimeOffset to)
+        {
+            return String.Format("{0}, {1:HH}:{1:mm}",
+                @from.DayOfYear == to.DayOfYear
+                    ? Today
+                    : @from.DayOfYear == to.DayOfYear - 1
+                        ? Yesterday
+                        : @from.ToString("d MMM yyyy"), @from);
+        }
+    }
+
     static class StringExtensions
     {
         public static bool Contains(this string s, string expectedSubstring, StringComparison comparison)
