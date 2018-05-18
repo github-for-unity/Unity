@@ -3,7 +3,7 @@
 [Installing from the Unity Asset Store](#installing-from-the-asset-store)  
 [Updating a Previously Installed Version](#updating-the-github-for-unity-package)
 
-_Note: If your project is already in a remote repository, see our [Getting Started](https://github.com/github-for-unity/Unity/blob/master/docs/using/getting-started.md) docs before continuing_
+_Note: If your Unity project already has the GitHub for Unity plugin installed, see our [Getting Started](https://github.com/github-for-unity/Unity/blob/master/docs/using/getting-started.md) docs before continuing_
 
 
 # Installing from a Package File
