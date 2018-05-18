@@ -90,7 +90,9 @@ namespace GitHub.Unity
                                 hyperlinkStyle,
                                 selectedArea,
                                 selectedLabel,
-                                progressAreaBackStyle;
+                                progressAreaBackStyle,
+                                labelNoWrap,
+                                invisibleLabel;
 
         private static Texture2D branchIcon,
                                  activeBranchIcon,
@@ -240,6 +242,46 @@ namespace GitHub.Unity
                     label.wordWrap = true;
                 }
                 return label;
+            }
+        }
+
+        public static GUIStyle LabelNoWrap
+        {
+            get
+            {
+                if (labelNoWrap == null)
+                {
+                    labelNoWrap = new GUIStyle(GUI.skin.label);
+                    labelNoWrap.name = "LabelNoWrap";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    labelNoWrap.onNormal.background = hierarchyStyle.onNormal.background;
+                    labelNoWrap.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    labelNoWrap.onFocused.background = hierarchyStyle.onFocused.background;
+                    labelNoWrap.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    labelNoWrap.wordWrap = false;
+                }
+                return labelNoWrap;
+            }
+        }
+
+        public static GUIStyle InvisibleLabel
+        {
+            get
+            {
+                if (invisibleLabel == null)
+                {
+                    invisibleLabel = new GUIStyle(GUI.skin.label);
+                    invisibleLabel.name = "InvisibleLabel";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    invisibleLabel.onNormal.background = hierarchyStyle.onNormal.background;
+                    invisibleLabel.onNormal.textColor = new Color(255, 0, 0, 0);
+                    invisibleLabel.onFocused.background = hierarchyStyle.onFocused.background;
+                    invisibleLabel.onFocused.textColor = new Color(255, 0, 0, 0);
+                    invisibleLabel.wordWrap = true;
+                }
+                return invisibleLabel;
             }
         }
 
@@ -475,7 +517,7 @@ namespace GitHub.Unity
             {
                 if (historyEntrySummaryStyle == null)
                 {
-                    historyEntrySummaryStyle = new GUIStyle(Label);
+                    historyEntrySummaryStyle = new GUIStyle(LabelNoWrap);
                     historyEntrySummaryStyle.name = "HistoryEntrySummaryStyle";
 
                     historyEntrySummaryStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
