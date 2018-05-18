@@ -12,7 +12,8 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
         private RepositoryManager repositoryManager;
-        private Progress progressReporter;
+        private ProgressReporter progressReporter = new ProgressReporter();
+        private Progress progress = new Progress(TaskBase.Default);
         protected bool isBusy;
         private bool firstRun;
         protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }        
@@ -27,13 +28,13 @@ namespace GitHub.Unity
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext)
         {
-            progressReporter = new Progress();
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetUIThread();
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
             TaskManager = new TaskManager(UIScheduler);
+            progress.OnProgress += progressReporter.UpdateProgress;
         }
 
         protected void Initialize()
@@ -51,6 +52,7 @@ namespace GitHub.Unity
         public void Run()
         {
             isBusy = true;
+            progress.UpdateProgress(0, 100, "Initializing...");
 
             var thread = new Thread(() =>
             {
@@ -72,8 +74,13 @@ namespace GitHub.Unity
                         }
                     }
 
-                    var installer = new GitInstaller(Environment, ProcessManager, CancellationToken)
-                                                    { Progress = progressReporter };
+                    progress.UpdateProgress(20, 100, "Setting up octorun...");
+
+                    Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
+                        .SetupOctorunIfNeeded();
+
+                    progress.UpdateProgress(50, 100, "Setting up git...");
+
                     state = Environment.GitInstallationState;
                     if (!state.GitIsValid && !state.GitLfsIsValid && FirstRun)
                     {
@@ -88,6 +95,9 @@ namespace GitHub.Unity
                         }
                     }
 
+
+                    var installer = new GitInstaller(Environment, ProcessManager, CancellationToken);
+                    installer.Progress.OnProgress += progressReporter.UpdateProgress;
                     if (state.GitIsValid && state.GitLfsIsValid)
                     {
                         if (firstRun)
@@ -100,9 +110,6 @@ namespace GitHub.Unity
                         }
                     }
 
-                    Environment.OctorunScriptPath = new OctorunInstaller(Environment, TaskManager)
-                        .SetupOctorunIfNeeded();
-
                     if (!state.GitIsValid || !state.GitLfsIsValid)
                     {
                         state = installer.SetupGitIfNeeded();
@@ -110,15 +117,19 @@ namespace GitHub.Unity
 
                     SetupGit(state);
 
+                    progress.UpdateProgress(80, 100, "Initializing repository...");
+
                     if (state.GitIsValid && state.GitLfsIsValid)
                     {
                         RestartRepository();
                     }
 
+                    progress.UpdateProgress(100, 100, "Initialization failed");
                 }
                 catch (Exception ex)
                 {
                     Logger.Error(ex, "A problem ocurred setting up Git");
+                    progress.UpdateProgress(90, 100, "Initialization failed");
                 }
 
                 new ActionTask<bool>(CancellationToken, (s, gitIsValid) =>
@@ -204,6 +215,7 @@ namespace GitHub.Unity
         public void InitializeRepository()
         {
             isBusy = true;
+            progress.UpdateProgress(0, 100, "Initializing...");
             var thread = new Thread(() =>
             {
                 var success = true;
@@ -218,27 +230,37 @@ namespace GitHub.Unity
                     var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
                     GitClient.Init().RunWithReturn(true);
+                    progress.UpdateProgress(10, 100, "Initializing...");
 
                     ConfigureMergeSettings();
+                    progress.UpdateProgress(20, 100, "Initializing...");
+
                     GitClient.LfsInstall().RunWithReturn(true);
+                    progress.UpdateProgress(30, 100, "Initializing...");
+
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
                     assetsGitignore.CreateFile();
                     GitClient.Add(filesForInitialCommit).RunWithReturn(true);
+                    progress.UpdateProgress(60, 100, "Initializing...");
                     GitClient.Commit("Initial commit", null).RunWithReturn(true);
+                    progress.UpdateProgress(70, 100, "Initializing...");
                     Environment.InitializeRepository();
                     UsageTracker.IncrementProjectsInitialized();
                 }
                 catch (Exception ex)
                 {
                     Logger.Error(ex, "A problem ocurred initializing the repository");
+                    progress.UpdateProgress(90, 100, "Failed to initialize repository");
                     success = false;
                 }
 
                 if (success)
                 {
+                    progress.UpdateProgress(90, 100, "Initializing...");
                     RestartRepository();
                     TaskManager.RunInUI(InitializeUI);
+                    progress.UpdateProgress(100, 100, "Initialized");
                 }
                 isBusy = false;
             });

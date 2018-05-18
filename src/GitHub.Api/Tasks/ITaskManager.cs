@@ -13,7 +13,8 @@ namespace GitHub.Unity
 
         T Schedule<T>(T task) where T : ITask;
         Task Wait();
-        ITask Run(Action action);
+        ITask Run(Action action, string message);
         ITask RunInUI(Action action);
+        event Action<IProgress> OnProgress;
     }
 }

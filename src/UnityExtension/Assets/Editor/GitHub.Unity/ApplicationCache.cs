@@ -181,6 +181,7 @@ namespace GitHub.Unity
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? initializedAtValue;
         [NonSerialized] private bool isInvalidating;
+        [NonSerialized] protected bool forcedInvalidation;
 
         public event Action<CacheType> CacheInvalidated;
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -199,12 +200,18 @@ namespace GitHub.Unity
             if (needsInvalidation && !isInvalidating)
             {
                 Logger.Trace("needsInvalidation isInitialized:{0} timedOut:{1}", isInitialized, timedOut);
-                InvalidateData();
+                Invalidate();
             }
             return !needsInvalidation;
         }
 
         public void InvalidateData()
+        {
+            forcedInvalidation = true;
+            Invalidate();
+        }
+
+        private void Invalidate()
         {
             if (!isInvalidating)
             {
@@ -449,25 +456,25 @@ namespace GitHub.Unity
             var now = DateTimeOffset.Now;
             var isUpdated = false;
 
-            if (!Nullable.Equals(currentGitRemote, data.CurrentGitRemote))
+            if (forcedInvalidation || !Nullable.Equals(currentGitRemote, data.CurrentGitRemote))
             {
                 currentGitRemote = data.CurrentGitRemote ?? GitRemote.Default;
                 isUpdated = true;
             }
 
-            if (!Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
+            if (forcedInvalidation ||!Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
             {
                 currentGitBranch = data.CurrentGitBranch ?? GitBranch.Default;
                 isUpdated = true;
             }
 
-            if (!Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
+            if (forcedInvalidation ||!Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
             {
                 currentConfigRemote = data.CurrentConfigRemote ?? ConfigRemote.Default;
                 isUpdated = true;
             }
 
-            if (!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
+            if (forcedInvalidation ||!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
             {
                 currentConfigBranch = data.CurrentConfigBranch ?? ConfigBranch.Default;
                 isUpdated = true;
@@ -576,9 +583,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Log: current:{1} new:{2}", now, log.Count, value.Count);
-
-                if (!log.SequenceEqual(value))
+                if (forcedInvalidation || !log.SequenceEqual(value))
                 {
                     log = value;
                     isUpdated = true;
@@ -612,8 +617,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Ahead: current:{1} new:{2}", now, ahead, value);
-                if (ahead != value)
+                if (forcedInvalidation || ahead != value)
                 {
                     ahead = value;
                     isUpdated = true;
@@ -635,9 +639,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Behind: current:{1} new:{2}", now, behind, value);
-
-                if (behind != value)
+                if (forcedInvalidation || behind != value)
                 {
                     behind = value;
                     isUpdated = true;
@@ -670,9 +672,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Entries: current:{1} new:{2}", now, entries.Count, value.Count);
-
-                if (!entries.SequenceEqual(value))
+                if (forcedInvalidation || !entries.SequenceEqual(value))
                 {
                     entries = value;
                     isUpdated = true;
@@ -705,9 +705,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating GitLocks: current:{1} new:{2}", now, gitLocks.Count, value.Count);
-
-                if (!gitLocks.SequenceEqual(value))
+                if (forcedInvalidation || !gitLocks.SequenceEqual(value))
                 {
                     gitLocks = value;
                     isUpdated = true;
@@ -741,9 +739,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Name: current:{1} new:{2}", now, gitName, value);
-
-                if (gitName != value)
+                if (forcedInvalidation || gitName != value)
                 {
                     gitName = value;
                     isUpdated = true;
@@ -765,9 +761,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Email: current:{1} new:{2}", now, gitEmail, value);
-
-                if (gitEmail != value)
+                if (forcedInvalidation || gitEmail != value)
                 {
                     gitEmail = value;
                     isUpdated = true;

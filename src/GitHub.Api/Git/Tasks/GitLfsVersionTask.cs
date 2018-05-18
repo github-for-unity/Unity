@@ -15,5 +15,6 @@ namespace GitHub.Unity
 
         public override string ProcessArguments { get { return "lfs version"; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
+        public override string Message { get; set; } = "Reading LFS version...";
     }
 }

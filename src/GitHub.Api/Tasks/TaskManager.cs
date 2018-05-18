@@ -18,6 +18,13 @@ namespace GitHub.Unity
 
         private static ITaskManager instance;
         public static ITaskManager Instance => instance;
+        private ProgressReporter progressReporter = new ProgressReporter();
+
+        public event Action<IProgress> OnProgress
+        {
+            add { progressReporter.OnProgress += value; }
+            remove { progressReporter.OnProgress -= value; }
+        }
 
         public TaskManager()
         {
@@ -51,9 +58,9 @@ namespace GitHub.Unity
             }
         }
 
-        public ITask Run(Action action)
+        public ITask Run(Action action, string message)
         {
-            return new ActionTask(Token, action).Start();
+            return new ActionTask(Token, action) { Message = message }.Start();
         }
 
         public ITask RunInUI(Action action)
@@ -112,6 +119,8 @@ namespace GitHub.Unity
                     TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
                 );
             }
+
+            task.Progress(progressReporter.UpdateProgress);
             return (T)task.Start(manager.ExclusiveTaskScheduler);
         }
 
@@ -128,6 +137,8 @@ namespace GitHub.Unity
                     TaskContinuationOptions.OnlyOnFaulted, ConcurrentScheduler
                 );
             }
+
+            task.Progress(progressReporter.UpdateProgress);
             return (T)task.Start((TaskScheduler)manager.ConcurrentTaskScheduler);
         }
 

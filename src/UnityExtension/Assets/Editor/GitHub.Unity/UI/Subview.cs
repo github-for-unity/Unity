@@ -1,5 +1,6 @@
 using GitHub.Logging;
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GitHub.Unity
@@ -7,6 +8,11 @@ namespace GitHub.Unity
     abstract class Subview : IView
     {
         private const string NullParentError = "Subview parent is null";
+
+        public Subview()
+        {
+            RefreshEvents = new Dictionary<CacheType, int>();
+        }
 
         public virtual void InitializeView(IView parent)
         {
@@ -45,7 +51,39 @@ namespace GitHub.Unity
             Parent.Finish(result);
         }
 
+
+        protected void Refresh(CacheType type)
+        {
+            if (Repository == null)
+                return;
+
+            IsRefreshing = true;
+            if (!RefreshEvents.ContainsKey(type))
+                RefreshEvents.Add(type, 0);
+            RefreshEvents[type]++;
+            Repository.Refresh(type);
+        }
+
+        protected void ReceivedEvent(CacheType type)
+        {
+            if (!RefreshEvents.ContainsKey(type))
+                RefreshEvents.Add(type, 0);
+            var val = RefreshEvents[type] - 1;
+            RefreshEvents[type] = val > -1 ? val : 0;
+            if (IsRefreshing && !RefreshEvents.Values.Any(x => x > 0))
+            {
+                DoneRefreshing();
+            }
+        }
+
+        public void DoneRefreshing()
+        {
+            IsRefreshing = false;
+            Parent.DoneRefreshing();
+        }
+
         protected IView Parent { get; private set; }
+        protected IUIProgress ProgressRenderer { get { return Parent is Subview ? ((Subview)Parent).ProgressRenderer : Parent as IUIProgress; } }
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }
         public bool HasRepository { get { return Parent.HasRepository; } }
@@ -65,6 +103,8 @@ namespace GitHub.Unity
         public Rect Position { get { return Parent.Position; } }
         public string Title { get; protected set; }
         public Vector2 Size { get; protected set; }
+        protected Dictionary<CacheType, int> RefreshEvents { get; set; }
+        public bool IsRefreshing { get; set; }
 
         private ILogging logger;
 

@@ -31,6 +31,7 @@ namespace GitHub.Unity
 
         public override string ProcessArguments => arguments;
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
+        public override string Message { get; set; } = "Unlocking file...";
 
     }
 }

@@ -37,17 +37,18 @@ namespace GitHub.Unity
         ITask LockFile(NPath file);
         ITask UnlockFile(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] gitStatusEntries);
-        void UpdateGitLog();
-        void UpdateGitStatus();
-        void UpdateGitAheadBehindStatus();
-        void UpdateLocks();
+        ITask UpdateGitLog();
+        ITask UpdateGitStatus();
+        ITask UpdateGitAheadBehindStatus();
+        ITask UpdateLocks();
+        ITask UpdateRepositoryInfo();
+        ITask UpdateBranches();
+
         int WaitForEvents();
-        void UpdateRepositoryInfo();
 
         IGitConfig Config { get; }
         IGitClient GitClient { get; }
         bool IsBusy { get; }
-        void UpdateBranches();
     }
 
     interface IRepositoryPathConfiguration
@@ -181,7 +182,6 @@ namespace GitHub.Unity
         {
             var task = GitClient.AddAll()
                 .Then(GitClient.Commit(message, body));
-
             return HookupHandlers(task, true);
         }
 
@@ -189,7 +189,6 @@ namespace GitHub.Unity
         {
             var task = GitClient.Add(files)
                 .Then(GitClient.Commit(message, body));
-
             return HookupHandlers(task, true);
         }
 
@@ -255,42 +254,16 @@ namespace GitHub.Unity
 
         public ITask LockFile(NPath file)
         {
-            var task = GitClient.Lock(file);
-            return HookupHandlers(task, false).Then(UpdateLocks);
+            var task = GitClient.Lock(file)
+                .Then(() => DataNeedsRefreshing?.Invoke(CacheType.GitLocks));
+            return HookupHandlers(task, false);
         }
 
         public ITask UnlockFile(NPath file, bool force)
         {
-            var task = GitClient.Unlock(file, force);
-            return HookupHandlers(task, false).Then(UpdateLocks);
-        }
-
-        public void UpdateGitLog()
-        {
-            var task = GitClient.Log()
-                .Then((success, logEntries) =>
-                {
-                    if (success)
-                    {
-                        GitLogUpdated?.Invoke(logEntries);
-                    }
-                });
-            task = HookupHandlers(task, false);
-            task.Start();
-        }
-
-        public void UpdateGitStatus()
-        {
-            var task = GitClient.Status()
-                .Then((success, status) =>
-                {
-                    if (success)
-                    {
-                        GitStatusUpdated?.Invoke(status);
-                    }
-                });
-            task = HookupHandlers(task, false);
-            task.Start();
+            var task = GitClient.Unlock(file, force)
+                .Then(() => DataNeedsRefreshing?.Invoke(CacheType.GitLocks));
+            return HookupHandlers(task, false);
         }
 
         public ITask DiscardChanges(GitStatusEntry[] gitStatusEntries)
@@ -328,64 +301,103 @@ namespace GitHub.Unity
                         task.Then(GitClient.Discard(itemsToRevert));
                     }
                 }
-                , () => gitStatusEntries);
+                , () => gitStatusEntries)
+                { Message = "Discarding changes..." };
 
             return HookupHandlers(task, true);
         }
 
-        public void UpdateGitAheadBehindStatus()
+        public ITask UpdateGitLog()
+        {
+            var task = GitClient.Log()
+                .Then((success, logEntries) =>
+                {
+                    if (success)
+                    {
+                        GitLogUpdated?.Invoke(logEntries);
+                    }
+                });
+            return HookupHandlers(task, false);
+        }
+
+        public ITask UpdateGitStatus()
+        {
+            var task = GitClient.Status()
+                .Then((success, status) =>
+                {
+                    if (success)
+                    {
+                        GitStatusUpdated?.Invoke(status);
+                    }
+                });
+            return HookupHandlers(task, false);
+        }
+
+        public ITask UpdateGitAheadBehindStatus()
         {
             ConfigBranch? configBranch;
             ConfigRemote? configRemote;
             GetCurrentBranchAndRemote(out configBranch, out configRemote);
 
+            var updateTask = new ActionTask<GitAheadBehindStatus>(token, (success, status) =>
+                {
+                    if (success)
+                    {
+                        GitAheadBehindStatusUpdated?.Invoke(status);
+                    }
+                });
             if (configBranch.HasValue && configBranch.Value.Remote.HasValue)
             {
                 var name = configBranch.Value.Name;
                 var trackingName = configBranch.Value.IsTracking ? configBranch.Value.Remote.Value.Name + "/" + configBranch.Value.TrackingBranch : "[None]";
 
                 var task = GitClient.AheadBehindStatus(name, trackingName)
-                    .Then((success, status) =>
-                    {
-                        if (success)
-                        {
-                            GitAheadBehindStatusUpdated?.Invoke(status);
-                        }
-                    });
-                task = HookupHandlers(task, false);
-                task.Start();
+                    .Then(updateTask);
+                return HookupHandlers(task, false);
             }
             else
             {
-                GitAheadBehindStatusUpdated?.Invoke(GitAheadBehindStatus.Default);
+                updateTask.PreviousResult = GitAheadBehindStatus.Default;
+                return updateTask;
             }
         }
 
-        public void UpdateLocks()
+        public ITask UpdateLocks()
         {
-            GitClient.ListLocks(false)
+            var task = GitClient.ListLocks(false)
                 .Then((success, locks) =>
                 {
                     if (success)
                     {
                         GitLocksUpdated?.Invoke(locks);
                     }
-                })
-                .Start();
+                });
+            return HookupHandlers(task, false);
+
         }
 
-        public void UpdateBranches()
+        public ITask UpdateBranches()
         {
-            UpdateLocalBranches();
-            UpdateRemoteBranches();
+            var task = new ActionTask(token, () =>
+            {
+                UpdateLocalBranches();
+                UpdateRemoteBranches();
+            })
+            { Message = "Updating branches..." };
+            return HookupHandlers(task, false);
         }
 
-        public void UpdateRepositoryInfo()
+        public ITask UpdateRepositoryInfo()
         {
-            ConfigBranch? branch;
-            ConfigRemote? remote;
-            GetCurrentBranchAndRemote(out branch, out remote);
-            CurrentBranchUpdated?.Invoke(branch, remote);
+            var task = new ActionTask(token, () =>
+            {
+                ConfigBranch? branch;
+                ConfigRemote? remote;
+                GetCurrentBranchAndRemote(out branch, out remote);
+                CurrentBranchUpdated?.Invoke(branch, remote);
+            })
+            { Message = "Updating repository info..." };;
+            return HookupHandlers(task, false);
         }
 
         private void GetCurrentBranchAndRemote(out ConfigBranch? branch, out ConfigRemote? remote)

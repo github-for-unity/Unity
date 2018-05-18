@@ -87,8 +87,8 @@ namespace GitHub.Unity
             base.Refresh();
             gitPathView.Refresh();
             userSettingsView.Refresh();
-            if (Repository != null)
-                Repository.Refresh(CacheType.GitLocks);
+            Refresh(CacheType.RepositoryInfo);
+            Refresh(CacheType.GitLocks);
         }
 
         public override void OnGUI()
@@ -117,6 +117,9 @@ namespace GitHub.Unity
             }
 
             GUILayout.EndScrollView();
+
+            if (ProgressRenderer != null)
+                ProgressRenderer.DoProgressGUI();
         }
 
         private void AttachHandlers(IRepository repository)

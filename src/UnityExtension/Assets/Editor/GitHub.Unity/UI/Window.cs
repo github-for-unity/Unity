@@ -5,24 +5,32 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    [Serializable]
-    class Window : BaseWindow
+    interface IUIProgress
     {
-        private const float DefaultNotificationTimeout = 4f;
+        void DoProgressGUI();
+        void UpdateProgress(IProgress progress);
+    }
+
+    [Serializable]
+    class Window : BaseWindow, IUIProgress
+    {
+        private const float DefaultNotificationTimeout = 2f;
         private const string Title = "GitHub";
         private const string Menu_Window_GitHub = "Window/GitHub";
         private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
 
-        [NonSerialized] private double notificationClearTime = -1;
-        [NonSerialized] private double timeSinceLastRotation = -1f;
         [NonSerialized] private Spinner spinner;
-        [NonSerialized] private IProgress progress;
-        [NonSerialized] private float progressValue;
-        [NonSerialized] private string progressMessage;
+        [NonSerialized] private IProgress repositoryProgress;
+        [NonSerialized] private IProgress appManagerProgress;
 
+        [SerializeField] private double progressMessageClearTime = -1;
+        [SerializeField] private double notificationClearTime = -1;
+        [SerializeField] private double timeSinceLastRotation = -1f;
         [SerializeField] private bool currentBranchAndRemoteHasUpdate;
         [SerializeField] private bool currentTrackingStatusHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
+        [SerializeField] private bool repositoryProgressHasUpdate;
+        [SerializeField] private bool appManagerProgressHasUpdate;
         [SerializeField] private SubTab changeTab = SubTab.InitProject;
         [SerializeField] private SubTab activeTab = SubTab.InitProject;
         [SerializeField] private InitProjectView initProjectView = new InitProjectView();
@@ -43,6 +51,21 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
 
+        [SerializeField] private GUIContent pullButtonContent = new GUIContent(Localization.PullButton);
+        [SerializeField] private GUIContent pushButtonContent = new GUIContent(Localization.PushButton);
+        [SerializeField] private GUIContent refreshButtonContent = new GUIContent(Localization.RefreshButton);
+        [SerializeField] private GUIContent fetchButtonContent = new GUIContent(Localization.FetchButton);
+        [SerializeField] private float repositoryProgressValue;
+        [SerializeField] private string repositoryProgressMessage;
+        [SerializeField] private float appManagerProgressValue;
+        [SerializeField] private string appManagerProgressMessage;
+
+        [MenuItem("GitHub/Select")]
+        public static void Select()
+        {
+            Selection.activeObject = SceneView.currentDrawingSceneView;
+        }
+
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
         {
@@ -53,10 +76,11 @@ namespace GitHub.Unity
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
-            EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine);
+            EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine, null);
         }
 
 #if DEBUG
+
         [MenuItem("GitHub/Select Window")]
         public static void GitHub_SelectWindow()
         {
@@ -88,7 +112,7 @@ namespace GitHub.Unity
         {
             base.Initialize(applicationManager);
 
-            applicationManager.OnProgress += OnProgress;
+            applicationManager.OnProgress += ApplicationManagerOnProgress;
 
             HistoryView.InitializeView(this);
             ChangesView.InitializeView(this);
@@ -108,9 +132,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
-#if DEVELOPER_BUILD
-            Selection.activeObject = this;
-#endif
             if (Repository != null)
                 ValidateCachedData(Repository);
 
@@ -119,6 +140,8 @@ namespace GitHub.Unity
 
             if (spinner == null)
                 spinner = new Spinner();
+
+            ClearProgressMessage();
         }
 
         public override void OnDisable()
@@ -177,79 +200,17 @@ namespace GitHub.Unity
 
         public override void Refresh()
         {
+            SetProgressMessage(Localization.MessageRefreshing, 0);
             base.Refresh();
             if (ActiveView != null)
                 ActiveView.Refresh();
-            Repaint();
+            Redraw();
         }
 
-
-        public override void OnUI()
+        public override void DoneRefreshing()
         {
-            base.OnUI();
-
-            if (HasRepository)
-            {
-                DoActionbarGUI();
-                DoHeaderGUI();
-            }
-
-            DoToolbarGUI();
-
-            var rect = GUILayoutUtility.GetLastRect();
-            // GUI for the active tab
-            if (ActiveView != null)
-            {
-                ActiveView.OnGUI();
-            }
-
-            if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.Repaint)
-            {
-                if (timeSinceLastRotation < 0)
-                {
-                    timeSinceLastRotation = EditorApplication.timeSinceStartup;
-                }
-                else
-                {
-                    var elapsedTime = (float)(EditorApplication.timeSinceStartup - timeSinceLastRotation);
-                    if (spinner == null)
-                        spinner = new Spinner();
-                    spinner.Start(elapsedTime);
-                    spinner.Rotate(elapsedTime);
-
-                    spinner.Render();
-
-                    rect = new Rect(0f, rect.y + rect.height, Position.width, Position.height - (rect.height + rect.y));
-                    rect = spinner.Layout(rect);
-                    rect.y += rect.height + 30;
-                    rect.height = 20;
-                    if (!String.IsNullOrEmpty(progressMessage))
-                        EditorGUI.ProgressBar(rect, progressValue / 100, progressMessage);
-                }
-            }
-        }
-
-        public override void Update()
-        {
-            base.Update();
-
-            // Notification auto-clear timer override
-            if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
-            {
-                notificationClearTime = -1f;
-                RemoveNotification();
-                Redraw();
-            }
-
-            if (IsBusy && activeTab != SubTab.Settings)
-            {
-                Redraw();
-            }
-            else
-            {
-                timeSinceLastRotation = -1f;
-                spinner.Stop();
-            }
+            base.DoneRefreshing();
+            SetProgressMessage(Localization.MessageRefreshed, 100);
         }
 
         private void ValidateCachedData(IRepository repository)
@@ -259,10 +220,37 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            if (progress != null)
+            if (repositoryProgressHasUpdate)
             {
-                progressValue = progress.Value;
-                progressMessage = progress.Message;
+                if (repositoryProgress != null)
+                {
+                    repositoryProgressMessage = repositoryProgress.Message;
+                    repositoryProgressValue = repositoryProgress.Percentage;
+                    if (progressMessageClearTime == -1f || progressMessageClearTime < EditorApplication.timeSinceStartup + DefaultNotificationTimeout)
+                        progressMessageClearTime = EditorApplication.timeSinceStartup + DefaultNotificationTimeout;
+                }
+                else
+                {
+                    repositoryProgressMessage = "";
+                    repositoryProgressValue = 0;
+                    progressMessageClearTime = -1f;
+                }
+                repositoryProgressHasUpdate = false;
+            }
+
+            if (appManagerProgressHasUpdate)
+            {
+                if (appManagerProgress != null)
+                {
+                    appManagerProgressValue = appManagerProgress.Percentage;
+                    appManagerProgressMessage = appManagerProgress.Message;
+                }
+                else
+                {
+                    appManagerProgressValue = 0;
+                    appManagerProgressMessage = "";
+                }
+                appManagerProgressHasUpdate = false;
             }
 
             string updatedRepoRemote = null;
@@ -372,6 +360,18 @@ namespace GitHub.Unity
             repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
             repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
             repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
+            repository.OnProgress += UpdateProgress;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
+            repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+            repository.OnProgress -= UpdateProgress;
+            Manager.OnProgress -= ApplicationManagerOnProgress;
         }
 
         private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -404,18 +404,100 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnProgress(IProgress progr)
+        private static object lck = new object();
+        public void UpdateProgress(IProgress progress)
         {
-            progress = progr;
+            lock (lck)
+            {
+                repositoryProgress = progress;
+                if (repositoryProgress != null && progress != null)
+                {
+                    repositoryProgress.UpdateProgress(progress.Value, progress.Total, progress.Message);
+                }
+                repositoryProgressHasUpdate = true;
+            }
+
+            if (!ThreadingHelper.InUIThread)
+                TaskManager.RunInUI(Redraw);
+            else
+                Redraw();
         }
 
-        private void DetachHandlers(IRepository repository)
+        private void ApplicationManagerOnProgress(IProgress progress)
         {
-            if (repository == null)
-                return;
-            repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
-            repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
-            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+            Debug.LogFormat("ApplicationManagerOnProgress {0} {1}", progress.Percentage, progress.Message);
+            appManagerProgress = progress;
+            appManagerProgressHasUpdate = true;
+        }
+
+        public override void OnUI()
+        {
+            base.OnUI();
+
+            GUILayout.BeginVertical(Styles.HeaderStyle);
+
+            if (HasRepository)
+            {
+                DoActionbarGUI();
+                DoHeaderGUI();
+            }
+
+            DoToolbarGUI();
+            DoActiveViewGUI();
+
+            GUILayout.EndVertical();
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            // Notification auto-clear timer override
+            if (notificationClearTime > 0f && EditorApplication.timeSinceStartup > notificationClearTime)
+            {
+                notificationClearTime = -1f;
+                RemoveNotification();
+                Redraw();
+            }
+
+            // Notification auto-clear timer override
+            if (progressMessageClearTime > 0f && EditorApplication.timeSinceStartup > progressMessageClearTime)
+            {
+                repositoryProgressHasUpdate = true;
+                ClearProgressMessage();
+            }
+            else if (EditorApplication.timeSinceStartup < progressMessageClearTime)
+            {
+                Redraw();
+            }
+
+            if (IsBusy && activeTab != SubTab.Settings)
+            {
+                Redraw();
+            }
+            else
+            {
+                timeSinceLastRotation = -1f;
+                spinner.Stop();
+            }
+        }
+
+        public void DoProgressGUI()
+        {
+            Rect rect1 = GUILayoutUtility.GetRect(position.width, 20);
+            if (Event.current.GetTypeForControl(GUIUtility.GetControlID("ghu_ProgressBar".GetHashCode(), FocusType.Keyboard, position)) == EventType.Repaint)
+            {
+                var style = Styles.ProgressAreaBackStyle;
+                style.Draw(rect1, false, false, false, false);
+                Rect rect2 = new Rect(rect1.x, rect1.y, position.width * repositoryProgressValue, rect1.height);
+                style = GUI.skin.FindStyle("ProgressBarBar");
+                style.Draw(rect2, false, false, false, false);
+                style = GUI.skin.FindStyle("ProgressBarText");
+                style.Draw(rect1, repositoryProgressMessage, false, false, false, false);
+            }
+
+            if (repositoryProgressValue == 1f)
+                Redraw();
         }
 
         private void DoHeaderGUI()
@@ -482,14 +564,14 @@ namespace GitHub.Unity
                     EditorGUI.BeginDisabledGroup(currentRemoteName == null);
                     {
                         // Fetch button
-                        var fetchClicked = GUILayout.Button(Localization.FetchButtonText, Styles.ToolbarButtonStyle);
+                        var fetchClicked = GUILayout.Button(fetchButtonContent, Styles.ToolbarButtonStyle);
                         if (fetchClicked)
                         {
                             Fetch();
                         }
 
                         // Pull button
-                        var pullButtonText = statusBehind > 0 ? String.Format(Localization.PullButtonCount, statusBehind) : Localization.PullButton;
+                        var pullButtonText = statusBehind > 0 ? new GUIContent(String.Format(Localization.PullButtonCount, statusBehind)) : pullButtonContent;
                         var pullClicked = GUILayout.Button(pullButtonText, Styles.ToolbarButtonStyle);
 
                         if (pullClicked &&
@@ -507,7 +589,7 @@ namespace GitHub.Unity
                     // Push button
                     EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusAhead == 0);
                     {
-                        var pushButtonText = statusAhead > 0 ? String.Format(Localization.PushButtonCount, statusAhead) : Localization.PushButton;
+                        var pushButtonText = statusAhead > 0 ? new GUIContent(String.Format(Localization.PushButtonCount, statusAhead)) : pushButtonContent;
                         var pushClicked = GUILayout.Button(pushButtonText, Styles.ToolbarButtonStyle);
 
                         if (pushClicked &&
@@ -531,17 +613,52 @@ namespace GitHub.Unity
                     }
                 }
 
-                if (GUILayout.Button(Localization.RefreshButton, Styles.ToolbarButtonStyle))
+                if (GUILayout.Button(refreshButtonContent, Styles.ToolbarButtonStyle))
                 {
                     Refresh();
                 }
 
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button("Account", EditorStyles.toolbarDropDown))
+                if (GUILayout.Button(Localization.AccountButton, EditorStyles.toolbarDropDown))
                     DoAccountDropdown();
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DoActiveViewGUI()
+        {
+            var rect = GUILayoutUtility.GetLastRect();
+            // GUI for the active tab
+            if (ActiveView != null)
+            {
+                ActiveView.OnGUI();
+            }
+
+            if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.Repaint)
+            {
+                if (timeSinceLastRotation < 0)
+                {
+                    timeSinceLastRotation = EditorApplication.timeSinceStartup;
+                }
+                else
+                {
+                    var elapsedTime = (float)(EditorApplication.timeSinceStartup - timeSinceLastRotation);
+                    if (spinner == null)
+                        spinner = new Spinner();
+                    spinner.Start(elapsedTime);
+                    spinner.Rotate(elapsedTime);
+
+                    spinner.Render();
+
+                    rect = new Rect(0f, rect.y + rect.height, Position.width, Position.height - (rect.height + rect.y));
+                    rect = spinner.Layout(rect);
+                    rect.y += rect.height + 30;
+                    rect.height = 20;
+                    if (!String.IsNullOrEmpty(appManagerProgressMessage))
+                        EditorGUI.ProgressBar(rect, appManagerProgressValue, appManagerProgressMessage);
+                }
+            }
         }
 
         private void Pull()
@@ -552,12 +669,15 @@ namespace GitHub.Unity
             }
             else
             {
+                SetProgressMessage(Localization.MessagePulling, 0, 60f);
                 Repository
                     .Pull()
-                    .FinallyInUI((success, e) => {
+                    .FinallyInUI((success, e) =>
+                    {
                         if (success)
                         {
-                            TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPull);
+                            SetProgressMessage(Localization.MessagePulled, 100);
+                            TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPull, null);
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
@@ -565,6 +685,7 @@ namespace GitHub.Unity
                         }
                         else
                         {
+                            SetProgressMessage(Localization.MessagePullFailed, 100);
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 Localization.PullFailureDescription,
                             Localization.Ok);
@@ -576,12 +697,15 @@ namespace GitHub.Unity
 
         private void Push()
         {
+            SetProgressMessage(Localization.MessagePushing, 0, 60f);
             Repository
                 .Push()
-                .FinallyInUI((success, e) => {
+                .FinallyInUI((success, e) =>
+                {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPush);
+                        SetProgressMessage(Localization.MessagePushed, 100);
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPush, null);
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -589,6 +713,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        SetProgressMessage(Localization.MessagePushFailed, 100);
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             Localization.PushFailureDescription,
                         Localization.Ok);
@@ -599,13 +724,19 @@ namespace GitHub.Unity
 
         private void Fetch()
         {
+            SetProgressMessage(Localization.MessageFetching, 0, 60f);
             Repository
                 .Fetch()
-                .FinallyInUI((success, e) => {
-                    if (!success)
+                .FinallyInUI((success, e) =>
+                {
+                    if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch);
-
+                        SetProgressMessage(Localization.MessageFetched, 100);
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch, null);
+                    }
+                    else
+                    {
+                        SetProgressMessage(Localization.MessageFetchFailed, 100);
                         EditorUtility.DisplayDialog(Localization.FetchActionTitle, Localization.FetchFailureDescription,
                             Localization.Ok);
                     }
@@ -694,6 +825,28 @@ namespace GitHub.Unity
         {
             notificationClearTime = timeout < DefaultNotificationTimeout ? EditorApplication.timeSinceStartup + timeout : -1f;
             base.ShowNotification(content);
+        }
+
+        private void SetProgressMessage(string message, long value)
+        {
+            SetProgressMessage(message, value, DefaultNotificationTimeout);
+        }
+
+        private void SetProgressMessage(string message, long value, float timeout)
+        {
+            progressMessageClearTime = EditorApplication.timeSinceStartup + timeout;
+            if (repositoryProgress == null)
+                repositoryProgress = new Progress(TaskBase.Default);
+            repositoryProgress.UpdateProgress(value, repositoryProgress.Total, message);
+            UpdateProgress(repositoryProgress);
+            Redraw();
+        }
+
+        private void ClearProgressMessage()
+        {
+            progressMessageClearTime = -1f;
+            UpdateProgress(null);
+            Redraw();
         }
 
         private static SubTab TabButton(SubTab tab, string title, SubTab currentTab)

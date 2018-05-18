@@ -134,11 +134,11 @@ namespace GitHub.Unity
         }
 
         /// <inheritdoc/>
-        public async Task Logout(UriString hostAddress)
+        public ITask Logout(UriString hostAddress)
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
 
-            await new ActionTask(keychain.Clear(hostAddress, true)).StartAwait();
+            return new ActionTask(keychain.Clear(hostAddress, true)) { Message = "Signing out" }.Start();
         }
 
         private async Task<LoginResultData> TryLogin(

@@ -29,6 +29,12 @@ namespace GitHub.Unity
             gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Refresh(CacheType.GitUser);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();

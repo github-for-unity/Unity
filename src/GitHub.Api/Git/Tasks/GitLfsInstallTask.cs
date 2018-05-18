@@ -14,5 +14,6 @@ namespace GitHub.Unity
 
         public override string ProcessArguments { get { return "lfs install"; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
+        public override string Message { get; set; } = "Initializing LFS...";
     }
 }

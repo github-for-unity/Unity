@@ -173,11 +173,12 @@ namespace GitHub.Unity
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
-                        new FuncTask<GitInstaller.GitInstallationState>(Manager.CancellationToken, () => 
+                        new FuncTask<GitInstaller.GitInstallationState>(Manager.CancellationToken, () =>
                             {
                                 var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken);
                                 return gitInstaller.FindSystemGit(new GitInstaller.GitInstallationState());
                             })
+                            { Message = "Locating git..." }
                             .FinallyInUI((success, ex, state) =>
                             {
                                 if (success)
@@ -242,6 +243,7 @@ namespace GitHub.Unity
                         }
                         return state;
                     })
+                    { Message = "Setting up git... " }
                     .FinallyInUI((success, exception, state) =>
                     {
                         if (!success)
@@ -262,13 +264,15 @@ namespace GitHub.Unity
             }
             else
             {
+                var newState = new GitInstaller.GitInstallationState();
+                newState.GitExecutablePath = gitPath.ToNPath();
+                newState.GitLfsExecutablePath = gitLfsPath.ToNPath();
+                var installer = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
+                installer.Progress.OnProgress += ProgressRenderer.UpdateProgress;
+
                 new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                     {
-                        var state = new GitInstaller.GitInstallationState();
-                        state.GitExecutablePath = gitPath.ToNPath();
-                        state.GitLfsExecutablePath = gitLfsPath.ToNPath();
-                        var installer = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
-                        return installer.SetupGitIfNeeded(state);
+                        return installer.SetupGitIfNeeded(newState);
                     })
                     .Then((success, state) => 
                     {
@@ -281,6 +285,7 @@ namespace GitHub.Unity
                     })
                     .FinallyInUI((success, ex, state) =>
                     {
+                        installer.Progress.OnProgress -= ProgressRenderer.UpdateProgress;
                         if (!success)
                         {
                             Logger.Error(ex, ErrorValidatingGitPath);

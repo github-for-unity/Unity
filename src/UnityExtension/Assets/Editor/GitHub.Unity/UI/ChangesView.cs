@@ -63,9 +63,9 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            Repository.Refresh(CacheType.GitStatus);
-            Repository.Refresh(CacheType.RepositoryInfo);
-            Repository.Refresh(CacheType.GitLocks);
+            Refresh(CacheType.GitStatus);
+            Refresh(CacheType.RepositoryInfo);
+            Refresh(CacheType.GitLocks);
         }
 
         public override void OnDataUpdate()
@@ -108,11 +108,15 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndScrollView();
             }
+
+            if (ProgressRenderer != null)
+                ProgressRenderer.DoProgressGUI();
+
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
 
             // Do the commit details area
-            OnCommitDetailsAreaGUI();
+            DoCommitGUI();
         }
 
         public override void OnSelectionChange()
@@ -194,6 +198,7 @@ namespace GitHub.Unity
         {
             if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastStatusEntriesChangedEvent = cacheUpdateEvent;
                 currentStatusEntriesHasUpdate = true;
                 Redraw();
@@ -204,6 +209,7 @@ namespace GitHub.Unity
         {
             if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastCurrentBranchChangedEvent = cacheUpdateEvent;
                 currentBranchHasUpdate = true;
                 Redraw();
@@ -214,6 +220,7 @@ namespace GitHub.Unity
         {
             if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastLocksChangedEvent = cacheUpdateEvent;
                 currentLocksHasUpdate = true;
                 Redraw();
@@ -291,7 +298,7 @@ namespace GitHub.Unity
             Redraw();
         }
 
-        private void OnCommitDetailsAreaGUI()
+        private void DoCommitGUI()
         {
             GUILayout.BeginHorizontal();
             {
@@ -369,7 +376,7 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementChangesViewButtonCommit);
+                            TaskManager.Run(UsageTracker.IncrementChangesViewButtonCommit, null);
 
                             commitMessage = "";
                             commitBody = "";

@@ -61,6 +61,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account.
+        /// </summary>
+        public static string AccountButton {
+            get {
+                return ResourceManager.GetString("AccountButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to {0}.
         /// </summary>
         public static string BasePathLabel {
@@ -162,9 +171,9 @@ namespace GitHub.Unity {
         /// <summary>
         ///   Looks up a localized string similar to Fetch.
         /// </summary>
-        public static string FetchButtonText {
+        public static string FetchButton {
             get {
-                return ResourceManager.GetString("FetchButtonText", resourceCulture);
+                return ResourceManager.GetString("FetchButton", resourceCulture);
             }
         }
         
@@ -330,6 +339,159 @@ namespace GitHub.Unity {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Created branch {0}.
+        /// </summary>
+        public static string MessageBranchCreated {
+            get {
+                return ResourceManager.GetString("MessageBranchCreated", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Deleted branch {0}.
+        /// </summary>
+        public static string MessageBranchDeleted {
+            get {
+                return ResourceManager.GetString("MessageBranchDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Switched to branch {0}.
+        /// </summary>
+        public static string MessageBranchSwitched {
+            get {
+                return ResourceManager.GetString("MessageBranchSwitched", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Commit failed.
+        /// </summary>
+        public static string MessageCommitFailed {
+            get {
+                return ResourceManager.GetString("MessageCommitFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Committed.
+        /// </summary>
+        public static string MessageCommitted {
+            get {
+                return ResourceManager.GetString("MessageCommitted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Committing.
+        /// </summary>
+        public static string MessageCommitting {
+            get {
+                return ResourceManager.GetString("MessageCommitting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fetched.
+        /// </summary>
+        public static string MessageFetched {
+            get {
+                return ResourceManager.GetString("MessageFetched", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch failed.
+        /// </summary>
+        public static string MessageFetchFailed {
+            get {
+                return ResourceManager.GetString("MessageFetchFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching.
+        /// </summary>
+        public static string MessageFetching {
+            get {
+                return ResourceManager.GetString("MessageFetching", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pulled.
+        /// </summary>
+        public static string MessagePulled {
+            get {
+                return ResourceManager.GetString("MessagePulled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to pull.
+        /// </summary>
+        public static string MessagePullFailed {
+            get {
+                return ResourceManager.GetString("MessagePullFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pulling.
+        /// </summary>
+        public static string MessagePulling {
+            get {
+                return ResourceManager.GetString("MessagePulling", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pushed.
+        /// </summary>
+        public static string MessagePushed {
+            get {
+                return ResourceManager.GetString("MessagePushed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to push.
+        /// </summary>
+        public static string MessagePushFailed {
+            get {
+                return ResourceManager.GetString("MessagePushFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pushing.
+        /// </summary>
+        public static string MessagePushing {
+            get {
+                return ResourceManager.GetString("MessagePushing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refreshed.
+        /// </summary>
+        public static string MessageRefreshed {
+            get {
+                return ResourceManager.GetString("MessageRefreshed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refreshing.
+        /// </summary>
+        public static string MessageRefreshing {
+            get {
+                return ResourceManager.GetString("MessageRefreshing", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Your current project is not currently in an active git repository:.
         /// </summary>

@@ -9,6 +9,7 @@ namespace GitHub.Unity
         void OnDisable();
         void Refresh();
         void Redraw();
+        void DoneRefreshing();
         Rect Position { get; }
 
         void Finish(bool result);
@@ -18,6 +19,7 @@ namespace GitHub.Unity
         bool HasUser { get; }
         IApplicationManager Manager { get; }
         bool IsBusy { get; }
+        bool IsRefreshing { get; }
         bool HasFocus { get; }
     }
 }

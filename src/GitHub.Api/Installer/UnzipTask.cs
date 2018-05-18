@@ -93,6 +93,7 @@ namespace GitHub.Unity
             return extractedPath;
         }
         protected int RetryCount { get; }
+        public override string Message { get; set; } = "Extracting zip...";
     }
 
     public class UnzipException : Exception {

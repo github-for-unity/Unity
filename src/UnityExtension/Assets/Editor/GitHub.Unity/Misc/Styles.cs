@@ -57,6 +57,7 @@ namespace GitHub.Unity
                                 deletedFileLabel,
                                 longMessageStyle,
                                 headerBoxStyle,
+                                headerStyle,
                                 headerBranchLabelStyle,
                                 headerUrlLabelStyle,
                                 headerRepoLabelStyle,
@@ -82,7 +83,8 @@ namespace GitHub.Unity
                                 historyDetailsTitleStyle,
                                 historyDetailsMetaInfoStyle,
                                 genericBoxStyle,
-                                hyperlinkStyle;
+                                hyperlinkStyle,
+                                progressAreaBackStyle;
 
         private static Texture2D branchIcon,
                                  activeBranchIcon,
@@ -303,6 +305,21 @@ namespace GitHub.Unity
                     headerBoxStyle.margin = new RectOffset(0, 0, 0, 0);
                 }
                 return headerBoxStyle;
+            }
+        }
+
+        public static GUIStyle HeaderStyle
+        {
+            get
+            {
+                if (headerStyle == null)
+                {
+                    headerStyle = new GUIStyle("IN BigTitle");
+                    headerStyle.name = "HeaderStyle";
+                    headerStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerStyle.padding = new RectOffset(0, 0, 0, 0);
+                }
+                return headerStyle;
             }
         }
 
@@ -537,6 +554,7 @@ namespace GitHub.Unity
                     commitFileAreaStyle = new GUIStyle(GUI.skin.box);
                     commitFileAreaStyle.name = "CommitFileAreaStyle";
                     commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
+                    commitFileAreaStyle.padding = new RectOffset(0, 0, 2, 2);
                 }
                 return commitFileAreaStyle;
             }
@@ -569,6 +587,22 @@ namespace GitHub.Unity
                     textFieldStyle.padding = new RectOffset(HalfSpacing, HalfSpacing, 4, 0);
                 }
                 return textFieldStyle;
+            }
+        }
+
+        public static GUIStyle ProgressAreaBackStyle
+        {
+            get
+            {
+                if (progressAreaBackStyle == null)
+                {
+                    progressAreaBackStyle = new GUIStyle(GUI.skin.FindStyle("ProgressBarBack"));
+                    progressAreaBackStyle.name = "ProgressAreaBackStyle";
+                    //progressAreaBackStyle.normal.background = Utility.GetTextureFromColor(new Color(194f/255f, 194f/255f, 194f/255f));
+                    progressAreaBackStyle.margin = new RectOffset(0, 0, 0, 0);
+                    progressAreaBackStyle.padding = new RectOffset(0, 0, 0, 0);
+                }
+                return progressAreaBackStyle;
             }
         }
 

@@ -23,5 +23,6 @@ namespace GitHub.Unity
 
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
+        public override string Message { get; set; } = "Writing configuration...";
     }
 }
