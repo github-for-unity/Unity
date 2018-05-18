@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GitHub.Unity
 {
     static class Constants
@@ -11,11 +13,12 @@ namespace GitHub.Unity
         public const string Iso8601Format = @"yyyy-MM-dd\THH\:mm\:ss.fffzzz";
         public const string Iso8601FormatZ = @"yyyy-MM-dd\THH\:mm\:ss\Z";
         public static readonly string[] Iso8601Formats = {
-            @"yyyy-MM-dd\THH\:mm\:ss\Z",
+            Iso8601FormatZ,
             @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
-            @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
+            Iso8601Format,
             @"yyyy-MM-dd\THH\:mm\:sszzz",
         };
+        public const DateTimeStyles DateTimeStyle = DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal;
         public const string SkipVersionKey = "SkipVersion";
         public const string GitInstallationState = "GitInstallationState";
 

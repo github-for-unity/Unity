@@ -361,11 +361,9 @@ namespace GitHub.Unity
                     var activeAssetGuid = AssetDatabase.AssetPathToGUID(activeAssetPath);
                     assets.TryGetValue(activeAssetGuid, out gitLockEntry);
                 }
-
                 SelectedEntry = gitLockEntry;
                 return true;
             }
-
             return false;
         }
     }
@@ -373,18 +371,19 @@ namespace GitHub.Unity
     [Serializable]
     class LocksView : Subview
     {
-        [NonSerialized] private bool currentStatusEntriesHasUpdate;
-        [NonSerialized] private bool currentLocksHasUpdate;
-
+        [SerializeField] private bool currentStatusEntriesHasUpdate;
+        [SerializeField] private bool currentLocksHasUpdate;
+        [SerializeField] private bool currentUserHasUpdate;
         [SerializeField] private LocksControl locksControl;
-
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
-
+        [SerializeField] private CacheUpdateEvent lastUserChangedEvent;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
-
         [SerializeField] private string currentUsername;
+        [SerializeField] private bool isBusy;
+        [SerializeField] private GUIContent unlockFileMenuContent = new GUIContent(Localization.UnlockFileMenuItem);
+        [SerializeField] private GUIContent forceUnlockFileMenuContent = new GUIContent(Localization.ForceUnlockFileMenuItem);
 
         public override void OnEnable()
         {
@@ -421,6 +420,9 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             var rect = GUILayoutUtility.GetLastRect();
+
+            EditorGUI.BeginDisabledGroup(IsBusy);
+
             if (locksControl != null)
             {
                 var lockControlRect = new Rect(rect.x, rect.y, Position.width, Position.height - rect.height);
@@ -430,38 +432,65 @@ namespace GitHub.Unity
                     },
                     entry => { }, 
                     entry => {
-                        string unlockFile;
-                        GenericMenu.MenuFunction menuFunction;
-
+                        var menu = new GenericMenu();
                         if (entry.Owner.Name == currentUsername)
                         {
-                            unlockFile = "Unlock File";
-                            menuFunction = UnlockSelectedEntry;
+                            menu.AddItem(unlockFileMenuContent, false, UnlockSelectedEntry);
                         }
-                        unlockFile = "Force Unlock File";
-                        menuFunction = ForceUnlockSelectedEntry;
-
-                        var menu = new GenericMenu();
-                        menu.AddItem(new GUIContent(unlockFile), false, menuFunction);
+                        menu.AddItem(forceUnlockFileMenuContent, false, ForceUnlockSelectedEntry);
                         menu.ShowAsContext();
                     });
 
                 if (requiresRepaint)
                     Redraw();
             }
+
+            EditorGUI.EndDisabledGroup();
         }
 
         private void UnlockSelectedEntry()
         {
+            isBusy = true;
             Repository
                 .ReleaseLock(locksControl.SelectedEntry.GitLock.Path, false)
+                .FinallyInUI((success, ex) =>
+                {
+                    if (success)
+                    {
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
+                            ex.Message,
+                            Localization.Ok);
+                    }
+
+                    isBusy = false;
+                })
                 .Start();
         }
 
         private void ForceUnlockSelectedEntry()
         {
+            isBusy = true;
             Repository
                 .ReleaseLock(locksControl.SelectedEntry.GitLock.Path, true)
+                .FinallyInUI((success, ex) =>
+                {
+                    if (success)
+                    {
+                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
+                            ex.Message,
+                            Localization.Ok);
+                    }
+
+                    isBusy = false;
+                })
                 .Start();
         }
 
@@ -474,6 +503,19 @@ namespace GitHub.Unity
 
             repository.LocksChanged += RepositoryOnLocksChanged;
             repository.LocksChanged += RepositoryOnStatusEntriesChanged;
+            User.Changed += UserOnChanged;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.LocksChanged -= RepositoryOnLocksChanged;
+            repository.LocksChanged -= RepositoryOnStatusEntriesChanged;
+            User.Changed -= UserOnChanged;
         }
 
         private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -496,21 +538,21 @@ namespace GitHub.Unity
             }
         }
 
-        private void DetachHandlers(IRepository repository)
+        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (repository == null)
+            if (!lastUserChangedEvent.Equals(cacheUpdateEvent))
             {
-                return;
+                lastUserChangedEvent = cacheUpdateEvent;
+                currentUserHasUpdate = true;
+                Redraw();
             }
-
-            repository.LocksChanged -= RepositoryOnLocksChanged;
-            repository.LocksChanged -= RepositoryOnStatusEntriesChanged;
         }
 
         private void ValidateCachedData(IRepository repository)
         {
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastUserChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -520,13 +562,17 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (currentLocksHasUpdate)
+            if (currentUserHasUpdate)
             {
-                lockedFiles = Repository.CurrentLocks;
-
                 //TODO: ONE_USER_LOGIN This assumes only ever one user can login
                 var keychainConnection = Platform.Keychain.Connections.First();
                 currentUsername = keychainConnection.Username;
+                currentUserHasUpdate = false;
+            }
+
+            if (currentLocksHasUpdate)
+            {
+                lockedFiles = Repository.CurrentLocks;
             }
 
             if (currentStatusEntriesHasUpdate)
@@ -558,6 +604,11 @@ namespace GitHub.Unity
             {
                 Redraw();
             }
+        }
+
+        public override bool IsBusy
+        {
+            get { return isBusy || base.IsBusy; }
         }
     }
 }

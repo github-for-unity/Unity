@@ -12,7 +12,6 @@ namespace GitHub.Unity
         private const string Title = "GitHub";
         private const string Menu_Window_GitHub = "Window/GitHub";
         private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
-        private const string LocksTitle = "Locks";
 
         [NonSerialized] private double notificationClearTime = -1;
         [NonSerialized] private double timeSinceLastRotation = -1f;
@@ -456,9 +455,9 @@ namespace GitHub.Unity
                     if (HasRepository)
                     {
                         changeTab = TabButton(SubTab.Changes, Localization.ChangesTitle, changeTab);
+                        changeTab = TabButton(SubTab.Locks, Localization.LocksTitle, changeTab);
                         changeTab = TabButton(SubTab.History, Localization.HistoryTitle, changeTab);
                         changeTab = TabButton(SubTab.Branches, Localization.BranchesTitle, changeTab);
-                        changeTab = TabButton(SubTab.Locks, LocksTitle, changeTab);
                     }
                     else if (!HasRepository)
                     {
