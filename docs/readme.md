@@ -32,3 +32,5 @@ Details about how the team is organizing and shipping GitHub for Unity:
 
 These documents contain more details about the internals of GitHub for Unity
 and how things work:
+- **[Installing and Updating the GitHub for Unity package](https://github.com/github-for-unity/Unity/blob/master/docs/using/how-to-install-and-update.md)**
+- **[Getting Started with the GitHub for Unity package](https://github.com/github-for-unity/Unity/blob/master/docs/using/getting-started.md)**
