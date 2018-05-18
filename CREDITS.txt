@@ -25,7 +25,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ===============================================================================
-Port of Axosoft's NSFW (https://github.com/StanleyGoldman/sfw)
+Port of Axosoft's NSFW (https://github.com/github-for-unity/sfw)
 ===============================================================================
 
 The MIT License (MIT)
