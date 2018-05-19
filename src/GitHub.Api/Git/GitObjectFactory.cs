@@ -20,13 +20,5 @@ namespace GitHub.Unity
 
             return new GitStatusEntry(relativePath, absolutePath, projectPath, status, originalPath?.ToNPath(), staged);
         }
-
-        public GitLock CreateGitLock(string path, string user, int id)
-        {
-            var npath = new NPath(path).MakeAbsolute();
-            var fullPath = npath.RelativeTo(environment.RepositoryPath);
-
-            return new GitLock(path, fullPath, user, id);
-        }
     }
 }

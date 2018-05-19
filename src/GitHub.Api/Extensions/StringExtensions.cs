@@ -7,6 +7,22 @@ using System.Text;
 
 namespace GitHub.Unity
 {
+    static class DateTimeOffsetExtensions
+    {
+        private const string Today = "Today";
+        private const string Yesterday = "Yesterday";
+
+        public static string CreateRelativeTime(this DateTimeOffset @from, DateTimeOffset to)
+        {
+            return String.Format("{0}, {1:HH}:{1:mm}",
+                @from.DayOfYear == to.DayOfYear
+                    ? Today
+                    : @from.DayOfYear == to.DayOfYear - 1
+                        ? Yesterday
+                        : @from.ToString("d MMM yyyy"), @from);
+        }
+    }
+
     static class StringExtensions
     {
         public static bool Contains(this string s, string expectedSubstring, StringComparison comparison)
@@ -80,24 +96,6 @@ namespace GitHub.Unity
             return values.Any()
                 ? separator + String.Join(separator, values.ToArray())
                 : string.Empty;
-        }
-
-        public static string RemoveSurroundingQuotes(this string s)
-        {
-            Guard.ArgumentNotNull(s, "string");
-
-            if (s.Length < 2)
-                return s;
-
-            var quoteCharacters = new[] { '"', '\'' };
-            char firstCharacter = s[0];
-            if (!quoteCharacters.Contains(firstCharacter))
-                return s;
-
-            if (firstCharacter != s[s.Length - 1])
-                return s;
-
-            return s.Substring(1, s.Length - 2);
         }
 
         public static string RightAfter(this string s, char search)

@@ -143,9 +143,10 @@ namespace GitHub.Unity
             return Path.GetFileNameWithoutExtension(fileName);
         }
 
+
         public IEnumerable<string> GetFiles(string path)
         {
-            return Directory.GetFiles(path);
+            return GetFiles(path, "*");
         }
 
         public IEnumerable<string> GetFiles(string path, string pattern)
@@ -155,7 +156,43 @@ namespace GitHub.Unity
 
         public IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption)
         {
-            return Directory.GetFiles(path, pattern, searchOption);
+            foreach (var file in GetFiles(path, pattern))
+                yield return file;
+
+            if (searchOption != SearchOption.AllDirectories)
+                yield break;
+
+#if ENABLE_MONO
+            if (NPath.IsLinux)
+            {
+                try
+                {
+                    path = Mono.Unix.UnixPath.GetCompleteRealPath(path);
+                }
+                catch
+                {}
+            }
+#endif
+            foreach (var dir in GetDirectories(path))
+            {
+                var realdir = dir;
+#if ENABLE_MONO
+                if (NPath.IsLinux)
+                {
+                    try
+                    {
+                        realdir = Mono.Unix.UnixPath.GetCompleteRealPath(dir);
+                    }
+                    catch
+                    {}
+                }
+#endif
+                if (path != realdir)
+                {
+                    foreach (var file in GetFiles(dir, pattern, searchOption))
+                        yield return file;
+                }
+            }
         }
 
         public byte[] ReadAllBytes(string path)

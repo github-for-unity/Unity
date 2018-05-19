@@ -92,6 +92,13 @@ namespace GitHub.Unity
             DetachHandlers(Repository);
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Refresh(CacheType.Branches);
+            Refresh(CacheType.RepositoryInfo);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
@@ -119,6 +126,7 @@ namespace GitHub.Unity
         {
             if (!lastCurrentBranchAndRemoteChange.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastCurrentBranchAndRemoteChange = cacheUpdateEvent;
                 currentBranchAndRemoteChangeHasUpdate = true;
                 Redraw();
@@ -130,6 +138,7 @@ namespace GitHub.Unity
         {
             if (!lastLocalAndRemoteBranchListChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastLocalAndRemoteBranchListChangedEvent = cacheUpdateEvent;
                 localAndRemoteBranchListHasUpdate = true;
                 Redraw();
@@ -212,6 +221,7 @@ namespace GitHub.Unity
                     Redraw();
                 }
             }
+            DoProgressGUI();
         }
 
         private void BuildTree()
@@ -304,12 +314,12 @@ namespace GitHub.Unity
                     // Effectuate create
                     if (createBranch)
                     {
-                        GitClient.CreateBranch(newBranchName, treeLocals.SelectedNode.Path)
+                        Repository.CreateBranch(newBranchName, treeLocals.SelectedNode.Path)
                             .FinallyInUI((success, e) =>
                             {
                                 if (success)
                                 {
-                                    TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCreations);
+                                    TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCreateBranch, null);
                                     Redraw();
                                 }
                                 else
@@ -474,12 +484,12 @@ namespace GitHub.Unity
 
                 if (confirmCheckout)
                 {
-                    GitClient.CreateBranch(branchName, branch)
+                    Repository.CreateBranch(branchName, branch)
                         .FinallyInUI((success, e) =>
                         {
                             if (success)
                             {
-                                TaskManager.Run(UsageTracker.IncrementNumberOfRemoteBranchCheckouts);
+                                TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutRemoteBranch, null);
                                 Redraw();
                             }
                             else
@@ -497,12 +507,12 @@ namespace GitHub.Unity
             if (EditorUtility.DisplayDialog(ConfirmSwitchTitle, String.Format(ConfirmSwitchMessage, branch), ConfirmSwitchOK,
                 ConfirmSwitchCancel))
             {
-                GitClient.SwitchBranch(branch)
+                Repository.SwitchBranch(branch)
                     .FinallyInUI((success, e) =>
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchCheckouts);
+                            TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutLocalBranch, null);
                             Redraw();
                         }
                         else
@@ -519,14 +529,8 @@ namespace GitHub.Unity
             var dialogMessage = string.Format(DeleteBranchMessageFormatString, branch);
             if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
             {
-                GitClient.DeleteBranch(branch, true)
-                    .FinallyInUI((success, e) =>
-                    {
-                        if (success)
-                        {
-                            TaskManager.Run(UsageTracker.IncrementNumberOfLocalBranchDeletions);
-                        }
-                    })
+                Repository.DeleteBranch(branch, true)
+                    .Then(UsageTracker.IncrementBranchesViewButtonDeleteBranch)
                     .Start();
             }
         }

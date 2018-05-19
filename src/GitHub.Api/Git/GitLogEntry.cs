@@ -8,9 +8,6 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitLogEntry
     {
-        private const string Today = "Today";
-        private const string Yesterday = "Yesterday";
-
         public static GitLogEntry Default = new GitLogEntry(String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, String.Empty, DateTimeOffset.MinValue, DateTimeOffset.MinValue, new List<GitStatusEntry>(), String.Empty, String.Empty);
 
         public string commitID;
@@ -61,18 +58,7 @@ namespace GitHub.Unity
             this.mergeB = mergeB ?? string.Empty;
         }
 
-        public string PrettyTimeString
-        {
-            get
-            {
-                DateTimeOffset now = DateTimeOffset.Now, relative = Time.ToLocalTime();
-
-                return String.Format("{0}, {1:HH}:{1:mm}",
-                    relative.DayOfYear == now.DayOfYear
-                        ? Today
-                        : relative.DayOfYear == now.DayOfYear - 1 ? Yesterday : relative.ToString("d MMM yyyy"), relative);
-            }
-        }
+        public string PrettyTimeString => Time.ToLocalTime().CreateRelativeTime(DateTimeOffset.Now);
 
         [NonSerialized] private DateTimeOffset? timeValue;
         public DateTimeOffset Time
@@ -82,7 +68,7 @@ namespace GitHub.Unity
                 if (!timeValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(TimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture,DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(TimeString, Constants.Iso8601Formats, CultureInfo.InvariantCulture,DateTimeStyles.None, out result))
                     {
                         timeValue = result;
                     }
@@ -109,7 +95,7 @@ namespace GitHub.Unity
                 if (!commitTimeValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(CommitTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(CommitTimeString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         commitTimeValue = result;
                     }

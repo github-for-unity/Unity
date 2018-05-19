@@ -233,9 +233,9 @@ namespace GitHub.Unity
             if (ret)
             {
                 if (value is float)
-                    value = (T)(object)sect.GetFloat(key);
+                    value = (T)(object)sect.TryGetFloat(key);
                 else if (value is int)
-                    value = (T)(object)sect.GetInt(key);
+                    value = (T)(object)sect.TryGetInt(key);
                 else
                     value = (T)(object)sect.GetString(key);
             }
@@ -249,12 +249,12 @@ namespace GitHub.Unity
 
         public float GetFloat(string section, string key)
         {
-            return sections[section].GetFloat(key);
+            return sections[section].TryGetFloat(key);
         }
 
         public int GetInt(string section, string key)
         {
-            return sections[section].GetInt(key);
+            return sections[section].TryGetInt(key);
         }
 
         public void Set<T>(string section, string key, T value)
@@ -296,7 +296,7 @@ namespace GitHub.Unity
             manager.Save(sb.ToString());
         }
 
-        class Section : Dictionary<string, string>
+        class Section : Dictionary<string, List<string>>
         {
             public Section(string name, string description = null)
             {
@@ -306,27 +306,28 @@ namespace GitHub.Unity
 
             public string TryGetString(string key)
             {
-                if (ContainsKey(key))
-                    return this[key];
+                List<string> val;
+                if (TryGetValue(key, out val))
+                    return val.First();
                 return null;
             }
 
             public string GetString(string key)
             {
-                return this[key];
+                return this[key].First();
             }
 
-            public int GetInt(string key)
+            public int TryGetInt(string key)
             {
-                var value = this[key];
+                var value = TryGetString(key);
                 int result = 0;
                 int.TryParse(value, out result);
                 return result;
             }
 
-            public float GetFloat(string key)
+            public float TryGetFloat(string key)
             {
-                var value = this[key];
+                var value = TryGetString(key);
                 float result = 0F;
                 float.TryParse(value, out result);
                 return result;
@@ -334,7 +335,9 @@ namespace GitHub.Unity
 
             public void SetString(string key, string value)
             {
-                this[key] = value;
+                if (!ContainsKey(key))
+                    this[key] = new List<string>();
+                this[key].Add(value);
             }
 
             public void SetInt(string key, int value)
@@ -446,8 +449,7 @@ namespace GitHub.Unity
                 var match = PairPattern.Match(line);
                 var key = match.Groups[1].Value.Trim();
                 var value = match.Groups[2].Value;
-
-                loadedSection.Add(key, value);
+                loadedSection.SetString(key, value);
             }
 
             private void EnsureFileBeginsWithSection()

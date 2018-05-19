@@ -30,9 +30,7 @@ namespace GitHub.Unity
         {
             foreach (var cache in caches.Values)
             {
-                // force an invalidation if the cache is valid, otherwise it will do it on its own
-                if (cache.Value.ValidateData())
-                    cache.Value.InvalidateData();
+                cache.Value.InvalidateData();
             }
         }
 
@@ -164,7 +162,7 @@ namespace GitHub.Unity
                 if (!updatedTimeValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(updatedTimeString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(updatedTimeString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         updatedTimeValue = result;
                     }

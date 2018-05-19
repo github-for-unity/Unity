@@ -9,7 +9,7 @@ Have you read GitHub for Unity's Code of Conduct? By filing an Issue, you are ex
 - Be sure to run with tracing enabled to capture runtime details in the log file
 - Include the log file in the PR.
   - On Windows, the extension log file is at `%LOCALAPPDATA%\GitHubUnity\github-unity.log`
-  - On macOS, the extension log file is at `~/Library/Application Support/GitHubUnity/github-unity.log`
+  - On macOS, the extension log file is at `~/Library/Logs/GitHubUnity/github-unity.log`
 
 ### Description
 

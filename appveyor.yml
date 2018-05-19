@@ -53,6 +53,10 @@ build:
   project: GitHub.Unity.sln
   verbosity: minimal
 test:
+  assemblies:
+    except:
+      - '**\*.TestRunner.dll'
+      - '**\*.TestUtils.dll'
   categories:
     except:
     - DoNotRunOnAppVeyor

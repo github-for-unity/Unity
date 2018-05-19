@@ -16,50 +16,38 @@ namespace IntegrationTests
     class BaseIntegrationTest
     {
         public IRepositoryManager RepositoryManager { get; set; }
-
         protected IApplicationManager ApplicationManager { get; set; }
-
-        protected NPath DotGitConfig { get; set; }
-
-        protected NPath DotGitHead { get; set; }
-
-        protected NPath DotGitIndex { get; set; }
-
-        protected NPath RemotesPath { get; set; }
-
-        protected NPath BranchesPath { get; set; }
-
-        protected NPath DotGitPath { get; set; }
-
-        protected NPath TestRepoMasterCleanSynchronized { get; set; }
-
-        protected NPath TestRepoMasterCleanUnsynchronized { get; set; }
-
-        protected NPath TestRepoMasterCleanUnsynchronizedRussianLanguage { get; set; }
-
-        protected NPath TestRepoMasterDirtyUnsynchronized { get; set; }
-
-        protected NPath TestRepoMasterTwoRemotes { get; set; }
-
-        protected static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
+        protected ILogging Logger { get; set; }
         protected ITaskManager TaskManager { get; set; }
-        protected SynchronizationContext SyncContext { get; set; }
-
         protected IPlatform Platform { get; set; }
         protected IProcessManager ProcessManager { get; set; }
         protected IProcessEnvironment GitEnvironment => Platform.GitEnvironment;
         protected IGitClient GitClient { get; set; }
+        public IEnvironment Environment { get; set; }
+
+        protected NPath DotGitConfig { get; set; }
+        protected NPath DotGitHead { get; set; }
+        protected NPath DotGitIndex { get; set; }
+        protected NPath RemotesPath { get; set; }
+        protected NPath BranchesPath { get; set; }
+        protected NPath DotGitPath { get; set; }
+        protected NPath TestRepoMasterCleanSynchronized { get; set; }
+        protected NPath TestRepoMasterCleanUnsynchronized { get; set; }
+        protected NPath TestRepoMasterCleanUnsynchronizedRussianLanguage { get; set; }
+        protected NPath TestRepoMasterDirtyUnsynchronized { get; set; }
+        protected NPath TestRepoMasterTwoRemotes { get; set; }
+
+        protected static string TestZipFilePath => Path.Combine(SolutionDirectory, "IOTestsRepo.zip");
+        protected SynchronizationContext SyncContext { get; set; }
+
 
         protected NPath TestBasePath { get; set; }
-        protected ILogging Logger { get; set; }
-        public IEnvironment Environment { get; set; }
         public IRepository Repository => Environment.Repository;
 
         protected TestUtils.SubstituteFactory Factory { get; set; }
         protected static NPath SolutionDirectory => TestContext.CurrentContext.TestDirectory.ToNPath();
 
         protected void InitializeEnvironment(NPath repoPath,
-            NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
             bool initializeRepository = true
             )
@@ -76,27 +64,20 @@ namespace IntegrationTests
             Environment = new IntegrationTestEnvironment(cacheContainer,
                 repoPath,
                 SolutionDirectory,
-                environmentPath,
-                enableEnvironmentTrace,
-                initializeRepository);
+                enableTrace: enableEnvironmentTrace,
+                initializeRepository: initializeRepository);
         }
 
-        protected void InitializePlatform(NPath repoPath, NPath? environmentPath = null,
+        protected void InitializePlatform(NPath repoPath,
             bool enableEnvironmentTrace = true,
-            bool setupGit = true,
-            string testName = "",
-            bool initializeRepository = true)
+            string testName = "")
         {
             InitializeTaskManager();
-            InitializeEnvironment(repoPath, environmentPath, enableEnvironmentTrace, initializeRepository);
 
             Platform = new Platform(Environment);
             ProcessManager = new ProcessManager(Environment, GitEnvironment, TaskManager.Token);
 
             Platform.Initialize(ProcessManager, TaskManager);
-
-            if (setupGit)
-                SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), testName);
         }
 
         protected void InitializeTaskManager()
@@ -107,13 +88,13 @@ namespace IntegrationTests
         }
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,
-            NPath? environmentPath = null,
             bool enableEnvironmentTrace = false,
-            bool setupGit = true,
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
             [CallerMemberName] string testName = "")
         {
-            InitializePlatform(repoPath, environmentPath, enableEnvironmentTrace, setupGit, testName);
+            InitializeEnvironment(repoPath, enableEnvironmentTrace, true);
+            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, testName: testName);
+            SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), testName);
 
             DotGitPath = repoPath.Combine(".git");
 
@@ -129,7 +110,7 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
 
-            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.FileSystem, repoPath);
+            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
             onRepositoryManagerCreated?.Invoke(RepositoryManager);
@@ -143,46 +124,40 @@ namespace IntegrationTests
 
         protected void SetupGit(NPath pathToSetupGitInto, string testName)
         {
-            var autoResetEvent = new AutoResetEvent(false);
-
             var installDetails = new GitInstaller.GitInstallDetails(pathToSetupGitInto, Environment.IsWindows);
-
-            var zipArchivesPath = pathToSetupGitInto.Combine("downloads").CreateDirectory();
-
-            Logger.Trace($"Saving git zips into {zipArchivesPath} and unzipping to {pathToSetupGitInto}");
-
-            AssemblyResources.ToFile(ResourceType.Platform, "git.zip", zipArchivesPath, Environment);
-            AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", zipArchivesPath, Environment);
-            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", zipArchivesPath, Environment);
-            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", zipArchivesPath, Environment);
-
-            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager, installDetails);
-
-            NPath? result = null;
-            Exception ex = null;
-
-            var setupTask = gitInstaller.SetupGitIfNeeded().Finally((success, state) =>
-                {
-                    result = state.GitExecutablePath;
-                    autoResetEvent.Set();
-                });
-            setupTask.Start();
-
-            if (!autoResetEvent.WaitOne(TimeSpan.FromMinutes(5)))
-                throw new TimeoutException($"Test setup unzipping {zipArchivesPath} to {pathToSetupGitInto} timed out");
-
-            if (result == null)
-            {
-                if (ex != null)
-                {
-                    throw ex;
-                }
-
-                throw new Exception("Did not install git");
-            }
-
-            Environment.GitExecutablePath = result.Value;
+            var gitInstaller = new GitInstaller(Environment, ProcessManager, TaskManager.Token, installDetails);
+            var state = gitInstaller.SetDefaultPaths(new GitInstaller.GitInstallationState());
+            Environment.GitInstallationState = state;
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
+
+            if (installDetails.GitExecutablePath.FileExists() && installDetails.GitLfsExecutablePath.FileExists())
+                return;
+
+            installDetails.GitInstallationPath.DeleteIfExists();
+
+            installDetails.GitZipPath.EnsureParentDirectoryExists();
+            installDetails.GitLfsZipPath.EnsureParentDirectoryExists();
+
+            AssemblyResources.ToFile(ResourceType.Platform, "git.zip", installDetails.GitZipPath.Parent, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git.json", installDetails.GitZipPath.Parent, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", installDetails.GitZipPath.Parent, Environment);
+            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.json", installDetails.GitZipPath.Parent, Environment);
+
+            var tempZipExtractPath = TestBasePath.Combine("setup", "git_zip_extract_zip_paths").EnsureDirectoryExists();
+            var extractPath = tempZipExtractPath.Combine("git").CreateDirectory();
+            var path = new UnzipTask(TaskManager.Token, installDetails.GitZipPath, extractPath, null, Environment.FileSystem)
+                .Catch(e => true)
+                .RunWithReturn(true);
+            var source = path;
+            installDetails.GitInstallationPath.EnsureParentDirectoryExists();
+            source.Move(installDetails.GitInstallationPath);
+
+            extractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
+            path = new UnzipTask(TaskManager.Token, installDetails.GitLfsZipPath, extractPath, null, Environment.FileSystem)
+                .Catch(e => true)
+                .RunWithReturn(true);
+            installDetails.GitLfsInstallationPath.EnsureParentDirectoryExists();
+            path.Move(installDetails.GitLfsInstallationPath);
         }
 
         [TestFixtureSetUp]

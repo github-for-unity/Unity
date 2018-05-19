@@ -9,7 +9,7 @@ namespace IntegrationTests
 {
     class BaseTestWithHttpServer : BaseIntegrationTest
     {
-        protected const int Timeout = 30000;
+        protected virtual int Timeout { get; set; } = 30 * 1000;
         protected TestWebServer.HttpServer server;
 
         public override void TestFixtureSetUp()
@@ -19,12 +19,7 @@ namespace IntegrationTests
 
             ApplicationConfiguration.WebTimeout = 50000;
 
-            AssemblyResources.ToFile(ResourceType.Platform, "git.zip", filesToServePath, new DefaultEnvironment());
-            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", filesToServePath, new DefaultEnvironment());
-            AssemblyResources.ToFile(ResourceType.Platform, "git.zip.md5", filesToServePath, new DefaultEnvironment());
-            AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip.md5", filesToServePath, new DefaultEnvironment());
-
-            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
+            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"), 50000);
             Task.Factory.StartNew(server.Start);
         }
 
@@ -34,6 +29,29 @@ namespace IntegrationTests
             server.Stop();
             ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
         }
+    }
 
+    class BaseGitTestWithHttpServer : BaseGitEnvironmentTest
+    {
+        protected virtual int Timeout { get; set; } = 30 * 1000;
+        protected TestWebServer.HttpServer server;
+
+        public override void TestFixtureSetUp()
+        {
+            base.TestFixtureSetUp();
+            var filesToServePath = SolutionDirectory.Combine("files");
+
+            ApplicationConfiguration.WebTimeout = 50000;
+
+            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"), 50000);
+            Task.Factory.StartNew(server.Start);
+        }
+
+        public override void TestFixtureTearDown()
+        {
+            base.TestFixtureTearDown();
+            server.Stop();
+            ApplicationConfiguration.WebTimeout = ApplicationConfiguration.DefaultWebTimeout;
+        }
     }
 }

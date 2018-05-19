@@ -48,5 +48,6 @@ namespace GitHub.Unity
 
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
+        public override string Message { get; set; } = "Reading configuration...";
     }
 }

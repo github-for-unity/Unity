@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace GitHub.Logging
 {
-    class FileLogAdapter : LogAdapterBase
+    public class FileLogAdapter : LogAdapterBase
     {
         private static readonly object lk = new object();
         private readonly string filePath;

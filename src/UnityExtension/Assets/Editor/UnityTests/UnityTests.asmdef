@@ -1,0 +1,10 @@
+{
+    "name": "UnityTests",
+    "references": [
+        "GitHub.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

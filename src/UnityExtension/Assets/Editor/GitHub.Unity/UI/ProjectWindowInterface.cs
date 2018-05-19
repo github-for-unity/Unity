@@ -1,9 +1,6 @@
 using GitHub.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +8,9 @@ namespace GitHub.Unity
 {
     class ProjectWindowInterface : AssetPostprocessor
     {
+        private const string AssetsMenuRequestLock = "Assets/Request Lock";
+        private const string AssetsMenuReleaseLock = "Assets/Release Lock";
+        private const string AssetsMenuReleaseLockForced = "Assets/Release Lock (forced)";
         private static readonly List<GitStatusEntry> entries = new List<GitStatusEntry>();
         private static List<GitLock> locks = new List<GitLock>();
 
@@ -25,8 +25,6 @@ namespace GitHub.Unity
 
         public static void Initialize(IRepository repo)
         {
-            //Logger.Trace("Initialize HasRepository:{0}", repo != null);
-
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 
@@ -36,6 +34,7 @@ namespace GitHub.Unity
             {
                 repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 repository.LocksChanged += RepositoryOnLocksChanged;
+                ValidateCachedData(repository);
             }
         }
 
@@ -66,7 +65,7 @@ namespace GitHub.Unity
             }
         }
 
-        [MenuItem("Assets/Request Lock", true)]
+        [MenuItem(AssetsMenuRequestLock, true)]
         private static bool ContextMenu_CanLock()
         {
             if (isBusy)
@@ -83,11 +82,7 @@ namespace GitHub.Unity
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
-            var alreadyLocked = locks.Any(x =>
-            {
-                return repositoryPath == x.Path.ToNPath();
-
-            });
+            var alreadyLocked = locks.Any(x => repositoryPath == x.Path);
             GitFileStatus status = GitFileStatus.None;
             if (entries != null)
             {
@@ -96,7 +91,7 @@ namespace GitHub.Unity
             return !alreadyLocked && status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
         }
 
-        [MenuItem("Assets/Request Lock")]
+        [MenuItem(AssetsMenuRequestLock)]
         private static void ContextMenu_Lock()
         {
             isBusy = true;
@@ -107,8 +102,22 @@ namespace GitHub.Unity
 
             repository
                 .RequestLock(repositoryPath)
-                .ThenInUI(_ =>
+                .FinallyInUI((success, ex) =>
                 {
+                    if (success)
+                    {
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
+                    }
+                    else
+                    {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
+                        EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
+                            error,
+                            Localization.Ok);
+                    }
+
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();
@@ -116,7 +125,7 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        [MenuItem("Assets/Release lock", true, 1000)]
+        [MenuItem(AssetsMenuReleaseLock, true, 1000)]
         private static bool ContextMenu_CanUnlock()
         {
             if (isBusy)
@@ -133,11 +142,11 @@ namespace GitHub.Unity
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
 
-            var isLocked = locks.Any(x => repositoryPath == x.Path.ToNPath());
+            var isLocked = locks.Any(x => repositoryPath == x.Path);
             return isLocked;
         }
 
-        [MenuItem("Assets/Release lock", false, 1000)]
+        [MenuItem(AssetsMenuReleaseLock, false, 1000)]
         private static void ContextMenu_Unlock()
         {
             isBusy = true;
@@ -148,8 +157,77 @@ namespace GitHub.Unity
 
             repository
                 .ReleaseLock(repositoryPath, false)
-                .ThenInUI(_ =>
+                .FinallyInUI((success, ex) =>
                 {
+                    if (success)
+                    {
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                    }
+                    else
+                    {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
+                        EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
+                            error,
+                            Localization.Ok);
+                    }
+
+                    isBusy = false;
+                    Selection.activeGameObject = null;
+                    EditorApplication.RepaintProjectWindow();
+                })
+                .Start();
+        }
+
+        [MenuItem(AssetsMenuReleaseLockForced, true, 1000)]
+        private static bool ContextMenu_CanUnlockForce()
+        {
+            if (isBusy)
+                return false;
+            if (repository == null || !repository.CurrentRemote.HasValue)
+                return false;
+
+            var selected = Selection.activeObject;
+            if (selected == null)
+                return false;
+            if (locks == null || locks.Count == 0)
+                return false;
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
+            var isLocked = locks.Any(x => repositoryPath == x.Path);
+            return isLocked;
+        }
+
+        [MenuItem(AssetsMenuReleaseLockForced, false, 1000)]
+        private static void ContextMenu_UnlockForce()
+        {
+            isBusy = true;
+            var selected = Selection.activeObject;
+
+            NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
+            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+
+            repository
+                .ReleaseLock(repositoryPath, false)
+                .FinallyInUI((success, ex) =>
+                {
+                    if (success)
+                    {
+                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                    }
+                    else
+                    {
+                        var error = ex.Message;
+                        if (error.Contains("exit status 255"))
+                            error = "Failed to unlock: no permissions";
+                        EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle,
+                            error,
+                            Localization.Ok);
+                    }
+
                     isBusy = false;
                     Selection.activeGameObject = null;
                     EditorApplication.RepaintProjectWindow();
@@ -168,7 +246,7 @@ namespace GitHub.Unity
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
-                NPath repositoryPath = lck.Path.ToNPath();
+                NPath repositoryPath = lck.Path;
                 NPath assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
 
                 var g = AssetDatabase.AssetPathToGUID(assetPath);

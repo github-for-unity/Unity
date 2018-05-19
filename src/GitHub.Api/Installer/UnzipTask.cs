@@ -16,7 +16,7 @@ namespace GitHub.Unity
         {
             this.archiveFilePath = archiveFilePath;
             this.extractedPath = extractedPath;
-            this.zipHelper = zipHelper;
+            this.zipHelper = zipHelper ?? ZipHelper.Instance;
             this.fileSystem = fileSystem;
             Name = $"Unzip {archiveFilePath.FileName}";
         }
@@ -26,7 +26,7 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        protected override NPath RunWithReturn(bool success)
+        public override NPath RunWithReturn(bool success)
         {
             var ret = BaseRun(success);
 
@@ -93,6 +93,7 @@ namespace GitHub.Unity
             return extractedPath;
         }
         protected int RetryCount { get; }
+        public override string Message { get; set; } = "Extracting zip...";
     }
 
     public class UnzipException : Exception {

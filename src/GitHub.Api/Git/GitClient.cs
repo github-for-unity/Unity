@@ -1,97 +1,43 @@
 ﻿using GitHub.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using static GitHub.Unity.GitInstaller;
 
 namespace GitHub.Unity
 {
     public interface IGitClient
     {
-        ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit);
-
-        ITask Init(IOutputProcessor<string> processor = null);
-
-        ITask LfsInstall(IOutputProcessor<string> processor = null);
-
-        ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, 
-            IOutputProcessor<GitAheadBehindStatus> processor = null);
-
+        ITask<string> Init(IOutputProcessor<string> processor = null);
+        ITask<string> LfsInstall(IOutputProcessor<string> processor = null);
+        ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null);
         ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null);
-
-        ITask<string> GetConfig(string key, GitConfigSource configSource,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> SetConfig(string key, string value, GitConfigSource configSource,
-            IOutputProcessor<string> processor = null);
-
+        ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null);
+        ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null);
         ITask<GitUser> GetConfigUserAndEmail();
-
-        ITask<List<GitLock>> ListLocks(bool local,
-            BaseOutputListProcessor<GitLock> processor = null);
-
-        ITask<string> Pull(string remote, string branch,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Push(string remote, string branch,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Revert(string changeset,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Fetch(string remote,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> SwitchBranch(string branch,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> CreateBranch(string branch, string baseBranch,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> RemoteAdd(string remote, string url,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> RemoteRemove(string remote,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> RemoteChange(string remote, string url,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Commit(string message, string body,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Add(IList<string> files,
-            IOutputProcessor<string> processor = null);
-
+        ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null);
+        ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null);
+        ITask<string> Push(string remote, string branch, IOutputProcessor<string> processor = null);
+        ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null);
+        ITask<string> Fetch(string remote, IOutputProcessor<string> processor = null);
+        ITask<string> SwitchBranch(string branch, IOutputProcessor<string> processor = null);
+        ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false, IOutputProcessor<string> processor = null);
+        ITask<string> CreateBranch(string branch, string baseBranch, IOutputProcessor<string> processor = null);
+        ITask<string> RemoteAdd(string remote, string url, IOutputProcessor<string> processor = null);
+        ITask<string> RemoteRemove(string remote, IOutputProcessor<string> processor = null);
+        ITask<string> RemoteChange(string remote, string url, IOutputProcessor<string> processor = null);
+        ITask<string> Commit(string message, string body, IOutputProcessor<string> processor = null);
+        ITask<string> Add(IList<string> files, IOutputProcessor<string> processor = null);
         ITask<string> AddAll(IOutputProcessor<string> processor = null);
-
-        ITask<string> Discard(IList<string> files,
-            IOutputProcessor<string> processor = null);
-
+        ITask<string> Discard(IList<string> files, IOutputProcessor<string> processor = null);
         ITask<string> DiscardAll(IOutputProcessor<string> processor = null);
-
-        ITask<string> Remove(IList<string> files,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> AddAndCommit(IList<string> files, string message, string body,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Lock(string file,
-            IOutputProcessor<string> processor = null);
-
-        ITask<string> Unlock(string file, bool force,
-            IOutputProcessor<string> processor = null);
-
+        ITask<string> Remove(IList<string> files, IOutputProcessor<string> processor = null);
+        ITask<string> AddAndCommit(IList<string> files, string message, string body, IOutputProcessor<string> processor = null);
+        ITask<string> Lock(NPath file, IOutputProcessor<string> processor = null);
+        ITask<string> Unlock(NPath file, bool force, IOutputProcessor<string> processor = null);
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
-
-        ITask<Version> Version(IOutputProcessor<Version> processor = null);
-
-        ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null);
-
+        ITask<TheVersion> Version(IOutputProcessor<TheVersion> processor = null);
+        ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null);
         ITask<GitUser> SetConfigNameAndEmail(string username, string email);
     }
 
@@ -110,99 +56,56 @@ namespace GitHub.Unity
             this.cancellationToken = cancellationToken;
         }
 
-        public ITask<ValidateGitInstallResult> ValidateGitInstall(NPath path, bool isCustomGit)
-        {
-            Version gitVersion = null;
-            Version gitLfsVersion = null;
-
-            var endTask = new FuncTask<ValidateGitInstallResult>(cancellationToken,
-                () => new ValidateGitInstallResult(
-                    gitVersion?.CompareTo(Constants.MinimumGitVersion) >= 0 &&
-                    gitLfsVersion?.CompareTo(Constants.MinimumGitLfsVersion) >= 0,
-                    gitVersion, gitLfsVersion));
-
-            if (path.FileExists())
-            {
-                var gitLfsVersionTask = new GitLfsVersionTask(cancellationToken)
-                    .Configure(processManager, path, dontSetupGit: isCustomGit);
-                gitLfsVersionTask.OnEnd += (t, v, _, __) => gitLfsVersion = v;
-                var gitVersionTask = new GitVersionTask(cancellationToken)
-                    .Configure(processManager, path, dontSetupGit: isCustomGit);
-                gitVersionTask.OnEnd += (t, v, _, __) => gitVersion = v;
-
-                gitVersionTask
-                    .Then(gitLfsVersionTask)
-                    .Finally(endTask);
-            }
-            return endTask;
-        }
-
-        public ITask Init(IOutputProcessor<string> processor = null)
+        public ITask<string> Init(IOutputProcessor<string> processor = null)
         {
             return new GitInitTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask LfsInstall(IOutputProcessor<string> processor = null)
+        public ITask<string> LfsInstall(IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("LfsInstall");
-
             return new GitLfsInstallTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null)
         {
-            //Logger.Trace("Status");
-
             return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<GitAheadBehindStatus> AheadBehindStatus(string gitRef, string otherRef, IOutputProcessor<GitAheadBehindStatus> processor = null)
         {
-            //Logger.Trace("AheadBehindStatus");
-
             return new GitAheadBehindStatusTask(gitRef, otherRef, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
         {
-            //Logger.Trace("Log");
-
             return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<Version> Version(IOutputProcessor<Version> processor = null)
+        public ITask<TheVersion> Version(IOutputProcessor<TheVersion> processor = null)
         {
-            //Logger.Trace("Version");
-
             return new GitVersionTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<Version> LfsVersion(IOutputProcessor<Version> processor = null)
+        public ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null)
         {
-            //Logger.Trace("LfsVersion");
-
             return new GitLfsVersionTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("GetConfig: {0}", key);
-
             return new GitConfigGetTask(key, configSource, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("SetConfig");
-
             return new GitConfigSetTask(key, value, configSource, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -226,7 +129,6 @@ namespace GitHub.Unity
                             email = value;
                         }
                     })).Then(success => {
-                //Logger.Trace("{0}:{1} {2}:{3}", UserNameConfigKey, username, UserEmailConfigKey, email);
                 return new GitUser(username, email);
             });
         }
@@ -240,16 +142,12 @@ namespace GitHub.Unity
 
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
         {
-            //Logger.Trace("ListLocks");
-
-            return new GitListLocksTask(new GitObjectFactory(environment), local, cancellationToken, processor)
+            return new GitListLocksTask(local, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Pull");
-
             return new GitPullTask(remote, branch, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -257,16 +155,12 @@ namespace GitHub.Unity
         public ITask<string> Push(string remote, string branch,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Push");
-
             return new GitPushTask(remote, branch, true, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Revert");
-
             return new GitRevertTask(changeset, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -274,16 +168,12 @@ namespace GitHub.Unity
         public ITask<string> Fetch(string remote,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Fetch");
-
-            return new GitFetchTask(remote, cancellationToken, true, processor)
+            return new GitFetchTask(remote, cancellationToken, processor: processor)
                 .Configure(processManager);
         }
 
         public ITask<string> SwitchBranch(string branch, IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("SwitchBranch");
-
             return new GitSwitchBranchesTask(branch, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -291,8 +181,6 @@ namespace GitHub.Unity
         public ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("DeleteBranch");
-
             return new GitBranchDeleteTask(branch, deleteUnmerged, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -300,8 +188,6 @@ namespace GitHub.Unity
         public ITask<string> CreateBranch(string branch, string baseBranch,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("CreateBranch");
-
             return new GitBranchCreateTask(branch, baseBranch, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -309,8 +195,6 @@ namespace GitHub.Unity
         public ITask<string> RemoteAdd(string remote, string url,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("RemoteAdd");
-
             return new GitRemoteAddTask(remote, url, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -318,8 +202,6 @@ namespace GitHub.Unity
         public ITask<string> RemoteRemove(string remote,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("RemoteRemove");
-
             return new GitRemoteRemoveTask(remote, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -327,8 +209,6 @@ namespace GitHub.Unity
         public ITask<string> RemoteChange(string remote, string url,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("RemoteChange");
-
             return new GitRemoteChangeTask(remote, url, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -336,16 +216,12 @@ namespace GitHub.Unity
         public ITask<string> Commit(string message, string body,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Commit");
-
             return new GitCommitTask(message, body, cancellationToken, processor)
                 .Configure(processManager);
         }
 
         public ITask<string> AddAll(IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Add all files");
-
             return new GitAddTask(cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -353,8 +229,6 @@ namespace GitHub.Unity
         public ITask<string> Add(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Add Files");
-
             GitAddTask last = null;
             foreach (var batch in files.Spool(5000))
             {
@@ -376,8 +250,6 @@ namespace GitHub.Unity
         public ITask<string> Discard( IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Checkout Files");
-
             GitCheckoutTask last = null;
             foreach (var batch in files.Spool(5000))
             {
@@ -398,8 +270,6 @@ namespace GitHub.Unity
 
         public ITask<string> DiscardAll(IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Checkout all files");
-
             return new GitCheckoutTask(cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -407,8 +277,6 @@ namespace GitHub.Unity
         public ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Remove");
-
             return new GitRemoveFromIndexTask(files, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -416,27 +284,21 @@ namespace GitHub.Unity
         public ITask<string> AddAndCommit(IList<string> files, string message, string body,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("AddAndCommit");
-
             return Add(files)
                 .Then(new GitCommitTask(message, body, cancellationToken)
                     .Configure(processManager));
         }
 
-        public ITask<string> Lock(string file,
+        public ITask<string> Lock(NPath file,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Lock");
-
             return new GitLockTask(file, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> Unlock(string file, bool force,
+        public ITask<string> Unlock(NPath file, bool force,
             IOutputProcessor<string> processor = null)
         {
-            //Logger.Trace("Unlock");
-
             return new GitUnlockTask(file, force, cancellationToken, processor)
                 .Configure(processManager);
         }
@@ -444,6 +306,7 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = LogHelper.GetLogger<GitClient>();
     }
 
+    [Serializable]
     public struct GitUser
     {
         public static GitUser Default = new GitUser();
@@ -451,8 +314,8 @@ namespace GitHub.Unity
         public string name;
         public string email;
 
-        public string Name { get { return name; } }
-        public string Email { get { return email; } }
+        public string Name => name;
+        public string Email { get { return String.IsNullOrEmpty(email) ? String.Empty : email; } }
 
         public GitUser(string name, string email)
         {
@@ -464,7 +327,7 @@ namespace GitHub.Unity
         {
             int hash = 17;
             hash = hash * 23 + (name?.GetHashCode() ?? 0);
-            hash = hash * 23 + (email?.GetHashCode() ?? 0);
+            hash = hash * 23 + Email.GetHashCode();
             return hash;
         }
 
@@ -479,8 +342,7 @@ namespace GitHub.Unity
         {
             return
                 String.Equals(name, other.name) &&
-                String.Equals(email, other.email)
-                ;
+                Email.Equals(other.Email);
         }
 
         public static bool operator ==(GitUser lhs, GitUser rhs)

@@ -80,7 +80,6 @@ namespace GitHub.Unity
             }
 
             Logger.Trace("Watching Path: \"{0}\"", paths.RepositoryPath.ToString());
-
             running = true;
             pauseEvent.Reset();
             Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
@@ -89,12 +88,7 @@ namespace GitHub.Unity
         public void Stop()
         {
             if (!running)
-            {
-                //Logger.Warning("Watcher already stopped");
                 return;
-            }
-
-            //Logger.Trace("Stopping watcher");
 
             running = false;
             pauseEvent.Set();
@@ -102,8 +96,6 @@ namespace GitHub.Unity
 
         private void WatcherLoop()
         {
-            //Logger.Trace("Starting watcher");
-
             while (running)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -136,9 +128,7 @@ namespace GitHub.Unity
             var fileEvents = nativeInterface.GetEvents();
             if (fileEvents.Length > 0)
             {
-                //Logger.Trace("Handling {0} Events", fileEvents.Length);
                 processedEventCount = ProcessEvents(fileEvents);
-                //Logger.Trace("Processed {0} Events", processedEventCount);
             }
 
             lastCountOfProcessedEvents = processedEventCount;
@@ -163,8 +153,6 @@ namespace GitHub.Unity
                     Stop();
                     break;
                 }
-
-                //Logger.Trace(fileEvent.Describe());
 
                 var eventDirectory = new NPath(fileEvent.Directory);
                 var fileA = eventDirectory.Combine(fileEvent.FileA);
@@ -215,28 +203,24 @@ namespace GitHub.Unity
             int eventsProcessed = 0;
             if (events.Contains(EventType.ConfigChanged))
             {
-                //Logger.Trace("ConfigChanged");
                 ConfigChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.HeadChanged))
             {
-                //Logger.Trace("HeadChanged");
                 HeadChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.LocalBranchesChanged))
             {
-                //Logger.Trace("LocalBranchesChanged");
                 LocalBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.RemoteBranchesChanged))
             {
-                //Logger.Trace("RemoteBranchesChanged");
                 RemoteBranchesChanged?.Invoke();
                 eventsProcessed++;
             }
@@ -245,7 +229,6 @@ namespace GitHub.Unity
             {
                 if (!events.Contains(EventType.RepositoryChanged))
                 {
-                    //Logger.Trace("IndexChanged");
                     IndexChanged?.Invoke();
                     eventsProcessed++;
                 }
@@ -253,14 +236,12 @@ namespace GitHub.Unity
 
             if (events.Contains(EventType.RepositoryChanged))
             {
-                //Logger.Trace("RepositoryChanged");
                 RepositoryChanged?.Invoke();
                 eventsProcessed++;
             }
 
             if (events.Contains(EventType.RepositoryCommitted))
             {
-                //Logger.Trace("RepositoryCommitted");
                 RepositoryCommitted?.Invoke();
                 eventsProcessed++;
             }

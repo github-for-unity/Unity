@@ -12,8 +12,6 @@ namespace GitHub.Unity
         private static bool? onLinux;
         private static bool? onMac;
 
-        private NPath gitExecutablePath;
-        private NPath gitLfsExecutablePath;
         private NPath nodeJsExecutablePath;
         private NPath octorunScriptPath;
 
@@ -40,7 +38,15 @@ namespace GitHub.Unity
 
             UserCachePath = localAppData.Combine(ApplicationInfo.ApplicationName);
             SystemCachePath = commonAppData.Combine(ApplicationInfo.ApplicationName);
-            LogPath = UserCachePath.Combine(logFile);
+            if (IsMac)
+            {
+                LogPath = NPath.HomeDirectory.Combine("Library/Logs").Combine(ApplicationInfo.ApplicationName).Combine(logFile);
+            }
+            else
+            {
+                LogPath = UserCachePath.Combine(logFile);
+            }
+            LogPath.EnsureParentDirectoryExists();
         }
 
         public DefaultEnvironment(ICacheContainer cacheContainer) : this()
@@ -67,27 +73,24 @@ namespace GitHub.Unity
             UnityProjectPath = assetsPath.Parent;
             UnityVersion = unityVersion;
             User = new User(CacheContainer);
+            UserSettings = new UserSettings(this);
+            LocalSettings = new LocalSettings(this);
+            SystemSettings = new SystemSettings(this);
         }
 
         public void InitializeRepository(NPath? repositoryPath = null)
         {
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
 
-            //Logger.Trace("InitializeRepository expectedRepositoryPath:{0}", repositoryPath);
-
             NPath expectedRepositoryPath;
             if (!RepositoryPath.IsInitialized)
             {
                 Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
 
-                //Logger.Trace("RepositoryPath is null");
-
                 expectedRepositoryPath = repositoryPath != null ? repositoryPath.Value : UnityProjectPath;
 
                 if (!expectedRepositoryPath.DirectoryExists(".git"))
                 {
-                    Logger.Trace(".git folder exists");
-
                     NPath reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
                     if (reporoot.IsInitialized)
                         expectedRepositoryPath = reporoot;
@@ -95,14 +98,12 @@ namespace GitHub.Unity
             }
             else
             {
-                //Logger.Trace("Set to RepositoryPath");
                 expectedRepositoryPath = RepositoryPath;
             }
 
             FileSystem.SetCurrentDirectory(expectedRepositoryPath);
             if (expectedRepositoryPath.DirectoryExists(".git"))
             {
-                //Logger.Trace("Determined expectedRepositoryPath:{0}", expectedRepositoryPath);
                 RepositoryPath = expectedRepositoryPath;
                 Repository = new Repository(RepositoryPath, CacheContainer);
             }
@@ -150,30 +151,26 @@ namespace GitHub.Unity
             }
         }
 
-        public bool IsCustomGitExecutable { get; set; }
-
-        public NPath GitExecutablePath
+        public bool IsCustomGitExecutable => GitInstallationState?.IsCustomGitPath ?? false;
+        public NPath GitInstallPath => GitInstallationState?.GitInstallationPath ?? NPath.Default;
+        public NPath GitExecutablePath => GitInstallationState?.GitExecutablePath ?? NPath.Default;
+        public NPath GitLfsInstallPath => GitInstallationState?.GitLfsInstallationPath ?? NPath.Default;
+        public NPath GitLfsExecutablePath => GitInstallationState?.GitLfsExecutablePath ?? NPath.Default;
+        public GitInstaller.GitInstallationState GitInstallationState
         {
-            get { return gitExecutablePath; }
+            get
+            {
+                return SystemSettings.Get<GitInstaller.GitInstallationState>(Constants.GitInstallationState, new GitInstaller.GitInstallationState());
+            }
             set
             {
-                gitExecutablePath = value;
-                if (!gitExecutablePath.IsInitialized)
-                    GitInstallPath = NPath.Default;
+                if (value == null)
+                    SystemSettings.Unset(Constants.GitInstallationState);
                 else
-                    GitInstallPath = GitExecutablePath.Resolve().Parent.Parent;
+                    SystemSettings.Set<GitInstaller.GitInstallationState>(Constants.GitInstallationState, value);
             }
         }
 
-        public NPath GitLfsExecutablePath
-        {
-            get { return gitLfsExecutablePath; }
-            set
-            {
-                gitLfsExecutablePath = value;
-                GitLfsInstallPath = gitLfsExecutablePath.IsInitialized ? gitLfsExecutablePath.Parent : NPath.Default;
-            }
-        }
 
         public NPath NodeJsExecutablePath
         {
@@ -188,12 +185,13 @@ namespace GitHub.Unity
                 return nodeJsExecutablePath;
             }
         }
-        public NPath GitInstallPath { get; private set; }
-        public NPath GitLfsInstallPath { get; private set; }
         public NPath RepositoryPath { get; private set; }
         public ICacheContainer CacheContainer { get; private set; }
         public IRepository Repository { get; set; }
         public IUser User { get; set; }
+        public ISettings LocalSettings { get; protected set; }
+        public ISettings SystemSettings { get; protected set; }
+        public ISettings UserSettings { get; protected set; }
 
         public bool IsWindows { get { return OnWindows; } }
         public bool IsLinux { get { return OnLinux; } }
@@ -234,6 +232,7 @@ namespace GitHub.Unity
             set { onMac = value; }
         }
 
+        public static string ExecutableExt { get { return OnWindows ? ".exe" : string.Empty; } }
         public string ExecutableExtension { get { return IsWindows ? ".exe" : string.Empty; } }
         protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }

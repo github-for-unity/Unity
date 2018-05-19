@@ -36,7 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <BuildConfid>Release</BuildConfid>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
@@ -62,9 +62,6 @@
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>$(SolutionDir)lib\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>$(SolutionDir)lib\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Posix">
       <HintPath>$(SolutionDir)lib\Mono.Posix.dll</HintPath>
@@ -104,7 +101,6 @@
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
     <Compile Include="Git\TreeData.cs" />
-    <Compile Include="Git\ValidateGitInstallResult.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\AssemblyResources.cs" />
     <Compile Include="Authentication\IKeychain.cs" />
@@ -136,6 +132,8 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Primitives\Package.cs" />
+    <Compile Include="Primitives\TheVersion.cs" />
     <Compile Include="Tasks\ActionTask.cs" />
     <Compile Include="Tasks\BaseOutputProcessor.cs" />
     <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
@@ -164,7 +162,7 @@
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="Platform\Settings.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
-    <Compile Include="OutputProcessors\LockOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LocksOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
     <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
@@ -266,41 +264,21 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PlatformResources\mac\git-lfs.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git-lfs.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
     <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
-    <Content Include="PlatformResources\linux\git-lfs.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\linux\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\mac\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git-lfs.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PlatformResources\windows\git.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
     <EmbeddedResource Include="Resources\.gitattributes" />
     <EmbeddedResource Include="Resources\.gitignore" />
-    <Content Include="Resources\octorun.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\octorun.zip.md5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="PlatformResources\linux\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\windows\git.json" />
+    <None Include="PlatformResources\linux\git-lfs.zip" />
+    <None Include="PlatformResources\mac\git-lfs.zip" />
+    <None Include="PlatformResources\windows\git-lfs.zip" />
+    <None Include="PlatformResources\windows\git.zip" />
+    <EmbeddedResource Include="Resources\octorun.zip" />
+    <EmbeddedResource Include="Resources\octorun.zip.md5" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

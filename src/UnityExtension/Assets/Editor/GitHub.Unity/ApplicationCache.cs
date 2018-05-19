@@ -15,6 +15,7 @@ namespace GitHub.Unity
         [SerializeField] private bool firstRun = true;
         [SerializeField] public string firstRunAtString;
         [SerializeField] public string instanceIdString;
+        [SerializeField] private bool initialized = false;
         [NonSerialized] private Guid? instanceId;
         [NonSerialized] private bool? firstRunValue;
         [NonSerialized] public DateTimeOffset? firstRunAtValue;
@@ -36,7 +37,13 @@ namespace GitHub.Unity
 
                 if (!firstRunAtValue.HasValue)
                 {
-                    firstRunAtValue = DateTimeOffset.ParseExact(firstRunAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture);
+                    DateTimeOffset dt;
+                    if (!DateTimeOffset.TryParseExact(firstRunAtString, Constants.Iso8601Formats,
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                    {
+                        dt = DateTimeOffset.Now;
+                    }
+                    FirstRunAt = dt;
                 }
 
                 return firstRunAtValue.Value;
@@ -53,13 +60,6 @@ namespace GitHub.Unity
             if (!firstRunValue.HasValue)
             {
                 firstRunValue = firstRun;
-            }
-
-            if (firstRun)
-            {
-                firstRun = false;
-                FirstRunAt = DateTimeOffset.Now;
-                Save(true);
             }
         }
 
@@ -87,6 +87,21 @@ namespace GitHub.Unity
             else
             {
                 instanceId = new Guid(instanceIdString);
+            }
+        }
+
+        public bool Initialized
+        {
+            get { return initialized; }
+            set
+            {
+                initialized = value;
+                if (initialized && firstRun)
+                {
+                    firstRun = false;
+                    FirstRunAt = DateTimeOffset.Now;
+                }
+                Save(true);
             }
         }
     }
@@ -166,6 +181,7 @@ namespace GitHub.Unity
         [NonSerialized] private DateTimeOffset? lastUpdatedAtValue;
         [NonSerialized] private DateTimeOffset? initializedAtValue;
         [NonSerialized] private bool isInvalidating;
+        [NonSerialized] protected bool forcedInvalidation;
 
         public event Action<CacheType> CacheInvalidated;
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -184,16 +200,21 @@ namespace GitHub.Unity
             if (needsInvalidation && !isInvalidating)
             {
                 Logger.Trace("needsInvalidation isInitialized:{0} timedOut:{1}", isInitialized, timedOut);
-                InvalidateData();
+                Invalidate();
             }
             return !needsInvalidation;
         }
 
         public void InvalidateData()
         {
+            forcedInvalidation = true;
+            Invalidate();
+        }
+
+        private void Invalidate()
+        {
             if (!isInvalidating)
             {
-                Logger.Trace("Invalidate");
                 isInvalidating = true;
                 LastUpdatedAt = DateTimeOffset.MinValue;
                 CacheInvalidated.SafeInvoke(CacheType);
@@ -214,7 +235,6 @@ namespace GitHub.Unity
 
             if (isChanged)
             {
-                Logger.Trace("Updated: {0}", now);
                 CacheUpdated.SafeInvoke(CacheType, now);
             }
         }
@@ -241,7 +261,7 @@ namespace GitHub.Unity
                 if (!lastUpdatedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         lastUpdatedAtValue = result;
                     }
@@ -267,7 +287,7 @@ namespace GitHub.Unity
                 if (!initializedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         initializedAtValue = result;
                     }
@@ -436,25 +456,25 @@ namespace GitHub.Unity
             var now = DateTimeOffset.Now;
             var isUpdated = false;
 
-            if (!Nullable.Equals(currentGitRemote, data.CurrentGitRemote))
+            if (forcedInvalidation || !Nullable.Equals(currentGitRemote, data.CurrentGitRemote))
             {
                 currentGitRemote = data.CurrentGitRemote ?? GitRemote.Default;
                 isUpdated = true;
             }
 
-            if (!Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
+            if (forcedInvalidation ||!Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
             {
                 currentGitBranch = data.CurrentGitBranch ?? GitBranch.Default;
                 isUpdated = true;
             }
 
-            if (!Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
+            if (forcedInvalidation ||!Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
             {
                 currentConfigRemote = data.CurrentConfigRemote ?? ConfigRemote.Default;
                 isUpdated = true;
             }
 
-            if (!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
+            if (forcedInvalidation ||!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
             {
                 currentConfigBranch = data.CurrentConfigBranch ?? ConfigBranch.Default;
                 isUpdated = true;
@@ -523,8 +543,6 @@ namespace GitHub.Unity
             remoteConfigBranches = new RemoteConfigBranchDictionary(configBranches);
             remotes = gitRemotes;
             remoteBranches = gitBranches;
-
-            Logger.Trace("SetRemotes {0}", now);
             SaveData(now, true);
         }
 
@@ -533,8 +551,6 @@ namespace GitHub.Unity
             var now = DateTimeOffset.Now;
             localConfigBranches = new LocalConfigBranchDictionary(configBranches);
             localBranches = gitBranches;
-
-            Logger.Trace("SetLocals {0}", now);
             SaveData(now, true);
         }
 
@@ -567,9 +583,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Log: current:{1} new:{2}", now, log.Count, value.Count);
-
-                if (!log.SequenceEqual(value))
+                if (forcedInvalidation || !log.SequenceEqual(value))
                 {
                     log = value;
                     isUpdated = true;
@@ -603,8 +617,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Ahead: current:{1} new:{2}", now, ahead, value);
-                if (ahead != value)
+                if (forcedInvalidation || ahead != value)
                 {
                     ahead = value;
                     isUpdated = true;
@@ -626,9 +639,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Behind: current:{1} new:{2}", now, behind, value);
-
-                if (behind != value)
+                if (forcedInvalidation || behind != value)
                 {
                     behind = value;
                     isUpdated = true;
@@ -661,9 +672,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Entries: current:{1} new:{2}", now, entries.Count, value.Count);
-
-                if (!entries.SequenceEqual(value))
+                if (forcedInvalidation || !entries.SequenceEqual(value))
                 {
                     entries = value;
                     isUpdated = true;
@@ -696,9 +705,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating GitLocks: current:{1} new:{2}", now, gitLocks.Count, value.Count);
-
-                if (!gitLocks.SequenceEqual(value))
+                if (forcedInvalidation || !gitLocks.SequenceEqual(value))
                 {
                     gitLocks = value;
                     isUpdated = true;
@@ -732,9 +739,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Name: current:{1} new:{2}", now, gitName, value);
-
-                if (gitName != value)
+                if (forcedInvalidation || gitName != value)
                 {
                     gitName = value;
                     isUpdated = true;
@@ -756,9 +761,7 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                Logger.Trace("{0} Updating Email: current:{1} new:{2}", now, gitEmail, value);
-
-                if (gitEmail != value)
+                if (forcedInvalidation || gitEmail != value)
                 {
                     gitEmail = value;
                     isUpdated = true;

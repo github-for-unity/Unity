@@ -22,6 +22,7 @@ namespace IntegrationTests
             bool initializeRepository = true)
         {
             defaultEnvironment = new DefaultEnvironment(cacheContainer);
+
             defaultEnvironment.FileSystem.SetCurrentDirectory(repoPath);
             environmentPath = environmentPath ??
                 defaultEnvironment.UserCachePath.EnsureDirectoryExists("IntegrationTests");
@@ -47,6 +48,9 @@ namespace IntegrationTests
         public void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityPath, NPath unityContentsPath, NPath assetsPath)
         {
             defaultEnvironment.Initialize(unityVersion, extensionInstallPath, unityPath, unityContentsPath, assetsPath);
+            defaultEnvironment.LocalSettings.SettingsPath.DeleteIfExists();
+            defaultEnvironment.UserSettings.SettingsPath.DeleteIfExists();
+            defaultEnvironment.SystemSettings.SettingsPath.DeleteIfExists();
         }
 
         public void InitializeRepository(NPath? expectedPath = null)
@@ -89,20 +93,12 @@ namespace IntegrationTests
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
 
-        public bool IsCustomGitExecutable { get; set; }
-
-        public NPath GitExecutablePath
-        {
-            get { return defaultEnvironment.GitExecutablePath; }
-            set
-            {
-                if (enableTrace)
-                {
-                    logger.Trace("Setting GitExecutablePath to " + value);
-                }
-                defaultEnvironment.GitExecutablePath = value;
-            }
-        }
+        public bool IsCustomGitExecutable => defaultEnvironment.IsCustomGitExecutable;
+        public NPath GitExecutablePath => defaultEnvironment.GitExecutablePath;
+        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
+        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
+        public NPath GitLfsExecutablePath => defaultEnvironment.GitLfsExecutablePath;
+        public GitInstaller.GitInstallationState GitInstallationState { get { return defaultEnvironment.GitInstallationState; } set { defaultEnvironment.GitInstallationState = value; } }
 
         public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
 
@@ -128,15 +124,14 @@ namespace IntegrationTests
 
         public NPath RepositoryPath => defaultEnvironment.RepositoryPath;
 
-        public NPath GitInstallPath => defaultEnvironment.GitInstallPath;
-        public NPath GitLfsInstallPath => defaultEnvironment.GitLfsInstallPath;
-        public NPath GitLfsExecutablePath { get { return defaultEnvironment.GitLfsExecutablePath; } set { defaultEnvironment.GitLfsExecutablePath = value; } }
-
         public IRepository Repository { get { return defaultEnvironment.Repository; } set { defaultEnvironment.Repository = value; } }
         public IUser User { get { return defaultEnvironment.User; } set { defaultEnvironment.User = value; } }
         public IFileSystem FileSystem { get { return defaultEnvironment.FileSystem; } set { defaultEnvironment.FileSystem = value; } }
         public string ExecutableExtension => defaultEnvironment.ExecutableExtension;
 
         public ICacheContainer CacheContainer => defaultEnvironment.CacheContainer;
+        public ISettings LocalSettings => defaultEnvironment.LocalSettings;
+        public ISettings SystemSettings => defaultEnvironment.SystemSettings;
+        public ISettings UserSettings => defaultEnvironment.UserSettings;
     }
 }

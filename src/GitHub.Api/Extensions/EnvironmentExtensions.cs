@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -40,6 +43,16 @@ namespace GitHub.Unity
             }
 
             return repositoryPath.Combine(path).MakeAbsolute().RelativeTo(projectPath);
+        }
+
+        public static IEnumerable<NPath> ToNPathList(this string envPath, IEnvironment environment)
+        {
+            return envPath
+                    .Split(Path.PathSeparator)
+                    .Where(x => x != null)
+                    .Select(x => environment.ExpandEnvironmentVariables(x.Trim('"', '\'')))
+                    .Where(x => !String.IsNullOrEmpty(x))
+                    .Select(x => x.ToNPath());
         }
     }
 }

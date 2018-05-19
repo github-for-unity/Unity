@@ -23,7 +23,7 @@ namespace GitHub.Unity
         }
 
         public bool Extract(string archive, string outFolder, CancellationToken cancellationToken,
-            Func<long, long, bool> onProgress)
+            Func<long, long, bool> onProgress, Func<string, bool> onFilter = null)
         {
             const int chunkSize = 4096; // 4K is optimum
             ZipFile zf = null;
@@ -53,6 +53,8 @@ namespace GitHub.Unity
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var entryFileName = zipEntry.Name;
+                    if (!onFilter?.Invoke(entryFileName) ?? false)
+                        continue;
                     // to remove the folder from the entry:- entryFileName = Path.GetFileName(entryFileName);
                     // Optionally match entrynames against a selection list here to skip as desired.
                     // The unpacked length is available in the zipEntry.Size property.
@@ -65,18 +67,28 @@ namespace GitHub.Unity
                     {
                         Directory.CreateDirectory(directoryName);
                     }
-                    //#if !WINDOWS
-                    //                    if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
-                    //                    {
-                    //                        if (zipEntry.ExternalFileAttributes > 0)
-                    //                        {
-                    //                            int fd = Mono.Unix.Native.Syscall.open(fullZipToPath,
-                    //                                                                    Mono.Unix.Native.OpenFlags.O_CREAT | Mono.Unix.Native.OpenFlags.O_TRUNC,
-                    //                                                                    (Mono.Unix.Native.FilePermissions)zipEntry.ExternalFileAttributes);
-                    //                            Mono.Unix.Native.Syscall.close(fd);
-                    //                        }
-                    //                    }
-                    //#endif
+
+                    try
+                    {
+                        if (NPath.IsUnix)
+                        {
+                           if (zipEntry.ExternalFileAttributes == -2115174400)
+                           {
+                               int fd = Mono.Unix.Native.Syscall.open(fullZipToPath,
+                                                                       Mono.Unix.Native.OpenFlags.O_CREAT | Mono.Unix.Native.OpenFlags.O_TRUNC,
+                                                                        Mono.Unix.Native.FilePermissions.S_IRWXU |
+                                                                        Mono.Unix.Native.FilePermissions.S_IRGRP |
+                                                                        Mono.Unix.Native.FilePermissions.S_IXGRP |
+                                                                        Mono.Unix.Native.FilePermissions.S_IROTH |
+                                                                        Mono.Unix.Native.FilePermissions.S_IXOTH);
+                               Mono.Unix.Native.Syscall.close(fd);
+                           }
+                       }
+                   }
+                   catch (Exception ex)
+                   {
+                        LogHelper.Error(ex, "Error setting file attributes in " + fullZipToPath);
+                   }
 
                     // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
                     // of the file, but does not waste memory.
@@ -88,7 +100,7 @@ namespace GitHub.Unity
                             progress: (totalRead, timeToFinish) =>
                             {
                                 totalBytes += totalRead;
-                                return onProgress(totalBytes, totalSize);
+                                return onProgress?.Invoke(totalBytes, totalSize) ?? true;
                             }))
                             return false;
                     }
