@@ -292,6 +292,11 @@ namespace GitHub.Unity
                 gitLocks = new HashSet<NPath>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
             }
 
+            if (gitLocks == null)
+            {
+                gitLocks = new HashSet<NPath>();
+            }
+
             if (currentStatusEntriesHasUpdate)
             {
                 gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
