@@ -14,6 +14,10 @@ namespace GitHub.Unity
         private const string CommitButton = "Commit to <b>{0}</b>";
         private const string SelectAllButton = "All";
         private const string SelectNoneButton = "None";
+        private const string DiscardAllSelected = "Discard";
+        private const string WantToDiscardMessage = "Are you sure you want to discard the selected files?";
+        private const string DiscardOK = "Yes";
+        private const string DiscardCancel = "No";
         private const string ChangedFilesLabel = "{0} changed files";
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
@@ -23,6 +27,7 @@ namespace GitHub.Unity
         [SerializeField] private bool currentLocksHasUpdate;
 
         [NonSerialized] private GUIContent discardGuiContent;
+        [SerializeField] private bool shouldOpenDiscardConfirmDialog;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
@@ -154,6 +159,28 @@ namespace GitHub.Unity
                 EditorGUI.EndDisabledGroup();
 
                 GUILayout.FlexibleSpace();
+
+                EditorGUI.BeginDisabledGroup(gitStatusEntries == null || gitStatusEntries.Count == 0 || !treeChanges.GetCheckedFiles().Any() || IsBusy || shouldOpenDiscardConfirmDialog);
+                {
+                    if (GUILayout.Button(DiscardAllSelected, EditorStyles.miniButton))
+                    {
+                        shouldOpenDiscardConfirmDialog = true;
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+
+                if (shouldOpenDiscardConfirmDialog)
+                {
+                    if(EditorUtility.DisplayDialog(DiscardAllSelected, WantToDiscardMessage, DiscardOK, DiscardCancel))
+                    {
+                        DiscardSelectedFiles();
+                        shouldOpenDiscardConfirmDialog = false;
+                    }
+                    else
+                    {
+                        shouldOpenDiscardConfirmDialog = false;
+                    }
+                }
 
                 GUILayout.Label(changedFilesText, EditorStyles.miniLabel);
             }
@@ -410,6 +437,11 @@ namespace GitHub.Unity
                         }
                         isBusy = false;
                     }).Start();
+        }
+
+        private void DiscardSelectedFiles()
+        {
+            Repository.DiscardChanges(treeChanges.checkedFileNodes.Select(entry => entry.Value.GitStatusEntry).ToArray()).Start();
         }
 
         public override bool IsBusy
