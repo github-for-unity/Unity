@@ -54,14 +54,18 @@ namespace GitHub.Unity
 #if DEBUG
         "http://localhost:50000/unity/latest.json"
 #else
-        "https://ghfvs-installer.github.com/unity/latest.json"
+        "http://github-vs.s3.amazonaws.com/unity/latest.json"
 #endif
         ;
 
         public static void CheckForUpdates()
         {
             var download = new DownloadTask(TaskManager.Instance.Token, EntryPoint.Environment.FileSystem, UpdateFeedUrl, EntryPoint.Environment.UserCachePath)
-                .Catch(e => true);
+                .Catch(ex =>
+                {
+                    LogHelper.Warning(@"Error downloading update check:{0} ""{1}""", UpdateFeedUrl, ex.GetExceptionMessageShort());
+                    return true;
+                });
             download.OnEnd += (thisTask, result, success, exception) =>
             {
                 if (success)
@@ -85,7 +89,6 @@ namespace GitHub.Unity
                             return;
                         }
 
-
                         TaskManager.Instance.RunInUI(() =>
                         {
                             NotifyOfNewUpdate(current, package);
@@ -93,7 +96,7 @@ namespace GitHub.Unity
                     }
                     catch(Exception ex)
                     {
-                        Debug.LogError(ex);
+                        LogHelper.GetLogger<UpdateCheckWindow>().Error(ex);
                     }
                 }
             };

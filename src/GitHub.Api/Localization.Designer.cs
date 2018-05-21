@@ -61,11 +61,29 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account.
+        /// </summary>
+        public static string AccountButton {
+            get {
+                return ResourceManager.GetString("AccountButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to {0}.
         /// </summary>
         public static string BasePathLabel {
             get {
                 return ResourceManager.GetString("BasePathLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Branches.
+        /// </summary>
+        public static string BranchesTitle {
+            get {
+                return ResourceManager.GetString("BranchesTitle", resourceCulture);
             }
         }
         
@@ -84,6 +102,15 @@ namespace GitHub.Unity {
         public static string ChangedFilesLabel {
             get {
                 return ResourceManager.GetString("ChangedFilesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes.
+        /// </summary>
+        public static string ChangesTitle {
+            get {
+                return ResourceManager.GetString("ChangesTitle", resourceCulture);
             }
         }
         
@@ -115,11 +142,65 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No remote configured.
+        /// </summary>
+        public static string DefaultRepoUrl {
+            get {
+                return ResourceManager.GetString("DefaultRepoUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Commit description.
         /// </summary>
         public static string DescriptionLabel {
             get {
                 return ResourceManager.GetString("DescriptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch Changes.
+        /// </summary>
+        public static string FetchActionTitle {
+            get {
+                return ResourceManager.GetString("FetchActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch.
+        /// </summary>
+        public static string FetchButton {
+            get {
+                return ResourceManager.GetString("FetchButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not fetch changes.
+        /// </summary>
+        public static string FetchFailureDescription {
+            get {
+                return ResourceManager.GetString("FetchFailureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assets/Release Lock (forced).
+        /// </summary>
+        public static string ForceUnlockFileAssetsMenuItem {
+            get {
+                return ResourceManager.GetString("ForceUnlockFileAssetsMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Release Lock (forced).
+        /// </summary>
+        public static string ForceUnlockFileMenuItem {
+            get {
+                return ResourceManager.GetString("ForceUnlockFileMenuItem", resourceCulture);
             }
         }
         
@@ -205,11 +286,29 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to History.
+        /// </summary>
+        public static string HistoryTitle {
+            get {
+                return ResourceManager.GetString("HistoryTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize a git repository for this project.
         /// </summary>
         public static string InitializeRepositoryButtonText {
             get {
                 return ResourceManager.GetString("InitializeRepositoryButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize.
+        /// </summary>
+        public static string InitializeTitle {
+            get {
+                return ResourceManager.GetString("InitializeTitle", resourceCulture);
             }
         }
         
@@ -250,6 +349,33 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assets/Request Lock.
+        /// </summary>
+        public static string LockFileAssetsMenuItem {
+            get {
+                return ResourceManager.GetString("LockFileAssetsMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request Lock.
+        /// </summary>
+        public static string LockFileMenuItem {
+            get {
+                return ResourceManager.GetString("LockFileMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locks.
+        /// </summary>
+        public static string LocksTitle {
+            get {
+                return ResourceManager.GetString("LocksTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Login failed.
         /// </summary>
         public static string LoginFailed {
@@ -258,6 +384,159 @@ namespace GitHub.Unity {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Created branch {0}.
+        /// </summary>
+        public static string MessageBranchCreated {
+            get {
+                return ResourceManager.GetString("MessageBranchCreated", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Deleted branch {0}.
+        /// </summary>
+        public static string MessageBranchDeleted {
+            get {
+                return ResourceManager.GetString("MessageBranchDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Switched to branch {0}.
+        /// </summary>
+        public static string MessageBranchSwitched {
+            get {
+                return ResourceManager.GetString("MessageBranchSwitched", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Commit failed.
+        /// </summary>
+        public static string MessageCommitFailed {
+            get {
+                return ResourceManager.GetString("MessageCommitFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Committed.
+        /// </summary>
+        public static string MessageCommitted {
+            get {
+                return ResourceManager.GetString("MessageCommitted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Committing.
+        /// </summary>
+        public static string MessageCommitting {
+            get {
+                return ResourceManager.GetString("MessageCommitting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fetched.
+        /// </summary>
+        public static string MessageFetched {
+            get {
+                return ResourceManager.GetString("MessageFetched", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch failed.
+        /// </summary>
+        public static string MessageFetchFailed {
+            get {
+                return ResourceManager.GetString("MessageFetchFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching.
+        /// </summary>
+        public static string MessageFetching {
+            get {
+                return ResourceManager.GetString("MessageFetching", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pulled.
+        /// </summary>
+        public static string MessagePulled {
+            get {
+                return ResourceManager.GetString("MessagePulled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to pull.
+        /// </summary>
+        public static string MessagePullFailed {
+            get {
+                return ResourceManager.GetString("MessagePullFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pulling.
+        /// </summary>
+        public static string MessagePulling {
+            get {
+                return ResourceManager.GetString("MessagePulling", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pushed.
+        /// </summary>
+        public static string MessagePushed {
+            get {
+                return ResourceManager.GetString("MessagePushed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to push.
+        /// </summary>
+        public static string MessagePushFailed {
+            get {
+                return ResourceManager.GetString("MessagePushFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pushing.
+        /// </summary>
+        public static string MessagePushing {
+            get {
+                return ResourceManager.GetString("MessagePushing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refreshed.
+        /// </summary>
+        public static string MessageRefreshed {
+            get {
+                return ResourceManager.GetString("MessageRefreshed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refreshing.
+        /// </summary>
+        public static string MessageRefreshing {
+            get {
+                return ResourceManager.GetString("MessageRefreshing", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Your current project is not currently in an active git repository:.
         /// </summary>
@@ -331,6 +610,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Publish.
+        /// </summary>
+        public static string PublishButton {
+            get {
+                return ResourceManager.GetString("PublishButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pull.
         /// </summary>
         public static string PullActionTitle {
@@ -349,7 +637,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Pull ({0}).
         /// </summary>
         public static string PullButtonCount {
             get {
@@ -430,7 +718,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Push ({0}).
         /// </summary>
         public static string PushButtonCount {
             get {
@@ -502,6 +790,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Release Lock.
+        /// </summary>
+        public static string ReleaseLockActionTitle {
+            get {
+                return ResourceManager.GetString("ReleaseLockActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access.
         /// </summary>
         public static string RemoteAccessTitle {
@@ -543,6 +840,24 @@ namespace GitHub.Unity {
         public static string RemoteUserTitle {
             get {
                 return ResourceManager.GetString("RemoteUserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request Lock.
+        /// </summary>
+        public static string RequestLockActionTitle {
+            get {
+                return ResourceManager.GetString("RequestLockActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string SettingsTitle {
+            get {
+                return ResourceManager.GetString("SettingsTitle", resourceCulture);
             }
         }
         
@@ -592,6 +907,24 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assets/Release Lock.
+        /// </summary>
+        public static string UnlockFileAssetsMenuItem {
+            get {
+                return ResourceManager.GetString("UnlockFileAssetsMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Release Lock.
+        /// </summary>
+        public static string UnlockFileMenuItem {
+            get {
+                return ResourceManager.GetString("UnlockFileMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changes.
         /// </summary>
         public static string ViewModeChangesTab {
@@ -615,6 +948,33 @@ namespace GitHub.Unity {
         public static string ViewModeSettingsTab {
             get {
                 return ResourceManager.GetString("ViewModeSettingsTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active branch.
+        /// </summary>
+        public static string Window_RepoBranchTooltip {
+            get {
+                return ResourceManager.GetString("Window_RepoBranchTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a remote in the Settings tab.
+        /// </summary>
+        public static string Window_RepoNoUrlTooltip {
+            get {
+                return ResourceManager.GetString("Window_RepoNoUrlTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Url of the {0} remote.
+        /// </summary>
+        public static string Window_RepoUrlTooltip {
+            get {
+                return ResourceManager.GetString("Window_RepoUrlTooltip", resourceCulture);
             }
         }
         

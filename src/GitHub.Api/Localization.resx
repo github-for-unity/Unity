@@ -181,13 +181,13 @@
     <value>Pull</value>
   </data>
   <data name="PullButtonCount" xml:space="preserve">
-    <value />
+    <value>Pull ({0})</value>
   </data>
   <data name="PushButton" xml:space="preserve">
     <value>Push</value>
   </data>
   <data name="PushButtonCount" xml:space="preserve">
-    <value />
+    <value>Push ({0})</value>
   </data>
   <data name="PullConfirmTitle" xml:space="preserve">
     <value>Pull Changes?</value>
@@ -305,5 +305,125 @@
   </data>
   <data name="GitVersionTooLow" xml:space="preserve">
     <value>The detected Git at {0} has version {1}, which is too low. The minimum Git version is {2}.</value>
+  </data>
+  <data name="BranchesTitle" xml:space="preserve">
+    <value>Branches</value>
+  </data>
+  <data name="ChangesTitle" xml:space="preserve">
+    <value>Changes</value>
+  </data>
+  <data name="DefaultRepoUrl" xml:space="preserve">
+    <value>No remote configured</value>
+  </data>
+  <data name="FetchActionTitle" xml:space="preserve">
+    <value>Fetch Changes</value>
+  </data>
+  <data name="FetchButton" xml:space="preserve">
+    <value>Fetch</value>
+  </data>
+  <data name="FetchFailureDescription" xml:space="preserve">
+    <value>Could not fetch changes</value>
+  </data>
+  <data name="HistoryTitle" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="InitializeTitle" xml:space="preserve">
+    <value>Initialize</value>
+  </data>
+  <data name="PublishButton" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Window_RepoBranchTooltip" xml:space="preserve">
+    <value>Active branch</value>
+  </data>
+  <data name="Window_RepoNoUrlTooltip" xml:space="preserve">
+    <value>Add a remote in the Settings tab</value>
+  </data>
+  <data name="Window_RepoUrlTooltip" xml:space="preserve">
+    <value>Url of the {0} remote</value>
+  </data>
+  <data name="ReleaseLockActionTitle" xml:space="preserve">
+    <value>Release Lock</value>
+  </data>
+  <data name="RequestLockActionTitle" xml:space="preserve">
+    <value>Request Lock</value>
+  </data>
+  <data name="ForceUnlockFileAssetsMenuItem" xml:space="preserve">
+    <value>Assets/Release Lock (forced)</value>
+  </data>
+  <data name="ForceUnlockFileMenuItem" xml:space="preserve">
+    <value>Release Lock (forced)</value>
+  </data>
+  <data name="LockFileAssetsMenuItem" xml:space="preserve">
+    <value>Assets/Request Lock</value>
+  </data>
+  <data name="LockFileMenuItem" xml:space="preserve">
+    <value>Request Lock</value>
+  </data>
+  <data name="LocksTitle" xml:space="preserve">
+    <value>Locks</value>
+  </data>
+  <data name="UnlockFileAssetsMenuItem" xml:space="preserve">
+    <value>Assets/Release Lock</value>
+  </data>
+  <data name="UnlockFileMenuItem" xml:space="preserve">
+    <value>Release Lock</value>
+  </data>
+  <data name="AccountButton" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="MessageBranchCreated" xml:space="preserve">
+    <value>Created branch {0}</value>
+  </data>
+  <data name="MessageBranchDeleted" xml:space="preserve">
+    <value>Deleted branch {0}</value>
+  </data>
+  <data name="MessageBranchSwitched" xml:space="preserve">
+    <value>Switched to branch {0}</value>
+  </data>
+  <data name="MessageCommitFailed" xml:space="preserve">
+    <value>Commit failed</value>
+  </data>
+  <data name="MessageCommitted" xml:space="preserve">
+    <value>Committed</value>
+  </data>
+  <data name="MessageCommitting" xml:space="preserve">
+    <value>Committing</value>
+  </data>
+  <data name="MessageFetched" xml:space="preserve">
+    <value>Fetched</value>
+  </data>
+  <data name="MessageFetchFailed" xml:space="preserve">
+    <value>Fetch failed</value>
+  </data>
+  <data name="MessageFetching" xml:space="preserve">
+    <value>Fetching</value>
+  </data>
+  <data name="MessagePulled" xml:space="preserve">
+    <value>Pulled</value>
+  </data>
+  <data name="MessagePullFailed" xml:space="preserve">
+    <value>Failed to pull</value>
+  </data>
+  <data name="MessagePulling" xml:space="preserve">
+    <value>Pulling</value>
+  </data>
+  <data name="MessagePushed" xml:space="preserve">
+    <value>Pushed</value>
+  </data>
+  <data name="MessagePushFailed" xml:space="preserve">
+    <value>Failed to push</value>
+  </data>
+  <data name="MessagePushing" xml:space="preserve">
+    <value>Pushing</value>
+  </data>
+  <data name="MessageRefreshed" xml:space="preserve">
+    <value>Refreshed</value>
+  </data>
+  <data name="MessageRefreshing" xml:space="preserve">
+    <value>Refreshing</value>
   </data>
 </root>

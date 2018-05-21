@@ -37,7 +37,7 @@ namespace GitHub.Unity
             this.usageLoader = usageLoader;
             this.metricsService = metricsService;
             this.userId = userId;
-            this.appVersion = ApplicationConfiguration.AssemblyName.Version.ToString();
+            this.appVersion = ApplicationInfo.Version;
             this.unityVersion = unityVersion;
             this.instanceId = instanceId;
 
@@ -95,7 +95,7 @@ namespace GitHub.Unity
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.Message);
+                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
                     }
                 }
 

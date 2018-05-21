@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using GitHub.Logging;
 
 namespace GitHub.Unity
 {
@@ -10,8 +12,24 @@ namespace GitHub.Unity
         public int id;
         public string path;
         public GitUser owner;
-        public DateTimeOffset locked_at;
-
+        [NotSerialized] public string lockedAtString;
+        public DateTimeOffset locked_at
+        {
+            get
+            {
+                DateTimeOffset dt;
+                if (!DateTimeOffset.TryParseExact(lockedAtString, Constants.Iso8601Formats,
+                        CultureInfo.InvariantCulture, Constants.DateTimeStyle, out dt))
+                {
+                    return DateTimeOffset.MinValue;
+                }
+                return dt;
+            }
+            set
+            {
+                lockedAtString = value.ToUniversalTime().ToString(Constants.Iso8601FormatZ, CultureInfo.InvariantCulture);
+            }
+        }
         [NotSerialized] public int ID => id;
         [NotSerialized] public NPath Path => path.ToNPath();
         [NotSerialized] public GitUser Owner => owner;
@@ -22,7 +40,7 @@ namespace GitHub.Unity
             this.id = id;
             this.path = path;
             this.owner = owner;
-            this.locked_at = locked_at;
+            this.lockedAtString = locked_at.ToUniversalTime().ToString(Constants.Iso8601FormatZ, CultureInfo.InvariantCulture);
         }
 
         public override bool Equals(object other)

@@ -305,32 +305,11 @@ namespace GitHub.Unity
     [Serializable]
     class HistoryView : Subview
     {
-        private const string PullButton = "Pull";
-        private const string PullButtonCount = "Pull (<b>{0}</b>)";
-        private const string PushButton = "Push";
-        private const string PushButtonCount = "Push (<b>{0}</b>)";
-        private const string PullConfirmTitle = "Pull Changes?";
-        private const string PullConfirmDescription = "Would you like to pull changes from remote '{0}'?";
-        private const string PullConfirmYes = "Pull";
-        private const string PullConfirmCancel = "Cancel";
-        private const string PushConfirmTitle = "Push Changes?";
-        private const string PushConfirmDescription = "Would you like to push changes to remote '{0}'?";
-        private const string PushConfirmYes = "Push";
-        private const string PushConfirmCancel = "Cancel";
         private const string CommitDetailsTitle = "Commit details";
         private const string ClearSelectionButton = "×";
-        private const string PublishButton = "Publish";
-        private const string FetchActionTitle = "Fetch Changes";
-        private const string FetchButtonText = "Fetch";
-        private const string FetchFailureDescription = "Could not fetch changes";
 
-        [NonSerialized] private bool currentLogHasUpdate;
-        [NonSerialized] private bool currentRemoteHasUpdate;
-        [NonSerialized] private bool currentTrackingStatusHasUpdate;
-
-        [SerializeField] private bool hasItemsToCommit;
-        [SerializeField] private bool hasRemote;
-        [SerializeField] private string currentRemoteName;
+        [SerializeField] private bool currentLogHasUpdate;
+        [SerializeField] private bool currentTrackingStatusHasUpdate;
 
         [SerializeField] private HistoryControl historyControl;
         [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
@@ -340,13 +319,11 @@ namespace GitHub.Unity
         [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
 
         [SerializeField] private int statusAhead;
-        [SerializeField] private int statusBehind;
 
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { IsSelectable = false, DisplayRootNode = false };
         
-        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastAheadBehindChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
 
         public override void OnEnable()
         {
@@ -368,6 +345,13 @@ namespace GitHub.Unity
             DetachHandlers(Repository);
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Refresh(CacheType.GitLog);
+            Refresh(CacheType.GitAheadBehind);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
@@ -387,68 +371,6 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            // History toolbar
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            {
-                GUILayout.FlexibleSpace();
-
-                if (hasRemote)
-                {
-                    EditorGUI.BeginDisabledGroup(currentRemoteName == null);
-                    {
-                        // Fetch button
-                        var fetchClicked = GUILayout.Button(FetchButtonText, Styles.HistoryToolbarButtonStyle);
-                        if (fetchClicked)
-                        {
-                            Fetch();
-                        }
-
-                        // Pull button
-                        var pullButtonText = statusBehind > 0 ? String.Format(PullButtonCount, statusBehind) : PullButton;
-                        var pullClicked = GUILayout.Button(pullButtonText, Styles.HistoryToolbarButtonStyle);
-
-                        if (pullClicked &&
-                            EditorUtility.DisplayDialog(PullConfirmTitle,
-                                String.Format(PullConfirmDescription, currentRemoteName),
-                                PullConfirmYes,
-                                PullConfirmCancel)
-                        )
-                        {
-                            Pull();
-                        }
-                    }
-                    EditorGUI.EndDisabledGroup();
-
-                    // Push button
-                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusBehind != 0);
-                    {
-                        var pushButtonText = statusAhead > 0 ? String.Format(PushButtonCount, statusAhead) : PushButton;
-                        var pushClicked = GUILayout.Button(pushButtonText, Styles.HistoryToolbarButtonStyle);
-
-                        if (pushClicked &&
-                            EditorUtility.DisplayDialog(PushConfirmTitle,
-                                String.Format(PushConfirmDescription, currentRemoteName),
-                                PushConfirmYes,
-                                PushConfirmCancel)
-                        )
-                        {
-                            Push();
-                        }
-                    }
-                    EditorGUI.EndDisabledGroup();
-                }
-                else
-                {
-                    // Publishing a repo
-                    var publishedClicked = GUILayout.Button(PublishButton, Styles.HistoryToolbarButtonStyle);
-                    if (publishedClicked)
-                    {
-                        PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
-                    }
-                }
-            }
-            GUILayout.EndHorizontal();
-
             var rect = GUILayoutUtility.GetLastRect();
             if (historyControl != null)
             {
@@ -469,16 +391,18 @@ namespace GitHub.Unity
                     Redraw();
             }
 
+            DoProgressGUI();
+
             if (!selectedEntry.Equals(GitLogEntry.Default))
             {
                 // Top bar for scrolling to selection or clearing it
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
-                    if (GUILayout.Button(CommitDetailsTitle, Styles.HistoryToolbarButtonStyle))
+                    if (GUILayout.Button(CommitDetailsTitle, Styles.ToolbarButtonStyle))
                     {
                         historyControl.ScrollTo(historyControl.SelectedIndex);
                     }
-                    if (GUILayout.Button(ClearSelectionButton, Styles.HistoryToolbarButtonStyle, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(ClearSelectionButton, Styles.ToolbarButtonStyle, GUILayout.ExpandWidth(false)))
                     {
                         selectedEntry = GitLogEntry.Default;
                         historyControl.SelectedIndex = -1;
@@ -569,11 +493,12 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryTrackingOnStatusChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void RepositoryOnTrackingStatusChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            if (!lastAheadBehindChangedEvent.Equals(cacheUpdateEvent))
+            if (!lastTrackingStatusChangedEvent.Equals(cacheUpdateEvent))
             {
-                lastAheadBehindChangedEvent = cacheUpdateEvent;
+                ReceivedEvent(cacheUpdateEvent.cacheType);
+                lastTrackingStatusChangedEvent = cacheUpdateEvent;
                 currentTrackingStatusHasUpdate = true;
                 Redraw();
             }
@@ -583,18 +508,9 @@ namespace GitHub.Unity
         {
             if (!lastLogChangedEvent.Equals(cacheUpdateEvent))
             {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
                 lastLogChangedEvent = cacheUpdateEvent;
                 currentLogHasUpdate = true;
-                Redraw();
-            }
-        }
-
-        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
-                currentRemoteHasUpdate = true;
                 Redraw();
             }
         }
@@ -606,9 +522,8 @@ namespace GitHub.Unity
                 return;
             }
 
-            repository.TrackingStatusChanged += RepositoryTrackingOnStatusChanged;
+            repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
             repository.LogChanged += RepositoryOnLogChanged;
-            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -618,16 +533,14 @@ namespace GitHub.Unity
                 return;
             }
 
-            repository.TrackingStatusChanged -= RepositoryTrackingOnStatusChanged;
+            repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
             repository.LogChanged -= RepositoryOnLogChanged;
-            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
         }
 
         private void ValidateCachedData(IRepository repository)
         {
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastAheadBehindChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastTrackingStatusChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -637,25 +550,11 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (currentRemoteHasUpdate)
-            {
-                currentRemoteHasUpdate = false;
-
-                var currentRemote = Repository.CurrentRemote;
-                hasRemote = currentRemote.HasValue;
-                currentRemoteName = hasRemote ? currentRemote.Value.Name : "placeholder";
-            }
-
             if (currentTrackingStatusHasUpdate)
             {
                 currentTrackingStatusHasUpdate = false;
 
                 statusAhead = Repository.CurrentAhead;
-                statusBehind = Repository.CurrentBehind;
-
-                var currentChanges = Repository.CurrentChanges;
-                hasItemsToCommit = currentChanges != null
-                    && currentChanges.Any(entry => entry.Status != GitFileStatus.Ignored && !entry.Staged);
             }
 
             if (currentLogHasUpdate)
@@ -681,75 +580,6 @@ namespace GitHub.Unity
             {
                 selectedEntry = GitLogEntry.Default;
             }
-        }
-
-        private void Pull()
-        {
-            if (hasItemsToCommit)
-            {
-                EditorUtility.DisplayDialog("Pull", "You need to commit your changes before pulling.", "Cancel");
-            }
-            else
-            {
-                Repository
-                    .Pull()
-                    .FinallyInUI((success, e) => {
-                        if (success)
-                        {
-                            TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarPull);
-
-                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                String.Format(Localization.PullSuccessDescription, currentRemoteName),
-                            Localization.Ok);
-                        }
-                        else
-                        {
-                            EditorUtility.DisplayDialog(Localization.PullActionTitle,
-                                Localization.PullFailureDescription,
-                            Localization.Ok);
-                        }
-                    })
-                    .Start();
-            }
-        }
-
-        private void Push()
-        {
-            Repository
-                .Push()
-                .FinallyInUI((success, e) => {
-                    if (success)
-                    {
-                        TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarPush);
-
-                        EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                            String.Format(Localization.PushSuccessDescription, currentRemoteName),
-                        Localization.Ok);
-                    }
-                    else
-                    {
-                        EditorUtility.DisplayDialog(Localization.PushActionTitle,
-                            Localization.PushFailureDescription,
-                        Localization.Ok);
-                    }
-                })
-                .Start();
-        }
-
-        private void Fetch()
-        {
-            Repository
-                .Fetch()
-                .FinallyInUI((success, e) => {
-                    if (!success)
-                    {
-                        TaskManager.Run(UsageTracker.IncrementHistoryViewToolbarFetch);
-
-                        EditorUtility.DisplayDialog(FetchActionTitle, FetchFailureDescription,
-                            Localization.Ok);
-                    }
-                })
-                .Start();
         }
 
         private void BuildTree()

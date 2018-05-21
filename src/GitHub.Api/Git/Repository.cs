@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 
 namespace GitHub.Unity
 {
+    public interface IBackedByCache
+    {
+        void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent);
+    }
+
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     sealed class Repository : IEquatable<Repository>, IRepository
     {
@@ -20,6 +24,7 @@ namespace GitHub.Unity
         private string name;
         private HashSet<CacheType> cacheInvalidationRequests = new HashSet<CacheType>();
         private Dictionary<CacheType, Action<CacheUpdateEvent>> cacheUpdateEvents;
+        private ProgressReporter progressReporter = new ProgressReporter();
 
         public event Action<CacheUpdateEvent> LogChanged;
         public event Action<CacheUpdateEvent> TrackingStatusChanged;
@@ -31,6 +36,11 @@ namespace GitHub.Unity
         public event Action<CacheUpdateEvent> LocksChanged;
         public event Action<CacheUpdateEvent> RemoteBranchListChanged;
         public event Action<CacheUpdateEvent> LocalAndRemoteBranchListChanged;
+        public event Action<IProgress> OnProgress
+        {
+            add { progressReporter.OnProgress += value; }
+            remove { progressReporter.OnProgress -= value; }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
@@ -85,6 +95,15 @@ namespace GitHub.Unity
             this.repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
             this.repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
             this.repositoryManager.DataNeedsRefreshing += RefreshCache;
+            try
+            {
+                this.taskManager.OnProgress += progressReporter.UpdateProgress;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex);
+            }
+
         }
 
         public void Start()
@@ -162,14 +181,13 @@ namespace GitHub.Unity
 
         private void RefreshCache(CacheType cacheType)
         {
-            taskManager.RunInUI(() =>
-            {
-                var cache = cacheContainer.GetCache(cacheType);
-                // if the cache has valid data, we need to force an invalidation to refresh it
-                // if it doesn't have valid data, it will trigger an invalidation automatically
-                if (cache.ValidateData())
-                    cache.InvalidateData();
-            });
+            taskManager.RunInUI(() => Refresh(cacheType));
+        }
+
+        public void Refresh(CacheType cacheType)
+        {
+            var cache = cacheContainer.GetCache(cacheType);
+            cache.InvalidateData();
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
@@ -184,20 +202,20 @@ namespace GitHub.Unity
             switch (cacheType)
             {
                 case CacheType.Branches:
-                    repositoryManager?.UpdateBranches();
+                    repositoryManager?.UpdateBranches().Start();
                     break;
 
                 case CacheType.GitLog:
-                    repositoryManager?.UpdateGitLog();
+                    repositoryManager?.UpdateGitLog().Start();
                     break;
 
                 case CacheType.GitAheadBehind:
-                    repositoryManager?.UpdateGitAheadBehindStatus();
+                    repositoryManager?.UpdateGitAheadBehindStatus().Start();
                     break;
 
                 case CacheType.GitLocks:
                     if (CurrentRemote != null)
-                        repositoryManager?.UpdateLocks();
+                        repositoryManager?.UpdateLocks().Start();
                     break;
 
                 case CacheType.GitUser:
@@ -205,11 +223,11 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.RepositoryInfo:
-                    repositoryManager?.UpdateRepositoryInfo();
+                    repositoryManager?.UpdateRepositoryInfo().Start();
                     break;
 
                 case CacheType.GitStatus:
-                    repositoryManager?.UpdateGitStatus();
+                    repositoryManager?.UpdateGitStatus().Start();
                     break;
 
                 default:
@@ -378,12 +396,11 @@ namespace GitHub.Unity
             CloneUrl, LocalPath, CurrentBranch, CurrentRemote);
     }
 
-    public interface IUser
+    public interface IUser : IBackedByCache
     {
         string Name { get; }
         string Email { get; }
         event Action<CacheUpdateEvent> Changed;
-        void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent);
         void Initialize(IGitClient client);
         void SetNameAndEmail(string name, string email);
     }
@@ -404,7 +421,7 @@ namespace GitHub.Unity
             cacheContainer.CacheUpdated += (type, dt) => { if (type == CacheType.GitUser) CacheHasBeenUpdated(dt); };
         }
 
-        public void CheckUserChangedEvent(CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, cacheUpdateEvent);
+        public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, cacheUpdateEvent);
 
         public void Initialize(IGitClient client)
         {

@@ -12,7 +12,7 @@ namespace GitHub.Unity
         private const string PathToGit = "Path to Git";
         private const string PathToGitLfs = "Path to Git LFS";
         private const string GitPathSaveButton = "Save";
-        private const string UseInternalGitButton = "Use bundled git";
+        private const string SetToBundledGitButton = "Set to bundled git";
         private const string FindSystemGitButton = "Find system git";
         private const string BrowseButton = "...";
         private const string GitInstallBrowseTitle = "Select executable";
@@ -96,7 +96,7 @@ namespace GitHub.Unity
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
-                            changingManually = true;
+                            changingManually = ViewHasChanges;
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -123,7 +123,8 @@ namespace GitHub.Unity
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
-                            changingManually = true;
+                            changingManually = ViewHasChanges;
+                            errorMessage = "";
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -146,28 +147,38 @@ namespace GitHub.Unity
                     }
                     EditorGUI.EndDisabledGroup();
 
-                    if (GUILayout.Button(UseInternalGitButton, GUILayout.ExpandWidth(false)))
+                    // disable the button if the paths are already pointing to the bundled git
+                    // both on windows, only lfs on mac
+                    EditorGUI.BeginDisabledGroup(
+                        (!Environment.IsWindows || gitPath == installDetails.GitExecutablePath) &&
+                         gitLfsPath == installDetails.GitLfsExecutablePath);
                     {
-                        GUI.FocusControl(null);
+                        if (GUILayout.Button(SetToBundledGitButton, GUILayout.ExpandWidth(false)))
+                        {
+                            GUI.FocusControl(null);
 
-                        if (Environment.IsWindows)
-                            gitPath = installDetails.GitExecutablePath;
-                        gitLfsPath = installDetails.GitLfsExecutablePath;
-                        resetToBundled = true;
-                        resetToSystem = false;
-                        changingManually = false;
+                            if (Environment.IsWindows)
+                                gitPath = installDetails.GitExecutablePath;
+                            gitLfsPath = installDetails.GitLfsExecutablePath;
+                            resetToBundled = ViewHasChanges;
+                            resetToSystem = false;
+                            changingManually = false;
+                            errorMessage = "";
+                        }
                     }
+                    EditorGUI.EndDisabledGroup();
 
                     //Find button - for attempting to locate a new install
                     if (GUILayout.Button(FindSystemGitButton, GUILayout.ExpandWidth(false)))
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
-                        new FuncTask<GitInstaller.GitInstallationState>(Manager.CancellationToken, () => 
+                        new FuncTask<GitInstaller.GitInstallationState>(Manager.CancellationToken, () =>
                             {
                                 var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken);
                                 return gitInstaller.FindSystemGit(new GitInstaller.GitInstallationState());
                             })
+                            { Message = "Locating git..." }
                             .FinallyInUI((success, ex, state) =>
                             {
                                 if (success)
@@ -187,8 +198,9 @@ namespace GitHub.Unity
                                 }
                                 isBusy = false;
                                 resetToBundled = false;
-                                resetToSystem = true;
+                                resetToSystem = ViewHasChanges;
                                 changingManually = false;
+                                errorMessage = "";
                                 Redraw();
                             })
                         .Start();
@@ -216,8 +228,13 @@ namespace GitHub.Unity
                     {
                         var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken);
                         var state = new GitInstaller.GitInstallationState();
+                        state = gitInstaller.SetDefaultPaths(state);
+                        // on non-windows we only bundle git-lfs
                         if (!Environment.IsWindows)
+                        {
                             state.GitExecutablePath = installationState.GitExecutablePath;
+                            state.GitInstallationPath = installationState.GitInstallationPath;
+                        }
                         state = gitInstaller.SetupGitIfNeeded(state);
                         if (state.GitIsValid && state.GitLfsIsValid)
                         {
@@ -226,7 +243,8 @@ namespace GitHub.Unity
                         }
                         return state;
                     })
-                    .FinallyInUI((success, exception, installationState) =>
+                    { Message = "Setting up git... " }
+                    .FinallyInUI((success, exception, state) =>
                     {
                         if (!success)
                         {
@@ -246,13 +264,15 @@ namespace GitHub.Unity
             }
             else
             {
+                var newState = new GitInstaller.GitInstallationState();
+                newState.GitExecutablePath = gitPath.ToNPath();
+                newState.GitLfsExecutablePath = gitLfsPath.ToNPath();
+                var installer = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
+                installer.Progress.OnProgress += UpdateProgress;
+
                 new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                     {
-                        var state = new GitInstaller.GitInstallationState();
-                        state.GitExecutablePath = gitPath.ToNPath();
-                        state.GitLfsExecutablePath = gitLfsPath.ToNPath();
-                        var installer = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
-                        return installer.SetupGitIfNeeded(state);
+                        return installer.SetupGitIfNeeded(newState);
                     })
                     .Then((success, state) => 
                     {
@@ -265,6 +285,7 @@ namespace GitHub.Unity
                     })
                     .FinallyInUI((success, ex, state) =>
                     {
+                        installer.Progress.OnProgress -= UpdateProgress;
                         if (!success)
                         {
                             Logger.Error(ex, ErrorValidatingGitPath);
@@ -324,6 +345,14 @@ namespace GitHub.Unity
                         Redraw();
 
                     }).Start();
+            }
+        }
+
+        public bool ViewHasChanges
+        {
+            get
+            {
+                return gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
             }
         }
 

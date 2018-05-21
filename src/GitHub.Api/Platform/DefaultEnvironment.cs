@@ -46,6 +46,7 @@ namespace GitHub.Unity
             {
                 LogPath = UserCachePath.Combine(logFile);
             }
+            LogPath.EnsureParentDirectoryExists();
         }
 
         public DefaultEnvironment(ICacheContainer cacheContainer) : this()
@@ -231,6 +232,7 @@ namespace GitHub.Unity
             set { onMac = value; }
         }
 
+        public static string ExecutableExt { get { return OnWindows ? ".exe" : string.Empty; } }
         public string ExecutableExtension { get { return IsWindows ? ".exe" : string.Empty; } }
         protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }

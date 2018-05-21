@@ -15,5 +15,6 @@ namespace GitHub.Unity
 
         public override string ProcessArguments { get { return "--version"; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Concurrent; } }
+        public override string Message { get; set; } = "Reading git version...";
     }
 }

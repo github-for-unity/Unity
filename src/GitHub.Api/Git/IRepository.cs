@@ -6,7 +6,7 @@ namespace GitHub.Unity
     /// <summary>
     /// Represents a repository, either local or retrieved via the GitHub API.
     /// </summary>
-    public interface IRepository : IEquatable<IRepository>, IDisposable
+    public interface IRepository : IEquatable<IRepository>, IDisposable, IBackedByCache
     {
         void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager);
         void Start();
@@ -21,7 +21,6 @@ namespace GitHub.Unity
         ITask RequestLock(NPath file);
         ITask ReleaseLock(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] discardEntries);
-        void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -78,5 +77,7 @@ namespace GitHub.Unity
         ITask DeleteBranch(string branch, bool force);
         ITask CreateBranch(string branch, string baseBranch);
         ITask SwitchBranch(string branch);
+        void Refresh(CacheType cacheType);
+        event Action<IProgress> OnProgress;
     }
 }

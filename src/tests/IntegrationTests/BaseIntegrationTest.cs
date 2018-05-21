@@ -110,7 +110,7 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
 
-            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.FileSystem, repoPath);
+            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
             RepositoryManager.Initialize();
 
             onRepositoryManagerCreated?.Invoke(RepositoryManager);
@@ -156,8 +156,8 @@ namespace IntegrationTests
             path = new UnzipTask(TaskManager.Token, installDetails.GitLfsZipPath, extractPath, null, Environment.FileSystem)
                 .Catch(e => true)
                 .RunWithReturn(true);
-            source = path.Combine(installDetails.GitLfsExecutable);
-            source.Move(installDetails.GitLfsExecutablePath);
+            installDetails.GitLfsInstallationPath.EnsureParentDirectoryExists();
+            path.Move(installDetails.GitLfsInstallationPath);
         }
 
         [TestFixtureSetUp]

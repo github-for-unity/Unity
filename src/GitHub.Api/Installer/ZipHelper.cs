@@ -67,18 +67,28 @@ namespace GitHub.Unity
                     {
                         Directory.CreateDirectory(directoryName);
                     }
-                    //#if !WINDOWS
-                    //                    if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
-                    //                    {
-                    //                        if (zipEntry.ExternalFileAttributes > 0)
-                    //                        {
-                    //                            int fd = Mono.Unix.Native.Syscall.open(fullZipToPath,
-                    //                                                                    Mono.Unix.Native.OpenFlags.O_CREAT | Mono.Unix.Native.OpenFlags.O_TRUNC,
-                    //                                                                    (Mono.Unix.Native.FilePermissions)zipEntry.ExternalFileAttributes);
-                    //                            Mono.Unix.Native.Syscall.close(fd);
-                    //                        }
-                    //                    }
-                    //#endif
+
+                    try
+                    {
+                        if (NPath.IsUnix)
+                        {
+                           if (zipEntry.ExternalFileAttributes == -2115174400)
+                           {
+                               int fd = Mono.Unix.Native.Syscall.open(fullZipToPath,
+                                                                       Mono.Unix.Native.OpenFlags.O_CREAT | Mono.Unix.Native.OpenFlags.O_TRUNC,
+                                                                        Mono.Unix.Native.FilePermissions.S_IRWXU |
+                                                                        Mono.Unix.Native.FilePermissions.S_IRGRP |
+                                                                        Mono.Unix.Native.FilePermissions.S_IXGRP |
+                                                                        Mono.Unix.Native.FilePermissions.S_IROTH |
+                                                                        Mono.Unix.Native.FilePermissions.S_IXOTH);
+                               Mono.Unix.Native.Syscall.close(fd);
+                           }
+                       }
+                   }
+                   catch (Exception ex)
+                   {
+                        LogHelper.Error(ex, "Error setting file attributes in " + fullZipToPath);
+                   }
 
                     // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
                     // of the file, but does not waste memory.

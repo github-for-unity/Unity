@@ -30,9 +30,7 @@ namespace GitHub.Unity
         {
             foreach (var cache in caches.Values)
             {
-                // force an invalidation if the cache is valid, otherwise it will do it on its own
-                if (cache.Value.ValidateData())
-                    cache.Value.InvalidateData();
+                cache.Value.InvalidateData();
             }
         }
 

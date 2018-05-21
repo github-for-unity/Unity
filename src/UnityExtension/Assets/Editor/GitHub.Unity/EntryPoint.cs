@@ -24,8 +24,6 @@ namespace GitHub.Unity
 
             LogHelper.LogAdapter = new FileLogAdapter(tempEnv.LogPath);
 
-            ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
-            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
             EditorApplication.update += Initialize;
         }
 
@@ -64,7 +62,9 @@ namespace GitHub.Unity
             }
 
             LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter(logPath)
-                //, new UnityLogAdapter()
+#if DEBUG
+                , new UnityLogAdapter()
+#endif
                 );
             LogHelper.Info("Initializing GitHubForUnity:'v{0}' Unity:'v{1}'", ApplicationInfo.Version, Environment.UnityVersion);
 
@@ -83,12 +83,6 @@ namespace GitHub.Unity
             }
 
             Initialize();
-        }
-
-        private static bool ServerCertificateValidationCallback(object sender, X509Certificate certificate,
-            X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
         }
 
         private static ApplicationManager appManager;

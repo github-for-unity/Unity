@@ -99,6 +99,7 @@
     <Compile Include="UI\LoadingView.cs" />
     <Compile Include="UI\PublishView.cs" />
     <Compile Include="UI\InitProjectView.cs" />
+    <Compile Include="UI\LocksView.cs" />
     <Compile Include="UI\Spinner.cs" />
     <Compile Include="UI\TreeControl.cs" />
     <Compile Include="UI\UserSettingsView.cs" />
@@ -189,12 +190,12 @@
     <EmbeddedResource Include="IconsAndLogos\untracked.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(SolutionDir)EULA.txt">
-      <Link>EULA.txt</Link>
+    <None Include="$(SolutionDir)eula.txt">
+      <Link>eula.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(SolutionDir)CREDITS.txt">
-      <Link>CREDITS.txt</Link>
+    <None Include="$(SolutionDir)credits.txt">
+      <Link>credits.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

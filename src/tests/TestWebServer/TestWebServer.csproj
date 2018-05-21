@@ -54,16 +54,25 @@
     <None Include="files\unity\git\windows\git-lfs.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="files\unity\git\windows\git-lfs.zip">
+    <None Include="..\..\GitHub.Api\PlatformResources\windows\git-lfs.zip">
+      <Link>files\unity\git\windows\git-lfs.zip</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="files\unity\git\windows\git.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="files\unity\git\windows\git.zip">
+    <None Include="..\..\GitHub.Api\PlatformResources\windows\git.zip">
+      <Link>files\unity\git\windows\git.zip</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="files\unity\git\windows\gitconfig">
+    <None Include="files\unity\git\mac\git-lfs.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\GitHub.Api\PlatformResources\mac\git-lfs.zip">
+      <Link>files\unity\git\mac\git-lfs.zip</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="files\unity\git\windows\git-slim.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="files\unity\latest.json">

@@ -350,7 +350,7 @@ namespace GitHub.Unity
 
         public Process Process { get; set; }
         public int ProcessId { get { return Process.Id; } }
-        public override bool Successful { get { return !taskFailed && Task.Status == TaskStatus.RanToCompletion && Process.ExitCode == 0; } }
+        public override bool Successful { get { return base.Successful && Process.ExitCode == 0; } }
         public StreamWriter StandardInput { get { return wrapper?.Input; } }
         public virtual string ProcessName { get; protected set; }
         public virtual string ProcessArguments { get; }
@@ -484,7 +484,7 @@ namespace GitHub.Unity
 
         public Process Process { get; set; }
         public int ProcessId { get { return Process.Id; } }
-        public override bool Successful { get { return Task.Status == TaskStatus.RanToCompletion && Process.ExitCode == 0; } }
+        public override bool Successful { get { return base.Successful && Process.ExitCode == 0; } }
         public StreamWriter StandardInput { get { return wrapper?.Input; } }
         public virtual string ProcessName { get; protected set; }
         public virtual string ProcessArguments { get; }

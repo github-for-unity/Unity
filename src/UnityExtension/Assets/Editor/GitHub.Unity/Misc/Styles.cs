@@ -14,6 +14,10 @@ namespace GitHub.Unity
                            BroadModeBranchesMinWidth = 200f,
                            BroadModeBranchesRatio = .4f,
                            InitialStateAreaWidth = 200f,
+                           LocksEntryHeight = 42f,
+                           LocksSummaryHeight = 5f,
+                           LocksUserHeight = 5f,
+                           LocksDateHeight = 5f,
                            HistoryEntryHeight = 40f,
                            HistorySummaryHeight = 16f,
                            HistoryDetailsHeight = 16f,
@@ -57,12 +61,13 @@ namespace GitHub.Unity
                                 deletedFileLabel,
                                 longMessageStyle,
                                 headerBoxStyle,
+                                headerStyle,
                                 headerBranchLabelStyle,
                                 headerUrlLabelStyle,
                                 headerRepoLabelStyle,
                                 headerTitleStyle,
                                 headerDescriptionStyle,
-                                historyToolbarButtonStyle,
+                                toolbarButtonStyle,
                                 historyLockStyle,
                                 historyEntrySummaryStyle,
                                 historyEntryDetailsStyle,
@@ -82,7 +87,14 @@ namespace GitHub.Unity
                                 historyDetailsTitleStyle,
                                 historyDetailsMetaInfoStyle,
                                 genericBoxStyle,
-                                hyperlinkStyle;
+                                hyperlinkStyle,
+                                selectedArea,
+                                selectedLabel,
+                                progressAreaBackStyle,
+                                labelNoWrap,
+                                invisibleLabel,
+                                locksViewLockedByStyle,
+                                locksViewLockedBySelectedStyle;
 
         private static Texture2D branchIcon,
                                  activeBranchIcon,
@@ -198,6 +210,23 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle SelectedArea
+        {
+            get
+            {
+                if (selectedArea == null)
+                {
+                    selectedArea = new GUIStyle(GUI.skin.label);
+                    selectedArea.name = "SelectedArea";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    selectedArea.normal.background = hierarchyStyle.onFocused.background;
+                    selectedArea.focused.background = hierarchyStyle.onFocused.background;
+                }
+                return selectedArea;
+            }
+        }
+
         public static GUIStyle Label
         {
             get
@@ -212,8 +241,71 @@ namespace GitHub.Unity
                     label.onNormal.textColor = hierarchyStyle.onNormal.textColor;
                     label.onFocused.background = hierarchyStyle.onFocused.background;
                     label.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    label.wordWrap = true;
                 }
                 return label;
+            }
+        }
+
+        public static GUIStyle LabelNoWrap
+        {
+            get
+            {
+                if (labelNoWrap == null)
+                {
+                    labelNoWrap = new GUIStyle(GUI.skin.label);
+                    labelNoWrap.name = "LabelNoWrap";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    labelNoWrap.onNormal.background = hierarchyStyle.onNormal.background;
+                    labelNoWrap.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    labelNoWrap.onFocused.background = hierarchyStyle.onFocused.background;
+                    labelNoWrap.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    labelNoWrap.wordWrap = false;
+                }
+                return labelNoWrap;
+            }
+        }
+
+        public static GUIStyle InvisibleLabel
+        {
+            get
+            {
+                if (invisibleLabel == null)
+                {
+                    invisibleLabel = new GUIStyle(GUI.skin.label);
+                    invisibleLabel.name = "InvisibleLabel";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    invisibleLabel.onNormal.background = hierarchyStyle.onNormal.background;
+                    invisibleLabel.onNormal.textColor = new Color(255, 0, 0, 0);
+                    invisibleLabel.onFocused.background = hierarchyStyle.onFocused.background;
+                    invisibleLabel.onFocused.textColor = new Color(255, 0, 0, 0);
+                    invisibleLabel.wordWrap = true;
+                }
+                return invisibleLabel;
+            }
+        }
+
+        public static GUIStyle SelectedLabel
+        {
+            get
+            {
+                if (selectedLabel == null)
+                {
+                    selectedLabel = new GUIStyle(GUI.skin.label);
+                    selectedLabel.name = "SelectedLabel";
+
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    selectedLabel.onNormal.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.onNormal.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.onFocused.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.normal.background = hierarchyStyle.onFocused.background;
+                    selectedLabel.normal.textColor = hierarchyStyle.onFocused.textColor;
+                    selectedLabel.wordWrap = true;
+                }
+                return selectedLabel;
             }
         }
 
@@ -226,6 +318,7 @@ namespace GitHub.Unity
                     headerBranchLabelStyle = new GUIStyle(EditorStyles.label);
                     headerBranchLabelStyle.name = "HeaderBranchLabelStyle";
                     headerBranchLabelStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerBranchLabelStyle.wordWrap = true;
                 }
                 return headerBranchLabelStyle;
             }
@@ -240,6 +333,7 @@ namespace GitHub.Unity
                     headerRepoLabelStyle = new GUIStyle(EditorStyles.boldLabel);
                     headerRepoLabelStyle.name = "HeaderRepoLabelStyle";
                     headerRepoLabelStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerRepoLabelStyle.wordWrap = true;
                 }
                 return headerRepoLabelStyle;
             }
@@ -301,6 +395,21 @@ namespace GitHub.Unity
                     headerBoxStyle.margin = new RectOffset(0, 0, 0, 0);
                 }
                 return headerBoxStyle;
+            }
+        }
+
+        public static GUIStyle HeaderStyle
+        {
+            get
+            {
+                if (headerStyle == null)
+                {
+                    headerStyle = new GUIStyle("IN BigTitle");
+                    headerStyle.name = "HeaderStyle";
+                    headerStyle.margin = new RectOffset(0, 0, 0, 0);
+                    headerStyle.padding = new RectOffset(0, 0, 0, 0);
+                }
+                return headerStyle;
             }
         }
 
@@ -376,18 +485,18 @@ namespace GitHub.Unity
             }
         }
 
-        public static GUIStyle HistoryToolbarButtonStyle
+        public static GUIStyle ToolbarButtonStyle
         {
             get
             {
-                if (historyToolbarButtonStyle == null)
+                if (toolbarButtonStyle == null)
                 {
-                    historyToolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
-                    historyToolbarButtonStyle.name = "HistoryToolbarButtonStyle";
-                    historyToolbarButtonStyle.richText = true;
-                    historyToolbarButtonStyle.wordWrap = true;
+                    toolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
+                    toolbarButtonStyle.name = "HistoryToolbarButtonStyle";
+                    toolbarButtonStyle.richText = true;
+                    toolbarButtonStyle.wordWrap = true;
                 }
-                return historyToolbarButtonStyle;
+                return toolbarButtonStyle;
             }
         }
 
@@ -410,7 +519,7 @@ namespace GitHub.Unity
             {
                 if (historyEntrySummaryStyle == null)
                 {
-                    historyEntrySummaryStyle = new GUIStyle(Label);
+                    historyEntrySummaryStyle = new GUIStyle(LabelNoWrap);
                     historyEntrySummaryStyle.name = "HistoryEntrySummaryStyle";
 
                     historyEntrySummaryStyle.contentOffset = new Vector2(BaseSpacing * 2, 0);
@@ -526,6 +635,45 @@ namespace GitHub.Unity
             }
         }
 
+        public static GUIStyle LocksViewLockedByStyle
+        {
+            get
+            {
+                if (locksViewLockedByStyle == null)
+                {
+                    locksViewLockedByStyle = new GUIStyle(EditorStyles.miniLabel);
+                    locksViewLockedByStyle.name = "LocksViewLockedByStyle";
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    locksViewLockedByStyle.onNormal.background = hierarchyStyle.onNormal.background;
+                    locksViewLockedByStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedByStyle.onFocused.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedByStyle.onFocused.textColor = hierarchyStyle.onFocused.textColor;
+                }
+                return locksViewLockedByStyle;
+            }
+        }
+
+        public static GUIStyle LocksViewLockedBySelectedStyle
+        {
+            get
+            {
+                if (locksViewLockedBySelectedStyle == null)
+                {
+                    locksViewLockedBySelectedStyle = new GUIStyle(EditorStyles.miniLabel);
+                    locksViewLockedBySelectedStyle.name = "LocksViewLockedBySelectedStyle";
+                    var hierarchyStyle = GUI.skin.FindStyle("PR Label");
+                    locksViewLockedBySelectedStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.onNormal.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.onNormal.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.onFocused.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.onFocused.textColor = hierarchyStyle.onNormal.textColor;
+                    locksViewLockedBySelectedStyle.normal.background = hierarchyStyle.onFocused.background;
+                    locksViewLockedBySelectedStyle.normal.textColor = hierarchyStyle.onNormal.textColor;
+                }
+                return locksViewLockedBySelectedStyle;
+            }
+        }
+
         public static GUIStyle CommitFileAreaStyle
         {
             get
@@ -535,6 +683,7 @@ namespace GitHub.Unity
                     commitFileAreaStyle = new GUIStyle(GUI.skin.box);
                     commitFileAreaStyle.name = "CommitFileAreaStyle";
                     commitFileAreaStyle.margin = new RectOffset(0, 0, 0, 0);
+                    commitFileAreaStyle.padding = new RectOffset(0, 0, 2, 2);
                 }
                 return commitFileAreaStyle;
             }
@@ -567,6 +716,22 @@ namespace GitHub.Unity
                     textFieldStyle.padding = new RectOffset(HalfSpacing, HalfSpacing, 4, 0);
                 }
                 return textFieldStyle;
+            }
+        }
+
+        public static GUIStyle ProgressAreaBackStyle
+        {
+            get
+            {
+                if (progressAreaBackStyle == null)
+                {
+                    progressAreaBackStyle = new GUIStyle(GUI.skin.FindStyle("ProgressBarBack"));
+                    progressAreaBackStyle.name = "ProgressAreaBackStyle";
+                    //progressAreaBackStyle.normal.background = Utility.GetTextureFromColor(new Color(194f/255f, 194f/255f, 194f/255f));
+                    progressAreaBackStyle.margin = new RectOffset(0, 0, 0, 0);
+                    progressAreaBackStyle.padding = new RectOffset(0, 0, 0, 0);
+                }
+                return progressAreaBackStyle;
             }
         }
 
@@ -1086,6 +1251,40 @@ namespace GitHub.Unity
                 }
 
                 return focusedActiveTreeNode;
+            }
+        }
+
+        private static GUIStyle lockPathStyle;
+        public static GUIStyle LockPathStyle
+        {
+            get
+            {
+                if (lockPathStyle == null)
+                {
+                    lockPathStyle = new GUIStyle(GUI.skin.label);
+                    lockPathStyle.name = "Custom LockPathStyle";
+
+                    lockPathStyle.fontSize = 11;
+                }
+
+                return lockPathStyle;
+            }
+        }
+
+        private static GUIStyle lockMetaDataStyle;
+        public static GUIStyle LockMetaDataStyle
+        {
+            get
+            {
+                if (lockMetaDataStyle == null)
+                {
+                    lockMetaDataStyle = new GUIStyle(GUI.skin.label);
+                    lockMetaDataStyle.name = "Custom LockMetaDataStyle";
+
+                    lockMetaDataStyle.fontSize = 10;
+                }
+
+                return lockMetaDataStyle;
             }
         }
     }

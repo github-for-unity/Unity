@@ -29,6 +29,12 @@ namespace GitHub.Unity
             gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
+        public override void Refresh()
+        {
+            base.Refresh();
+            Refresh(CacheType.GitUser);
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
@@ -73,7 +79,7 @@ namespace GitHub.Unity
             base.OnEnable();
             AttachHandlers();
 
-            User.CheckUserChangedEvent(lastCheckUserChangedEvent);
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
         }
 
         public override void OnDisable()

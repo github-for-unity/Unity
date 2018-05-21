@@ -53,6 +53,7 @@ namespace GitHub.Unity
         void UpdateProgress(long value, long total, string message = null);
         ITask GetEndOfChain();
         void Run(bool success);
+        string Message { get; }
     }
 
     public interface ITask<TResult> : ITask
@@ -86,8 +87,10 @@ namespace GitHub.Unity
         event Action<TData> OnData;
     }
 
-    public abstract class TaskBase : ITask
+    public class TaskBase : ITask
     {
+        public static ITask Default = new TaskBase { Name = "Global" };
+
         protected const TaskContinuationOptions runAlwaysOptions = TaskContinuationOptions.None;
         protected const TaskContinuationOptions runOnSuccessOptions = TaskContinuationOptions.OnlyOnRanToCompletion;
         protected const TaskContinuationOptions runOnFaultOptions = TaskContinuationOptions.OnlyOnFaulted;
@@ -157,7 +160,7 @@ namespace GitHub.Unity
 
         protected TaskBase()
         {
-            this.progress = new Progress { Task = this };
+            this.progress = new Progress(this);
         }
 
         public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
@@ -407,6 +410,7 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnStart()
         {
+            UpdateProgress(0, 100);
             OnStart?.Invoke(this);
         }
 
@@ -433,6 +437,7 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this, !taskFailed, exception);
             SetupContinuations();
             hasRun = true;
+            UpdateProgress(100, 100);
         }
 
         protected void SetupContinuations()
@@ -483,7 +488,7 @@ namespace GitHub.Unity
 
         public void UpdateProgress(long value, long total, string message = null)
         {
-            progress.UpdateProgress(value, total, message);
+            progress.UpdateProgress(value, total, message ?? this.Message);
         }
 
         public override string ToString()
@@ -491,10 +496,10 @@ namespace GitHub.Unity
             return $"{Task?.Id ?? -1} {Name} {GetType()}";
         }
 
-        public virtual bool Successful { get { return !taskFailed || exceptionWasHandled; /*Task.Status == TaskStatus.RanToCompletion && Task.Status != TaskStatus.Faulted;*/ } }
+        public virtual bool Successful { get { return hasRun && !taskFailed; } }
+        public bool IsCompleted { get { return hasRun; } }
         public string Errors { get; protected set; }
         public Task Task { get; protected set; }
-        public bool IsCompleted { get { return hasRun; /*(Task as IAsyncResult).IsCompleted;*/ } }
         public WaitHandle AsyncWaitHandle { get { return (Task as IAsyncResult).AsyncWaitHandle; } }
         public object AsyncState { get { return (Task as IAsyncResult).AsyncState; } }
         public bool CompletedSynchronously { get { return (Task as IAsyncResult).CompletedSynchronously; } }
@@ -504,6 +509,7 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
         public TaskBase DependsOn { get; private set; }
         public CancellationToken Token { get; }
+        public virtual string Message { get; set; }
     }
 
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
@@ -663,6 +669,7 @@ namespace GitHub.Unity
 
         protected override void RaiseOnStart()
         {
+            UpdateProgress(0, 100);
             OnStart?.Invoke(this);
             base.RaiseOnStart();
         }
@@ -673,6 +680,7 @@ namespace GitHub.Unity
             OnEnd?.Invoke(this, result, !taskFailed, exception);
             SetupContinuations();
             hasRun = true;
+            UpdateProgress(100, 100);
         }
 
         protected override void CallFinallyHandler()

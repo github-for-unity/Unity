@@ -306,6 +306,7 @@ namespace GitHub.Unity
         protected static ILogging Logger { get; } = LogHelper.GetLogger<GitClient>();
     }
 
+    [Serializable]
     public struct GitUser
     {
         public static GitUser Default = new GitUser();

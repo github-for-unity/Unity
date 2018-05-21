@@ -26,7 +26,7 @@ namespace IntegrationTests
             InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
             var result = GitClient.Version().RunWithReturn(true);
-            var expected = TheVersion.Parse("2.11.1");
+            var expected = TheVersion.Parse("2.17.0");
             result.Major.Should().Be(expected.Major);
             result.Minor.Should().Be(expected.Minor);
             result.Patch.Should().Be(expected.Patch);
