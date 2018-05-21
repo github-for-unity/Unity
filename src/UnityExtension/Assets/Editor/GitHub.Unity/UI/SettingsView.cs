@@ -173,6 +173,8 @@ namespace GitHub.Unity
                     newRepositoryRemoteUrl = repositoryRemoteUrl = currentRemote.Value.Url;
                 }
             }
+
+            hasGitignoreFile = System.IO.File.Exists(System.IO.Directory.GetParent(Application.dataPath) + "/.gitignore");
         }
 
         private void OnRepositorySettingsGUI()
