@@ -23,6 +23,7 @@ namespace GitHub.Unity
         [SerializeField] private bool currentLocksHasUpdate;
 
         [NonSerialized] private GUIContent discardGuiContent;
+        [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
@@ -39,7 +40,6 @@ namespace GitHub.Unity
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
-        [SerializeField] private bool isBusy;
 
         public override void OnEnable()
         {
