@@ -135,6 +135,7 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Platform\WindowsDiskUsageTask.cs" />
     <Compile Include="Primitives\Package.cs" />
     <Compile Include="Primitives\TheVersion.cs" />
     <Compile Include="Tasks\ActionTask.cs" />

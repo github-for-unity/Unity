@@ -297,6 +297,38 @@ namespace GitHub.Unity
                          }
                      })
                      .Start();
+
+            var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
+            if (gitLfsDataPath.Exists())
+            {
+                if (Environment.IsWindows)
+                {
+                    new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token).Configure(ProcessManager).Then(
+                        (b, list) => {
+                            if (b)
+                            {
+                                try
+                                {
+                                    var output = list[list.Count - 2];
+                                    var proc = new LineParser(output);
+                                    proc.SkipWhitespace();
+                                    proc.ReadUntilWhitespace();
+                                    proc.ReadUntilWhitespace();
+                                    proc.SkipWhitespace();
+
+                                    var sizeInBytes = int.Parse(proc.ReadUntilWhitespace().Replace(",", string.Empty));
+                                    var sizeInKilobytes = sizeInBytes / 1024;
+
+                                    UsageTracker.UpdateLfsDiskUsage(sizeInKilobytes);
+                                }
+                                catch (Exception e)
+                                {
+                                    Logger.Error(e, "Error Calculating LFS Disk Usage");
+                                }
+                            }
+                        }).Start();
+                }
+            }
         }
 
         public void RestartRepository()

@@ -243,6 +243,13 @@ namespace GitHub.Unity
             usageLoader.Save(usage);
         }
 
+        public void UpdateLfsDiskUsage(int kilobytes)
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId).LfsDiskUsage = kilobytes;
+            usageLoader.Save(usage);
+        }
+
         public bool Enabled
         {
             get
