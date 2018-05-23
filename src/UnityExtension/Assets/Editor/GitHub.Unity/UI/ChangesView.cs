@@ -27,7 +27,7 @@ namespace GitHub.Unity
         [SerializeField] private bool currentLocksHasUpdate;
 
         [NonSerialized] private GUIContent discardGuiContent;
-        [SerializeField] private bool shouldOpenDiscardConfirmDialog;
+        [NonSerialized] private bool shouldOpenDiscardConfirmDialog;
         [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
