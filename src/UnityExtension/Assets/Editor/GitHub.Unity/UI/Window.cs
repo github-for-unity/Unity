@@ -415,7 +415,6 @@ namespace GitHub.Unity
 
         private void ApplicationManagerOnProgress(IProgress progress)
         {
-            Debug.LogFormat("ApplicationManagerOnProgress {0} {1}", progress.Percentage, progress.Message);
             appManagerProgress = progress;
             appManagerProgressHasUpdate = true;
         }
