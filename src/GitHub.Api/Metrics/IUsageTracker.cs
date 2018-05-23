@@ -19,5 +19,6 @@
         void IncrementUnityProjectViewContextLfsUnlock();
         void IncrementPublishViewButtonPublish();
         void IncrementApplicationMenuMenuItemCommandLine();
+        void UpdateRepoSize(int kilobytes);
     }
 }

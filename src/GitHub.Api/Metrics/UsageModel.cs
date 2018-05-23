@@ -42,6 +42,7 @@ namespace GitHub.Unity
         public int UnityProjectViewContextLfsUnlock { get; set; }
         public int PublishViewButtonPublish { get; set; }
         public int ApplicationMenuMenuItemCommandLine { get; set; }
+        public int GitRepoSize { get; set; }
     }
 
     class UsageModel

@@ -178,6 +178,7 @@ namespace GitHub.Unity
                 if (Environment.RepositoryPath.IsInitialized)
                 {
                     ConfigureMergeSettings();
+                    CaptureRepoSize();
 
                     GitClient.LfsInstall()
                         .Catch(e =>
@@ -284,6 +285,18 @@ namespace GitHub.Unity
                 Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
                 return true;
             }).RunWithReturn(true);
+        }
+
+        private void CaptureRepoSize()
+        {
+            GitClient.CountObjects()
+                     .Then((success, gitObjects) => {
+                         if (success)
+                         {
+                             UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
+                         }
+                     })
+                     .Start();
         }
 
         public void RestartRepository()

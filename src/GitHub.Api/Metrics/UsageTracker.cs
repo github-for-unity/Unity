@@ -236,6 +236,13 @@ namespace GitHub.Unity
             usageLoader.Save(usage);
         }
 
+        public void UpdateRepoSize(int kilobytes)
+        {
+            var usage = usageLoader.Load(userId);
+            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId).GitRepoSize = kilobytes;
+            usageLoader.Save(usage);
+        }
+
         public bool Enabled
         {
             get

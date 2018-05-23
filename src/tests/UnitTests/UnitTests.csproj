@@ -78,6 +78,7 @@
     <Compile Include="Extensions\EnvironmentExtensionTests.cs" />
     <Compile Include="IO\LfsVersionOutputProcessorTests.cs" />
     <Compile Include="IO\LockOutputProcessorTests.cs" />
+    <Compile Include="IO\CountObjectProcessorTests.cs" />
     <Compile Include="IO\VersionOutputProcessorTests.cs" />
     <Compile Include="IO\RemoteListOutputProcessorTests.cs" />
     <Compile Include="IO\BaseOutputProcessorTests.cs" />
