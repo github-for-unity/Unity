@@ -289,46 +289,32 @@ namespace GitHub.Unity
 
         private void CaptureRepoSize()
         {
-            GitClient.CountObjects()
-                     .Then((success, gitObjects) => {
-                         if (success)
-                         {
-                             UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
-                         }
-                     })
-                     .Start();
-
+            IProcessTask<int> diskUsageTask = null;
             var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
             if (gitLfsDataPath.Exists())
             {
-                if (Environment.IsWindows)
-                {
-                    new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token).Configure(ProcessManager).Then(
-                        (b, list) => {
-                            if (b)
-                            {
-                                try
-                                {
-                                    var output = list[list.Count - 2];
-                                    var proc = new LineParser(output);
-                                    proc.SkipWhitespace();
-                                    proc.ReadUntilWhitespace();
-                                    proc.ReadUntilWhitespace();
-                                    proc.SkipWhitespace();
+                diskUsageTask = Environment.IsWindows
+                    ? (IProcessTask<int>)new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token)
+                    : new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token);
 
-                                    var sizeInBytes = int.Parse(proc.ReadUntilWhitespace().Replace(",", string.Empty));
-                                    var sizeInKilobytes = sizeInBytes / 1024;
-
-                                    UsageTracker.UpdateLfsDiskUsage(sizeInKilobytes);
-                                }
-                                catch (Exception e)
-                                {
-                                    Logger.Error(e, "Error Calculating LFS Disk Usage");
-                                }
-                            }
-                        }).Start();
-                }
+                diskUsageTask.Configure(ProcessManager);
             }
+
+            GitClient.CountObjects()
+                     .Finally((b1, gitObjects) => {
+                         if (b1)
+                         {
+                             UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
+                         }
+
+                         diskUsageTask?.Then((b2, kilobytes) => {
+                             if (b2)
+                             {
+                                 UsageTracker.UpdateLfsDiskUsage(kilobytes);
+                             }
+                         }).Start();
+                     })
+                     .Start();
         }
 
         public void RestartRepository()

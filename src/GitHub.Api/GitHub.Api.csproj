@@ -120,8 +120,10 @@
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\GitCountObjectsProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LinuxDiskUsageOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
     <Compile Include="Helpers\TaskHelpers.cs" />
+    <Compile Include="OutputProcessors\WindowsDiskUsageOutputProcessor.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
@@ -135,6 +137,7 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Platform\LinuxDiskUsageTask.cs" />
     <Compile Include="Platform\WindowsDiskUsageTask.cs" />
     <Compile Include="Primitives\Package.cs" />
     <Compile Include="Primitives\TheVersion.cs" />

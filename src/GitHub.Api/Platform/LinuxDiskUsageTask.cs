@@ -1,17 +1,16 @@
-using System.Collections.Generic;
 using System.Threading;
 
 namespace GitHub.Unity
 {
-    class WindowsDiskUsageTask : ProcessTask<int>
+    class LinuxDiskUsageTask : ProcessTask<int>
     {
         private readonly string arguments;
 
-        public WindowsDiskUsageTask(NPath directory, CancellationToken token)
-            : base(token, new WindowsDiskUsageOutputProcessor())
+        public LinuxDiskUsageTask(NPath directory, CancellationToken token)
+            : base(token, new LinuxDiskUsageOutputProcessor())
         {
-            Name = "cmd";
-            arguments = string.Format("/c dir /a/s \"{0}\"", directory);
+            Name = "du";
+            arguments = string.Format("-h \"{0}\"", directory);
         }
 
         public override string ProcessName { get { return Name; } }
