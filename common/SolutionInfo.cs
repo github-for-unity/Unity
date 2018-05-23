@@ -34,6 +34,6 @@ namespace System
         // this is for the AssemblyVersion and AssemblyVersion attributes, which can't handle alphanumerics
         internal const string VersionForAssembly = "1.0.0";
         // Actual real version
-        internal const string Version = "1.0.0rc1";
+        internal const string Version = "1.0.0rc2";
     }
 }
