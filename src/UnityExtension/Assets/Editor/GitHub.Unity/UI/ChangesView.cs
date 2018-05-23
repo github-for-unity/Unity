@@ -31,8 +31,8 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 treeScroll;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
 
-        [SerializeField] private HashSet<NPath> gitLocks;
-        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+        [SerializeField] private HashSet<NPath> gitLocks = new HashSet<NPath>();
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
 
         [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
