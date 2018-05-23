@@ -372,6 +372,8 @@ namespace GitHub.Unity
     [Serializable]
     class LocksView : Subview
     {
+        [NonSerialized] private bool isBusy;
+
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
         [SerializeField] private bool currentUserHasUpdate;
@@ -382,7 +384,6 @@ namespace GitHub.Unity
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
         [SerializeField] private string currentUsername;
-        [SerializeField] private bool isBusy;
         [SerializeField] private GUIContent unlockFileMenuContent = new GUIContent(Localization.UnlockFileMenuItem);
         [SerializeField] private GUIContent forceUnlockFileMenuContent = new GUIContent(Localization.ForceUnlockFileMenuItem);
 
