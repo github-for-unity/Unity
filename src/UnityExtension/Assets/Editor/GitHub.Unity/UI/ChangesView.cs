@@ -28,6 +28,7 @@ namespace GitHub.Unity
 
         [NonSerialized] private GUIContent discardGuiContent;
         [SerializeField] private bool shouldOpenDiscardConfirmDialog;
+        [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
@@ -36,15 +37,14 @@ namespace GitHub.Unity
         [SerializeField] private Vector2 treeScroll;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
 
-        [SerializeField] private HashSet<NPath> gitLocks;
-        [SerializeField] private List<GitStatusEntry> gitStatusEntries;
+        [SerializeField] private HashSet<NPath> gitLocks = new HashSet<NPath>();
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
 
         [SerializeField] private string changedFilesText = NoChangedFilesLabel;
 
         [SerializeField] private CacheUpdateEvent lastCurrentBranchChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
-        [SerializeField] private bool isBusy;
 
         public override void OnEnable()
         {
@@ -317,11 +317,6 @@ namespace GitHub.Unity
             if (currentLocksHasUpdate)
             {
                 gitLocks = new HashSet<NPath>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
-            }
-
-            if (gitLocks == null)
-            {
-                gitLocks = new HashSet<NPath>();
             }
 
             if (currentStatusEntriesHasUpdate)

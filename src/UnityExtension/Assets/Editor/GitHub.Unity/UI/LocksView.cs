@@ -215,7 +215,7 @@ namespace GitHub.Unity
             for (int i = 0; i < gitStatusEntries.Count; i++)
                 statusEntries.Add(gitStatusEntries[i].Path.ToNPath().ToString(SlashMode.Forward), i);
             var selectedLockId = SelectedEntry != null && SelectedEntry.GitLock != GitLock.Default
-                ? (int?) SelectedEntry.GitLock.ID 
+                ? SelectedEntry.GitLock.ID
                 : null;
 
             var scrollValue = scroll.y;
@@ -249,7 +249,7 @@ namespace GitHub.Unity
             for (var index = 0; index < gitLockEntries.Count; index++)
             {
                 var gitLockEntry = gitLockEntries[index];
-                if (selectedLockId.HasValue && selectedLockId.Value == gitLockEntry.GitLock.ID)
+                if (selectedLockId == gitLockEntry.GitLock.ID)
                 {
                     selectedEntry = gitLockEntry;
                     selectionPresent = true;
@@ -372,6 +372,8 @@ namespace GitHub.Unity
     [Serializable]
     class LocksView : Subview
     {
+        [NonSerialized] private bool isBusy;
+
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
         [SerializeField] private bool currentUserHasUpdate;
@@ -382,7 +384,6 @@ namespace GitHub.Unity
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
         [SerializeField] private string currentUsername;
-        [SerializeField] private bool isBusy;
         [SerializeField] private GUIContent unlockFileMenuContent = new GUIContent(Localization.UnlockFileMenuItem);
         [SerializeField] private GUIContent forceUnlockFileMenuContent = new GUIContent(Localization.ForceUnlockFileMenuItem);
 
