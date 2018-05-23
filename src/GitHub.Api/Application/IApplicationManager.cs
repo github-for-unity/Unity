@@ -6,7 +6,6 @@ namespace GitHub.Unity
 {
     public interface IApplicationManager : IDisposable
     {
-        CancellationToken CancellationToken { get; }
         IEnvironment Environment { get; }
         IPlatform Platform { get; }
         IProcessEnvironment GitEnvironment { get; }

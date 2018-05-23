@@ -57,6 +57,8 @@ namespace GitHub.Unity
         [SerializeField] public GitLockEntryDictionary assets = new GitLockEntryDictionary();
         [SerializeField] public GitStatusDictionary gitStatusDictionary = new GitStatusDictionary();
         [SerializeField] private GitLockEntry selectedEntry;
+        [SerializeField] public NPath projectPath;
+
         public bool IsEmpty { get { return gitLockEntries.Count == 0; } }
 
         public GitLockEntry SelectedEntry
@@ -69,8 +71,8 @@ namespace GitHub.Unity
             {
                 selectedEntry = value;
 
-                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default
-                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath))
+                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default && projectPath.IsInitialized
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(projectPath))
                     : null;
 
                 lastActivatedObject = activeObject;
@@ -235,7 +237,7 @@ namespace GitHub.Unity
 
                 var gitLockEntry = new GitLockEntry(gitLock, gitFileStatus);
                 LoadIcon(gitLockEntry, true);
-                var path = gitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath);
+                var path = gitLock.Path.MakeAbsolute().RelativeTo(projectPath);
                 var assetGuid = AssetDatabase.AssetPathToGUID(path);
                 if (!string.IsNullOrEmpty(assetGuid))
                 {
@@ -611,6 +613,7 @@ namespace GitHub.Unity
                 locksControl = new LocksControl();
             }
 
+            locksControl.projectPath = Environment.UnityProjectPath;
             locksControl.Load(lockedFiles, gitStatusEntries);
         }
         public override void OnSelectionChange()

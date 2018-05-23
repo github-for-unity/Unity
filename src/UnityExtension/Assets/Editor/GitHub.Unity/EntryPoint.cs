@@ -33,7 +33,7 @@ namespace GitHub.Unity
             EditorApplication.update -= Initialize;
 
             // this will initialize ApplicationManager and Environment if they haven't yet
-            var logPath = Environment.LogPath;
+            var logPath = ApplicationManager.Environment.LogPath;
 
             if (ApplicationCache.Instance.FirstRun)
             {
@@ -58,7 +58,7 @@ namespace GitHub.Unity
                     LogHelper.Error(ex, "Error rotating log files");
                 }
 
-                Debug.LogFormat("Initialized GitHub for Unity version {0}{1}Log file: {2}", ApplicationInfo.Version, Environment.NewLine, logPath);
+                Debug.LogFormat("Initialized GitHub for Unity version {0}{1}Log file: {2}", ApplicationInfo.Version, ApplicationManager.Environment.NewLine, logPath);
             }
 
             LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter(logPath)
@@ -66,12 +66,12 @@ namespace GitHub.Unity
                 , new UnityLogAdapter()
 #endif
                 );
-            LogHelper.Info("Initializing GitHubForUnity:'v{0}' Unity:'v{1}'", ApplicationInfo.Version, Environment.UnityVersion);
+            LogHelper.Info("Initializing GitHubForUnity:'v{0}' Unity:'v{1}'", ApplicationInfo.Version, ApplicationManager.Environment.UnityVersion);
 
             ApplicationManager.Run();
 
             if (ApplicationCache.Instance.FirstRun)
-                UpdateCheckWindow.CheckForUpdates();
+                UpdateCheckWindow.CheckForUpdates(ApplicationManager);
         }
 
         internal static void Restart()
@@ -92,14 +92,10 @@ namespace GitHub.Unity
             {
                 if (appManager == null)
                 {
-                    appManager = new ApplicationManager(new MainThreadSynchronizationContext());
+                    appManager = new ApplicationManager(new MainThreadSynchronizationContext(), EnvironmentCache.Instance.Environment);
                 }
                 return appManager;
             }
         }
-
-        public static IEnvironment Environment { get { return ApplicationManager.Environment; } }
-
-        public static IUsageTracker UsageTracker { get { return ApplicationManager.UsageTracker; } }
     }
 }
