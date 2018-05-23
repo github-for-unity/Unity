@@ -474,6 +474,8 @@ namespace GitHub.Unity
                 int hash = 17;
                 // Suitable nullity checks etc, of course :)
                 hash = hash * 23 + _isInitialized.GetHashCode();
+                if (!_isInitialized)
+                    return hash;
                 hash = hash * 23 + _isRelative.GetHashCode();
                 foreach (var element in _elements)
                     hash = hash * 23 + (IsUnix ? element : element.ToUpperInvariant()).GetHashCode();

@@ -215,7 +215,7 @@ namespace GitHub.Unity
             for (int i = 0; i < gitStatusEntries.Count; i++)
                 statusEntries.Add(gitStatusEntries[i].Path.ToNPath().ToString(SlashMode.Forward), i);
             var selectedLockId = SelectedEntry != null && SelectedEntry.GitLock != GitLock.Default
-                ? (int?) SelectedEntry.GitLock.ID 
+                ? SelectedEntry.GitLock.ID
                 : null;
 
             var scrollValue = scroll.y;
@@ -249,7 +249,7 @@ namespace GitHub.Unity
             for (var index = 0; index < gitLockEntries.Count; index++)
             {
                 var gitLockEntry = gitLockEntries[index];
-                if (selectedLockId.HasValue && selectedLockId.Value == gitLockEntry.GitLock.ID)
+                if (selectedLockId == gitLockEntry.GitLock.ID)
                 {
                     selectedEntry = gitLockEntry;
                     selectionPresent = true;
