@@ -21,9 +21,9 @@ namespace GitHub.Unity
             if (location == Location.PreferencesFolder)
                 filepath = InternalEditorUtility.unityPreferencesFolder + "/" + relativePath;
             else if (location == Location.UserFolder)
-                filepath = EntryPoint.Environment.UserCachePath.Combine(relativePath).ToString(SlashMode.Forward);
+                filepath = EntryPoint.ApplicationManager.Environment.UserCachePath.Combine(relativePath).ToString(SlashMode.Forward);
             else if (location == Location.LibraryFolder)
-                filepath = EntryPoint.Environment.UnityProjectPath.Combine("Library", "gfu", relativePath);
+                filepath = EntryPoint.ApplicationManager.Environment.UnityProjectPath.Combine("Library", "gfu", relativePath);
         }
     }
 

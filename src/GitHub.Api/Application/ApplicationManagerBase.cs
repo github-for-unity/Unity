@@ -26,27 +26,27 @@ namespace GitHub.Unity
             remove { progressReporter.OnProgress -= value; }
         }
 
-        public ApplicationManagerBase(SynchronizationContext synchronizationContext)
+        public ApplicationManagerBase(SynchronizationContext synchronizationContext, IEnvironment environment)
         {
             SynchronizationContext = synchronizationContext;
             SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetUIThread();
             UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
+
+            Environment = environment;
             TaskManager = new TaskManager(UIScheduler);
-            progress.OnProgress += progressReporter.UpdateProgress;
+            Platform = new Platform(Environment);
+            ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, TaskManager.Token);
+            GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
         }
 
         protected void Initialize()
         {
-            // accessing Environment triggers environment initialization if it hasn't happened yet
-            Platform = new Platform(Environment);
-
             LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
-            ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, CancellationToken);
             Platform.Initialize(ProcessManager, TaskManager);
-            GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
+            progress.OnProgress += progressReporter.UpdateProgress;
         }
 
         public void Run()
@@ -63,7 +63,7 @@ namespace GitHub.Unity
 
                     if (Environment.IsMac)
                     {
-                        var getEnvPath = new SimpleProcessTask(CancellationToken, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
+                        var getEnvPath = new SimpleProcessTask(TaskManager.Token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
                                    .Configure(ProcessManager, dontSetupGit: true)
                                    .Catch(e => true); // make sure this doesn't throw if the task fails
                         var path = getEnvPath.RunWithReturn(true);
@@ -96,7 +96,7 @@ namespace GitHub.Unity
                     }
 
 
-                    var installer = new GitInstaller(Environment, ProcessManager, CancellationToken);
+                    var installer = new GitInstaller(Environment, ProcessManager, TaskManager.Token);
                     installer.Progress.OnProgress += progressReporter.UpdateProgress;
                     if (state.GitIsValid && state.GitLfsIsValid)
                     {
@@ -132,7 +132,7 @@ namespace GitHub.Unity
                     progress.UpdateProgress(90, 100, "Initialization failed");
                 }
 
-                new ActionTask<bool>(CancellationToken, (s, gitIsValid) =>
+                new ActionTask<bool>(TaskManager.Token, (s, gitIsValid) =>
                     {
                         InitializationComplete();
                         if (gitIsValid)
@@ -358,12 +358,10 @@ namespace GitHub.Unity
             Dispose(true);
         }
 
-        public abstract IEnvironment Environment { get; }
-
+        public IEnvironment Environment { get; private set; }
         public IPlatform Platform { get; protected set; }
         public virtual IProcessEnvironment GitEnvironment { get; set; }
         public IProcessManager ProcessManager { get; protected set; }
-        public CancellationToken CancellationToken { get { return TaskManager.Token; } }
         public ITaskManager TaskManager { get; protected set; }
         public IGitClient GitClient { get; protected set; }
         public ISettings LocalSettings { get { return Environment.LocalSettings; } }

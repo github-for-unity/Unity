@@ -16,32 +16,33 @@ namespace GitHub.Unity
 
         private static readonly List<string> guids = new List<string>();
         private static readonly List<string> guidsLocks = new List<string>();
-        private static IRepository repository;
+        private static IApplicationManager manager;
         private static bool isBusy = false;
         private static ILogging logger;
         private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
+        private static IRepository Repository { get { return manager.Environment.Repository; } }
 
-        public static void Initialize(IRepository repo)
+        public static void Initialize(IApplicationManager theManager)
         {
             EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 
-            repository = repo;
+            manager = theManager;
 
-            if (repository != null)
+            if (Repository != null)
             {
-                repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
-                repository.LocksChanged += RepositoryOnLocksChanged;
-                ValidateCachedData(repository);
+                Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
+                Repository.LocksChanged += RepositoryOnLocksChanged;
+                ValidateCachedData();
             }
         }
 
-        private static void ValidateCachedData(IRepository repository)
+        private static void ValidateCachedData()
         {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastRepositoryStatusChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastRepositoryStatusChangedEvent);
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }
 
         private static void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -50,7 +51,7 @@ namespace GitHub.Unity
             {
                 lastRepositoryStatusChangedEvent = cacheUpdateEvent;
                 entries.Clear();
-                entries.AddRange(repository.CurrentChanges);
+                entries.AddRange(Repository.CurrentChanges);
                 OnStatusUpdate();
             }
         }
@@ -60,7 +61,7 @@ namespace GitHub.Unity
             if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
             {
                 lastLocksChangedEvent = cacheUpdateEvent;
-                locks = repository.CurrentLocks;
+                locks = Repository.CurrentLocks;
                 OnLocksUpdate();
             }
         }
@@ -70,7 +71,7 @@ namespace GitHub.Unity
         {
             if (isBusy)
                 return false;
-            if (repository == null || !repository.CurrentRemote.HasValue)
+            if (Repository == null || !Repository.CurrentRemote.HasValue)
                 return false;
 
             var selected = Selection.activeObject;
@@ -80,7 +81,7 @@ namespace GitHub.Unity
                 return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
-            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+            NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
             var alreadyLocked = locks.Any(x => repositoryPath == x.Path);
             GitFileStatus status = GitFileStatus.None;
@@ -98,15 +99,15 @@ namespace GitHub.Unity
             var selected = Selection.activeObject;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
-            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+            NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            repository
+            Repository
                 .RequestLock(repositoryPath)
                 .FinallyInUI((success, ex) =>
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
+                        manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
                     }
                     else
                     {
@@ -130,7 +131,7 @@ namespace GitHub.Unity
         {
             if (isBusy)
                 return false;
-            if (repository == null || !repository.CurrentRemote.HasValue)
+            if (Repository == null || !Repository.CurrentRemote.HasValue)
                 return false;
 
             var selected = Selection.activeObject;
@@ -140,7 +141,7 @@ namespace GitHub.Unity
                 return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
-            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+            NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
             var isLocked = locks.Any(x => repositoryPath == x.Path);
             return isLocked;
@@ -153,15 +154,15 @@ namespace GitHub.Unity
             var selected = Selection.activeObject;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
-            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+            NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            repository
+            Repository
                 .ReleaseLock(repositoryPath, false)
                 .FinallyInUI((success, ex) =>
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                     }
                     else
                     {
@@ -185,7 +186,7 @@ namespace GitHub.Unity
         {
             if (isBusy)
                 return false;
-            if (repository == null || !repository.CurrentRemote.HasValue)
+            if (Repository == null || !Repository.CurrentRemote.HasValue)
                 return false;
 
             var selected = Selection.activeObject;
@@ -195,7 +196,7 @@ namespace GitHub.Unity
                 return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
-            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+            NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
             var isLocked = locks.Any(x => repositoryPath == x.Path);
             return isLocked;
@@ -208,15 +209,15 @@ namespace GitHub.Unity
             var selected = Selection.activeObject;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
-            NPath repositoryPath = EntryPoint.Environment.GetRepositoryPath(assetPath);
+            NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            repository
+            Repository
                 .ReleaseLock(repositoryPath, false)
                 .FinallyInUI((success, ex) =>
                 {
                     if (success)
                     {
-                        EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                     }
                     else
                     {
@@ -247,7 +248,7 @@ namespace GitHub.Unity
             foreach (var lck in locks)
             {
                 NPath repositoryPath = lck.Path;
-                NPath assetPath = EntryPoint.Environment.GetAssetPath(repositoryPath);
+                NPath assetPath = manager.Environment.GetAssetPath(repositoryPath);
 
                 var g = AssetDatabase.AssetPathToGUID(assetPath);
                 guidsLocks.Add(g);
