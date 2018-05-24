@@ -101,34 +101,37 @@ namespace GitHub.Unity
         private static void ContextMenu_Lock()
         {
             isBusy = true;
-            var selected = Selection.activeObject;
 
             var unlockedObjects = Selection.objects.Where(IsObjectUnlocked).ToArray();
-            LockObject(selected);
+            var tasks = unlockedObjects.Select(LockObject).ToArray();
 
-            isBusy = false;
-            Selection.activeGameObject = null;
-            EditorApplication.RepaintProjectWindow();
+            var taskQueue = new TaskQueue();
+            foreach (var task in tasks)
+            {
+                taskQueue.Queue(task);
+            }
+
+            taskQueue.FinallyInUI((success, exception) =>
+            {
+                isBusy = false;
+                Selection.activeGameObject = null;
+                EditorApplication.RepaintProjectWindow();
+            }).Start();
         }
 
-        private static void LockObject(Object selected)
+        private static ITask LockObject(Object selected)
         {
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            Repository.RequestLock(repositoryPath).FinallyInUI((success, ex) => {
-                if (success)
-                {
-                    manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
-                }
-                else
-                {
-                    var error = ex.Message;
-                    if (error.Contains("exit status 255"))
-                        error = "Failed to unlock: no permissions";
-                    EditorUtility.DisplayDialog(Localization.RequestLockActionTitle, error, Localization.Ok);
-                }
-            }).Start();
+            return Repository.RequestLock(repositoryPath)
+                      .FinallyInUI((success, ex) =>
+                      {
+                          if (success)
+                          {
+                              manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
+                          }
+                      });
         }
 
         [MenuItem(AssetsMenuReleaseLock, true, 1000)]
@@ -160,15 +163,22 @@ namespace GitHub.Unity
         private static void ContextMenu_Unlock()
         {
             isBusy = true;
-            var selected = Selection.activeObject;
 
             var lockedObjects = Selection.objects.Where(IsObjectLocked).ToArray();
+            var tasks = lockedObjects.Select(o => UnlockObject(o, false)).ToArray();
 
-            UnlockObject(selected, false);
+            var taskQueue = new TaskQueue();
+            foreach (var task in tasks)
+            {
+                taskQueue.Queue(task);
+            }
 
-            isBusy = false;
-            Selection.activeGameObject = null;
-            EditorApplication.RepaintProjectWindow();
+            taskQueue.FinallyInUI((success, exception) =>
+            {
+                isBusy = false;
+                Selection.activeGameObject = null;
+                EditorApplication.RepaintProjectWindow();
+            }).Start();
         }
 
         [MenuItem(AssetsMenuReleaseLockForced, true, 1000)]
@@ -196,36 +206,37 @@ namespace GitHub.Unity
         private static void ContextMenu_UnlockForce()
         {
             isBusy = true;
-            var selected = Selection.activeObject;
+
             var lockedObjects = Selection.objects.Where(IsObjectLocked).ToArray();
+            var tasks = lockedObjects.Select(o => UnlockObject(o, true)).ToArray();
 
-            UnlockObject(selected, true);
+            var taskQueue = new TaskQueue();
+            foreach (var task in tasks)
+            {
+                taskQueue.Queue(task);
+            }
 
-            isBusy = false;
-            Selection.activeGameObject = null;
-            EditorApplication.RepaintProjectWindow();
+            taskQueue.FinallyInUI((success, exception) =>
+            {
+                isBusy = false;
+                Selection.activeGameObject = null;
+                EditorApplication.RepaintProjectWindow();
+            }).Start();
         }
 
-        private static void UnlockObject(Object selected, bool force)
+        private static ITask UnlockObject(Object selected, bool force)
         {
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            Repository.ReleaseLock(repositoryPath, force)
+            return Repository.ReleaseLock(repositoryPath, force)
                       .FinallyInUI((success, ex) =>
                       {
                           if (success)
                           {
                               manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
                           }
-                          else
-                          {
-                              var error = ex.Message;
-                              if (error.Contains("exit status 255"))
-                                  error = "Failed to unlock: no permissions";
-                              EditorUtility.DisplayDialog(Localization.ReleaseLockActionTitle, error, Localization.Ok);
-                          }
-                      }).Start();
+                      });
         }
 
         private static void OnLocksUpdate()
