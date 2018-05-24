@@ -289,32 +289,33 @@ namespace GitHub.Unity
 
         private void CaptureRepoSize()
         {
-            IProcessTask<int> diskUsageTask = null;
-            var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
-            if (gitLfsDataPath.Exists())
-            {
-                diskUsageTask = Environment.IsWindows
-                    ? (IProcessTask<int>)new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token)
-                    : new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token);
-
-                diskUsageTask.Configure(ProcessManager);
-            }
-
             GitClient.CountObjects()
-                     .Finally((b1, gitObjects) => {
-                         if (b1)
+                     .Finally((success, gitObjects) =>
+                     {
+                         if (success)
                          {
                              UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
                          }
-
-                         diskUsageTask?.Then((b2, kilobytes) => {
-                             if (b2)
-                             {
-                                 UsageTracker.UpdateLfsDiskUsage(kilobytes);
-                             }
-                         }).Start();
                      })
                      .Start();
+
+            var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
+            if (gitLfsDataPath.Exists())
+            {
+                var diskUsageTask = Environment.IsWindows
+                    ? (IProcessTask<int>)new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token)
+                    : new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token);
+
+                diskUsageTask
+                    .Configure(ProcessManager)
+                    .Then((success, kilobytes) =>
+                    {
+                        if (success)
+                        {
+                            UsageTracker.UpdateLfsDiskUsage(kilobytes);
+                        }
+                    }).Start();
+            }
         }
 
         public void RestartRepository()
