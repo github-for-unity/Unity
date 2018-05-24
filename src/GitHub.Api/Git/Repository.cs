@@ -188,6 +188,9 @@ namespace GitHub.Unity
         {
             var cache = cacheContainer.GetCache(cacheType);
             cache.InvalidateData();
+
+            // Ensuring that the GitLock cache is kept up to date
+            cacheContainer.GetCache(CacheType.GitLocks).ValidateData();
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
