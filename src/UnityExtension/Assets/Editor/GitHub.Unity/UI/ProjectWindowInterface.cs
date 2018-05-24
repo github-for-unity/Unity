@@ -212,7 +212,7 @@ namespace GitHub.Unity
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
             Repository
-                .ReleaseLock(repositoryPath, false)
+                .ReleaseLock(repositoryPath, true)
                 .FinallyInUI((success, ex) =>
                 {
                     if (success)
