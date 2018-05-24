@@ -100,7 +100,7 @@ namespace GitHub.Unity
         [MenuItem(AssetsMenuRequestLock)]
         private static void ContextMenu_Lock()
         {
-            isBusy = true;
+//            isBusy = true;
 
             var unlockedObjects = Selection.objects.Where(IsObjectUnlocked).ToArray();
             var tasks = unlockedObjects.Select(LockObject).ToArray();
@@ -111,12 +111,14 @@ namespace GitHub.Unity
                 taskQueue.Queue(task);
             }
 
-            taskQueue.FinallyInUI((success, exception) =>
-            {
-                isBusy = false;
-                Selection.activeGameObject = null;
-                EditorApplication.RepaintProjectWindow();
-            }).Start();
+            taskQueue.Start();
+
+//            taskQueue.FinallyInUI((success, exception) =>
+//            {
+//                isBusy = false;
+//                Selection.activeGameObject = null;
+//                EditorApplication.RepaintProjectWindow();
+//            }).Start();
         }
 
         private static ITask LockObject(Object selected)
@@ -162,7 +164,7 @@ namespace GitHub.Unity
         [MenuItem(AssetsMenuReleaseLock, false, 1000)]
         private static void ContextMenu_Unlock()
         {
-            isBusy = true;
+//            isBusy = true;
 
             var lockedObjects = Selection.objects.Where(IsObjectLocked).ToArray();
             var tasks = lockedObjects.Select(o => UnlockObject(o, false)).ToArray();
@@ -173,12 +175,14 @@ namespace GitHub.Unity
                 taskQueue.Queue(task);
             }
 
-            taskQueue.FinallyInUI((success, exception) =>
-            {
-                isBusy = false;
-                Selection.activeGameObject = null;
-                EditorApplication.RepaintProjectWindow();
-            }).Start();
+            taskQueue.Start();
+
+//            taskQueue.FinallyInUI((success, exception) =>
+//            {
+//                isBusy = false;
+//                Selection.activeGameObject = null;
+//                EditorApplication.RepaintProjectWindow();
+//            }).Start();
         }
 
         [MenuItem(AssetsMenuReleaseLockForced, true, 1000)]
@@ -205,7 +209,7 @@ namespace GitHub.Unity
         [MenuItem(AssetsMenuReleaseLockForced, false, 1000)]
         private static void ContextMenu_UnlockForce()
         {
-            isBusy = true;
+//            isBusy = true;
 
             var lockedObjects = Selection.objects.Where(IsObjectLocked).ToArray();
             var tasks = lockedObjects.Select(o => UnlockObject(o, true)).ToArray();
@@ -216,12 +220,14 @@ namespace GitHub.Unity
                 taskQueue.Queue(task);
             }
 
-            taskQueue.FinallyInUI((success, exception) =>
-            {
-                isBusy = false;
-                Selection.activeGameObject = null;
-                EditorApplication.RepaintProjectWindow();
-            }).Start();
+            taskQueue.Start();
+
+//            taskQueue.FinallyInUI((success, exception) =>
+//            {
+//                isBusy = false;
+//                Selection.activeGameObject = null;
+//                EditorApplication.RepaintProjectWindow();
+//            }).Start();
         }
 
         private static ITask UnlockObject(Object selected, bool force)
