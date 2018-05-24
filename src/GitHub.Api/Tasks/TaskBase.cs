@@ -299,14 +299,14 @@ namespace GitHub.Unity
             return this;
         }
 
-        public virtual ITask Start()
+        public ITask Start()
         {
             var depends = GetTopMostTaskInCreatedState() ?? this;
             depends.Run();
             return this;
         }
 
-        protected void Run()
+        protected virtual void Run()
         {
             if (Task.Status == TaskStatus.Created)
             {
@@ -540,6 +540,11 @@ namespace GitHub.Unity
 
         protected TaskBase(Task<TResult> task)
             : base()
+        {
+            Initialize(task);
+        }
+
+        protected void Initialize(Task<TResult> task)
         {
             Task = new Task<TResult>(t =>
             {

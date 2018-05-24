@@ -25,11 +25,11 @@ namespace GitHub.Unity
             return this;
         }
 
-        public override ITask Start()
+        protected override void Run()
         {
             foreach (var task in queuedTasks)
                 task.Start();
-            return base.Start();
+            base.Run();
         }
 
         private void TaskFinished(ITask task, bool success, Exception ex)
