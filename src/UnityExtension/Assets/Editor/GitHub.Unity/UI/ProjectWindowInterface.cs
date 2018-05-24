@@ -103,7 +103,7 @@ namespace GitHub.Unity
             isBusy = true;
 
             var unlockedObjects = Selection.objects.Where(IsObjectUnlocked).ToArray();
-            var tasks = unlockedObjects.Select(LockObject).ToArray();
+            var tasks = unlockedObjects.Select(CreateLockObjectTask).ToArray();
 
             var taskQueue = new TaskQueue();
             foreach (var task in tasks)
@@ -118,7 +118,7 @@ namespace GitHub.Unity
             }).Start();
         }
 
-        private static ITask LockObject(Object selected)
+        private static ITask CreateLockObjectTask(Object selected)
         {
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
@@ -164,7 +164,7 @@ namespace GitHub.Unity
             isBusy = true;
 
             var lockedObjects = Selection.objects.Where(IsObjectLocked).ToArray();
-            var tasks = lockedObjects.Select(o => UnlockObject(o, false)).ToArray();
+            var tasks = lockedObjects.Select(o => CreateUnlockObjectTask(o, false)).ToArray();
 
             var taskQueue = new TaskQueue();
             foreach (var task in tasks)
@@ -206,7 +206,7 @@ namespace GitHub.Unity
             isBusy = true;
 
             var lockedObjects = Selection.objects.Where(IsObjectLocked).ToArray();
-            var tasks = lockedObjects.Select(o => UnlockObject(o, true)).ToArray();
+            var tasks = lockedObjects.Select(o => CreateUnlockObjectTask(o, true)).ToArray();
 
             var taskQueue = new TaskQueue();
             foreach (var task in tasks)
@@ -221,7 +221,7 @@ namespace GitHub.Unity
             }).Start();
         }
 
-        private static ITask UnlockObject(Object selected, bool force)
+        private static ITask CreateUnlockObjectTask(Object selected, bool force)
         {
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
