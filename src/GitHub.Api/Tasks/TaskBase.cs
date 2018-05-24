@@ -132,6 +132,16 @@ namespace GitHub.Unity
         protected TaskBase(Task task)
             : this()
         {
+            Initialize(task);
+        }
+
+        protected TaskBase()
+        {
+            this.progress = new Progress(this);
+        }
+
+        protected void Initialize(Task task)
+        {
             Task = new Task(t =>
             {
                 var scheduler = TaskManager.GetScheduler(Affinity);
@@ -156,11 +166,6 @@ namespace GitHub.Unity
                     RaiseOnEnd();
                 }
             }, task, Token, TaskCreationOptions.None);
-        }
-
-        protected TaskBase()
-        {
-            this.progress = new Progress(this);
         }
 
         public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)

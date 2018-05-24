@@ -5,6 +5,53 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    class TaskQueue : TaskBase
+    {
+        private TaskCompletionSource<bool> aggregateTask = new TaskCompletionSource<bool>();
+        private readonly List<ITask> queuedTasks = new List<ITask>();
+        private volatile bool isSuccessful = true;
+        private volatile Exception exception;
+        private int finishedTaskCount;
+
+        public TaskQueue() : base()
+        {
+            Initialize(aggregateTask.Task);
+        }
+
+        public ITask Queue(ITask task)
+        {
+            task.OnEnd += TaskFinished;
+            queuedTasks.Add(task);
+            return this;
+        }
+
+        public override ITask Start()
+        {
+            foreach (var task in queuedTasks)
+                task.Start();
+            return base.Start();
+        }
+
+        private void TaskFinished(ITask task, bool success, Exception ex)
+        {
+            var count = Interlocked.Increment(ref finishedTaskCount);
+            isSuccessful &= success;
+            if (!success)
+                exception = ex;
+            if (count == queuedTasks.Count)
+            {
+                if (isSuccessful)
+                {
+                    aggregateTask.TrySetResult(true);
+                }
+                else
+                {
+                    aggregateTask.TrySetException(ex);
+                }
+            }
+        }
+    }
+
     class ActionTask : TaskBase
     {
         protected Action<bool> Callback { get; }
