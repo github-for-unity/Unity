@@ -47,6 +47,16 @@ namespace GitHub.Unity
             ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
             Platform.Initialize(ProcessManager, TaskManager);
             progress.OnProgress += progressReporter.UpdateProgress;
+            UsageTracker = new UsageTracker(UserSettings, Environment, InstanceId.ToString());
+
+#if ENABLE_METRICS
+            var metricsService = new MetricsService(ProcessManager,
+                TaskManager,
+                Environment.FileSystem,
+                Environment.NodeJsExecutablePath,
+                Environment.OctorunScriptPath);
+            UsageTracker.MetricsService = metricsService;
+#endif
         }
 
         public void Run()
@@ -59,8 +69,7 @@ namespace GitHub.Unity
                 GitInstallationState state = new GitInstallationState();
                 try
                 {
-                    SetupMetrics(Environment.UnityVersion);
-
+                    SetupMetrics();
                     if (Environment.IsMac)
                     {
                         var getEnvPath = new SimpleProcessTask(TaskManager.Token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
@@ -301,35 +310,14 @@ namespace GitHub.Unity
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
         }
 
-        protected void SetupMetrics(string unityVersion)
+        protected void SetupMetrics()
         {
-            string userId = null;
-            if (UserSettings.Exists(Constants.GuidKey))
-            {
-                userId = UserSettings.Get(Constants.GuidKey);
-            }
-
-            if (String.IsNullOrEmpty(userId))
-            {
-                userId = Guid.NewGuid().ToString();
-                UserSettings.Set(Constants.GuidKey, userId);
-            }
-
-#if ENABLE_METRICS
-            var metricsService = new MetricsService(ProcessManager,
-                TaskManager,
-                Environment.FileSystem,
-                Environment.NodeJsExecutablePath,
-                Environment.OctorunScriptPath);
-
-            UsageTracker = new UsageTracker(metricsService, UserSettings, Environment, userId, unityVersion, InstanceId.ToString());
-
             if (firstRun)
             {
                 UsageTracker.IncrementNumberOfStartups();
             }
-#endif
         }
+
         protected abstract void InitializeUI();
         protected abstract void InitializationComplete();
 
