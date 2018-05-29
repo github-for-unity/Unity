@@ -11,18 +11,20 @@ namespace GitHub.Unity
         private const string AssetsMenuRequestLock = "Assets/Request Lock";
         private const string AssetsMenuReleaseLock = "Assets/Release Lock";
         private const string AssetsMenuReleaseLockForced = "Assets/Release Lock (forced)";
-        private static readonly List<GitStatusEntry> entries = new List<GitStatusEntry>();
-        private static List<GitLock> locks = new List<GitLock>();
 
-        private static readonly List<string> guids = new List<string>();
-        private static readonly List<string> guidsLocks = new List<string>();
+        private static List<GitStatusEntry> entries = new List<GitStatusEntry>();
+        private static List<GitLock> locks = new List<GitLock>();
+        private static List<string> guids = new List<string>();
+        private static List<string> guidsLocks = new List<string>();
+
         private static IApplicationManager manager;
         private static bool isBusy = false;
         private static ILogging logger;
         private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
-        private static IRepository Repository { get { return manager.Environment.Repository; } }
+        private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
+        private static bool IsInitialized { get { return Repository != null && Repository.CurrentRemote.HasValue; } }
 
         public static void Initialize(IApplicationManager theManager)
         {
@@ -31,12 +33,25 @@ namespace GitHub.Unity
 
             manager = theManager;
 
-            if (Repository != null)
+            if (IsInitialized)
             {
                 Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 Repository.LocksChanged += RepositoryOnLocksChanged;
                 ValidateCachedData();
             }
+        }
+
+        private static bool EnsureInitialized()
+        {
+            if (locks == null)
+                locks = new List<GitLock>();
+            if (entries == null)
+                entries = new List<GitStatusEntry>();
+            if (guids == null)
+                guids = new List<string>();
+            if (guidsLocks == null)
+                guidsLocks = new List<string>();
+            return IsInitialized;
         }
 
         private static void ValidateCachedData()
@@ -69,15 +84,13 @@ namespace GitHub.Unity
         [MenuItem(AssetsMenuRequestLock, true)]
         private static bool ContextMenu_CanLock()
         {
-            if (isBusy)
+            if (!EnsureInitialized())
                 return false;
-            if (Repository == null || !Repository.CurrentRemote.HasValue)
+            if (isBusy)
                 return false;
 
             var selected = Selection.activeObject;
             if (selected == null)
-                return false;
-            if (locks == null)
                 return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
@@ -113,7 +126,7 @@ namespace GitHub.Unity
                     {
                         var error = ex.Message;
                         if (error.Contains("exit status 255"))
-                            error = "Failed to unlock: no permissions";
+                            error = "Failed to lock: no permissions";
                         EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
                             error,
                             Localization.Ok);
@@ -129,22 +142,19 @@ namespace GitHub.Unity
         [MenuItem(AssetsMenuReleaseLock, true, 1000)]
         private static bool ContextMenu_CanUnlock()
         {
-            if (isBusy)
+            if (!EnsureInitialized())
                 return false;
-            if (Repository == null || !Repository.CurrentRemote.HasValue)
+            if (isBusy)
                 return false;
 
             var selected = Selection.activeObject;
             if (selected == null)
                 return false;
-            if (locks == null || locks.Count == 0)
-                return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            var isLocked = locks.Any(x => repositoryPath == x.Path);
-            return isLocked;
+            return locks.Any(x => repositoryPath == x.Path);
         }
 
         [MenuItem(AssetsMenuReleaseLock, false, 1000)]
@@ -184,22 +194,19 @@ namespace GitHub.Unity
         [MenuItem(AssetsMenuReleaseLockForced, true, 1000)]
         private static bool ContextMenu_CanUnlockForce()
         {
-            if (isBusy)
+            if (!EnsureInitialized())
                 return false;
-            if (Repository == null || !Repository.CurrentRemote.HasValue)
+            if (isBusy)
                 return false;
 
             var selected = Selection.activeObject;
             if (selected == null)
                 return false;
-            if (locks == null || locks.Count == 0)
-                return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            var isLocked = locks.Any(x => repositoryPath == x.Path);
-            return isLocked;
+            return locks.Any(x => repositoryPath == x.Path);
         }
 
         [MenuItem(AssetsMenuReleaseLockForced, false, 1000)]
@@ -238,12 +245,6 @@ namespace GitHub.Unity
 
         private static void OnLocksUpdate()
         {
-            if (locks == null)
-            {
-                return;
-            }
-            locks = locks.ToList();
-
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
@@ -272,6 +273,9 @@ namespace GitHub.Unity
 
         private static void OnProjectWindowItemGUI(string guid, Rect itemRect)
         {
+            if (!EnsureInitialized())
+                return;
+
             if (Event.current.type != EventType.Repaint || string.IsNullOrEmpty(guid))
             {
                 return;
