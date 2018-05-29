@@ -46,7 +46,7 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    aggregateTask.TrySetException(ex);
+                    aggregateTask.TrySetException(exception);
                 }
             }
         }
