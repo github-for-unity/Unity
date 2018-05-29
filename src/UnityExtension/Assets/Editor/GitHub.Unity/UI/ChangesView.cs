@@ -222,7 +222,14 @@ namespace GitHub.Unity
                 discardGuiContent = new GUIContent("Discard");
             }
 
-            genericMenu.AddItem(discardGuiContent, false, () => {
+            genericMenu.AddItem(discardGuiContent, false, () =>
+            {
+                if (!EditorUtility.DisplayDialog(Localization.DiscardConfirmTitle,
+                                Localization.DiscardConfirmDescription,
+                                Localization.DiscardConfirmYes,
+                                Localization.Cancel))
+                    return;
+
                 GitStatusEntry[] discardEntries;
                 if (node.isFolder)
                 {

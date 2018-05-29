@@ -689,20 +689,27 @@ namespace GitHub.Unity
             if (IsRoot)
                 throw new NotSupportedException("Delete is not supported on a root level directory because it would be dangerous:" + ToString());
 
-            if (FileExists())
-                FileSystem.FileDelete(ToProcessDirectory().ToString());
-            else if (DirectoryExists())
-                try
+            var isFile = FileExists();
+            var isDir = DirectoryExists();
+            if (!isFile && !isDir)
+                throw new InvalidOperationException("Trying to delete a path that does not exist: " + ToString());
+
+            try
+            {
+                if (isFile)
+                {
+                    FileSystem.FileDelete(ToProcessDirectory().ToString());
+                }
+                else
                 {
                     FileSystem.DirectoryDelete(ToProcessDirectory().ToString(), true);
                 }
-                catch (IOException)
-                {
-                    if (deleteMode == DeleteMode.Normal)
-                        throw;
-                }
-            else
-                throw new InvalidOperationException("Trying to delete a path that does not exist: " + ToString());
+            }
+            catch (IOException)
+            {
+                if (deleteMode == DeleteMode.Normal)
+                    throw;
+            }
         }
 
         public void DeleteIfExists(DeleteMode deleteMode = DeleteMode.Normal)
