@@ -227,6 +227,7 @@ namespace GitHub.Unity
                 newElements[newElements.Length - 1] = newElements[newElements.Length - 1].TrimEnd('.');
             return new NPath(newElements, _isRelative, _driveLetter);
         }
+
         #endregion construction
 
         #region inspection
@@ -307,7 +308,7 @@ namespace GitHub.Unity
         public bool DirectoryExists()
         {
             ThrowIfNotInitialized();
-            return FileSystem.DirectoryExists(ToString());
+            return FileSystem.DirectoryExists(ToProcessDirectory().ToString());
         }
 
         public bool DirectoryExists(string append)
@@ -323,13 +324,13 @@ namespace GitHub.Unity
             ThrowIfNotInitialized();
             if (!append.IsInitialized)
                 return DirectoryExists();
-            return FileSystem.DirectoryExists(Combine(append).ToString());
+            return FileSystem.DirectoryExists(Combine(append).ToProcessDirectory().ToString());
         }
 
         public bool FileExists()
         {
             ThrowIfNotInitialized();
-            return FileSystem.FileExists(ToString());
+            return FileSystem.FileExists(ToProcessDirectory().ToString());
         }
 
         public bool FileExists(string append)
@@ -345,7 +346,7 @@ namespace GitHub.Unity
             ThrowIfNotInitialized();
             if (!append.IsInitialized)
                 return FileExists();
-            return FileSystem.FileExists(Combine(append).ToString());
+            return FileSystem.FileExists(Combine(append).ToProcessDirectory().ToString());
         }
 
         public string ExtensionWithDot
@@ -534,7 +535,7 @@ namespace GitHub.Unity
 
         public IEnumerable<NPath> Files(string filter, bool recurse = false)
         {
-            return FileSystem.GetFiles(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
+            return FileSystem.GetFiles(ToProcessDirectory().ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
         }
 
         public IEnumerable<NPath> Files(bool recurse = false)
@@ -554,7 +555,7 @@ namespace GitHub.Unity
 
         public IEnumerable<NPath> Directories(string filter, bool recurse = false)
         {
-            return FileSystem.GetDirectories(ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
+            return FileSystem.GetDirectories(ToProcessDirectory().ToString(), filter, recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Select(s => new NPath(s));
         }
 
         public IEnumerable<NPath> Directories(bool recurse = false)
@@ -571,7 +572,7 @@ namespace GitHub.Unity
             ThrowIfRelative();
             ThrowIfRoot();
             EnsureParentDirectoryExists();
-            FileSystem.WriteAllBytes(ToString(), new byte[0]);
+            FileSystem.WriteAllBytes(ToProcessDirectory().ToString(), new byte[0]);
             return this;
         }
 
@@ -596,7 +597,7 @@ namespace GitHub.Unity
             if (IsRoot)
                 throw new NotSupportedException("CreateDirectory is not supported on a root level directory because it would be dangerous:" + ToString());
 
-            FileSystem.DirectoryCreate(ToString());
+            FileSystem.DirectoryCreate(ToProcessDirectory().ToString());
             return this;
         }
 
@@ -665,7 +666,7 @@ namespace GitHub.Unity
 
                 absoluteDestination.EnsureParentDirectoryExists();
 
-                FileSystem.FileCopy(ToString(), absoluteDestination.ToString(), true);
+                FileSystem.FileCopy(ToProcessDirectory().ToString(), absoluteDestination.ToString(), true);
                 return absoluteDestination;
             }
 
@@ -689,11 +690,11 @@ namespace GitHub.Unity
                 throw new NotSupportedException("Delete is not supported on a root level directory because it would be dangerous:" + ToString());
 
             if (FileExists())
-                FileSystem.FileDelete(ToString());
+                FileSystem.FileDelete(ToProcessDirectory().ToString());
             else if (DirectoryExists())
                 try
                 {
-                    FileSystem.DirectoryDelete(ToString(), true);
+                    FileSystem.DirectoryDelete(ToProcessDirectory().ToString(), true);
                 }
                 catch (IOException)
                 {
@@ -789,52 +790,52 @@ namespace GitHub.Unity
             {
                 dest.DeleteIfExists();
                 dest.EnsureParentDirectoryExists();
-                FileSystem.FileMove(ToString(), dest.ToString());
+                FileSystem.FileMove(ToProcessDirectory().ToString(), dest.ToProcessDirectory().ToString());
                 return dest;
             }
 
             if (DirectoryExists())
             {
-                FileSystem.DirectoryMove(ToString(), dest.ToString());
+                FileSystem.DirectoryMove(ToProcessDirectory().ToString(), dest.ToProcessDirectory().ToString());
                 return dest;
             }
 
-            throw new ArgumentException("Move() called on a path that doesn't exist: " + ToString());
+            throw new ArgumentException("Move() called on a path that doesn't exist: " + ToProcessDirectory().ToString());
         }
 
         public NPath WriteAllText(string contents)
         {
             ThrowIfNotInitialized();
             EnsureParentDirectoryExists();
-            FileSystem.WriteAllText(ToString(), contents);
+            FileSystem.WriteAllText(ToProcessDirectory().ToString(), contents);
             return this;
         }
 
         public string ReadAllText()
         {
             ThrowIfNotInitialized();
-            return FileSystem.ReadAllText(ToString());
+            return FileSystem.ReadAllText(ToProcessDirectory().ToString());
         }
 
         public NPath WriteAllText(string contents, Encoding encoding)
         {
             ThrowIfNotInitialized();
             EnsureParentDirectoryExists();
-            FileSystem.WriteAllText(ToString(), contents, encoding);
+            FileSystem.WriteAllText(ToProcessDirectory().ToString(), contents, encoding);
             return this;
         }
 
         public string ReadAllText(Encoding encoding)
         {
             ThrowIfNotInitialized();
-            return FileSystem.ReadAllText(ToString(), encoding);
+            return FileSystem.ReadAllText(ToProcessDirectory().ToString(), encoding);
         }
 
         public NPath WriteLines(string[] contents)
         {
             ThrowIfNotInitialized();
             EnsureParentDirectoryExists();
-            FileSystem.WriteLines(ToString(), contents);
+            FileSystem.WriteLines(ToProcessDirectory().ToString(), contents);
             return this;
         }
 
@@ -842,28 +843,28 @@ namespace GitHub.Unity
         {
             ThrowIfNotInitialized();
             EnsureParentDirectoryExists();
-            FileSystem.WriteAllLines(ToString(), contents);
+            FileSystem.WriteAllLines(ToProcessDirectory().ToString(), contents);
             return this;
         }
 
         public string[] ReadAllLines()
         {
             ThrowIfNotInitialized();
-            return FileSystem.ReadAllLines(ToString());
+            return FileSystem.ReadAllLines(ToProcessDirectory().ToString());
         }
 
         public NPath WriteAllBytes(byte[] contents)
         {
             ThrowIfNotInitialized();
             EnsureParentDirectoryExists();
-            FileSystem.WriteAllBytes(ToString(), contents);
+            FileSystem.WriteAllBytes(ToProcessDirectory().ToString(), contents);
             return this;
         }
 
         public byte[] ReadAllBytes()
         {
             ThrowIfNotInitialized();
-            return FileSystem.ReadAllBytes(ToString());
+            return FileSystem.ReadAllBytes(ToProcessDirectory().ToString());
         }
 
 
@@ -898,6 +899,14 @@ namespace GitHub.Unity
             get
             {
                 return new NPath(FileSystem.GetCurrentDirectory());
+            }
+        }
+
+        public static NPath ProcessDirectory
+        {
+            get
+            {
+                return new NPath(FileSystem.GetProcessDirectory());
             }
         }
 
@@ -945,6 +954,13 @@ namespace GitHub.Unity
         private static void ThrowIfNotInitialized(NPath path)
         {
             path.ThrowIfNotInitialized();
+        }
+
+        public NPath ToProcessDirectory()
+        {
+            if (!IsRelative)
+                return this;
+            return MakeAbsolute().RelativeTo(NPath.ProcessDirectory);
         }
 
         public NPath EnsureDirectoryExists(string append = "")
@@ -1177,8 +1193,20 @@ namespace GitHub.Unity
 
         public static string CalculateMD5(this NPath path)
         {
-            return NPath.FileSystem.CalculateFileMD5(path);
+            return NPath.FileSystem.CalculateFileMD5(path.ToProcessDirectory());
         }
+
+        public static NPath CreateTempDirectory(this NPath baseDir, string myprefix = "")
+        {
+            var random = new Random();
+            while (true)
+            {
+                var candidate = baseDir.Combine(myprefix + "_" + random.Next());
+                if (!candidate.Exists())
+                    return candidate.CreateDirectory();
+            }
+        }
+
     }
 
     public enum SlashMode

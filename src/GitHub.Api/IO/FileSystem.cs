@@ -46,12 +46,14 @@ namespace GitHub.Unity
         void WriteLines(string path, string[] contents);
 
         char DirectorySeparatorChar { get; }
+        string GetProcessDirectory();
     }
 
 
     public class FileSystem : IFileSystem
     {
         private string currentDirectory;
+        private string processDirectory;
 
         public FileSystem()
         { }
@@ -62,7 +64,7 @@ namespace GitHub.Unity
         /// <param name="directory">Current directory</param>
         public FileSystem(string directory)
         {
-            currentDirectory = directory;
+            processDirectory = currentDirectory = directory;
         }
 
         public void SetCurrentDirectory(string directory)
@@ -163,7 +165,7 @@ namespace GitHub.Unity
                 yield break;
 
 #if ENABLE_MONO
-            if (NPath.IsLinux)
+            if (NPath.IsUnix)
             {
                 try
                 {
@@ -177,7 +179,7 @@ namespace GitHub.Unity
             {
                 var realdir = dir;
 #if ENABLE_MONO
-                if (NPath.IsLinux)
+                if (NPath.IsUnix)
                 {
                     try
                     {
@@ -239,6 +241,11 @@ namespace GitHub.Unity
         {
             if (currentDirectory != null)
                 return currentDirectory;
+            return Directory.GetCurrentDirectory();
+        }
+
+        public string GetProcessDirectory()
+        {
             return Directory.GetCurrentDirectory();
         }
 

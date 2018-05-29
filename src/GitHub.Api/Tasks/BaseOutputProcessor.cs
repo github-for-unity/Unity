@@ -110,7 +110,7 @@ namespace GitHub.Unity
             result = null;
             if (String.IsNullOrEmpty(line))
                 return false;
-            result = line;
+            result = line.Trim();
             return true;
         }
     }

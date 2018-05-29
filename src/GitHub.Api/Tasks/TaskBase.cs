@@ -699,13 +699,20 @@ namespace GitHub.Unity
 
     abstract class TaskBase<T, TResult> : TaskBase<TResult>
     {
-        public TaskBase(CancellationToken token)
+        public TaskBase(CancellationToken token, Func<T> getPreviousResult = null)
             : base(token)
         {
             Task = new Task<TResult>(() =>
             {
                 var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
-                T prevResult = previousIsSuccessful && DependsOn != null && DependsOn is ITask<T> ? ((ITask<T>)DependsOn).Result : default(T);
+                // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
+                // otherwise if there's a method to retrieve the value, call that
+                // otherwise use the PreviousResult property
+                T prevResult = PreviousResult;
+                if (previousIsSuccessful && DependsOn != null && DependsOn is ITask<T>)
+                    prevResult = ((ITask<T>)DependsOn).Result;
+                else if (getPreviousResult != null)
+                    prevResult = getPreviousResult();                   
                 var ret = RunWithData(previousIsSuccessful, prevResult);
                 tcs.SetResult(ret);
                 return ret;
@@ -722,6 +729,8 @@ namespace GitHub.Unity
             base.Run(success);
             return default(TResult);
         }
+
+        public T PreviousResult { get; set; } = default(T);
     }
 
     abstract class DataTaskBase<TData, TResult> : TaskBase<TResult>, ITask<TData, TResult>

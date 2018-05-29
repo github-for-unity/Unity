@@ -363,6 +363,7 @@ namespace IntegrationTests
         private GitBranch currentGitBranch;
         private ConfigBranch currentConfigBranch;
         private ConfigRemote currentConfigRemote;
+        private string currentHead;
 
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
@@ -432,6 +433,15 @@ namespace IntegrationTests
             {
                 ValidateData();
                 return currentConfigBranch.Equals(ConfigBranch.Default) ? (ConfigBranch?)null : currentConfigBranch;
+            }
+        }
+
+        public string CurrentHead
+        {
+            get
+            {
+                ValidateData();
+                return currentHead;
             }
         }
 

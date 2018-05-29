@@ -85,7 +85,7 @@ namespace TestUtils.Events
                     managerEvents?.isNotBusy.TrySetResult(true);
             };
 
-            repositoryManager.CurrentBranchUpdated += (configBranch, configRemote) => {
+            repositoryManager.CurrentBranchUpdated += (configBranch, configRemote, head) => {
                 logger?.Trace("CurrentBranchUpdated");
                 listener.CurrentBranchUpdated(configBranch, configRemote);
                 managerEvents?.currentBranchUpdated.TrySetResult(true);

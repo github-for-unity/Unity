@@ -189,6 +189,34 @@ namespace GitHub.Unity
         {
             var genericMenu = new GenericMenu();
 
+            genericMenu.AddItem(new GUIContent("Show Diff"), false, () =>
+            {
+                ITask<NPath[]> calculateDiff = null;
+                if (node.IsFolder)
+                {
+                    calculateDiff = CalculateFolderDiff(node);
+                }
+                else
+                {
+                    calculateDiff = CalculateFileDiff(node);
+                }
+                calculateDiff.FinallyInUI((s, ex, leftRight) =>
+                {
+                    if (s)
+                        EditorUtility.InvokeDiffTool(
+                            leftRight[0].IsInitialized ? leftRight[0].FileName : null,
+                            leftRight[0].IsInitialized ? leftRight[0].MakeAbsolute().ToString() : null,
+                            leftRight[1].IsInitialized ? leftRight[1].FileName : null,
+                            leftRight[1].IsInitialized ? leftRight[1].MakeAbsolute().ToString() : null,
+                            null, null);
+                    else
+                        throw ex;
+                })
+                .Start();
+            });
+
+            genericMenu.AddSeparator("");
+
             if (discardGuiContent == null)
             {
                 discardGuiContent = new GUIContent("Discard");
@@ -213,6 +241,50 @@ namespace GitHub.Unity
             });
 
             return genericMenu;
+        }
+
+        private ITask<NPath[]> CalculateFolderDiff(ChangesTreeNode node)
+        {
+            var rightFile = node.Path.ToNPath();
+            var tmpDir = Manager.Environment.UnityProjectPath.Combine("Temp").CreateTempDirectory();
+            var changedFiles = treeChanges.GetLeafNodes(node).Select(x => x.Path.ToNPath()).ToList();
+            return new FuncTask<List<NPath>, NPath[]>(TaskManager.Token, (s, files) =>
+            {
+                var leftFolder = tmpDir.Combine("left", rightFile.FileName);
+                var rightFolder = tmpDir.Combine("right", rightFile.FileName);
+                foreach (var file in files)
+                {
+                    var txt = new SimpleProcessTask(TaskManager.Token, "show HEAD:\"" + file.ToString(SlashMode.Forward) + "\"")
+                        .Configure(Manager.ProcessManager, false)
+                        .Catch(_ => true)
+                        .RunWithReturn(true);
+                    if (txt != null)
+                        leftFolder.Combine(file.RelativeTo(rightFile)).WriteAllText(txt);
+                    if (file.FileExists())
+                        rightFolder.Combine(file.RelativeTo(rightFile)).WriteAllText(file.ReadAllText());
+                }
+                return new NPath[] { leftFolder, rightFolder };
+            }, () => changedFiles) { Message = "Calculating diff..." };
+        }
+
+        private ITask<NPath[]> CalculateFileDiff(ChangesTreeNode node)
+        {
+            var rightFile = node.Path.ToNPath();
+            var tmpDir = Manager.Environment.UnityProjectPath.Combine("Temp", "ghu-diffs").EnsureDirectoryExists();
+            var leftFile = tmpDir.Combine(rightFile.FileName + "_" + Repository.CurrentHead + rightFile.ExtensionWithDot);
+            return new SimpleProcessTask(TaskManager.Token, "show HEAD:\"" + rightFile.ToString(SlashMode.Forward) + "\"")
+                .Configure(Manager.ProcessManager, false)
+                .Catch(_ => true)
+                .Then((success, txt) =>
+                {
+                    if (success)
+                        leftFile.WriteAllText(txt);
+                    else
+                        leftFile = NPath.Default;
+                    if (!rightFile.FileExists())
+                        rightFile = NPath.Default;
+                    return new NPath[] { leftFile, rightFile };
+                });
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -344,6 +416,8 @@ namespace GitHub.Unity
                     GUILayout.Space(Styles.CommitAreaPadding);
 
                     // Disable committing when already committing or if we don't have all the data needed
+                    //Debug.LogFormat("IsBusy:{0} string.IsNullOrEmpty(commitMessage): {1} treeChanges.GetCheckedFiles().Any(): {2}", 
+                    //    IsBusy, string.IsNullOrEmpty(commitMessage), treeChanges.GetCheckedFiles().Any());
                     EditorGUI.BeginDisabledGroup(IsBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
                     {
                         GUILayout.BeginHorizontal();
