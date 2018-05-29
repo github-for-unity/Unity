@@ -25,6 +25,11 @@ namespace GitHub.Unity
             Initialize();
         }
 
+        public override void OpenPopupWindow(PopupViewType viewType, object data, Action<bool, object> onClose)
+        {
+            PopupWindow.OpenWindow(viewType, data, onClose);
+        }
+
         protected override void InitializeUI()
         {
             Logger.Trace("Restarted {0}", Environment.Repository != null ? Environment.Repository.LocalPath : "null");

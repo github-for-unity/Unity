@@ -16,10 +16,10 @@ namespace GitHub.Unity
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null);
         ITask<GitUser> GetConfigUserAndEmail();
         ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null);
-        ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null);
-        ITask<string> Push(string remote, string branch, IOutputProcessor<string> processor = null);
+        IProcessTask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null);
+        IProcessTask<string> Push(string remote, string branch, IOutputProcessor<string> processor = null);
         ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null);
-        ITask<string> Fetch(string remote, IOutputProcessor<string> processor = null);
+        IProcessTask<string> Fetch(string remote, IOutputProcessor<string> processor = null);
         ITask<string> SwitchBranch(string branch, IOutputProcessor<string> processor = null);
         ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false, IOutputProcessor<string> processor = null);
         ITask<string> CreateBranch(string branch, string baseBranch, IOutputProcessor<string> processor = null);
@@ -146,13 +146,13 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null)
+        public IProcessTask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null)
         {
             return new GitPullTask(remote, branch, cancellationToken, processor)
                 .Configure(processManager);
         }
 
-        public ITask<string> Push(string remote, string branch,
+        public IProcessTask<string> Push(string remote, string branch,
             IOutputProcessor<string> processor = null)
         {
             return new GitPushTask(remote, branch, true, cancellationToken, processor)
@@ -165,7 +165,7 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
-        public ITask<string> Fetch(string remote,
+        public IProcessTask<string> Fetch(string remote,
             IOutputProcessor<string> processor = null)
         {
             return new GitFetchTask(remote, cancellationToken, processor: processor)

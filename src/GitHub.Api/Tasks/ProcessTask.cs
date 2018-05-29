@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -39,6 +38,7 @@ namespace GitHub.Unity
     {
         void Configure(Process existingProcess);
         void Configure(ProcessStartInfo psi);
+        void Stop();
         event Action<string> OnErrorData;
         StreamWriter StandardInput { get; }
         int ProcessId { get; }
@@ -49,9 +49,10 @@ namespace GitHub.Unity
         event Action<IProcess> OnEndProcess;
     }
 
-    interface IProcessTask<T> : ITask<T>, IProcess
+    public interface IProcessTask<T> : ITask<T>, IProcess
     {
         void Configure(ProcessStartInfo psi, IOutputProcessor<T> processor);
+        event Action<IProcess, string> OnInput;
     }
 
     interface IProcessTask<TData, T> : ITask<TData, T>, IProcess
@@ -65,6 +66,7 @@ namespace GitHub.Unity
         private readonly IOutputProcessor outputProcessor;
         private readonly Action onStart;
         private readonly Action onEnd;
+        private readonly Action<string> onInput;
         private readonly Action<Exception, string> onError;
         private readonly CancellationToken token;
         private readonly List<string> errors = new List<string>();
@@ -76,13 +78,14 @@ namespace GitHub.Unity
         protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 
         public ProcessWrapper(string taskName, Process process, IOutputProcessor outputProcessor,
-            Action onStart, Action onEnd, Action<Exception, string> onError,
+            Action onStart, Action onEnd, Action<string> onInput, Action<Exception, string> onError,
             CancellationToken token)
         {
             this.taskName = taskName;
             this.outputProcessor = outputProcessor;
             this.onStart = onStart;
             this.onEnd = onEnd;
+            this.onInput = onInput;
             this.onError = onError;
             this.token = token;
             this.Process = process;
@@ -125,22 +128,38 @@ namespace GitHub.Unity
                 if (Process.StartInfo.RedirectStandardOutput)
                 {
                     var outputStream = Process.StandardOutput;
-                    var line = outputStream.ReadLine();
-                    while (line != null)
-                    {
-                        outputProcessor.LineReceived(line);
 
+                    var readThread = new Thread(() =>
+                    {
+                        var line = outputStream.ReadLine();
+                        while (line != null)
+                        {
+                            var needsInput = outputProcessor.LineReceived(line);
+
+                            if (token.IsCancellationRequested)
+                            {
+                                Stop();
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            if (needsInput)
+                            {
+                                onInput(line);
+                            }
+
+                            line = outputStream.ReadLine();
+                        }
+                        outputProcessor.LineReceived(null);
+                    });
+                    readThread.Start();
+                    while (!readThread.Join(1000))
+                    {
                         if (token.IsCancellationRequested)
                         {
-                            if (!Process.HasExited)
-                                Process.Kill();
-                            Process.Close();
-                            token.ThrowIfCancellationRequested();
+                            Stop();
                         }
-
-                        line = outputStream.ReadLine();
+                        token.ThrowIfCancellationRequested();
                     }
-                    outputProcessor.LineReceived(null);
                 }
 
                 if (Process.StartInfo.CreateNoWindow)
@@ -149,8 +168,7 @@ namespace GitHub.Unity
                     {
                         if (token.IsCancellationRequested)
                         {
-                            Process.Kill();
-                            Process.Close();
+                            Stop();
                         }
                         token.ThrowIfCancellationRequested();
                     }
@@ -189,6 +207,13 @@ namespace GitHub.Unity
             onEnd?.Invoke();
         }
 
+        public void Stop()
+        {
+            if (!Process.HasExited)
+                Process.Kill();
+            Process.Close();
+        }
+
         private bool WaitForExit(int milliseconds)
         {
             //Logger.Debug("WaitForExit - time: {0}ms", milliseconds);
@@ -217,6 +242,7 @@ namespace GitHub.Unity
         public event Action<string> OnErrorData;
         public event Action<IProcess> OnStartProcess;
         public event Action<IProcess> OnEndProcess;
+        public event Action<IProcess, string> OnInput;
 
         private Exception thrownException = null;
 
@@ -278,6 +304,11 @@ namespace GitHub.Unity
             Name = ProcessArguments;
         }
 
+        public void Stop()
+        {
+            wrapper?.Stop();
+        }
+
         protected override void RaiseOnStart()
         {
             base.RaiseOnStart();
@@ -299,8 +330,8 @@ namespace GitHub.Unity
             var result = base.RunWithReturn(success);
 
             wrapper = new ProcessWrapper(Name, Process, outputProcessor,
-                RaiseOnStart,
-                () =>
+                onStart: RaiseOnStart,
+                onEnd: () =>
                 {
                     try
                     {
@@ -331,12 +362,16 @@ namespace GitHub.Unity
                         RaiseOnEnd(result);
                     }
                 },
-                (ex, error) =>
+                onError: (ex, error) =>
                 {
                     thrownException = ex;
                     Errors = error;
                 },
-                Token);
+                onInput: input =>
+                {
+                    OnInput?.Invoke(this, input);
+                },
+                token: Token);
 
             wrapper.Run();
 
@@ -365,6 +400,7 @@ namespace GitHub.Unity
         public event Action<string> OnErrorData;
         public event Action<IProcess> OnStartProcess;
         public event Action<IProcess> OnEndProcess;
+        public event Action<IProcess, string> OnInput;
 
         public ProcessTaskWithListOutput(CancellationToken token)
             : base(token)
@@ -409,6 +445,11 @@ namespace GitHub.Unity
             ProcessName = psi.FileName;
         }
 
+        public void Stop()
+        {
+            wrapper?.Stop();
+        }
+
         protected override void RaiseOnStart()
         {
             base.RaiseOnStart();
@@ -435,8 +476,8 @@ namespace GitHub.Unity
             var result = base.RunWithReturn(success);
 
             wrapper = new ProcessWrapper(Name, Process, outputProcessor,
-                RaiseOnStart,
-                () =>
+                onStart: RaiseOnStart,
+                onEnd: () =>
                 {
                     try
                     {
@@ -466,12 +507,16 @@ namespace GitHub.Unity
                         RaiseOnEnd(result);
                     }
                 },
-                (ex, error) =>
+                onError: (ex, error) =>
                 {
                     thrownException = ex;
                     Errors = error;
                 },
-                Token);
+                onInput: input =>
+                {
+                    OnInput?.Invoke(this, input);
+                },
+                token: Token);
             wrapper.Run();
 
             return result;

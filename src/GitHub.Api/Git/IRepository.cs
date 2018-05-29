@@ -8,7 +8,7 @@ namespace GitHub.Unity
     /// </summary>
     public interface IRepository : IEquatable<IRepository>, IDisposable, IBackedByCache
     {
-        void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager);
+        void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager, IApplicationManager appManager);
         void Start();
 
         ITask CommitAllFiles(string message, string body);

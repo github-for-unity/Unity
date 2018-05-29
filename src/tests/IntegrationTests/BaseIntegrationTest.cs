@@ -85,6 +85,7 @@ namespace IntegrationTests
             TaskManager = new TaskManager();
             SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
+            ApplicationManager = new ApplicationManagerBase(SyncContext, Environment);
         }
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,
@@ -115,7 +116,7 @@ namespace IntegrationTests
 
             onRepositoryManagerCreated?.Invoke(RepositoryManager);
 
-            Environment.Repository?.Initialize(RepositoryManager, TaskManager);
+            Environment.Repository?.Initialize(RepositoryManager, TaskManager, ApplicationManager);
 
             RepositoryManager.Start();
             Environment.Repository?.Start();

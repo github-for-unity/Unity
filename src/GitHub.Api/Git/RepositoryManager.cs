@@ -24,9 +24,9 @@ namespace GitHub.Unity
         void Stop();
         ITask CommitAllFiles(string message, string body);
         ITask CommitFiles(List<string> files, string message, string body);
-        ITask Fetch(string remote);
-        ITask Pull(string remote, string branch);
-        ITask Push(string remote, string branch);
+        IProcessTask<string> Fetch(string remote);
+        IProcessTask<string> Pull(string remote, string branch);
+        IProcessTask<string> Push(string remote, string branch);
         ITask Revert(string changeset);
         ITask RemoteAdd(string remote, string url);
         ITask RemoteRemove(string remote);
@@ -192,22 +192,25 @@ namespace GitHub.Unity
             return HookupHandlers(task, true);
         }
 
-        public ITask Fetch(string remote)
+        public IProcessTask<string> Fetch(string remote)
         {
             var task = GitClient.Fetch(remote);
-            return HookupHandlers(task, false);
+            HookupHandlers(task, false);
+            return task;
         }
 
-        public ITask Pull(string remote, string branch)
+        public IProcessTask<string> Pull(string remote, string branch)
         {
             var task = GitClient.Pull(remote, branch);
-            return HookupHandlers(task, true);
+            HookupHandlers(task, true);
+            return task;
         }
 
-        public ITask Push(string remote, string branch)
+        public IProcessTask<string> Push(string remote, string branch)
         {
             var task = GitClient.Push(remote, branch);
-            return HookupHandlers(task, false);
+            HookupHandlers(task, false);
+            return task;
         }
 
         public ITask Revert(string changeset)

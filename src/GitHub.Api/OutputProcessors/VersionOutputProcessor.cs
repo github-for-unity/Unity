@@ -9,10 +9,10 @@ namespace GitHub.Unity
     {
         public static Regex GitVersionRegex = new Regex(@"git version (.*)");
 
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (String.IsNullOrEmpty(line))
-                return;
+                return false;
 
             var match = GitVersionRegex.Match(line);
             if (match.Groups.Count > 1)
@@ -20,6 +20,7 @@ namespace GitHub.Unity
                 var version = TheVersion.Parse(match.Groups[1].Value);
                 RaiseOnEntry(version);
             }
+            return false;
         }
     }
 }

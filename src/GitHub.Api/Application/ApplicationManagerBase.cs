@@ -7,7 +7,7 @@ using static GitHub.Unity.GitInstaller;
 
 namespace GitHub.Unity
 {
-    abstract class ApplicationManagerBase : IApplicationManager
+    class ApplicationManagerBase : IApplicationManager
     {
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
@@ -16,7 +16,7 @@ namespace GitHub.Unity
         private Progress progress = new Progress(TaskBase.Default);
         protected bool isBusy;
         private bool firstRun;
-        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }        
+        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }
         private Guid instanceId;
         protected Guid InstanceId { get { return instanceId; } set { instanceId = value; } }
 
@@ -295,7 +295,7 @@ namespace GitHub.Unity
 
             repositoryManager = Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, Environment.RepositoryPath);
             repositoryManager.Initialize();
-            Environment.Repository.Initialize(repositoryManager, TaskManager);
+            Environment.Repository.Initialize(repositoryManager, TaskManager, this);
             repositoryManager.Start();
             Environment.Repository.Start();
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
@@ -330,8 +330,10 @@ namespace GitHub.Unity
             }
 #endif
         }
-        protected abstract void InitializeUI();
-        protected abstract void InitializationComplete();
+
+        public virtual void OpenPopupWindow(PopupViewType viewType, object data, Action<bool, object> onClose) {}
+        protected virtual void InitializeUI() {}
+        protected virtual void InitializationComplete() {}
 
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)

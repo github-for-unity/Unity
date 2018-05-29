@@ -6,6 +6,81 @@ using UnityEditor;
 namespace GitHub.Unity
 {
     [Serializable]
+    class PasswordView : Subview
+    {
+        private const string WindowTitle = "Enter password";
+        private const string PasswordLabel = "Password";
+        private static readonly Vector2 viewSize = new Vector2(290, 290);
+
+        [SerializeField] private string message;
+        [NonSerialized] private bool enterPressed;
+        [NonSerialized] private bool escPressed;
+        [NonSerialized] private string password = string.Empty;
+
+        public override void InitializeView(IView parent)
+        {
+            base.InitializeView(parent);
+            Title = WindowTitle;
+            Size = viewSize;
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            message = (string)Data;
+        }
+
+        public override void OnGUI()
+        {
+            HandleKeyPresses();
+
+            EditorGUIUtility.labelWidth = 90f;
+
+            GUILayout.BeginVertical();
+            {
+                EditorGUILayout.HelpBox(message, MessageType.Warning);
+                password = EditorGUILayout.PasswordField(PasswordLabel, password, Styles.TextFieldStyle);
+
+                GUILayout.Space(Styles.BaseSpacing + 3);
+
+                EditorGUI.BeginDisabledGroup(String.IsNullOrEmpty(password));
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(Localization.Ok) || enterPressed)
+                    {
+                        GUI.FocusControl(null);
+                        Finish(true, password);
+                    }
+
+                    if (GUILayout.Button(Localization.Cancel) || escPressed)
+                    {
+                        GUI.FocusControl(null);
+                        Finish(false, null);
+                    }
+                }
+                GUILayout.EndHorizontal();
+                EditorGUI.EndDisabledGroup();
+            }
+            GUILayout.EndVertical();
+        }
+
+        private void HandleKeyPresses()
+        {
+            if (Event.current.type != EventType.KeyDown)
+                return;
+
+            enterPressed = Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter;
+            if (enterPressed)
+                Event.current.Use();
+
+            escPressed = Event.current.keyCode == KeyCode.Escape;
+            if (escPressed)
+                Event.current.Use();
+        }
+    }
+
+    [Serializable]
     class AuthenticationView : Subview
     {
         private static readonly Vector2 viewSize = new Vector2(290, 290);
@@ -212,7 +287,7 @@ namespace GitHub.Unity
                 TaskManager.Run(UsageTracker.IncrementAuthenticationViewButtonAuthentication, null);
 
                 Clear();
-                Finish(true);
+                Finish(true, null);
             }
             else
             {

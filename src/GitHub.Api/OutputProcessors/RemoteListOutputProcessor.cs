@@ -14,14 +14,14 @@ namespace GitHub.Unity
             Reset();
         }
 
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             //origin https://github.com/github/VisualStudio.git (fetch)
 
             if (line == null)
             {
                 ReturnRemote();
-                return;
+                return false;
             }
 
             var proc = new LineParser(line);
@@ -52,6 +52,7 @@ namespace GitHub.Unity
                 currentUrl = url;
                 currentModes.Add(mode);
             }
+            return false;
         }
 
         private void ReturnRemote()

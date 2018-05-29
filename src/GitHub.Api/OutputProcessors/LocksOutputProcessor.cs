@@ -4,12 +4,12 @@ namespace GitHub.Unity
 {
     class LocksOutputProcessor : BaseOutputListProcessor<GitLock>
     {
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (string.IsNullOrEmpty(line))
             {
                 //Do Nothing
-                return;
+                return false;
             }
 
             try
@@ -24,6 +24,7 @@ namespace GitHub.Unity
             {
                 Logger.Error(ex, $"Failed to parse lock line {line}");
             }
+            return false;
         }
     }
 }

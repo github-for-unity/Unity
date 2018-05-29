@@ -9,7 +9,7 @@ namespace GitHub.Unity
         private readonly string arguments;
 
         public GitPushTask(CancellationToken token, IOutputProcessor<string> processor = null)
-            : base(token, processor ?? new SimpleOutputProcessor())
+            : base(token, processor ?? new GitNetworkOperationOutputProcessor())
         {
             Name = TaskName;
             arguments = "push";
@@ -17,7 +17,7 @@ namespace GitHub.Unity
 
         public GitPushTask(string remote, string branch, bool setUpstream,
             CancellationToken token, IOutputProcessor<string> processor = null)
-            : base(token, processor ?? new SimpleOutputProcessor())
+            : base(token, processor ?? new GitNetworkOperationOutputProcessor())
         {
             Guard.ArgumentNotNullOrWhiteSpace(remote, "remote");
             Guard.ArgumentNotNullOrWhiteSpace(branch, "branch");

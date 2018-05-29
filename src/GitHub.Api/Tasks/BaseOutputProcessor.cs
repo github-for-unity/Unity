@@ -7,7 +7,7 @@ namespace GitHub.Unity
 {
     public interface IOutputProcessor
     {
-        void LineReceived(string line);
+        bool LineReceived(string line);
     }
 
     public interface IOutputProcessor<T> : IOutputProcessor
@@ -25,7 +25,7 @@ namespace GitHub.Unity
     {
         public event Action<T> OnEntry;
 
-        public abstract void LineReceived(string line);
+        public abstract bool LineReceived(string line);
         protected void RaiseOnEntry(T entry)
         {
             Result = entry;
@@ -63,30 +63,32 @@ namespace GitHub.Unity
     class SimpleOutputProcessor : BaseOutputProcessor<string>
     {
         private readonly StringBuilder sb = new StringBuilder();
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (line == null)
-                return;
+                return false;
             sb.AppendLine(line);
             RaiseOnEntry(line);
+            return false;
         }
         public override string Result { get { return sb.ToString(); } }
     }
 
     class SimpleListOutputProcessor : BaseOutputListProcessor<string>
     {
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (line == null)
-                return;
+                return false;
             RaiseOnEntry(line);
+            return false;
         }
     }
 
     abstract class FirstResultOutputProcessor<T> : BaseOutputProcessor<T>
     {
         private bool isSet = false;
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (!isSet)
             {
@@ -98,6 +100,7 @@ namespace GitHub.Unity
                     RaiseOnEntry(res);
                 }
             }
+            return false;
         }
 
         protected abstract bool ProcessLine(string line, out T result);
@@ -126,4 +129,19 @@ namespace GitHub.Unity
             return true;
         }
     }
+
+    class GitNetworkOperationOutputProcessor : BaseOutputProcessor<string>
+    {
+        private readonly StringBuilder sb = new StringBuilder();
+        public override bool LineReceived(string line)
+        {
+            if (line == null)
+                return false;
+            sb.AppendLine(line);
+            RaiseOnEntry(line);
+            return line.StartsWith("Enter");
+        }
+        public override string Result { get { return sb.ToString(); } }
+    }
+
 }

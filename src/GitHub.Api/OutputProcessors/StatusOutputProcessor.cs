@@ -19,7 +19,7 @@ namespace GitHub.Unity
             this.gitObjectFactory = gitObjectFactory;
         }
 
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (line == null)
             {
@@ -183,6 +183,7 @@ namespace GitHub.Unity
                     gitStatus.Entries.Add(gitStatusEntry);
                 }
             }
+            return false;
         }
 
         private void ReturnStatus()

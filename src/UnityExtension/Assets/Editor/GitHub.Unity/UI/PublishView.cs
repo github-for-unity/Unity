@@ -117,7 +117,7 @@ namespace GitHub.Unity
                 var keychainEmptyException = exception as KeychainEmptyException;
                 if (keychainEmptyException != null)
                 {
-                    PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
+                    PopupWindow.OpenWindow(PopupViewType.AuthenticationView, null, null);
                     return;
                 }
 
@@ -178,7 +178,7 @@ namespace GitHub.Unity
                             }
                             Repository.RemoteAdd("origin", repository.CloneUrl)
                                 .Then(Repository.Push("origin"))
-                                .ThenInUI(Finish)
+                                .ThenInUI(s => Finish(s, null))
                                 .Start();
 
                         }, organization);
