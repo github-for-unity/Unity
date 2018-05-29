@@ -126,6 +126,16 @@ namespace GitHub.Unity
 
             taskQueue.FinallyInUI((success, exception) =>
             {
+                if (!success)
+                {
+                    var error = exception.Message;
+                    if (error.Contains("exit status 255"))
+                        error = "Failed to lock: no permissions";
+                    EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
+                        error,
+                        Localization.Ok);
+                }
+
                 isBusy = false;
                 Selection.activeGameObject = null;
             }).Start();
@@ -184,6 +194,16 @@ namespace GitHub.Unity
 
             taskQueue.FinallyInUI((success, exception) =>
             {
+                if (!success)
+                {
+                    var error = exception.Message;
+                    if (error.Contains("exit status 255"))
+                        error = "Failed to unlock: no permissions";
+                    EditorUtility.DisplayDialog(Localization.RequestLockActionTitle,
+                        error,
+                        Localization.Ok);
+                }
+
                 isBusy = false;
                 Selection.activeGameObject = null;
             }).Start();
