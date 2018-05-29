@@ -3,6 +3,7 @@
     public interface IUsageTracker
     {
         bool Enabled { get; set; }
+        IMetricsService MetricsService { get; set; }
         void IncrementNumberOfStartups();
         void IncrementChangesViewButtonCommit();
         void IncrementHistoryViewToolbarFetch();

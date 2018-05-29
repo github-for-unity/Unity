@@ -68,7 +68,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("AccountButton", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to {0}.
         /// </summary>
@@ -88,7 +88,7 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to cancel.
+        ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string Cancel {
             get {
@@ -156,6 +156,33 @@ namespace GitHub.Unity {
         public static string DescriptionLabel {
             get {
                 return ResourceManager.GetString("DescriptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to discard these changes?.
+        /// </summary>
+        public static string DiscardConfirmDescription {
+            get {
+                return ResourceManager.GetString("DiscardConfirmDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discard Changes?.
+        /// </summary>
+        public static string DiscardConfirmTitle {
+            get {
+                return ResourceManager.GetString("DiscardConfirmTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discard.
+        /// </summary>
+        public static string DiscardConfirmYes {
+            get {
+                return ResourceManager.GetString("DiscardConfirmYes", resourceCulture);
             }
         }
         
@@ -392,7 +419,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageBranchCreated", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deleted branch {0}.
         /// </summary>
@@ -401,7 +428,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageBranchDeleted", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Switched to branch {0}.
         /// </summary>
@@ -410,7 +437,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageBranchSwitched", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Commit failed.
         /// </summary>
@@ -419,7 +446,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageCommitFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Committed.
         /// </summary>
@@ -428,7 +455,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageCommitted", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Committing.
         /// </summary>
@@ -437,7 +464,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageCommitting", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fetched.
         /// </summary>
@@ -446,7 +473,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageFetched", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fetch failed.
         /// </summary>
@@ -455,7 +482,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageFetchFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fetching.
         /// </summary>
@@ -464,7 +491,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageFetching", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Pulled.
         /// </summary>
@@ -473,7 +500,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessagePulled", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to pull.
         /// </summary>
@@ -482,7 +509,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessagePullFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Pulling.
         /// </summary>
@@ -491,7 +518,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessagePulling", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Pushed.
         /// </summary>
@@ -500,7 +527,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessagePushed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to push.
         /// </summary>
@@ -509,7 +536,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessagePushFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Pushing.
         /// </summary>
@@ -518,7 +545,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessagePushing", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Refreshed.
         /// </summary>
@@ -527,7 +554,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageRefreshed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Refreshing.
         /// </summary>
@@ -536,7 +563,7 @@ namespace GitHub.Unity {
                 return ResourceManager.GetString("MessageRefreshing", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Your current project is not currently in an active git repository:.
         /// </summary>
@@ -646,15 +673,6 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
-        /// </summary>
-        public static string PullConfirmCancel {
-            get {
-                return ResourceManager.GetString("PullConfirmCancel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Would you like to pull changes from remote &apos;{0}&apos;?.
         /// </summary>
         public static string PullConfirmDescription {
@@ -723,15 +741,6 @@ namespace GitHub.Unity {
         public static string PushButtonCount {
             get {
                 return ResourceManager.GetString("PushButtonCount", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cancel.
-        /// </summary>
-        public static string PushConfirmCancel {
-            get {
-                return ResourceManager.GetString("PushConfirmCancel", resourceCulture);
             }
         }
         

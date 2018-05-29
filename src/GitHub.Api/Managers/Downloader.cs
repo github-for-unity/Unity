@@ -151,6 +151,9 @@ namespace GitHub.Unity
             else
                 logger.Trace($"Downloading {url}");
 
+            if (!onProgress(bytes, bytes * 2))
+                return false;
+
             using (var webResponse = (HttpWebResponse)webRequest.GetResponseWithoutException())
             {
                 var httpStatusCode = webResponse.StatusCode;
@@ -158,8 +161,7 @@ namespace GitHub.Unity
 
                 if (expectingResume && httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
                 {
-                    onProgress(bytes, bytes);
-                    return true;
+                    return !onProgress(bytes, bytes);
                 }
 
                 if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
