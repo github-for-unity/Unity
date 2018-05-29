@@ -568,7 +568,7 @@ namespace GitHub.Unity
                             EditorUtility.DisplayDialog(Localization.PullConfirmTitle,
                                 String.Format(Localization.PullConfirmDescription, currentRemoteName),
                                 Localization.PullConfirmYes,
-                                Localization.PullConfirmCancel)
+                                Localization.Cancel)
                         )
                         {
                             Pull();
@@ -586,7 +586,7 @@ namespace GitHub.Unity
                             EditorUtility.DisplayDialog(Localization.PushConfirmTitle,
                                 String.Format(Localization.PushConfirmDescription, currentRemoteName),
                                 Localization.PushConfirmYes,
-                                Localization.PushConfirmCancel)
+                                Localization.Cancel)
                         )
                         {
                             Push();
