@@ -34,11 +34,14 @@ namespace IntegrationTests
             var instanceId = Guid.NewGuid().ToString();
             var usageLoader = Substitute.For<IUsageLoader>();
             var usageStore = new UsageStore();
+            var settings = Substitute.For<ISettings>();
+            settings.Exists(Arg.Is<string>(Constants.GuidKey)).Returns(true);
+            settings.Get(Arg.Is<string>(Constants.GuidKey)).Returns(userId);
+
             usageStore.Model.Guid = userId;
             usageLoader.Load(Arg.Is<string>(userId)).Returns(usageStore);
 
-            var usageTracker = new UsageTracker(Substitute.For<IMetricsService>(), Substitute.For<ISettings>(),
-                usageLoader, userId, unityVersion, instanceId);
+            var usageTracker = new UsageTracker(settings, usageLoader, unityVersion, instanceId);
 
             var currentUsage = usageStore.GetCurrentMeasures(appVersion, unityVersion, instanceId);
             var prop = currentUsage.GetType().GetProperty(measureName);
@@ -59,14 +62,21 @@ namespace IntegrationTests
             var instanceId = Guid.NewGuid().ToString();
             var usageStore = new UsageStore();
             usageStore.Model.Guid = userId;
-            var usageTracker = new UsageTracker(Substitute.For<IMetricsService>(), Substitute.For<ISettings>(),
-                Environment, userId, unityVersion, instanceId);
-            usageTracker.IncrementNumberOfStartups();
             var storePath = Environment.UserCachePath.Combine(Constants.UsageFile);
+            var usageLoader = new UsageLoader(storePath);
+
+            var settings = Substitute.For<ISettings>();
+            settings.Exists(Arg.Is<string>(Constants.GuidKey)).Returns(true);
+            settings.Get(Arg.Is<string>(Constants.GuidKey)).Returns(userId);
+            var usageTracker = new UsageTracker(settings, usageLoader, unityVersion, instanceId);
+
+            usageTracker.IncrementNumberOfStartups();
+            usageTracker.IncrementNumberOfStartups();
+
             Assert.IsTrue(storePath.FileExists());
             var json = storePath.ReadAllText(Encoding.UTF8);
             var savedStore = json.FromJson<UsageStore>(lowerCase: true);
-            Assert.AreEqual(1, savedStore.GetCurrentMeasures(appVersion, unityVersion, instanceId).NumberOfStartups);
+            Assert.AreEqual(2, savedStore.GetCurrentMeasures(appVersion, unityVersion, instanceId).NumberOfStartups);
         }
     }
 }

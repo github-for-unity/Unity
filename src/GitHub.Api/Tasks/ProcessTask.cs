@@ -116,6 +116,7 @@ namespace GitHub.Unity
             {
                 Logger.Trace($"Running '{Process.StartInfo.FileName} {taskName}'");
 
+                token.ThrowIfCancellationRequested();
                 Process.Start();
 
                 if (Process.StartInfo.RedirectStandardInput)
