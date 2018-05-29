@@ -14,32 +14,42 @@ namespace GitHub.Unity
 
         private readonly ISettings userSettings;
         private readonly IUsageLoader usageLoader;
-        private readonly IMetricsService metricsService;
         private readonly string userId;
         private readonly string appVersion;
         private readonly string unityVersion;
         private readonly string instanceId;
         private Timer timer;
 
-        public UsageTracker(IMetricsService metricsService, ISettings userSettings,
-            IEnvironment environment, string userId, string unityVersion, string instanceId)
-                : this(metricsService, userSettings, 
-                      new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
-                      userId, unityVersion, instanceId)
+        public IMetricsService MetricsService { get; set; }
+
+        public UsageTracker(ISettings userSettings,
+            IEnvironment environment, string instanceId)
+                : this(userSettings, 
+                    new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
+                    environment.UnityVersion, instanceId)
         {
         }
 
-        public UsageTracker(IMetricsService metricsService, ISettings userSettings,
+        public UsageTracker(ISettings userSettings,
             IUsageLoader usageLoader,
-            string userId, string unityVersion, string instanceId)
+            string unityVersion, string instanceId)
         {
             this.userSettings = userSettings;
             this.usageLoader = usageLoader;
-            this.metricsService = metricsService;
-            this.userId = userId;
             this.appVersion = ApplicationInfo.Version;
             this.unityVersion = unityVersion;
             this.instanceId = instanceId;
+
+            if (userSettings.Exists(Constants.GuidKey))
+            {
+                userId = userSettings.Get(Constants.GuidKey);
+            }
+
+            if (String.IsNullOrEmpty(userId))
+            {
+                userId = Guid.NewGuid().ToString();
+                userSettings.Set(Constants.GuidKey, userId);
+            }
 
             Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
@@ -61,13 +71,13 @@ namespace GitHub.Unity
 
         private async Task SendUsage()
         {
-            var usageStore = usageLoader.Load(userId);
-
-            if (metricsService == null)
+            if (MetricsService == null)
             {
                 Logger.Warning("No service, not sending usage");
                 return;
             }
+
+            var usageStore = usageLoader.Load(userId);
 
             if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
             {
@@ -90,7 +100,7 @@ namespace GitHub.Unity
 
                     try
                     {
-                        await metricsService.PostUsage(extractReports);
+                        await MetricsService.PostUsage(extractReports);
                         success = true;
                     }
                     catch (Exception ex)

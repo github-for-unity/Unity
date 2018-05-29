@@ -122,6 +122,7 @@ namespace GitHub.Unity
             Token = token;
             Task = new Task(() =>
             {
+                Token.ThrowIfCancellationRequested();
                 var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
                 Run(previousIsSuccessful);
             },
@@ -144,6 +145,8 @@ namespace GitHub.Unity
         {
             Task = new Task(t =>
             {
+                Token.ThrowIfCancellationRequested();
+
                 var scheduler = TaskManager.GetScheduler(Affinity);
                 RaiseOnStart();
                 var tk = ((Task)t);
@@ -152,6 +155,7 @@ namespace GitHub.Unity
                     if (tk.Status == TaskStatus.Created && !tk.IsCompleted &&
                       ((tk.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
                     {
+                        Token.ThrowIfCancellationRequested();
                         tk.RunSynchronously(scheduler);
                     }
                 }
@@ -160,6 +164,7 @@ namespace GitHub.Unity
                     Errors = ex.Message;
                     if (!RaiseFaultHandlers(ex))
                         throw;
+                    Token.ThrowIfCancellationRequested();
                 }
                 finally
                 {
@@ -283,7 +288,12 @@ namespace GitHub.Unity
         /// <param name="handler"></param>
         internal void SetFaultHandler(TaskBase handler)
         {
-            Task.ContinueWith(t => handler.Start(t), Token,
+            Task.ContinueWith(t =>
+                {
+                    Token.ThrowIfCancellationRequested();
+                    handler.Start(t);
+                },
+                Token,
                 TaskContinuationOptions.OnlyOnFaulted,
                 TaskManager.GetScheduler(handler.Affinity));
             DependsOn?.SetFaultHandler(handler);
@@ -361,9 +371,15 @@ namespace GitHub.Unity
 
         protected void SetContinuation(TaskBase continuation, TaskContinuationOptions runOptions)
         {
-            Task.ContinueWith(_ => ((TaskBase)(object)continuation).Run(), Token,
-                    runOptions,
-                    TaskManager.GetScheduler(continuation.Affinity));
+            Token.ThrowIfCancellationRequested();
+            Task.ContinueWith(_ =>
+                {
+                    Token.ThrowIfCancellationRequested();
+                    ((TaskBase)(object)continuation).Run();
+                },
+                Token,
+                runOptions,
+                TaskManager.GetScheduler(continuation.Affinity));
         }
 
         protected ITask SetDependsOn(ITask dependsOn)
@@ -411,6 +427,7 @@ namespace GitHub.Unity
             taskFailed = false;
             hasRun = false;
             exception = null;
+            Token.ThrowIfCancellationRequested();
         }
 
         protected virtual void RaiseOnStart()
@@ -531,6 +548,7 @@ namespace GitHub.Unity
         {
             Task = new Task<TResult>(() =>
             {
+                Token.ThrowIfCancellationRequested();
                 var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
                 var ret = RunWithReturn(previousIsSuccessful);
                 tcs.SetResult(ret);
@@ -548,6 +566,8 @@ namespace GitHub.Unity
         {
             Task = new Task<TResult>(t =>
             {
+                Token.ThrowIfCancellationRequested();
+
                 TResult ret = default(TResult);
                 RaiseOnStart();
                 var tk = ((Task<TResult>)t);
@@ -556,6 +576,7 @@ namespace GitHub.Unity
                     if (tk.Status == TaskStatus.Created && !tk.IsCompleted &&
                       ((tk.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
                     {
+                        Token.ThrowIfCancellationRequested();
                         tk.RunSynchronously();
                     }
                     ret = tk.Result;
@@ -565,6 +586,7 @@ namespace GitHub.Unity
                     Errors = ex.Message;
                     if (!RaiseFaultHandlers(ex))
                         throw;
+                    Token.ThrowIfCancellationRequested();
                 }
                 finally
                 {
@@ -636,8 +658,7 @@ namespace GitHub.Unity
         public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
-            return ret;
+            return Then(new FuncTask<TResult, TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
         }
 
         /// <summary>
@@ -646,8 +667,7 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            var ret = Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
-            return ret;
+            return Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
         }
 
         public new ITask<TResult> Start()
@@ -714,13 +734,13 @@ namespace GitHub.Unity
         {
             Task = new Task<TResult>(() =>
             {
+                Token.ThrowIfCancellationRequested();
                 var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
                 T prevResult = previousIsSuccessful && DependsOn != null && DependsOn is ITask<T> ? ((ITask<T>)DependsOn).Result : default(T);
                 var ret = RunWithData(previousIsSuccessful, prevResult);
                 tcs.SetResult(ret);
                 return ret;
-            },
-                Token, TaskCreationOptions.None);
+            }, Token, TaskCreationOptions.None);
         }
 
         public TaskBase(Task<TResult> task)

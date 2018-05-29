@@ -130,12 +130,24 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
-            Task = new Task(() => Run(DependsOn?.Successful ?? true,
+            Task = new Task(() =>
+            {
+                Token.ThrowIfCancellationRequested();
+                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+
                 // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
                 // otherwise if there's a method to retrieve the value, call that
                 // otherwise use the PreviousResult property
-                (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : getPreviousResult != null ? getPreviousResult() : PreviousResult),
-                Token, TaskCreationOptions.None);
+                T prevResult = PreviousResult;
+                if (previousIsSuccessful && DependsOn != null && DependsOn is ITask<T>)
+                    prevResult = ((ITask<T>)DependsOn).Result;
+                else if (getPreviousResult != null)
+                    prevResult = getPreviousResult();                   
+
+                Run(previousIsSuccessful, prevResult);
+
+            }, Token, TaskCreationOptions.None);
+
             Name = $"ActionTask<{typeof(T)}>";
         }
 
@@ -150,12 +162,23 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
-            Task = new Task(() => Run(DependsOn?.Successful ?? true,
+            Task = new Task(() =>
+            {
+                Token.ThrowIfCancellationRequested();
+                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+
                 // if this task depends on another task and the dependent task was successful, use the value of that other task as input to this task
                 // otherwise if there's a method to retrieve the value, call that
                 // otherwise use the PreviousResult property
-                (DependsOn?.Successful ?? false) ? ((ITask<T>)DependsOn).Result : getPreviousResult != null ? getPreviousResult() : PreviousResult),
-                Token, TaskCreationOptions.None);
+                T prevResult = PreviousResult;
+                if (previousIsSuccessful && DependsOn != null && DependsOn is ITask<T>)
+                    prevResult = ((ITask<T>)DependsOn).Result;
+                else if (getPreviousResult != null)
+                    prevResult = getPreviousResult();                   
+
+                Run(previousIsSuccessful, prevResult);
+
+            }, Token, TaskCreationOptions.None);
             Name = $"ActionTask<Exception, {typeof(T)}>";
         }
 
@@ -456,5 +479,4 @@ namespace GitHub.Unity
             return result;
         }
     }
-
 }
