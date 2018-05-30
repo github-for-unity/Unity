@@ -34,10 +34,12 @@ namespace GitHub.Unity
 
         private void TaskFinished(ITask task, bool success, Exception ex)
         {
-            var count = Interlocked.Increment(ref finishedTaskCount);
-            isSuccessful &= success;
             if (!success)
+            {
+                isSuccessful = false;
                 exception = ex;
+            }
+            var count = Interlocked.Increment(ref finishedTaskCount);
             if (count == queuedTasks.Count)
             {
                 if (isSuccessful)
