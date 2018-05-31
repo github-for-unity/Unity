@@ -162,13 +162,15 @@ namespace GitHub.Unity
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
             var alreadyLocked = locks.Any(x => repositoryPath == x.Path);
+            if (alreadyLocked)
+                return false;
+
             GitFileStatus status = GitFileStatus.None;
             if (entries != null)
             {
                 status = entries.FirstOrDefault(x => repositoryPath == x.Path.ToNPath()).Status;
             }
-
-            return !alreadyLocked && status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
+            return status != GitFileStatus.Untracked && status != GitFileStatus.Ignored;
         }
 
         private static bool IsObjectLocked(Object selected)
