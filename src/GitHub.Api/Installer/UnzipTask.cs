@@ -38,7 +38,6 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }

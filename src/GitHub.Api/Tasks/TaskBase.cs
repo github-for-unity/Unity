@@ -158,10 +158,11 @@ namespace GitHub.Unity
                         Token.ThrowIfCancellationRequested();
                         tk.RunSynchronously(scheduler);
                     }
+                    else
+                        tk.Wait();
                 }
                 catch (Exception ex)
                 {
-                    Errors = ex.Message;
                     if (!RaiseFaultHandlers(ex))
                         throw;
                     Token.ThrowIfCancellationRequested();
@@ -245,8 +246,15 @@ namespace GitHub.Unity
         public ITask Catch(Func<Exception, bool> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            catchHandler += handler;
+            CatchInternal(handler);
             DependsOn?.Catch(handler);
+            return this;
+        }
+
+        internal ITask CatchInternal(Func<Exception, bool> handler)
+        {
+            Guard.ArgumentNotNull(handler, "handler");
+            catchHandler += handler;
             return this;
         }
 
@@ -268,7 +276,14 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception> actionToContinueWith, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(actionToContinueWith, nameof(actionToContinueWith));
-            return Finally(new ActionTask(Token, actionToContinueWith) { Affinity = affinity, Name = "Finally" });
+            return Then(new ActionTask(Token, (s, ex) =>
+                {
+                    actionToContinueWith(s, ex);
+                    if (!s)
+                        throw ex;
+                })
+                { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways)
+                .CatchInternal(_ => true);
         }
 
         /// <summary>
@@ -438,13 +453,15 @@ namespace GitHub.Unity
 
         protected virtual bool RaiseFaultHandlers(Exception ex)
         {
+            exception = ex is AggregateException ? ex.GetBaseException() : ex;
+            Errors = exception.Message;
             taskFailed = true;
-            exception = ex;
             if (catchHandler == null)
                 return false;
+            var args = new object[] { exception };
             foreach (var handler in catchHandler.GetInvocationList())
             {
-                if ((bool)handler.DynamicInvoke(new object[] { ex }))
+                if ((bool)handler.DynamicInvoke(args))
                 {
                     exceptionWasHandled = true;
                     break;
@@ -497,15 +514,14 @@ namespace GitHub.Unity
 
         protected Exception GetThrownException()
         {
-            if (DependsOn == null)
-                return null;
-
-            if (DependsOn.Task.Status == TaskStatus.Faulted)
+            var depends = DependsOn;
+            while (depends != null)
             {
-                var ex = DependsOn.Task.Exception;
-                return ex?.InnerException ?? ex;
+                if (depends.taskFailed)
+                    return depends.exception;
+                depends = depends.DependsOn;
             }
-            return DependsOn.GetThrownException();
+            return null;
         }
 
         public void UpdateProgress(long value, long total, string message = null)
@@ -583,7 +599,6 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex)
                 {
-                    Errors = ex.Message;
                     if (!RaiseFaultHandlers(ex))
                         throw;
                     Token.ThrowIfCancellationRequested();
@@ -635,7 +650,7 @@ namespace GitHub.Unity
         public new ITask<TResult> Catch(Func<Exception, bool> handler)
         {
             Guard.ArgumentNotNull(handler, "handler");
-            catchHandler += handler;
+            CatchInternal(handler);
             DependsOn?.Catch(handler);
             return this;
         }
@@ -667,7 +682,14 @@ namespace GitHub.Unity
         public ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent)
         {
             Guard.ArgumentNotNull(continuation, "continuation");
-            return Then(new ActionTask<TResult>(Token, continuation) { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways);
+            return Then(new ActionTask<TResult>(Token, (s, ex, res) =>
+                {
+                    continuation(s, ex, res);
+                    if (!s)
+                        throw ex;
+                })
+                { Affinity = affinity, Name = "Finally" }, TaskRunOptions.OnAlways)
+                .CatchInternal(_ => true);
         }
 
         public new ITask<TResult> Start()

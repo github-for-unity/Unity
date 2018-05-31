@@ -915,7 +915,7 @@ namespace IntegrationTests
             var callOrder = new List<string>();
 
             var taskEnd = new ActionTask(Token, () => callOrder.Add("chain completed")) { Name = "Chain Completed" };
-            var final = taskEnd.Finally((_, __) => { }, TaskAffinity.Concurrent);
+            var final = taskEnd.Finally((_, __) => { }, TaskAffinity.Exclusive);
 
             var taskStart = new FuncTask<bool>(Token, _ =>
                 {
@@ -942,12 +942,13 @@ namespace IntegrationTests
 
             await final.StartAndSwallowException();
 
-            CollectionAssert.AreEqual(new string[] {
+
+            Assert.AreEqual(new string[] {
                 "chain start",
                 "failing",
                 "on failure",
                 "chain completed"
-            }, callOrder);
+            }.Join(","), callOrder.Join(","));
         }
 
         private T LogAndReturnResult<T>(List<string> callOrder, string msg, T result)

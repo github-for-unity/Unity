@@ -10,7 +10,7 @@ namespace GitHub.Unity
         private TaskCompletionSource<bool> aggregateTask = new TaskCompletionSource<bool>();
         private readonly List<ITask> queuedTasks = new List<ITask>();
         private volatile bool isSuccessful = true;
-        private volatile Exception exception;
+        private volatile Exception taskException;
         private int finishedTaskCount;
 
         public TaskQueue() : base()
@@ -21,6 +21,7 @@ namespace GitHub.Unity
         public ITask Queue(ITask task)
         {
             task.OnEnd += TaskFinished;
+            task.Catch(e => TaskFinished(task, false, e));
             queuedTasks.Add(task);
             return this;
         }
@@ -37,7 +38,7 @@ namespace GitHub.Unity
             if (!success)
             {
                 isSuccessful = false;
-                exception = ex;
+                taskException = ex;
             }
             var count = Interlocked.Increment(ref finishedTaskCount);
             if (count == queuedTasks.Count)
@@ -48,7 +49,7 @@ namespace GitHub.Unity
                 }
                 else
                 {
-                    aggregateTask.TrySetException(exception);
+                    aggregateTask.TrySetException(taskException.GetBaseException());
                 }
             }
         }
@@ -105,7 +106,6 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }
@@ -207,7 +207,6 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }
@@ -275,7 +274,6 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }
@@ -336,7 +334,6 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }
@@ -402,16 +399,8 @@ namespace GitHub.Unity
                     result = CallbackWithException(success, thrown);
                 }
             }
-            catch (AggregateException ex)
-            {
-                var e = ex.GetBaseException();
-                Errors = e.Message;
-                if (!RaiseFaultHandlers(e))
-                    throw e;
-            }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }
@@ -469,7 +458,6 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
                     throw;
             }

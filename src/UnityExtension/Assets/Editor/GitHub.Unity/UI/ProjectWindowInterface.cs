@@ -146,14 +146,9 @@ namespace GitHub.Unity
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            return Repository.RequestLock(repositoryPath)
-                      .FinallyInUI((success, ex) =>
-                      {
-                          if (success)
-                          {
-                              manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
-                          }
-                      });
+            var task = Repository.RequestLock(repositoryPath);
+            task.OnEnd += (_, s, ___) => { if (s) manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null); };
+            return task;
         }
 
         [MenuItem(AssetsMenuReleaseLock, true, 1000)]
