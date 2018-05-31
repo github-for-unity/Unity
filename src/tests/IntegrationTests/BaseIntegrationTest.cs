@@ -147,7 +147,7 @@ namespace IntegrationTests
             var extractPath = tempZipExtractPath.Combine("git").CreateDirectory();
             var path = new UnzipTask(TaskManager.Token, installDetails.GitZipPath, extractPath, null, Environment.FileSystem)
                 .Catch(e => true)
-                .RunWithReturn(true);
+                .RunSynchronously();
             var source = path;
             installDetails.GitInstallationPath.EnsureParentDirectoryExists();
             source.Move(installDetails.GitInstallationPath);
@@ -155,7 +155,7 @@ namespace IntegrationTests
             extractPath = tempZipExtractPath.Combine("git-lfs").CreateDirectory();
             path = new UnzipTask(TaskManager.Token, installDetails.GitLfsZipPath, extractPath, null, Environment.FileSystem)
                 .Catch(e => true)
-                .RunWithReturn(true);
+                .RunSynchronously();
             installDetails.GitLfsInstallationPath.EnsureParentDirectoryExists();
             path.Move(installDetails.GitLfsInstallationPath);
         }

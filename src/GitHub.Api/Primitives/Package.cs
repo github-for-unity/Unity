@@ -41,7 +41,7 @@ namespace GitHub.Unity
                         LogHelper.Warning(@"Error downloading package feed:{0} ""{1}"" Message:""{2}""", packageFeed, ex.GetType().ToString(), ex.GetExceptionMessageShort());
                         return true;
                     })
-                    .RunWithReturn(true);
+                    .RunSynchronously();
 
                 if (feed.IsInitialized)
                     environment.UserSettings.Set<DateTimeOffset>(key, now);

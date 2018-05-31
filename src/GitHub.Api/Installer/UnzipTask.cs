@@ -26,12 +26,9 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        public override NPath RunWithReturn(bool success)
+        protected override NPath RunWithReturn(bool success)
         {
             var ret = BaseRun(success);
-
-            RaiseOnStart();
-
             try
             {
                 ret = RunUnzip(success);
@@ -39,11 +36,7 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 if (!RaiseFaultHandlers(ex))
-                    throw;
-            }
-            finally
-            {
-                RaiseOnEnd(ret);
+                    throw exception;
             }
             return ret;
         }

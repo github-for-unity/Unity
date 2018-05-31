@@ -32,7 +32,19 @@ namespace GitHub.Unity
         T Finally<T>(T taskToContinueWith) where T : ITask;
         ITask Start();
         ITask Start(TaskScheduler scheduler);
+        void RunSynchronously();
+
         ITask Progress(Action<IProgress> progressHandler);
+        void UpdateProgress(long value, long total, string message = null);
+
+        ITask GetTopOfChain(bool onlyCreated = true);
+        ITask GetEndOfChain();
+
+        /// <summary>
+        /// </summary>
+        /// <returns>true if any task on the chain is marked as exclusive</returns>
+        bool IsChainExclusive();
+
 
         bool Successful { get; }
         string Errors { get; }
@@ -43,17 +55,8 @@ namespace GitHub.Unity
         TaskBase DependsOn { get; }
         event Action<ITask> OnStart;
         event Action<ITask, bool, Exception> OnEnd;
-        ITask GetTopOfChain();
-
-        /// <summary>
-        /// </summary>
-        /// <returns>true if any task on the chain is marked as exclusive</returns>
-        bool IsChainExclusive();
-
-        void UpdateProgress(long value, long total, string message = null);
-        ITask GetEndOfChain();
-        void Run(bool success);
         string Message { get; }
+        Exception Exception { get; }
     }
 
     public interface ITask<TResult> : ITask
@@ -74,12 +77,13 @@ namespace GitHub.Unity
         ITask Finally(Action<bool, Exception, TResult> continuation, TaskAffinity affinity = TaskAffinity.Concurrent);
         new ITask<TResult> Start();
         new ITask<TResult> Start(TaskScheduler scheduler);
+        new TResult RunSynchronously();
         new ITask<TResult> Progress(Action<IProgress> progressHandler);
+
         TResult Result { get; }
         new Task<TResult> Task { get; }
         new event Action<ITask<TResult>> OnStart;
         new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
-        TResult RunWithReturn(bool success);
     }
 
     interface ITask<TData, T> : ITask<T>
@@ -120,58 +124,12 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(token, "token");
 
             Token = token;
-            Task = new Task(() =>
-            {
-                Token.ThrowIfCancellationRequested();
-                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
-                Run(previousIsSuccessful);
-            },
-            Token,
-            TaskCreationOptions.None);
-        }
-
-        protected TaskBase(Task task)
-            : this()
-        {
-            Initialize(task);
+            Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
         }
 
         protected TaskBase()
         {
             this.progress = new Progress(this);
-        }
-
-        protected void Initialize(Task task)
-        {
-            Task = new Task(t =>
-            {
-                Token.ThrowIfCancellationRequested();
-
-                var scheduler = TaskManager.GetScheduler(Affinity);
-                RaiseOnStart();
-                var tk = ((Task)t);
-                try
-                {
-                    if (tk.Status == TaskStatus.Created && !tk.IsCompleted &&
-                      ((tk.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
-                    {
-                        Token.ThrowIfCancellationRequested();
-                        tk.RunSynchronously(scheduler);
-                    }
-                    else
-                        tk.Wait();
-                }
-                catch (Exception ex)
-                {
-                    if (!RaiseFaultHandlers(ex))
-                        throw;
-                    Token.ThrowIfCancellationRequested();
-                }
-                finally
-                {
-                    RaiseOnEnd();
-                }
-            }, task, Token, TaskCreationOptions.None);
         }
 
         public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
@@ -326,12 +284,27 @@ namespace GitHub.Unity
 
         public ITask Start()
         {
-            var depends = GetTopMostTaskInCreatedState() ?? this;
-            depends.Run();
+            var depends = GetTopMostStartableTask();
+            depends?.Schedule();
             return this;
         }
 
-        protected virtual void Run()
+        public virtual void RunSynchronously()
+        {
+            RaiseOnStart();
+            Token.ThrowIfCancellationRequested();
+            var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+            try
+            {
+                Run(previousIsSuccessful);
+            }
+            finally
+            {
+                RaiseOnEnd();
+            }
+        }
+
+        protected virtual void Schedule()
         {
             if (Task.Status == TaskStatus.Created)
             {
@@ -361,9 +334,18 @@ namespace GitHub.Unity
             return this;
         }
 
-        public ITask GetTopOfChain()
+        public ITask GetTopOfChain(bool onlyCreated = true)
         {
-            return GetTopMostTaskInCreatedState() ?? this;
+            return GetTopMostTask(null, onlyCreated, false);
+        }
+
+        public ITask GetEndOfChain()
+        {
+            if (continuationOnSuccess != null)
+                return continuationOnSuccess.GetEndOfChain();
+            else if (continuationOnAlways != null)
+                return continuationOnAlways.GetEndOfChain();
+            return this;
         }
 
         /// <summary>
@@ -390,7 +372,7 @@ namespace GitHub.Unity
             Task.ContinueWith(_ =>
                 {
                     Token.ThrowIfCancellationRequested();
-                    ((TaskBase)(object)continuation).Run();
+                    ((TaskBase)(object)continuation).Schedule();
                 },
                 Token,
                 runOptions,
@@ -403,41 +385,41 @@ namespace GitHub.Unity
             return this;
         }
 
-        protected TaskBase GetTopMostTaskInCreatedState()
+        /// <summary>
+        /// Returns the first startable task on the chain. If the chain has been started
+        /// already, returns null
+        /// </summary>
+        protected TaskBase GetTopMostStartableTask()
         {
-            var depends = DependsOn;
-            if (depends == null)
-                return null;
-            return depends.GetTopMostTask(null, true);
+            return GetTopMostTask(null, true, true);
+        }
+
+        protected TaskBase GetTopMostCreatedTask()
+        {
+            return GetTopMostTask(null, true, false);
         }
 
         protected TaskBase GetTopMostTask()
         {
-            var depends = DependsOn;
-            if (depends == null)
-                return null;
-            return depends.GetTopMostTask(null, false);
+            return GetTopMostTask(null, false, false);
         }
 
-        public ITask GetEndOfChain()
+        protected TaskBase GetTopMostTask(TaskBase ret, bool onlyCreated, bool onlyUnstartedChain)
         {
-            if (continuationOnSuccess != null)
-                return continuationOnSuccess.GetEndOfChain();
-            else if (continuationOnAlways != null)
-                return continuationOnAlways.GetEndOfChain();
-            return this;
-        }
-
-        protected TaskBase GetTopMostTask(TaskBase ret, bool onlyCreatedState)
-        {
-            ret = (!onlyCreatedState || Task.Status == TaskStatus.Created ? this : ret);
+            ret = (!onlyCreated || Task.Status == TaskStatus.Created ? this : ret);
             var depends = DependsOn;
             if (depends == null)
+            {
+                // if we're at the top of the chain and the chain has already been started
+                // and we only care about unstarted chains, return null
+                if (onlyUnstartedChain && Task.Status != TaskStatus.Created)
+                    return null;
                 return ret;
-            return depends.GetTopMostTask(ret, onlyCreatedState);
+            }
+            return depends.GetTopMostTask(ret, onlyCreated, onlyUnstartedChain);
         }
 
-        public virtual void Run(bool success)
+        protected virtual void Run(bool success)
         {
             taskFailed = false;
             hasRun = false;
@@ -448,12 +430,19 @@ namespace GitHub.Unity
         protected virtual void RaiseOnStart()
         {
             UpdateProgress(0, 100);
+            RaiseOnStartInternal();
+        }
+
+        protected void RaiseOnStartInternal()
+        {
             OnStart?.Invoke(this);
         }
 
         protected virtual bool RaiseFaultHandlers(Exception ex)
         {
-            exception = ex is AggregateException ? ex.GetBaseException() : ex;
+            exception = ex;
+            if (exception is AggregateException)
+                exception = exception.GetBaseException() ?? exception;
             Errors = exception.Message;
             taskFailed = true;
             if (catchHandler == null)
@@ -473,11 +462,17 @@ namespace GitHub.Unity
 
         protected virtual void RaiseOnEnd()
         {
-            OnEnd?.Invoke(this, !taskFailed, exception);
-            SetupContinuations();
             hasRun = true;
+            RaiseOnEndInternal();
+            SetupContinuations();
             UpdateProgress(100, 100);
         }
+
+        protected void RaiseOnEndInternal()
+        {
+            OnEnd?.Invoke(this, !taskFailed, exception);
+        }
+
 
         protected void SetupContinuations()
         {
@@ -536,6 +531,8 @@ namespace GitHub.Unity
 
         public virtual bool Successful { get { return hasRun && !taskFailed; } }
         public bool IsCompleted { get { return hasRun; } }
+        public Exception Exception => exception ?? GetThrownException();
+
         public string Errors { get; protected set; }
         public Task Task { get; protected set; }
         public WaitHandle AsyncWaitHandle { get { return (Task as IAsyncResult).AsyncWaitHandle; } }
@@ -552,63 +549,21 @@ namespace GitHub.Unity
 
     abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
     {
-        protected TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
         private event Action<bool, TResult> finallyHandler;
 
         public new event Action<ITask<TResult>> OnStart;
         public new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
         private TResult result;
 
+        protected TaskBase()
+            : base()
+        {
+        }
+
         protected TaskBase(CancellationToken token)
             : base(token)
         {
-            Task = new Task<TResult>(() =>
-            {
-                Token.ThrowIfCancellationRequested();
-                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
-                var ret = RunWithReturn(previousIsSuccessful);
-                tcs.SetResult(ret);
-                return ret;
-            }, Token, TaskCreationOptions.None);
-        }
-
-        protected TaskBase(Task<TResult> task)
-            : base()
-        {
-            Initialize(task);
-        }
-
-        protected void Initialize(Task<TResult> task)
-        {
-            Task = new Task<TResult>(t =>
-            {
-                Token.ThrowIfCancellationRequested();
-
-                TResult ret = default(TResult);
-                RaiseOnStart();
-                var tk = ((Task<TResult>)t);
-                try
-                {
-                    if (tk.Status == TaskStatus.Created && !tk.IsCompleted &&
-                      ((tk.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
-                    {
-                        Token.ThrowIfCancellationRequested();
-                        tk.RunSynchronously();
-                    }
-                    ret = tk.Result;
-                }
-                catch (Exception ex)
-                {
-                    if (!RaiseFaultHandlers(ex))
-                        throw;
-                    Token.ThrowIfCancellationRequested();
-                }
-                finally
-                {
-                    RaiseOnEnd();
-                }
-                return ret;
-            }, task, Token, TaskCreationOptions.None);
+            Task = new Task<TResult>(RunSynchronously, Token, TaskCreationOptions.None);
         }
 
         public override T Then<T>(T continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
@@ -713,25 +668,44 @@ namespace GitHub.Unity
             return this;
         }
 
-        public virtual TResult RunWithReturn(bool success)
+        protected virtual TResult RunWithReturn(bool success)
         {
             base.Run(success);
             return result;
         }
 
+        public new virtual TResult RunSynchronously()
+        {
+            RaiseOnStart();
+            Token.ThrowIfCancellationRequested();
+            var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+            TResult ret = default(TResult);
+            try
+            {
+                ret = RunWithReturn(previousIsSuccessful);
+            }
+            finally
+            {
+                RaiseOnEnd(ret);
+            }
+            return ret;
+        }
+
+
         protected override void RaiseOnStart()
         {
             UpdateProgress(0, 100);
             OnStart?.Invoke(this);
-            base.RaiseOnStart();
+            RaiseOnStartInternal();
         }
 
         protected virtual void RaiseOnEnd(TResult data)
         {
             this.result = data;
-            OnEnd?.Invoke(this, result, !taskFailed, exception);
-            SetupContinuations();
             hasRun = true;
+            OnEnd?.Invoke(this, result, !taskFailed, exception);
+            RaiseOnEndInternal();
+            SetupContinuations();
             UpdateProgress(100, 100);
         }
 
@@ -746,7 +720,7 @@ namespace GitHub.Unity
             get { return base.Task as Task<TResult>; }
             set { base.Task = value; }
         }
-        public TResult Result { get { return Task.Result; } }
+        public TResult Result { get { return result; } }
     }
 
     abstract class TaskBase<T, TResult> : TaskBase<TResult>
@@ -754,20 +728,27 @@ namespace GitHub.Unity
         public TaskBase(CancellationToken token)
             : base(token)
         {
-            Task = new Task<TResult>(() =>
-            {
-                Token.ThrowIfCancellationRequested();
-                var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
-                T prevResult = previousIsSuccessful && DependsOn != null && DependsOn is ITask<T> ? ((ITask<T>)DependsOn).Result : default(T);
-                var ret = RunWithData(previousIsSuccessful, prevResult);
-                tcs.SetResult(ret);
-                return ret;
-            }, Token, TaskCreationOptions.None);
+            Task = new Task<TResult>(RunSynchronously, Token, TaskCreationOptions.None);
         }
 
-        public TaskBase(Task<TResult> task)
-            : base(task)
-        { }
+        public override TResult RunSynchronously()
+        {
+            RaiseOnStart();
+            Token.ThrowIfCancellationRequested();
+            var previousIsSuccessful = previousSuccess.HasValue ? previousSuccess.Value : (DependsOn?.Successful ?? true);
+            T prevResult = previousIsSuccessful && DependsOn != null && DependsOn is ITask<T> ? ((ITask<T>)DependsOn).Result : default(T);
+
+            TResult ret = default(TResult);
+            try
+            {
+                ret = RunWithData(previousIsSuccessful, prevResult);
+            }
+            finally
+            {
+                RaiseOnEnd(ret);
+            }
+            return ret;
+        }
 
         protected virtual TResult RunWithData(bool success, T previousResult)
         {
@@ -782,10 +763,6 @@ namespace GitHub.Unity
             : base(token)
         {}
 
-        public DataTaskBase(Task<TResult> task)
-            : base(task)
-        {}
-
         public event Action<TData> OnData;
         protected void RaiseOnData(TData data)
         {
@@ -797,10 +774,6 @@ namespace GitHub.Unity
     {
         public DataTaskBase(CancellationToken token)
             : base(token)
-        {}
-
-        public DataTaskBase(Task<TResult> task)
-            : base(task)
         {}
 
         public event Action<TData> OnData;
