@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    interface IMetricsService
+    public interface IMetricsService
     {
         /// <summary>
         /// Posts the provided usage model.
