@@ -100,10 +100,21 @@ namespace TestWebServer
 
         private void Process(HttpListenerContext context)
         {
-            Logger.Info($"Handling request");
+            Logger.Info("Handling request {0}", context.Request.Url.AbsolutePath);
+
+            if (context.Request.Url.AbsolutePath == "/api/usage/unity")
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                
+                var streamWriter = new StreamWriter(context.Response.OutputStream);
+                streamWriter.Write("Cool Unity usage bro!");
+                streamWriter.Flush();
+
+                context.Response.Close();
+                return;
+            }
 
             var filename = context.Request.Url.AbsolutePath;
-            Logger.Info($"{filename}");
             filename = filename.TrimStart('/');
             filename = filename.Replace('/', Path.DirectorySeparatorChar);
             filename = Path.Combine(rootDirectory, filename);
@@ -111,6 +122,7 @@ namespace TestWebServer
             if (!File.Exists(filename))
             {
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                Logger.Info($"Path not found - Returning 404");
                 context.Response.Close();
                 return;
             }
