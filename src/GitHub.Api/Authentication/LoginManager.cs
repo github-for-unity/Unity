@@ -138,7 +138,7 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
 
-            return new ActionTask(keychain.Clear(hostAddress, true)) { Message = "Signing out" }.Start();
+            return new TPLTask(keychain.Clear(hostAddress, true)) { Message = "Signing out" }.Start();
         }
 
         private async Task<LoginResultData> TryLogin(

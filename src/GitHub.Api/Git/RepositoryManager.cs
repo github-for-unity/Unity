@@ -394,7 +394,7 @@ namespace GitHub.Unity
                 ConfigBranch? branch;
                 ConfigRemote? remote;
                 GetCurrentBranchAndRemote(out branch, out remote);
-                var currentHead = GitClient.GetHead().RunWithReturn(true);
+                var currentHead = GitClient.GetHead().RunSynchronously();
                 CurrentBranchUpdated?.Invoke(branch, remote, currentHead);
             })
             { Message = "Updating repository info..." };
@@ -461,7 +461,7 @@ namespace GitHub.Unity
                 }
             };
 
-            task.Finally(success =>
+            task.OnEnd += (_, __, ___) =>
             {
                 if (filesystemChangesExpected)
                 {
@@ -474,6 +474,21 @@ namespace GitHub.Unity
                     //Logger.Trace("Ended Operation - Clearing Busy Flag");
                     IsBusy = false;
                 }
+            };
+            task.Catch(_ =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+
             });
             return task;
         }

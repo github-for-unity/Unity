@@ -113,6 +113,7 @@ namespace GitHub.Unity
             {
                 Logger.Trace($"Running '{Process.StartInfo.FileName} {taskName}'");
 
+                token.ThrowIfCancellationRequested();
                 Process.Start();
 
                 if (Process.StartInfo.RedirectStandardInput)
@@ -278,12 +279,6 @@ namespace GitHub.Unity
             Name = ProcessArguments;
         }
 
-        protected override void RaiseOnStart()
-        {
-            base.RaiseOnStart();
-            OnStartProcess?.Invoke(this);
-        }
-
         protected override void RaiseOnEnd()
         {
             base.RaiseOnEnd();
@@ -294,12 +289,12 @@ namespace GitHub.Unity
         {
         }
 
-        public override T RunWithReturn(bool success)
+        protected override T RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
             wrapper = new ProcessWrapper(Name, Process, outputProcessor,
-                RaiseOnStart,
+                () => OnStartProcess?.Invoke(this),
                 () =>
                 {
                     try
@@ -321,15 +316,8 @@ namespace GitHub.Unity
                             thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
                     }
 
-                    try
-                    {
-                        if (thrownException != null && !RaiseFaultHandlers(thrownException))
-                            throw thrownException;
-                    }
-                    finally
-                    {
-                        RaiseOnEnd(result);
-                    }
+                    if (thrownException != null && !RaiseFaultHandlers(thrownException))
+                        throw thrownException;
                 },
                 (ex, error) =>
                 {
@@ -409,12 +397,6 @@ namespace GitHub.Unity
             ProcessName = psi.FileName;
         }
 
-        protected override void RaiseOnStart()
-        {
-            base.RaiseOnStart();
-            OnStartProcess?.Invoke(this);
-        }
-
         protected override void RaiseOnEnd()
         {
             base.RaiseOnEnd();
@@ -430,12 +412,12 @@ namespace GitHub.Unity
             outputProcessor.OnEntry += x => RaiseOnData(x);
         }
 
-        public override List<T> RunWithReturn(bool success)
+        protected override List<T> RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
             wrapper = new ProcessWrapper(Name, Process, outputProcessor,
-                RaiseOnStart,
+                () => OnStartProcess?.Invoke(this),
                 () =>
                 {
                     try
@@ -456,15 +438,8 @@ namespace GitHub.Unity
                             thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
                     }
 
-                    try
-                    {
-                        if (thrownException != null && !RaiseFaultHandlers(thrownException))
-                            throw thrownException;
-                    }
-                    finally
-                    {
-                        RaiseOnEnd(result);
-                    }
+                    if (thrownException != null && !RaiseFaultHandlers(thrownException))
+                        throw thrownException;
                 },
                 (ex, error) =>
                 {

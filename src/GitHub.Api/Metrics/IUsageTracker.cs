@@ -20,5 +20,7 @@
         void IncrementUnityProjectViewContextLfsUnlock();
         void IncrementPublishViewButtonPublish();
         void IncrementApplicationMenuMenuItemCommandLine();
+        void UpdateRepoSize(int kilobytes);
+        void UpdateLfsDiskUsage(int kilobytes);
     }
 }

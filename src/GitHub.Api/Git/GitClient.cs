@@ -38,6 +38,7 @@ namespace GitHub.Unity
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
         ITask<TheVersion> Version(IOutputProcessor<TheVersion> processor = null);
         ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null);
+        ITask<GitCountObjects> CountObjects(IOutputProcessor<GitCountObjects> processor = null);
         ITask<GitUser> SetConfigNameAndEmail(string username, string email);
         ITask<string> GetHead(IOutputProcessor<string> processor = null);
     }
@@ -96,6 +97,12 @@ namespace GitHub.Unity
         public ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null)
         {
             return new GitLfsVersionTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        public ITask<GitCountObjects> CountObjects(IOutputProcessor<GitCountObjects> processor = null)
+        {
+            return new GitCountObjectsTask(cancellationToken, processor)
                 .Configure(processManager);
         }
 

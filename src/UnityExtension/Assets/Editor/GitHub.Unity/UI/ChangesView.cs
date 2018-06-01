@@ -264,7 +264,7 @@ namespace GitHub.Unity
                     var txt = new SimpleProcessTask(TaskManager.Token, "show HEAD:\"" + file.ToString(SlashMode.Forward) + "\"")
                         .Configure(Manager.ProcessManager, false)
                         .Catch(_ => true)
-                        .RunWithReturn(true);
+                        .RunSynchronously();
                     if (txt != null)
                         leftFolder.Combine(file.RelativeTo(rightFile)).WriteAllText(txt);
                     if (file.FileExists())
@@ -493,7 +493,7 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementChangesViewButtonCommit, null);
+                            UsageTracker.IncrementChangesViewButtonCommit();
 
                             commitMessage = "";
                             commitBody = "";

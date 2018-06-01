@@ -16,7 +16,7 @@ namespace GitHub.Unity
         private Progress progress = new Progress(TaskBase.Default);
         protected bool isBusy;
         private bool firstRun;
-        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }        
+        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }
         private Guid instanceId;
         protected Guid InstanceId { get { return instanceId; } set { instanceId = value; } }
 
@@ -47,7 +47,7 @@ namespace GitHub.Unity
             ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
             Platform.Initialize(ProcessManager, TaskManager);
             progress.OnProgress += progressReporter.UpdateProgress;
-            UsageTracker = new UsageTracker(UserSettings, Environment, InstanceId.ToString());
+            UsageTracker = new UsageTracker(TaskManager, UserSettings, Environment, InstanceId.ToString());
 
 #if ENABLE_METRICS
             var metricsService = new MetricsService(ProcessManager,
@@ -64,18 +64,22 @@ namespace GitHub.Unity
             isBusy = true;
             progress.UpdateProgress(0, 100, "Initializing...");
 
+            if (firstRun)
+            {
+                UsageTracker.IncrementNumberOfStartups();
+            }
+
             var thread = new Thread(() =>
             {
                 GitInstallationState state = new GitInstallationState();
                 try
                 {
-                    SetupMetrics();
                     if (Environment.IsMac)
                     {
                         var getEnvPath = new SimpleProcessTask(TaskManager.Token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
                                    .Configure(ProcessManager, dontSetupGit: true)
                                    .Catch(e => true); // make sure this doesn't throw if the task fails
-                        var path = getEnvPath.RunWithReturn(true);
+                        var path = getEnvPath.RunSynchronously();
                         if (getEnvPath.Successful)
                         {
                             Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
@@ -187,6 +191,7 @@ namespace GitHub.Unity
                 if (Environment.RepositoryPath.IsInitialized)
                 {
                     ConfigureMergeSettings();
+                    CaptureRepoSize();
 
                     GitClient.LfsInstall()
                         .Catch(e =>
@@ -194,7 +199,7 @@ namespace GitHub.Unity
                             Logger.Error(e, "Error running lfs install");
                             return true;
                         })
-                        .RunWithReturn(true);
+                        .RunSynchronously();
                 }
 
                 if (Environment.IsWindows)
@@ -204,7 +209,7 @@ namespace GitHub.Unity
                         {
                             Logger.Error(e, "Error getting the credential helper");
                             return true;
-                        }).RunWithReturn(true);
+                        }).RunSynchronously();
 
                     if (string.IsNullOrEmpty(credentialHelper))
                     {
@@ -215,7 +220,7 @@ namespace GitHub.Unity
                                 Logger.Error(e, "Error setting the credential helper");
                                 return true;
                             })
-                            .RunWithReturn(true);
+                            .RunSynchronously();
                     }
                 }
             }
@@ -238,24 +243,23 @@ namespace GitHub.Unity
 
                     var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-                    GitClient.Init().RunWithReturn(true);
+                    GitClient.Init().RunSynchronously();
                     progress.UpdateProgress(10, 100, "Initializing...");
 
                     ConfigureMergeSettings();
                     progress.UpdateProgress(20, 100, "Initializing...");
 
-                    GitClient.LfsInstall().RunWithReturn(true);
+                    GitClient.LfsInstall().RunSynchronously();
                     progress.UpdateProgress(30, 100, "Initializing...");
 
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
                     assetsGitignore.CreateFile();
-                    GitClient.Add(filesForInitialCommit).RunWithReturn(true);
+                    GitClient.Add(filesForInitialCommit).RunSynchronously();
                     progress.UpdateProgress(60, 100, "Initializing...");
-                    GitClient.Commit("Initial commit", null).RunWithReturn(true);
+                    GitClient.Commit("Initial commit", null).RunSynchronously();
                     progress.UpdateProgress(70, 100, "Initializing...");
                     Environment.InitializeRepository();
-                    UsageTracker.IncrementProjectsInitialized();
                 }
                 catch (Exception ex)
                 {
@@ -269,6 +273,7 @@ namespace GitHub.Unity
                     progress.UpdateProgress(90, 100, "Initializing...");
                     RestartRepository();
                     TaskManager.RunInUI(InitializeUI);
+                    UsageTracker.IncrementProjectsInitialized();
                     progress.UpdateProgress(100, 100, "Initialized");
                 }
                 isBusy = false;
@@ -287,12 +292,43 @@ namespace GitHub.Unity
             GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
                 Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
                 return true;
-            }).RunWithReturn(true);
+            }).RunSynchronously();
 
             GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local).Catch(e => {
                 Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
                 return true;
-            }).RunWithReturn(true);
+            }).RunSynchronously();
+        }
+
+        private void CaptureRepoSize()
+        {
+            GitClient.CountObjects()
+                     .Finally((success, gitObjects) =>
+                     {
+                         if (success)
+                         {
+                             UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
+                         }
+                     })
+                     .Start();
+
+            var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
+            if (gitLfsDataPath.Exists())
+            {
+                var diskUsageTask = Environment.IsWindows
+                    ? (IProcessTask<int>)new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token)
+                    : new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token);
+
+                diskUsageTask
+                    .Configure(ProcessManager)
+                    .Finally((success, kilobytes) =>
+                    {
+                        if (success)
+                        {
+                            UsageTracker.UpdateLfsDiskUsage(kilobytes);
+                        }
+                    }).Start();
+            }
         }
 
         public void RestartRepository()
@@ -308,14 +344,6 @@ namespace GitHub.Unity
             repositoryManager.Start();
             Environment.Repository.Start();
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
-        }
-
-        protected void SetupMetrics()
-        {
-            if (firstRun)
-            {
-                UsageTracker.IncrementNumberOfStartups();
-            }
         }
 
         protected abstract void InitializeUI();
