@@ -58,10 +58,6 @@
       <HintPath>$(SolutionDir)\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="UnityEditor">
       <HintPath>$(UnityDir)Managed\UnityEditor.dll</HintPath>
       <Private>False</Private>
