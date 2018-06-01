@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using Timer = System.Threading.Timer;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -60,7 +58,7 @@ namespace GitHub.Unity
 
         private void RunTimer(int seconds)
         {
-            timer = new Timer(_ =>
+            timer = new System.Threading.Timer(_ =>
             {
                 try
                 {
@@ -79,45 +77,50 @@ namespace GitHub.Unity
                 return;
             }
 
-            var usageStore = usageLoader.Load(userId);
+            UsageStore usageStore = null;
+            lock (_lock)
+            {
+                usageStore = usageLoader.Load(userId);
+            }
 
             var currentTimeOffset = DateTimeOffset.UtcNow;
-            if (usageStore.LastUpdated.Date == currentTimeOffset)
+            if (usageStore.LastSubmissionDate.Date == currentTimeOffset.Date)
             {
                 return;
             }
 
-            lock (_lock)
+            var success = false;
+            var extractReports = usageStore.Model.SelectReports(currentTimeOffset.Date);
+            if (!extractReports.Any())
             {
-                var success = false;
-                var extractReports = usageStore.Model.SelectReports(currentTimeOffset.Date);
-                if (!extractReports.Any())
+                Logger.Trace("No items to send");
+            }
+            else
+            {
+                if (!Enabled)
                 {
-                    Logger.Trace("No items to send");
-                }
-                else
-                {
-                    if (!Enabled)
-                    {
-                        Logger.Trace("Metrics disabled");
-                        return;
-                    }
-
-                    try
-                    {
-                        MetricsService.PostUsage(extractReports);
-                        success = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
-                    }
+                    Logger.Trace("Metrics disabled");
+                    return;
                 }
 
-                if (success)
+                try
                 {
+                    MetricsService.PostUsage(extractReports);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
+                }
+            }
+
+            if (success)
+            {
+                lock(_lock)
+                {
+                    usageStore = usageLoader.Load(userId);
+                    usageStore.LastSubmissionDate = currentTimeOffset;
                     usageStore.Model.RemoveReports(currentTimeOffset.Date);
-                    usageStore.LastUpdated = currentTimeOffset;
                     usageLoader.Save(usageStore);
                 }
             }

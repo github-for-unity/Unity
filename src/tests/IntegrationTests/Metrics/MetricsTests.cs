@@ -78,5 +78,44 @@ namespace IntegrationTests
             var savedStore = json.FromJson<UsageStore>(lowerCase: true);
             Assert.AreEqual(2, savedStore.GetCurrentMeasures(appVersion, unityVersion, instanceId).NumberOfStartups);
         }
+
+        [Test]
+        public void SubmissionWorks()
+        {
+            InitializeEnvironment(TestBasePath, false, false);
+            InitializePlatform(TestBasePath, false, "SubmissionWorks");
+            var userId = Guid.NewGuid().ToString();
+            var appVersion = ApplicationInfo.Version;
+            var unityVersion = "2017.3f1";
+            var instanceId = Guid.NewGuid().ToString();
+            var usageStore = new UsageStore();
+            usageStore.Model.Guid = userId;
+            var storePath = Environment.UserCachePath.Combine(Constants.UsageFile);
+            var usageLoader = new UsageLoader(storePath);
+
+            var settings = Substitute.For<ISettings>();
+            settings.Exists(Arg.Is<string>(Constants.GuidKey)).Returns(true);
+            settings.Get(Arg.Is<string>(Constants.GuidKey)).Returns(userId);
+            var usageTracker = new UsageTracker(settings, usageLoader, unityVersion, instanceId);
+
+            usageTracker.IncrementNumberOfStartups();
+            usageTracker.IncrementNumberOfStartups();
+
+            var json = storePath.ReadAllText(Encoding.UTF8);
+            var savedStore = json.FromJson<UsageStore>(lowerCase: true);
+            var current = savedStore.Model.GetCurrentUsage(appVersion, unityVersion, instanceId);
+            var yesterday = DateTimeOffset.UtcNow.AddDays(-1);
+            current.Dimensions.Date = yesterday;
+            savedStore.LastSubmissionDate = yesterday;
+            storePath.WriteAllText(savedStore.ToJson(lowerCase: true));
+            settings.Get(Arg.Is<string>(Constants.MetricsKey), Arg.Any<bool>()).Returns(true);
+
+            var metricsService = new MetricsService(ProcessManager, TaskManager, Environment.FileSystem, TestApp, TestApp);
+            usageTracker.MetricsService = metricsService;
+            var method = usageTracker.GetType().GetMethod("SendUsage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            method.Invoke(usageTracker, null);
+            json = storePath.ReadAllText(Encoding.UTF8);
+            savedStore = json.FromJson<UsageStore>(lowerCase: true);
+        }
     }
 }

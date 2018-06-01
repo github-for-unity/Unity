@@ -15,6 +15,7 @@ namespace IntegrationTests
     [Isolated]
     class BaseIntegrationTest
     {
+        protected NPath TestApp => System.Reflection.Assembly.GetExecutingAssembly().Location.ToNPath().Parent.Combine("CommandLine.exe");
         public IRepositoryManager RepositoryManager { get; set; }
         protected IApplicationManager ApplicationManager { get; set; }
         protected ILogging Logger { get; set; }

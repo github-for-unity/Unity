@@ -1,10 +1,12 @@
 ﻿using GitHub.Logging;
+using GitHub.Unity;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 
 namespace TestWebServer
@@ -19,7 +21,8 @@ namespace TestWebServer
                 { ".png", "image/png" },
                 { ".txt", "text/plain" },
                 { ".md5", "text/plain" },
-                { ".zip", "application/zip" }
+                { ".zip", "application/zip" },
+                { ".json", "application/json" },
             };
         private readonly HttpListener listener;
         private readonly string rootDirectory;
@@ -81,7 +84,6 @@ namespace TestWebServer
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error(ex);
                         break;
                     }
                 }
@@ -104,12 +106,16 @@ namespace TestWebServer
 
             if (context.Request.Url.AbsolutePath == "/api/usage/unity")
             {
+                var json = new { result = "Cool unity usage" }.ToJson();
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
-                
-                var streamWriter = new StreamWriter(context.Response.OutputStream);
-                streamWriter.Write("Cool Unity usage bro!");
-                streamWriter.Flush();
+                context.Response.ContentLength64 = json.Length;
 
+                string mime;
+                context.Response.ContentType = mimeTypeMappings.TryGetValue(".json", out mime)
+                    ? mime
+                    : "application/octet-stream";
+                Utils.Copy(new MemoryStream(Encoding.UTF8.GetBytes(json)), context.Response.OutputStream, json.Length);
+                context.Response.OutputStream.Flush();
                 context.Response.Close();
                 return;
             }
