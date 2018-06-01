@@ -447,6 +447,7 @@ namespace GitHub.Unity
         [SerializeField] private GitBranch currentGitBranch;
         [SerializeField] private ConfigBranch currentConfigBranch;
         [SerializeField] private ConfigRemote currentConfigRemote;
+        [SerializeField] private string currentHead;
 
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
@@ -477,6 +478,12 @@ namespace GitHub.Unity
             if (forcedInvalidation ||!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
             {
                 currentConfigBranch = data.CurrentConfigBranch ?? ConfigBranch.Default;
+                isUpdated = true;
+            }
+
+            if (forcedInvalidation ||!String.Equals(currentHead, data.CurrentHead))
+            {
+                currentHead = data.CurrentHead;
                 isUpdated = true;
             }
 
@@ -516,6 +523,15 @@ namespace GitHub.Unity
             {
                 ValidateData();
                 return currentConfigBranch.Equals(ConfigBranch.Default) ? (ConfigBranch?)null : currentConfigBranch;
+            }
+        }
+
+        public string CurrentHead
+        {
+            get
+            {
+                ValidateData();
+                return currentHead;
             }
         }
 

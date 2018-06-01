@@ -325,17 +325,11 @@ namespace GitHub.Unity
             for (var i = idx + 1; i < Nodes.Count && node.Level < Nodes[i].Level; i++)
             {
                 var childNode = Nodes[i];
-                if (childNode.IsFolder)
-                {
-                    var leafNodes = GetLeafNodes(childNode, i);
-                    results.AddRange(leafNodes);
-                }
-                else
+                if (!childNode.IsFolder)
                 {
                     results.Add(childNode);
                 }
             }
-
             return results;
         }
 

@@ -441,16 +441,16 @@ namespace GitHub.Unity
         protected Func<bool, T, TResult> Callback { get; }
         protected Func<bool, Exception, T, TResult> CallbackWithException { get; }
 
-        public FuncTask(CancellationToken token, Func<bool, T, TResult> action)
-            : base(token)
+        public FuncTask(CancellationToken token, Func<bool, T, TResult> action, Func<T> getPreviousResult = null)
+            : base(token, getPreviousResult)
         {
             Guard.ArgumentNotNull(action, "action");
             this.Callback = action;
             Name = $"FuncTask<{typeof(T)}, {typeof(TResult)}>";
         }
 
-        public FuncTask(CancellationToken token, Func<bool, Exception, T, TResult> action)
-            : base(token)
+        public FuncTask(CancellationToken token, Func<bool, Exception, T, TResult> action, Func<T> getPreviousResult = null)
+            : base(token, getPreviousResult)
         {
             Guard.ArgumentNotNull(action, "action");
             this.CallbackWithException = action;
