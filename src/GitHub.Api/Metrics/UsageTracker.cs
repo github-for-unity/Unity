@@ -73,7 +73,13 @@ namespace GitHub.Unity
         {
             if (MetricsService == null)
             {
-                Logger.Warning("No service, not sending usage");
+                Logger.Warning("Metrics disabled: no service");
+                return;
+            }
+
+            if (!Enabled)
+            {
+                Logger.Trace("Metrics disabled");
                 return;
             }
 
@@ -86,43 +92,34 @@ namespace GitHub.Unity
             var currentTimeOffset = DateTimeOffset.UtcNow;
             if (usageStore.LastSubmissionDate.Date == currentTimeOffset.Date)
             {
+                Logger.Trace("Already sent today");
                 return;
             }
 
-            var success = false;
             var extractReports = usageStore.Model.SelectReports(currentTimeOffset.Date);
             if (!extractReports.Any())
             {
                 Logger.Trace("No items to send");
-            }
-            else
-            {
-                if (!Enabled)
-                {
-                    Logger.Trace("Metrics disabled");
-                    return;
-                }
-
-                try
-                {
-                    MetricsService.PostUsage(extractReports);
-                    success = true;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
-                }
+                return;
             }
 
-            if (success)
+            try
             {
-                lock(_lock)
-                {
-                    usageStore = usageLoader.Load(userId);
-                    usageStore.LastSubmissionDate = currentTimeOffset;
-                    usageStore.Model.RemoveReports(currentTimeOffset.Date);
-                    usageLoader.Save(usageStore);
-                }
+                MetricsService.PostUsage(extractReports);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning(@"Error sending usage:""{0}"" Message:""{1}""", ex.GetType(), ex.GetExceptionMessageShort());
+                return;
+            }
+
+            // if we're here, success!
+            lock(_lock)
+            {
+                usageStore = usageLoader.Load(userId);
+                usageStore.LastSubmissionDate = currentTimeOffset;
+                usageStore.Model.RemoveReports(currentTimeOffset.Date);
+                usageLoader.Save(usageStore);
             }
         }
 
