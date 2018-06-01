@@ -397,6 +397,12 @@ namespace IntegrationTests
                 isUpdated = true;
             }
 
+            if (currentHead != data.CurrentHead)
+            {
+                currentHead =  data.CurrentHead;
+                isUpdated = true;
+            }
+
             SaveData(now, isUpdated);
         }
 
