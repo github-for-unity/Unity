@@ -32,11 +32,7 @@ namespace GitHub.Unity
             this.taskManager = taskManager;
             this.nodeJsExecutablePath = nodeJsExecutablePath;
             this.octorunScriptPath = octorunScriptPath;
-            loginManager = new LoginManager(keychain,
-                processManager: processManager,
-                taskManager: taskManager,
-                nodeJsExecutablePath: nodeJsExecutablePath,
-                octorunScript: octorunScriptPath);
+            loginManager = new LoginManager(keychain, processManager, taskManager, nodeJsExecutablePath, octorunScriptPath);
         }
 
         public ITask Logout(UriString host)

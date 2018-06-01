@@ -34,7 +34,7 @@ namespace GitHub.Unity
         /// <param name="nodeJsExecutablePath"></param>
         /// <param name="octorunScript"></param>
         public LoginManager(
-            IKeychain keychain, IProcessManager processManager = null, ITaskManager taskManager = null,
+            IKeychain keychain, IProcessManager processManager, ITaskManager taskManager,
             NPath? nodeJsExecutablePath = null, NPath? octorunScript = null)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));

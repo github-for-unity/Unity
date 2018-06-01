@@ -816,7 +816,7 @@ namespace GitHub.Unity
                 host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
             }
 
-            var apiClient = new ApiClient(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
+            var apiClient = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
             apiClient.Logout(host);
         }
 
