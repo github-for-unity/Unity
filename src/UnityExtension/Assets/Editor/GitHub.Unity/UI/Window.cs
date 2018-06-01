@@ -212,6 +212,7 @@ namespace GitHub.Unity
         private void MaybeUpdateData()
         {
             connection = Platform.Keychain.Connections.FirstOrDefault();
+
             if (repositoryProgressHasUpdate)
             {
                 if (repositoryProgress != null)
@@ -425,8 +426,10 @@ namespace GitHub.Unity
 
         private void ConnectionsChanged()
         {
-            connection = Platform.Keychain.Connections.FirstOrDefault();
-            Redraw();
+            if (!ThreadingHelper.InUIThread)
+                TaskManager.RunInUI(Redraw);
+            else
+                Redraw();
         }
 
         public override void OnUI()
