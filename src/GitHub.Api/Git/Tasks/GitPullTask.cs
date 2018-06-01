@@ -11,7 +11,7 @@ namespace GitHub.Unity
 
         public GitPullTask(string remote, string branch,
             CancellationToken token, IOutputProcessor<string> processor = null)
-            : base(token, processor ?? new SimpleOutputProcessor())
+            : base(token, processor ?? new GitNetworkOperationOutputProcessor())
         {
             Name = TaskName;
             var stringBuilder = new StringBuilder();

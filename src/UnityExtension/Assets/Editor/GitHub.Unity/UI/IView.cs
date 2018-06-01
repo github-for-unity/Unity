@@ -12,7 +12,7 @@ namespace GitHub.Unity
         void DoneRefreshing();
         Rect Position { get; }
 
-        void Finish(bool result);
+        void Finish(bool result, object output);
         IRepository Repository { get; }
         bool HasRepository { get; }
         IUser User { get; }
@@ -21,6 +21,7 @@ namespace GitHub.Unity
         bool IsBusy { get; }
         bool IsRefreshing { get; }
         bool HasFocus { get; }
+        object Data { get; }
     }
 
     interface IUIEmpty

@@ -6,14 +6,14 @@ namespace GitHub.Unity
     {
         private static readonly Regex trackingBranchRegex = new Regex(@"\[[\w]+\/.*\]");
 
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (line == null)
-                return;
+                return false;
 
             var proc = new LineParser(line);
             if (proc.IsAtEnd)
-                return;
+                return false;
 
             var active = proc.Matches('*');
             proc.SkipWhitespace();
@@ -39,6 +39,7 @@ namespace GitHub.Unity
             var branch = new GitBranch(name, trackingName);
 
             RaiseOnEntry(branch);
+            return false;
         }
     }
 }

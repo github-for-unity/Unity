@@ -55,12 +55,12 @@ namespace GitHub.Unity
             seenBodyEnd = false;
         }
 
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (line == null)
             {
                 ReturnGitLogEntry();
-                return;
+                return false;
             }
             sb.AppendLine(line);
 
@@ -178,13 +178,13 @@ namespace GitHub.Unity
                     if (string.IsNullOrEmpty(line))
                     {
                         ReturnGitLogEntry();
-                        return;
+                        return false;
                     }
 
                     if (line.IndexOf("---GHUBODYEND---", StringComparison.InvariantCulture) >= 0)
                     {
                         seenBodyEnd = true;
-                        return;
+                        return false;
                     }
 
                     var proc = new LineParser(line);
@@ -233,12 +233,12 @@ namespace GitHub.Unity
                     {
                         // there's no files on this commit, it's a new one!
                         ReturnGitLogEntry();
-                        return;
+                        return false;
                     }
                     else
                     {
                         HandleUnexpected(line);
-                        return;
+                        return false;
                     }
 
                     switch (status)
@@ -292,6 +292,7 @@ namespace GitHub.Unity
                     HandleUnexpected(line);
                     break;
             }
+            return false;
         }
 
         private void PopNewlines()

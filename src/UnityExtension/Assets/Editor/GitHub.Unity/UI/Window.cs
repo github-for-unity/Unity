@@ -599,7 +599,7 @@ namespace GitHub.Unity
                     // Publishing a repo
                     if (GUILayout.Button(Localization.PublishButton, Styles.ToolbarButtonStyle))
                     {
-                        PopupWindow.OpenWindow(PopupWindow.PopupViewType.PublishView);
+                        PopupWindow.OpenWindow(PopupViewType.PublishView, null, null);
                     }
                 }
 
@@ -792,7 +792,7 @@ namespace GitHub.Unity
 
         private void SignIn(object obj)
         {
-            PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
+            PopupWindow.OpenWindow(PopupViewType.AuthenticationView, null, null);
         }
 
         private void GoToProfile(object obj)

@@ -38,7 +38,7 @@ namespace GitHub.Unity
         {
         }
 
-        public virtual void Finish(bool result)
+        public virtual void Finish(bool result, object output)
         {}
 
         public virtual void Awake()
@@ -133,6 +133,7 @@ namespace GitHub.Unity
         public bool HasRepository { get { return Repository != null; } }
         public IUser User { get { return cachedUser; } }
         public bool HasUser { get { return User != null; } }
+        public object Data { get; protected set; }
 
         protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
         protected IGitClient GitClient { get { return Manager.GitClient; } }

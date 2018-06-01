@@ -46,9 +46,9 @@ namespace GitHub.Unity
             Parent.Redraw();
         }
 
-        public virtual void Finish(bool result)
+        public virtual void Finish(bool result, object output)
         {
-            Parent.Finish(result);
+            Parent.Finish(result, output);
         }
 
         public void DoEmptyGUI()
@@ -97,25 +97,28 @@ namespace GitHub.Unity
         }
 
         protected IView Parent { get; private set; }
+
         public IApplicationManager Manager { get { return Parent.Manager; } }
         public IRepository Repository { get { return Parent.Repository; } }
         public bool HasRepository { get { return Parent.HasRepository; } }
         public IUser User { get { return Parent.User; } }
         public bool HasUser { get { return Parent.HasUser; } }
+        protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
+        protected IGitClient GitClient { get { return Manager.GitClient; } }
+        protected IEnvironment Environment { get { return Manager.Environment; } }
+        protected IPlatform Platform { get { return Manager.Platform; } }
+        protected IUsageTracker UsageTracker { get { return Manager.UsageTracker; } }
+
         public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
         public virtual bool IsBusy
         {
             get { return (Manager != null && Manager.IsBusy) || (Repository != null && Repository.IsBusy); }
         }
 
-        protected ITaskManager TaskManager { get { return Manager.TaskManager; } }
-        protected IGitClient GitClient { get { return Manager.GitClient; } }
-        protected IEnvironment Environment { get { return Manager.Environment; } }
-        protected IPlatform Platform { get { return Manager.Platform; } }
-        protected IUsageTracker UsageTracker { get { return Manager.UsageTracker; } }
         public Rect Position { get { return Parent.Position; } }
         public string Title { get; protected set; }
         public Vector2 Size { get; protected set; }
+        public object Data { get { return Parent.Data; } }
         protected Dictionary<CacheType, int> RefreshEvents { get; set; }
         public bool IsRefreshing { get; set; }
 

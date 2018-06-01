@@ -4,6 +4,14 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
+    public enum PopupViewType
+    {
+        None,
+        PublishView,
+        AuthenticationView,
+        PasswordView,
+    }
+
     public interface IApplicationManager : IDisposable
     {
         IEnvironment Environment { get; }
@@ -22,5 +30,6 @@ namespace GitHub.Unity
         event Action<IProgress> OnProgress;
         void SetupGit(GitInstaller.GitInstallationState state);
         void RestartRepository();
+        void OpenPopupWindow(PopupViewType viewType, object data, Action<bool, object> onClose);
     }
 }

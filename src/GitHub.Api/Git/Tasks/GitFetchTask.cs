@@ -11,7 +11,7 @@ namespace GitHub.Unity
 
         public GitFetchTask(string remote,
             CancellationToken token, bool prune = true, bool tags = true, IOutputProcessor<string> processor = null)
-            : base(token, processor ?? new SimpleOutputProcessor())
+            : base(token, processor ?? new GitNetworkOperationOutputProcessor())
         {
             Name = TaskName;
             var args = new List<string> { "fetch" };

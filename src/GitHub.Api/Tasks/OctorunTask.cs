@@ -13,7 +13,7 @@ namespace GitHub.Unity
         private string status;
         private List<string> output = new List<string>();
 
-        public override void LineReceived(string line)
+        public override bool LineReceived(string line)
         {
             if (line == null)
             {
@@ -27,7 +27,7 @@ namespace GitHub.Unity
                     octorunResult = new OctorunResult(status, output.ToArray());
                 }
                 RaiseOnEntry(octorunResult);
-                return;
+                return false;
             }
 
             if (lineCount == 0)
@@ -47,6 +47,7 @@ namespace GitHub.Unity
             }
 
             lineCount++;
+            return false;
         }
     }
 

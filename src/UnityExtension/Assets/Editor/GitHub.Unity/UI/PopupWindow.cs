@@ -7,13 +7,6 @@ namespace GitHub.Unity
     [Serializable]
     class PopupWindow : BaseWindow
     {
-        public enum PopupViewType
-        {
-            None,
-            PublishView,
-            AuthenticationView,
-        }
-
         [NonSerialized] private IApiClient client;
 
         [SerializeField] private PopupViewType activeViewType;
@@ -22,13 +15,13 @@ namespace GitHub.Unity
         [SerializeField] private PublishView publishView;
         [SerializeField] private bool shouldCloseOnFinish;
 
-        public event Action<bool> OnClose;
+        public event Action<bool, object> OnClose;
 
-        public static PopupWindow OpenWindow(PopupViewType popupViewType, Action<bool> onClose = null)
+        public static PopupWindow OpenWindow(PopupViewType popupViewType, object data, Action<bool, object> onClose)
         {
             var popupWindow = GetWindow<PopupWindow>(true);
 
-            popupWindow.Open(popupViewType, onClose);
+            popupWindow.Open(popupViewType, data, onClose);
 
             return popupWindow;
         }
@@ -87,9 +80,9 @@ namespace GitHub.Unity
             ActiveView.OnSelectionChange();
         }
 
-        public override void Finish(bool result)
+        public override void Finish(bool result, object output)
         {
-            OnClose.SafeInvoke(result);
+            OnClose.SafeInvoke(result, output);
             OnClose = null;
 
             if (shouldCloseOnFinish)
@@ -98,19 +91,19 @@ namespace GitHub.Unity
                 Close();
             }
 
-            base.Finish(result);
+            base.Finish(result, output);
         }
 
         public override void OnDestroy()
         {
             base.OnDestroy();
-            OnClose.SafeInvoke(false);
+            OnClose.SafeInvoke(false, null);
             OnClose = null;
         }
 
-        private void Open(PopupViewType popupViewType, Action<bool> onClose)
+        private void Open(PopupViewType popupViewType, object data, Action<bool, object> onClose)
         {
-            OnClose.SafeInvoke(false);
+            OnClose.SafeInvoke(false, null);
             OnClose = null;
 
             var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
@@ -118,18 +111,18 @@ namespace GitHub.Unity
             {
                 Client.GetCurrentUser(user =>
                 {
-                    OpenInternal(popupViewType, onClose);
+                    OpenInternal(popupViewType, data, onClose);
                     shouldCloseOnFinish = true;
 
                 },
                 exception =>
                 {
                     authenticationView.Initialize(exception);
-                    OpenInternal(PopupViewType.AuthenticationView, completedAuthentication =>
+                    OpenInternal(PopupViewType.AuthenticationView, data, (success, output) =>
                     {
-                        if (completedAuthentication)
+                        if (success)
                         {
-                            Open(popupViewType, onClose);
+                            Open(popupViewType, data, onClose);
                         }
                     });
                     shouldCloseOnFinish = false;
@@ -137,18 +130,19 @@ namespace GitHub.Unity
             }
             else
             {
-                OpenInternal(popupViewType, onClose);
+                OpenInternal(popupViewType, data, onClose);
                 shouldCloseOnFinish = true;
             }
         }
 
-        private void OpenInternal(PopupViewType popupViewType, Action<bool> onClose)
+        private void OpenInternal(PopupViewType popupViewType, object data, Action<bool, object> onClose)
         {
             if (onClose != null)
             {
                 OnClose += onClose;
             }
 
+            Data = data;
             var fromView = ActiveView;
             ActiveViewType = popupViewType;
             SwitchView(fromView, ActiveView);

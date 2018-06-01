@@ -355,7 +355,11 @@ namespace TestUtils
                         remote, branch,
                         result != null ? result : "[null]");
 
-                    return new FuncTask<string>(CancellationToken.None, _ => result);
+                    var ret = Substitute.For<IProcessTask<string>>();
+                    ret.Result.Returns(result);
+                    ret.Successful.Returns(true);
+                    ret.IsCompleted.Returns(true);
+                    return ret;
                 });
 
             gitClient.Push(Args.String, Args.String)
@@ -369,7 +373,11 @@ namespace TestUtils
                         remote, branch,
                         result != null ? result : "[null]");
 
-                    return new FuncTask<string>(CancellationToken.None, _ => result);
+                     var ret = Substitute.For<IProcessTask<string>>();
+                     ret.Result.Returns(result);
+                     ret.Successful.Returns(true);
+                     ret.IsCompleted.Returns(true);
+                     return ret;
                 });
 
             gitClient.GetConfig(Args.String, Args.GitConfigSource)

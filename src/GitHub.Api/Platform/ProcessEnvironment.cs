@@ -75,7 +75,14 @@ namespace GitHub.Unity
                 // we can only set this env var if there is a libexec/git-core. git will bypass internally bundled tools if this env var
                 // is set, which will break Apple's system git on certain tools (like osx-credentialmanager)
                 if (libexecPath.IsInitialized)
+                {
                     psi.EnvironmentVariables["GIT_EXEC_PATH"] = libexecPath.ToString();
+                    if (Environment.IsWindows)
+                    {
+                        psi.EnvironmentVariables["GIT_ASKPASS"] = libexecPath.Combine("git-askpass.exe");
+                        psi.EnvironmentVariables["SSH_ASKPASS"] = libexecPath.Combine("git-askpass.exe");
+                    }
+                }
             }
 
             if (Environment.GitLfsInstallPath.IsInitialized && libexecPath != Environment.GitLfsInstallPath)
@@ -108,6 +115,8 @@ namespace GitHub.Unity
             var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
+
+            psi.EnvironmentVariables["DISPLAY"] = "0";
         }
     }
 }

@@ -19,6 +19,7 @@ namespace GitHub.Unity
 
         private IRepositoryManager repositoryManager;
         private ITaskManager taskManager;
+        private IApplicationManager appManager;
         private ICacheContainer cacheContainer;
         private UriString cloneUrl;
         private string name;
@@ -80,13 +81,16 @@ namespace GitHub.Unity
             };
         }
 
-        public void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager)
+        public void Initialize(IRepositoryManager theRepositoryManager, ITaskManager theTaskManager, IApplicationManager theAppManager)
         {
             Guard.ArgumentNotNull(theRepositoryManager, nameof(theRepositoryManager));
             Guard.ArgumentNotNull(theTaskManager, nameof(theTaskManager));
+            Guard.ArgumentNotNull(theAppManager, nameof(theAppManager));
 
             this.taskManager = theTaskManager;
             this.repositoryManager = theRepositoryManager;
+            this.appManager = theAppManager;
+
             this.repositoryManager.CurrentBranchUpdated += RepositoryManagerOnCurrentBranchUpdated;
             this.repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
             this.repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
@@ -130,10 +134,33 @@ namespace GitHub.Unity
 
         public ITask CommitAllFiles(string message, string body) => repositoryManager.CommitAllFiles(message, body);
         public ITask CommitFiles(List<string> files, string message, string body) => repositoryManager.CommitFiles(files, message, body);
-        public ITask Pull() => repositoryManager.Pull(CurrentRemote.Value.Name, CurrentBranch?.Name);
-        public ITask Push(string remote) => repositoryManager.Push(remote, CurrentBranch?.Name);
-        public ITask Push() => repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name);
-        public ITask Fetch() => repositoryManager.Fetch(CurrentRemote.Value.Name);
+        public ITask Pull()
+        {
+            var task = repositoryManager.Pull(CurrentRemote.Value.Name, CurrentBranch?.Name);
+            task.OnInput += HandleGitProcessInput;
+            return task.GetEndOfChain();
+        }
+        public ITask Push(string remote)
+        {
+            var task = repositoryManager.Push(remote, CurrentBranch?.Name);
+            task.OnInput += HandleGitProcessInput;
+            return task.GetEndOfChain();
+        }
+
+        public ITask Push()
+        {
+            var task = repositoryManager.Push(CurrentRemote.Value.Name, CurrentBranch?.Name);
+            task.OnInput += HandleGitProcessInput;
+            return task.GetEndOfChain();
+        }
+
+        public ITask Fetch()
+        {
+            var task = repositoryManager.Fetch(CurrentRemote.Value.Name);
+            task.OnInput += HandleGitProcessInput;
+            return task.GetEndOfChain();
+        }
+
         public ITask Revert(string changeset) => repositoryManager.Revert(changeset);
         public ITask RequestLock(NPath file) => repositoryManager.LockFile(file);
         public ITask ReleaseLock(NPath file, bool force) => repositoryManager.UnlockFile(file, force);
@@ -177,6 +204,22 @@ namespace GitHub.Unity
                 return true;
 
             return other != null && object.Equals(LocalPath, other.LocalPath);
+        }
+
+        private void HandleGitProcessInput(IProcess proc, string input)
+        {
+            taskManager.RunInUI(() => {
+                appManager.OpenPopupWindow(PopupViewType.PasswordView, input, (success, output) => {
+                    if (success)
+                    {
+                        proc.StandardInput.WriteLine(output);
+                    }
+                    else
+                    {
+                        proc.Stop();
+                    }
+                });
+            });
         }
 
         private void RefreshCache(CacheType cacheType)
