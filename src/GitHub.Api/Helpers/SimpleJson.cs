@@ -1374,6 +1374,8 @@ namespace GitHub.Unity.Json
                         return DateTimeOffset.ParseExact(str, Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
                     if (type == typeof(Guid) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(Guid)))
                         return new Guid(str);
+                    if (type == typeof(UriString) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(UriString)))
+                        return new UriString(str);
                     if (type == typeof(Uri))
                     {
                         bool isValid = Uri.IsWellFormedUriString(str, UriKind.RelativeOrAbsolute);
@@ -1499,7 +1501,7 @@ namespace GitHub.Unity.Json
         protected virtual bool TrySerializeKnownTypes(object input, out object output)
         {
             bool returnValue = true;
-            if (input is NPath)
+            if (input is NPath || input is UriString)
                 output = input.ToString();
             else if (input is DateTime)
                 output = ((DateTime)input).ToUniversalTime().ToString(Iso8601Format[0], CultureInfo.InvariantCulture);
