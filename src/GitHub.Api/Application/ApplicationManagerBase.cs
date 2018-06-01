@@ -317,7 +317,7 @@ namespace GitHub.Unity
 
                 diskUsageTask
                     .Configure(ProcessManager)
-                    .Then((success, kilobytes) =>
+                    .Finally((success, kilobytes) =>
                     {
                         if (success)
                         {
