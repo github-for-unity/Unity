@@ -1011,7 +1011,7 @@ namespace IntegrationTests
         public void FailingTasksThrowCorrectlyEvenIfFinallyIsPresent()
         {
             var queue = new TaskQueue();
-            var task = new ActionTask(Token, () => throw new Exception())
+            var task = new ActionTask(Token, () => { throw new Exception(); })
                 .Finally((s, e) => { });
             queue.Queue(task);
             Assert.Throws<Exception>(() => queue.RunSynchronously());
