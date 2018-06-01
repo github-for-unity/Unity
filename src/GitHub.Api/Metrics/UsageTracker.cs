@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using Timer = System.Threading.Timer;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -11,6 +9,8 @@ namespace GitHub.Unity
     class UsageTracker : IUsageTracker
     {
         private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
+
+        private static object _lock = new object();
 
         private readonly ISettings userSettings;
         private readonly IUsageLoader usageLoader;
@@ -53,197 +53,250 @@ namespace GitHub.Unity
 
             Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
-                RunTimer(3*60);
+                RunTimer(3 * 60);
         }
 
         private void RunTimer(int seconds)
         {
-            timer = new Timer(async _ =>
+            timer = new System.Threading.Timer(_ =>
             {
                 try
                 {
                     timer.Dispose();
-                    await SendUsage();
+                    SendUsage();
                 }
-                catch {}
+                catch { }
             }, null, seconds * 1000, Timeout.Infinite);
         }
 
-        private async Task SendUsage()
+        private void SendUsage()
         {
             if (MetricsService == null)
             {
-                Logger.Warning("No service, not sending usage");
+                Logger.Warning("Metrics disabled: no service");
                 return;
             }
 
-            var usageStore = usageLoader.Load(userId);
-
-            if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
+            if (!Enabled)
             {
-                var currentTimeOffset = DateTimeOffset.UtcNow;
-                var beforeDate = currentTimeOffset.Date;
+                Logger.Trace("Metrics disabled");
+                return;
+            }
 
-                var success = false;
-                var extractReports = usageStore.Model.SelectReports(beforeDate);
-                if (!extractReports.Any())
-                {
-                    Logger.Trace("No items to send");
-                }
-                else
-                {
-                    if (!Enabled)
-                    {
-                        Logger.Trace("Metrics disabled");
-                        return;
-                    }
+            UsageStore usageStore = null;
+            lock (_lock)
+            {
+                usageStore = usageLoader.Load(userId);
+            }
 
-                    try
-                    {
-                        await MetricsService.PostUsage(extractReports);
-                        success = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
-                    }
-                }
+            var currentTimeOffset = DateTimeOffset.UtcNow;
+            if (usageStore.LastSubmissionDate.Date == currentTimeOffset.Date)
+            {
+                Logger.Trace("Already sent today");
+                return;
+            }
 
-                if (success)
-                {
-                    usageStore.Model.RemoveReports(beforeDate);
-                    usageStore.LastUpdated = currentTimeOffset;
-                    usageLoader.Save(usageStore);
-                }
+            var extractReports = usageStore.Model.SelectReports(currentTimeOffset.Date);
+            if (!extractReports.Any())
+            {
+                Logger.Trace("No items to send");
+                return;
+            }
+
+            try
+            {
+                MetricsService.PostUsage(extractReports);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning(@"Error sending usage:""{0}"" Message:""{1}""", ex.GetType(), ex.GetExceptionMessageShort());
+                return;
+            }
+
+            // if we're here, success!
+            lock(_lock)
+            {
+                usageStore = usageLoader.Load(userId);
+                usageStore.LastSubmissionDate = currentTimeOffset;
+                usageStore.Model.RemoveReports(currentTimeOffset.Date);
+                usageLoader.Save(usageStore);
             }
         }
 
         public void IncrementNumberOfStartups()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .NumberOfStartups++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .NumberOfStartups++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementProjectsInitialized()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .ProjectsInitialized++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .ProjectsInitialized++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementChangesViewButtonCommit()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .ChangesViewButtonCommit++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .ChangesViewButtonCommit++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementHistoryViewToolbarFetch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarFetch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .HistoryViewToolbarFetch++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementHistoryViewToolbarPush()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarPush++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .HistoryViewToolbarPush++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementHistoryViewToolbarPull()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarPull++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .HistoryViewToolbarPull++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementBranchesViewButtonCreateBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonCreateBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonCreateBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementBranchesViewButtonDeleteBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonDeleteBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonDeleteBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementBranchesViewButtonCheckoutLocalBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonCheckoutLocalBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonCheckoutLocalBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementBranchesViewButtonCheckoutRemoteBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonCheckoutRemoteBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonCheckoutRemoteBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementSettingsViewButtonLfsUnlock()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .SettingsViewButtonLfsUnlock++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .SettingsViewButtonLfsUnlock++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementAuthenticationViewButtonAuthentication()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .AuthenticationViewButtonAuthentication++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .AuthenticationViewButtonAuthentication++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementUnityProjectViewContextLfsLock()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .UnityProjectViewContextLfsLock++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .UnityProjectViewContextLfsLock++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementUnityProjectViewContextLfsUnlock()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .UnityProjectViewContextLfsUnlock++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .UnityProjectViewContextLfsUnlock++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementPublishViewButtonPublish()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                 .PublishViewButtonPublish++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                     .PublishViewButtonPublish++;
+                usageLoader.Save(usage);
+            }
         }
 
         public void IncrementApplicationMenuMenuItemCommandLine()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                 .ApplicationMenuMenuItemCommandLine++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                     .ApplicationMenuMenuItemCommandLine++;
+                usageLoader.Save(usage);
+            }
         }
 
         public bool Enabled
@@ -303,7 +356,7 @@ namespace GitHub.Unity
                     {
                         path.DeleteIfExists();
                     }
-                    catch {}
+                    catch { }
                 }
             }
 

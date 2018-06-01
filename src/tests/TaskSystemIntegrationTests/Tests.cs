@@ -30,7 +30,7 @@ namespace IntegrationTests
         protected IProcessManager ProcessManager { get; set; }
         protected NPath TestBasePath { get; private set; }
         protected CancellationToken Token => TaskManager.Token;
-        protected NPath TestApp => System.Reflection.Assembly.GetExecutingAssembly().Location.ToNPath().Combine("CommandLine.exe");
+        protected NPath TestApp => System.Reflection.Assembly.GetExecutingAssembly().Location.ToNPath().Parent.Combine("CommandLine.exe");
 
         [TestFixtureSetUp]
         public void OneTimeSetup()
@@ -115,7 +115,7 @@ namespace IntegrationTests
 
             var expectedOutput = "Hello";
 
-            var procTask = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -i")
+            var procTask = new FirstNonNullLineProcessTask(Token, TestApp, @"--sleep 100 -i")
                 .Configure(ProcessManager, true);
 
             procTask.OnStartProcess += proc =>
@@ -142,13 +142,13 @@ namespace IntegrationTests
             string process1Value = null;
             string process2Value = null;
 
-            var process1Task = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -d process1")
+            var process1Task = new FirstNonNullLineProcessTask(Token, TestApp, @"--sleep 100 -d process1")
                 .Configure(ProcessManager, true).Then((b, s) => {
                     process1Value = s;
                     values.Add(s);
                 });
 
-            var process2Task = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -d process2")
+            var process2Task = new FirstNonNullLineProcessTask(Token, TestApp, @"---sleep 100 -d process2")
                 .Configure(ProcessManager, true).Then((b, s) => {
                     process2Value = s;
                     values.Add(s);
@@ -181,7 +181,7 @@ namespace IntegrationTests
             var output = new List<string>();
             var expectedOutput = new List<string> { "one name" };
 
-            var task = new FirstNonNullLineProcessTask(Token, TestApp, @"-s 100 -d ""one name""").Configure(ProcessManager)
+            var task = new FirstNonNullLineProcessTask(Token, TestApp, @"--sleep 100 -d ""one name""").Configure(ProcessManager)
                 .Catch(ex => thrown = ex)
                 .Then((s, d) => output.Add(d))
                 .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-e kaboom -r -1").Configure(ProcessManager))
@@ -207,7 +207,7 @@ namespace IntegrationTests
             await new ActionTask(Token, _ => {
                 results.Add("BeforeProcess");
             })
-                .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"-s 1000 -d ""ok""")
+                .Then(new FirstNonNullLineProcessTask(Token, TestApp, @"--sleep 1000 -d ""ok""")
                     .Configure(ProcessManager)
                     .Then(new FuncTask<int>(Token, (b, i) => {
                         results.Add("ProcessOutput");
