@@ -1113,7 +1113,23 @@ namespace GitHub.Unity
             }
         }
 
-        private static FSWrapper FSWrapper { get; set; }
+        private static FSWrapper _fsWrapper;
+        private static FSWrapper FSWrapper
+        {
+            get
+            {
+                if (_fsWrapper == null)
+                {
+                    // this will initialize both FileSystem and FSWrapper
+                    var fs = FileSystem;
+                }
+                return _fsWrapper;
+            }
+            set
+            {
+                _fsWrapper = value;
+            }
+        }
 
         private static bool? _isUnix;
         internal static bool IsUnix
