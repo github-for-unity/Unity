@@ -267,7 +267,7 @@ namespace GitHub.Unity
 
         static string NormalizePath(string path)
         {
-            return path?.Replace('\\', '/');
+            return path?.Replace('\\', '/').TrimEnd('/');
         }
 
         static string GetRepositoryName(string repositoryNameSegment)

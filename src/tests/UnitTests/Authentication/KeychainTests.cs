@@ -301,7 +301,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().FileDelete(Args.String);
             fileSystem.DidNotReceive().ReadAllText(Args.String);
             fileSystem.DidNotReceive().ReadAllLines(Args.String);
-            fileSystem.Received(1).WriteAllText(connectionsCacheFile, @"[{""Host"":""https://github.com/"",""Username"":""SomeUser""}]");
+            fileSystem.Received(1).WriteAllText(connectionsCacheFile, @"[{""Host"":""https://github.com"",""Username"":""SomeUser""}]");
 
             credentialManager.DidNotReceive().Load(Args.UriString);
             credentialManager.DidNotReceive().HasCredentials();

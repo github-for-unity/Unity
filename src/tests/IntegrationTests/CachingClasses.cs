@@ -184,7 +184,7 @@ namespace IntegrationTests
                 if (!lastUpdatedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         lastUpdatedAtValue = result;
                     }
@@ -210,7 +210,7 @@ namespace IntegrationTests
                 if (!initializedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(InitializedAtString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         initializedAtValue = result;
                     }
