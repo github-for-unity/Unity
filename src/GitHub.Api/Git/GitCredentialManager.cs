@@ -1,7 +1,6 @@
 using GitHub.Logging;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -29,35 +28,35 @@ namespace GitHub.Unity
 
         public ICredential CachedCredentials { get { return credential; } }
 
-        public async Task Delete(UriString host)
+        public void Delete(UriString host)
         {
-            if (!await LoadCredentialHelper())
+            if (!LoadCredentialHelper())
                 return;
 
-            await RunCredentialHelper(
+            RunCredentialHelper(
                 "erase",
                 new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                }).StartAwait();
+                }).RunSynchronously();
             credential = null;
         }
 
-        public async Task<ICredential> Load(UriString host)
+        public ICredential Load(UriString host)
         {
             if (credential == null)
             {
-                if (!await LoadCredentialHelper())
+                if (!LoadCredentialHelper())
                     return null;
 
                 string kvpCreds = null;
 
-                kvpCreds = await RunCredentialHelper(
+                kvpCreds = RunCredentialHelper(
                     "get",
                     new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                    }).StartAwait();
+                    }).RunSynchronously();
 
                 if (String.IsNullOrEmpty(kvpCreds))
                 {
@@ -92,11 +91,11 @@ namespace GitHub.Unity
             return credential;
         }
 
-        public async Task Save(ICredential cred)
+        public void Save(ICredential cred)
         {
             this.credential = cred;
 
-            if (!await LoadCredentialHelper())
+            if (!LoadCredentialHelper())
                 return;
 
             var data = new List<string>
@@ -108,21 +107,21 @@ namespace GitHub.Unity
             };
 
             var task = RunCredentialHelper("store", data.ToArray());
-            await task.StartAwait();
+            task.RunSynchronously();
             if (!task.Successful)
             {
                 Logger.Error("Failed to save credentials");
             }
         }
 
-        private async Task<bool> LoadCredentialHelper()
+        private bool LoadCredentialHelper()
         {
             if (credHelper != null)
                 return true;
 
-            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
+            credHelper = new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
                 .Configure(processManager)
-                .StartAwait();
+                .RunSynchronously();
 
             //Logger.Trace("Loaded Credential Helper: {0}", credHelper);
 

@@ -28,10 +28,10 @@ namespace GitHub.Unity
 
         public ApplicationManagerBase(SynchronizationContext synchronizationContext, IEnvironment environment)
         {
+            UIScheduler = ThreadingHelper.GetUIScheduler(synchronizationContext);
+
             SynchronizationContext = synchronizationContext;
-            SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             ThreadingHelper.SetUIThread();
-            UIScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             ThreadingHelper.MainThreadScheduler = UIScheduler;
 
             Environment = environment;
