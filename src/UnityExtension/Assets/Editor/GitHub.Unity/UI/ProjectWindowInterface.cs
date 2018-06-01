@@ -120,7 +120,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsLock, null);
+                        manager.UsageTracker.IncrementUnityProjectViewContextLfsLock();
                     }
                     else
                     {
@@ -172,7 +172,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {
@@ -224,7 +224,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        manager.TaskManager.Run(manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {

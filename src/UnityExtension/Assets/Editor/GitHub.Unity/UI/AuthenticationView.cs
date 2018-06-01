@@ -209,7 +209,7 @@ namespace GitHub.Unity
             isBusy = false;
             if (success)
             {
-                TaskManager.Run(UsageTracker.IncrementAuthenticationViewButtonAuthentication, null);
+                UsageTracker.IncrementAuthenticationViewButtonAuthentication();
 
                 Clear();
                 Finish(true);
