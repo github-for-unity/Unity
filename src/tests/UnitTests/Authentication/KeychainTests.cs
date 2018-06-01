@@ -162,7 +162,7 @@ namespace UnitTests
                 credential.Username.Returns(username);
                 credential.Token.Returns(token);
                 credential.Host.Returns(hostUri);
-                return TaskEx.FromResult(credential);
+                return credential;
             });
 
             var keychain = new Keychain(environment, credentialManager);
@@ -176,7 +176,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
 
             var uriString = keychain.Hosts.FirstOrDefault();
-            var keychainAdapter = keychain.Load(uriString).Result;
+            var keychainAdapter = keychain.Load(uriString);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
             keychainAdapter.Credential.Host.Should().Be(hostUri);
@@ -209,7 +209,7 @@ namespace UnitTests
             environment.FileSystem.Returns(fileSystem);
 
             var credentialManager = Substitute.For<ICredentialManager>();
-            credentialManager.Load(hostUri).Returns(info => TaskEx.FromResult<ICredential>(null));
+            credentialManager.Load(hostUri).Returns(info => null);
 
             var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
@@ -222,7 +222,7 @@ namespace UnitTests
             fileSystem.ClearReceivedCalls();
 
             var uriString = keychain.Hosts.FirstOrDefault();
-            var keychainAdapter = keychain.Load(uriString).Result;
+            var keychainAdapter = keychain.Load(uriString);
             keychainAdapter.Should().BeNull();
 
             fileSystem.DidNotReceive().FileExists(Args.String);
@@ -258,10 +258,6 @@ namespace UnitTests
             environment.FileSystem.Returns(fileSystem);
 
             var credentialManager = Substitute.For<ICredentialManager>();
-
-            credentialManager.Delete(Args.UriString).Returns(info => TaskEx.FromResult(0));
-
-            credentialManager.Save(Arg.Any<ICredential>()).Returns(info => TaskEx.FromResult(0));
 
             var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
@@ -299,7 +295,7 @@ namespace UnitTests
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
 
-            keychain.Save(hostUri).Wait();
+            keychain.Save(hostUri);
 
             fileSystem.DidNotReceive().FileExists(Args.String);
             fileSystem.DidNotReceive().FileDelete(Args.String);
@@ -334,10 +330,6 @@ namespace UnitTests
 
             var credentialManager = Substitute.For<ICredentialManager>();
 
-            credentialManager.Delete(Args.UriString).Returns(info => TaskEx.FromResult(0));
-
-            credentialManager.Save(Arg.Any<ICredential>()).Returns(info => TaskEx.FromResult(0));
-
             var keychain = new Keychain(environment, credentialManager);
             keychain.Initialize();
 
@@ -367,7 +359,7 @@ namespace UnitTests
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(password);
 
-            keychain.Clear(hostUri, false).Wait();
+            keychain.Clear(hostUri, false);
 
             keychainAdapter.Credential.Should().BeNull();
 

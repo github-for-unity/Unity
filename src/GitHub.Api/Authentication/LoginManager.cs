@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -48,7 +47,7 @@ namespace GitHub.Unity
         }
 
         /// <inheritdoc/>
-        public async Task<LoginResultData> Login(
+        public LoginResultData Login(
             UriString host,
             string username,
             string password)
@@ -64,7 +63,7 @@ namespace GitHub.Unity
 
             try
             {
-                var loginResultData = await TryLogin(host, username, password);
+                var loginResultData = TryLogin(host, username, password);
                 if (loginResultData.Code == LoginResultCodes.Success || loginResultData.Code == LoginResultCodes.CodeRequired)
                 {
                     if (string.IsNullOrEmpty(loginResultData.Token))
@@ -74,14 +73,14 @@ namespace GitHub.Unity
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        username = await RetrieveUsername(loginResultData, username);
+                        username = RetrieveUsername(loginResultData, username);
                     }
 
                     keychain.SetToken(host, loginResultData.Token, username);
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        await keychain.Save(host);
+                        keychain.Save(host);
                     }
 
                     return loginResultData;
@@ -93,12 +92,12 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login Exception");
 
-                await keychain.Clear(host, false);
+                keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
         }
 
-        public async Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode)
+        public LoginResultData ContinueLogin(LoginResultData loginResultData, string twofacode)
         {
             var host = loginResultData.Host;
             var keychainAdapter = keychain.Connect(host);
@@ -106,7 +105,7 @@ namespace GitHub.Unity
             var password = keychainAdapter.Credential.Token;
             try
             {
-                loginResultData = await TryLogin(host, username, password, twofacode);
+                loginResultData = TryLogin(host, username, password, twofacode);
 
                 if (loginResultData.Code == LoginResultCodes.Success)
                 {
@@ -115,9 +114,9 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    username = await RetrieveUsername(loginResultData, username);
+                    username = RetrieveUsername(loginResultData, username);
                     keychain.SetToken(host, loginResultData.Token, username);
-                    await keychain.Save(host);
+                    keychain.Save(host);
 
                     return loginResultData;
                 }
@@ -128,7 +127,7 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login Exception");
 
-                await keychain.Clear(host, false);
+                keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
         }
@@ -137,11 +136,10 @@ namespace GitHub.Unity
         public ITask Logout(UriString hostAddress)
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
-
-            return new TPLTask(keychain.Clear(hostAddress, true)) { Message = "Signing out" }.Start();
+            return taskManager.Run(() => keychain.Clear(hostAddress, true), "Signing out");
         }
 
-        private async Task<LoginResultData> TryLogin(
+        private LoginResultData TryLogin(
             UriString host,
             string username,
             string password,
@@ -175,7 +173,7 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            var ret = await loginTask.StartAwait();
+            var ret = loginTask.RunSynchronously();
 
             if (ret.IsSuccess)
             {
@@ -193,7 +191,7 @@ namespace GitHub.Unity
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
 
-        private async Task<string> RetrieveUsername(LoginResultData loginResultData, string username)
+        private string RetrieveUsername(LoginResultData loginResultData, string username)
         {
             if (!username.Contains("@"))
             {
@@ -203,7 +201,7 @@ namespace GitHub.Unity
             var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
                 user: username, userToken: loginResultData.Token).Configure(processManager);
 
-            var validateResult = await octorunTask.StartAsAsync();
+            var validateResult = octorunTask.RunSynchronously();
             if (!validateResult.IsSuccess)
             {
                 throw new InvalidOperationException("Authentication validation failed");

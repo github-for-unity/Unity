@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -100,18 +99,18 @@ namespace GitHub.Unity
             return FindOrCreateAdapter(host);
         }
 
-        public async Task<IKeychainAdapter> Load(UriString host)
+        public IKeychainAdapter Load(UriString host)
         {
             Guard.ArgumentNotNull(host, nameof(host));
 
             var keychainAdapter = FindOrCreateAdapter(host);
             var connection = GetConnection(host);
 
-            var keychainItem = await credentialManager.Load(host);
+            var keychainItem = credentialManager.Load(host);
             if (keychainItem == null)
             {
                 logger.Warning("Cannot load host from Credential Manager; removing from cache");
-                await Clear(host, false);
+                Clear(host, false);
                 keychainAdapter = null;
             }
             else
@@ -142,21 +141,21 @@ namespace GitHub.Unity
             LoadConnectionsFromDisk();
         }
 
-        public async Task Clear(UriString host, bool deleteFromCredentialManager)
+        public void Clear(UriString host, bool deleteFromCredentialManager)
         {
             Guard.ArgumentNotNull(host, nameof(host));
 
             RemoveConnection(host);
 
             //clear octokit credentials
-            await RemoveCredential(host, deleteFromCredentialManager);
+            RemoveCredential(host, deleteFromCredentialManager);
         }
 
-        public async Task Save(UriString host)
+        public void Save(UriString host)
         {
             Guard.ArgumentNotNull(host, nameof(host));
 
-            var keychainAdapter = await AddCredential(host);
+            var keychainAdapter = AddCredential(host);
             AddConnection(new Connection(host, keychainAdapter.Credential.Username));
         }
 
@@ -231,7 +230,7 @@ namespace GitHub.Unity
             return credentialAdapter;
         }
 
-        private async Task<KeychainAdapter> AddCredential(UriString host)
+        private KeychainAdapter AddCredential(UriString host)
         {
             var keychainAdapter = GetKeychainAdapter(host);
             if (string.IsNullOrEmpty(keychainAdapter.Credential.Token))
@@ -240,12 +239,12 @@ namespace GitHub.Unity
             }
 
             // saves credential in git credential manager (host, username, token)
-            await credentialManager.Delete(host);
-            await credentialManager.Save(keychainAdapter.Credential);
+            credentialManager.Delete(host);
+            credentialManager.Save(keychainAdapter.Credential);
             return keychainAdapter;
         }
 
-        private async Task RemoveCredential(UriString host, bool deleteFromCredentialManager)
+        private void RemoveCredential(UriString host, bool deleteFromCredentialManager)
         {
             KeychainAdapter k;
             if (keychainAdapters.TryGetValue(host, out k))
@@ -256,7 +255,7 @@ namespace GitHub.Unity
 
             if (deleteFromCredentialManager)
             {
-                await credentialManager.Delete(host);
+                credentialManager.Delete(host);
             }
         }
 
