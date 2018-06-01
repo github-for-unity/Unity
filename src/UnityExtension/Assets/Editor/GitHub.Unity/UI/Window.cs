@@ -551,18 +551,6 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
-
-                if (connection == null)
-                {
-                    if (GUILayout.Button("Sign in", Styles.HistoryToolbarButtonStyle))
-                        SignIn(null);
-                }
-                else
-                {
-                    if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
-                    {
-                        DoAccountDropdown();
-                    }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -632,8 +620,18 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(Localization.AccountButton, EditorStyles.toolbarDropDown))
-                    DoAccountDropdown();
+                if (connection == null)
+                {
+                    if (GUILayout.Button("Sign in", EditorStyles.toolbarButton))
+                        SignIn(null);
+                }
+                else
+                {
+                    if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
+                    {
+                        DoAccountDropdown();
+                    }
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -823,7 +821,7 @@ namespace GitHub.Unity
             if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
             {
                 host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                                               .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
             }
             else
             {
@@ -831,7 +829,7 @@ namespace GitHub.Unity
             }
 
             var apiClient = new ApiClient(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
-            apiClient.Logout(host);
+            apiClient.Logout(host).FinallyInUI((s, e) => Redraw());
         }
 
         public new void ShowNotification(GUIContent content)
