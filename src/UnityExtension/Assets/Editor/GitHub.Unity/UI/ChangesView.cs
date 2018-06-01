@@ -280,18 +280,32 @@ namespace GitHub.Unity
             var tmpDir = Manager.Environment.UnityProjectPath.Combine("Temp", "ghu-diffs").EnsureDirectoryExists();
             var leftFile = tmpDir.Combine(rightFile.FileName + "_" + Repository.CurrentHead + rightFile.ExtensionWithDot);
             return new SimpleProcessTask(TaskManager.Token, "show HEAD:\"" + rightFile.ToString(SlashMode.Forward) + "\"")
-                .Configure(Manager.ProcessManager, false)
-                .Catch(_ => true)
-                .Then((success, txt) =>
-                {
-                    if (success)
-                        leftFile.WriteAllText(txt);
-                    else
-                        leftFile = NPath.Default;
-                    if (!rightFile.FileExists())
-                        rightFile = NPath.Default;
-                    return new NPath[] { leftFile, rightFile };
-                });
+                   .Configure(Manager.ProcessManager, false)
+                   .Catch(_ => true)
+                   .Then((success, txt) =>
+                   {
+                       // both files exist, just compare them
+                       if (success && rightFile.FileExists())
+                       {
+                           leftFile.WriteAllText(txt);
+                           return new NPath[] { leftFile, rightFile };
+                       }
+
+                       var leftFolder = tmpDir.Combine("left", leftFile.FileName).EnsureDirectoryExists();
+                       var rightFolder = tmpDir.Combine("right", leftFile.FileName).EnsureDirectoryExists();
+                       // file was deleted
+                       if (!rightFile.FileExists())
+                       {
+                           leftFolder.Combine(rightFile).WriteAllText(txt);
+                       }
+
+                       // file was created
+                       if (!success)
+                       {
+                           rightFolder.Combine(rightFile).WriteAllText(rightFile.ReadAllText());
+                       }
+                       return new NPath[] { leftFolder, rightFolder };
+                   });
         }
 
         private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
