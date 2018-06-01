@@ -58,7 +58,7 @@ namespace GitHub.Unity
             }
         }
 
-        public ITask Run(Action action, string message)
+        public ITask Run(Action action, string message = null)
         {
             return new ActionTask(Token, action) { Message = message }.Start();
         }

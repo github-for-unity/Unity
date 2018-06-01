@@ -41,7 +41,7 @@ namespace IntegrationTests
             usageStore.Model.Guid = userId;
             usageLoader.Load(Arg.Is<string>(userId)).Returns(usageStore);
 
-            var usageTracker = new UsageTracker(settings, usageLoader, unityVersion, instanceId);
+            var usageTracker = new UsageTrackerSync(settings, usageLoader, unityVersion, instanceId);
 
             var currentUsage = usageStore.GetCurrentMeasures(appVersion, unityVersion, instanceId);
             var prop = currentUsage.GetType().GetProperty(measureName);
@@ -68,7 +68,7 @@ namespace IntegrationTests
             var settings = Substitute.For<ISettings>();
             settings.Exists(Arg.Is<string>(Constants.GuidKey)).Returns(true);
             settings.Get(Arg.Is<string>(Constants.GuidKey)).Returns(userId);
-            var usageTracker = new UsageTracker(settings, usageLoader, unityVersion, instanceId);
+            var usageTracker = new UsageTrackerSync(settings, usageLoader, unityVersion, instanceId);
 
             usageTracker.IncrementNumberOfStartups();
             usageTracker.IncrementNumberOfStartups();
@@ -96,7 +96,7 @@ namespace IntegrationTests
             var settings = Substitute.For<ISettings>();
             settings.Exists(Arg.Is<string>(Constants.GuidKey)).Returns(true);
             settings.Get(Arg.Is<string>(Constants.GuidKey)).Returns(userId);
-            var usageTracker = new UsageTracker(settings, usageLoader, unityVersion, instanceId);
+            var usageTracker = new UsageTrackerSync(settings, usageLoader, unityVersion, instanceId);
 
             usageTracker.IncrementNumberOfStartups();
             usageTracker.IncrementNumberOfStartups();
