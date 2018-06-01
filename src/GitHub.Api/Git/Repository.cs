@@ -238,7 +238,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote)
+        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote, string head)
         {
             taskManager.RunInUI(() =>
             {
@@ -247,6 +247,7 @@ namespace GitHub.Unity
                 data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value.name, branch.Value) : null;
                 data.CurrentConfigRemote = remote;
                 data.CurrentGitRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
+                data.CurrentHead = head;
                 name = null;
                 cloneUrl = null;
                 cacheContainer.RepositoryInfoCache.UpdateData(data);
@@ -347,6 +348,7 @@ namespace GitHub.Unity
         public GitRemote? CurrentRemote => cacheContainer.RepositoryInfoCache.CurrentGitRemote;
         public List<GitLogEntry> CurrentLog => cacheContainer.GitLogCache.Log;
         public List<GitLock> CurrentLocks => cacheContainer.GitLocksCache.GitLocks;
+        public string CurrentHead => cacheContainer.RepositoryInfoCache.CurrentHead;
 
         public UriString CloneUrl
         {

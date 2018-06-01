@@ -60,6 +60,7 @@ namespace GitHub.Unity
         string CurrentBranchName { get; }
         List<GitLogEntry> CurrentLog { get; }
         bool IsBusy { get; }
+        string CurrentHead { get; }
 
         event Action<CacheUpdateEvent> LogChanged;
         event Action<CacheUpdateEvent> TrackingStatusChanged;

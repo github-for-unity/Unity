@@ -4,6 +4,7 @@
   <PropertyGroup>
     <BuildType Condition="Exists('$(SolutionDir)script\src\MetricsService.cs')">Internal</BuildType>
     <BuildDefs Condition="Exists('$(SolutionDir)script\src\MetricsService.cs')">ENABLE_METRICS</BuildDefs>
+    <BuildDefs>ENABLE_MONO</BuildDefs>
 
     <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\script\lib\Managed\UnityEditor.dll')">$(SolutionDir)script\lib\</UnityDir>
     <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\lib\Managed\UnityEditor.dll')">$(SolutionDir)lib\</UnityDir>

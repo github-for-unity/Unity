@@ -38,7 +38,7 @@ namespace GitHub.Unity
                     tempZipExtractPath, sharpZipLibHelper,
                     fileSystem)
                     .Catch(e => { Logger.Error(e, "Error extracting octorun"); return true; });
-            var extractPath = unzipTask.RunWithReturn(true);
+            var extractPath = unzipTask.RunSynchronously();
             if (unzipTask.Successful)
                 path = MoveOctorun(extractPath.Combine("octorun"));
             return path;
@@ -71,7 +71,7 @@ namespace GitHub.Unity
                 return false;
             }
 
-            var octorunVersion = installDetails.VersionFile.ReadAllText();
+            var octorunVersion = installDetails.VersionFile.ReadAllText().Trim();
             if (!OctorunInstallDetails.PackageVersion.Equals(octorunVersion))
             {
                 Logger.Warning("Current version {0} does not match expected {1}", octorunVersion, OctorunInstallDetails.PackageVersion);

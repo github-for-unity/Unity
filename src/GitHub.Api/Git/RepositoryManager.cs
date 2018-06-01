@@ -9,7 +9,7 @@ namespace GitHub.Unity
     public interface IRepositoryManager : IDisposable
     {
         event Action<bool> IsBusyChanged;
-        event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
+        event Action<ConfigBranch?, ConfigRemote?, string> CurrentBranchUpdated;
         event Action<GitStatus> GitStatusUpdated;
         event Action<List<GitLock>> GitLocksUpdated;
         event Action<List<GitLogEntry>> GitLogUpdated;
@@ -106,7 +106,7 @@ namespace GitHub.Unity
 
         private bool isBusy;
 
-        public event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
+        public event Action<ConfigBranch?, ConfigRemote?, string> CurrentBranchUpdated;
         public event Action<bool> IsBusyChanged;
         public event Action<GitStatus> GitStatusUpdated;
         public event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
@@ -394,9 +394,10 @@ namespace GitHub.Unity
                 ConfigBranch? branch;
                 ConfigRemote? remote;
                 GetCurrentBranchAndRemote(out branch, out remote);
-                CurrentBranchUpdated?.Invoke(branch, remote);
+                var currentHead = GitClient.GetHead().RunSynchronously();
+                CurrentBranchUpdated?.Invoke(branch, remote, currentHead);
             })
-            { Message = "Updating repository info..." };;
+            { Message = "Updating repository info..." };
             return HookupHandlers(task, false);
         }
 
@@ -460,7 +461,7 @@ namespace GitHub.Unity
                 }
             };
 
-            task.Finally(success =>
+            task.OnEnd += (_, __, ___) =>
             {
                 if (filesystemChangesExpected)
                 {
@@ -473,6 +474,21 @@ namespace GitHub.Unity
                     //Logger.Trace("Ended Operation - Clearing Busy Flag");
                     IsBusy = false;
                 }
+            };
+            task.Catch(_ =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+
             });
             return task;
         }
