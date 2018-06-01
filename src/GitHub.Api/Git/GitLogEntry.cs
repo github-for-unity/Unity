@@ -68,7 +68,7 @@ namespace GitHub.Unity
                 if (!timeValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(TimeString, Constants.Iso8601Formats, CultureInfo.InvariantCulture,DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(TimeString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture,DateTimeStyles.None, out result))
                     {
                         timeValue = result;
                     }
@@ -95,7 +95,7 @@ namespace GitHub.Unity
                 if (!commitTimeValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(CommitTimeString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(CommitTimeString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         commitTimeValue = result;
                     }
