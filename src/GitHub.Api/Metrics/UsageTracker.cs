@@ -6,7 +6,7 @@ using GitHub.Logging;
 
 namespace GitHub.Unity
 {
-    class UsageTracker : IUsageTracker
+    class UsageTrackerSync : IUsageTracker
     {
         private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
 
@@ -22,16 +22,7 @@ namespace GitHub.Unity
 
         public IMetricsService MetricsService { get; set; }
 
-        public UsageTracker(ISettings userSettings,
-            IEnvironment environment, string instanceId)
-                : this(userSettings, 
-                    new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
-                    environment.UnityVersion, instanceId)
-        {
-        }
-
-        public UsageTracker(ISettings userSettings,
-            IUsageLoader usageLoader,
+        public UsageTrackerSync(ISettings userSettings, IUsageLoader usageLoader,
             string unityVersion, string instanceId)
         {
             this.userSettings = userSettings;
@@ -123,7 +114,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementNumberOfStartups()
+        public virtual void IncrementNumberOfStartups()
         {
             lock (_lock)
             {
@@ -134,7 +125,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementProjectsInitialized()
+        public virtual void IncrementProjectsInitialized()
         {
             lock (_lock)
             {
@@ -145,7 +136,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementChangesViewButtonCommit()
+        public virtual void IncrementChangesViewButtonCommit()
         {
             lock (_lock)
             {
@@ -156,7 +147,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementHistoryViewToolbarFetch()
+        public virtual void IncrementHistoryViewToolbarFetch()
         {
             lock (_lock)
             {
@@ -167,7 +158,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementHistoryViewToolbarPush()
+        public virtual void IncrementHistoryViewToolbarPush()
         {
             lock (_lock)
             {
@@ -178,7 +169,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementHistoryViewToolbarPull()
+        public virtual void IncrementHistoryViewToolbarPull()
         {
             lock (_lock)
             {
@@ -189,7 +180,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementBranchesViewButtonCreateBranch()
+        public virtual void IncrementBranchesViewButtonCreateBranch()
         {
             lock (_lock)
             {
@@ -200,7 +191,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementBranchesViewButtonDeleteBranch()
+        public virtual void IncrementBranchesViewButtonDeleteBranch()
         {
             lock (_lock)
             {
@@ -211,7 +202,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementBranchesViewButtonCheckoutLocalBranch()
+        public virtual void IncrementBranchesViewButtonCheckoutLocalBranch()
         {
             lock (_lock)
             {
@@ -222,7 +213,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementBranchesViewButtonCheckoutRemoteBranch()
+        public virtual void IncrementBranchesViewButtonCheckoutRemoteBranch()
         {
             lock (_lock)
             {
@@ -233,7 +224,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementSettingsViewButtonLfsUnlock()
+        public virtual void IncrementSettingsViewButtonLfsUnlock()
         {
             lock (_lock)
             {
@@ -244,7 +235,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementAuthenticationViewButtonAuthentication()
+        public virtual void IncrementAuthenticationViewButtonAuthentication()
         {
             lock (_lock)
             {
@@ -255,7 +246,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementUnityProjectViewContextLfsLock()
+        public virtual void IncrementUnityProjectViewContextLfsLock()
         {
             lock (_lock)
             {
@@ -266,7 +257,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementUnityProjectViewContextLfsUnlock()
+        public virtual void IncrementUnityProjectViewContextLfsUnlock()
         {
             lock (_lock)
             {
@@ -277,7 +268,7 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementPublishViewButtonPublish()
+        public virtual void IncrementPublishViewButtonPublish()
         {
             lock (_lock)
             {
@@ -288,13 +279,33 @@ namespace GitHub.Unity
             }
         }
 
-        public void IncrementApplicationMenuMenuItemCommandLine()
+        public virtual void IncrementApplicationMenuMenuItemCommandLine()
         {
             lock (_lock)
             {
                 var usage = usageLoader.Load(userId);
                 usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
                      .ApplicationMenuMenuItemCommandLine++;
+                usageLoader.Save(usage);
+            }
+        }
+
+        public virtual void UpdateRepoSize(int kilobytes)
+        {
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId).GitRepoSize = kilobytes;
+                usageLoader.Save(usage);
+            }
+        }
+
+        public virtual void UpdateLfsDiskUsage(int kilobytes)
+        {
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId).LfsDiskUsage = kilobytes;
                 usageLoader.Save(usage);
             }
         }
@@ -321,6 +332,39 @@ namespace GitHub.Unity
                 }
             }
         }
+    }
+
+    class UsageTracker : UsageTrackerSync
+    {
+        public UsageTracker(ITaskManager taskManager, ISettings userSettings,
+            IEnvironment environment, string instanceId)
+            : base(userSettings,
+                   new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
+                   environment.UnityVersion, instanceId)
+        {
+            TaskManager = taskManager;
+        }
+
+        public override void IncrementApplicationMenuMenuItemCommandLine() => TaskManager.Run(base.IncrementApplicationMenuMenuItemCommandLine);
+        public override void IncrementAuthenticationViewButtonAuthentication() => TaskManager.Run(base.IncrementAuthenticationViewButtonAuthentication);
+        public override void IncrementBranchesViewButtonCheckoutLocalBranch() => TaskManager.Run(base.IncrementBranchesViewButtonCheckoutLocalBranch);
+        public override void IncrementBranchesViewButtonCheckoutRemoteBranch() => TaskManager.Run(base.IncrementBranchesViewButtonCheckoutRemoteBranch);
+        public override void IncrementBranchesViewButtonCreateBranch() => TaskManager.Run(base.IncrementBranchesViewButtonCreateBranch);
+        public override void IncrementBranchesViewButtonDeleteBranch() => TaskManager.Run(base.IncrementBranchesViewButtonDeleteBranch);
+        public override void IncrementChangesViewButtonCommit() => TaskManager.Run(base.IncrementChangesViewButtonCommit);
+        public override void IncrementHistoryViewToolbarFetch() => TaskManager.Run(base.IncrementHistoryViewToolbarFetch);
+        public override void IncrementHistoryViewToolbarPull() => TaskManager.Run(base.IncrementHistoryViewToolbarPull);
+        public override void IncrementHistoryViewToolbarPush() => TaskManager.Run(base.IncrementHistoryViewToolbarPush);
+        public override void IncrementNumberOfStartups() => TaskManager.Run(base.IncrementNumberOfStartups);
+        public override void IncrementProjectsInitialized() => TaskManager.Run(base.IncrementProjectsInitialized);
+        public override void IncrementPublishViewButtonPublish() => TaskManager.Run(base.IncrementPublishViewButtonPublish);
+        public override void IncrementSettingsViewButtonLfsUnlock() => TaskManager.Run(base.IncrementSettingsViewButtonLfsUnlock);
+        public override void IncrementUnityProjectViewContextLfsLock() => TaskManager.Run(base.IncrementUnityProjectViewContextLfsLock);
+        public override void IncrementUnityProjectViewContextLfsUnlock() => TaskManager.Run(base.IncrementUnityProjectViewContextLfsUnlock);
+        public override void UpdateLfsDiskUsage(int kilobytes) => TaskManager.Run(() => base.UpdateLfsDiskUsage(kilobytes));
+        public override void UpdateRepoSize(int kilobytes) => TaskManager.Run(() => base.UpdateRepoSize(kilobytes));
+
+        protected ITaskManager TaskManager { get; }
     }
 
     interface IUsageLoader

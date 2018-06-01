@@ -47,7 +47,7 @@ namespace GitHub.Unity
             ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
             Platform.Initialize(ProcessManager, TaskManager);
             progress.OnProgress += progressReporter.UpdateProgress;
-            UsageTracker = new UsageTracker(UserSettings, Environment, InstanceId.ToString());
+            UsageTracker = new UsageTracker(TaskManager, UserSettings, Environment, InstanceId.ToString());
 
 #if ENABLE_METRICS
             var metricsService = new MetricsService(ProcessManager,
@@ -64,12 +64,16 @@ namespace GitHub.Unity
             isBusy = true;
             progress.UpdateProgress(0, 100, "Initializing...");
 
+            if (firstRun)
+            {
+                UsageTracker.IncrementNumberOfStartups();
+            }
+
             var thread = new Thread(() =>
             {
                 GitInstallationState state = new GitInstallationState();
                 try
                 {
-                    SetupMetrics();
                     if (Environment.IsMac)
                     {
                         var getEnvPath = new SimpleProcessTask(TaskManager.Token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
@@ -187,6 +191,7 @@ namespace GitHub.Unity
                 if (Environment.RepositoryPath.IsInitialized)
                 {
                     ConfigureMergeSettings();
+                    CaptureRepoSize();
 
                     GitClient.LfsInstall()
                         .Catch(e =>
@@ -255,7 +260,6 @@ namespace GitHub.Unity
                     GitClient.Commit("Initial commit", null).RunWithReturn(true);
                     progress.UpdateProgress(70, 100, "Initializing...");
                     Environment.InitializeRepository();
-                    UsageTracker.IncrementProjectsInitialized();
                 }
                 catch (Exception ex)
                 {
@@ -269,6 +273,7 @@ namespace GitHub.Unity
                     progress.UpdateProgress(90, 100, "Initializing...");
                     RestartRepository();
                     TaskManager.RunInUI(InitializeUI);
+                    UsageTracker.IncrementProjectsInitialized();
                     progress.UpdateProgress(100, 100, "Initialized");
                 }
                 isBusy = false;
@@ -295,6 +300,37 @@ namespace GitHub.Unity
             }).RunWithReturn(true);
         }
 
+        private void CaptureRepoSize()
+        {
+            GitClient.CountObjects()
+                     .Finally((success, gitObjects) =>
+                     {
+                         if (success)
+                         {
+                             UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
+                         }
+                     })
+                     .Start();
+
+            var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
+            if (gitLfsDataPath.Exists())
+            {
+                var diskUsageTask = Environment.IsWindows
+                    ? (IProcessTask<int>)new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token)
+                    : new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token);
+
+                diskUsageTask
+                    .Configure(ProcessManager)
+                    .Finally((success, kilobytes) =>
+                    {
+                        if (success)
+                        {
+                            UsageTracker.UpdateLfsDiskUsage(kilobytes);
+                        }
+                    }).Start();
+            }
+        }
+
         public void RestartRepository()
         {
             if (!Environment.RepositoryPath.IsInitialized)
@@ -308,14 +344,6 @@ namespace GitHub.Unity
             repositoryManager.Start();
             Environment.Repository.Start();
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
-        }
-
-        protected void SetupMetrics()
-        {
-            if (firstRun)
-            {
-                UsageTracker.IncrementNumberOfStartups();
-            }
         }
 
         protected abstract void InitializeUI();

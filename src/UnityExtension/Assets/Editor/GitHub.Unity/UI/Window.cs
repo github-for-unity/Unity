@@ -65,7 +65,7 @@ namespace GitHub.Unity
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
-            EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine, null);
+            EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine();
         }
 
 #if DEBUG
@@ -682,7 +682,7 @@ namespace GitHub.Unity
                         if (success)
                         {
                             SetProgressMessage(Localization.MessagePulled, 100);
-                            TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPull, null);
+                            Manager.UsageTracker.IncrementHistoryViewToolbarPull();
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
@@ -710,7 +710,7 @@ namespace GitHub.Unity
                     if (success)
                     {
                         SetProgressMessage(Localization.MessagePushed, 100);
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPush, null);
+                        Manager.UsageTracker.IncrementHistoryViewToolbarPush();
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -737,7 +737,7 @@ namespace GitHub.Unity
                     if (success)
                     {
                         SetProgressMessage(Localization.MessageFetched, 100);
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch, null);
+                        Manager.UsageTracker.IncrementHistoryViewToolbarFetch();
                     }
                     else
                     {

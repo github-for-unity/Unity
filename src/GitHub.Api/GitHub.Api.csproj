@@ -95,9 +95,11 @@
     <Compile Include="Cache\CachingClasses.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Git\GitCountObjects.cs" />
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
     <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
+    <Compile Include="Git\Tasks\GitCountObjectsTask.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />
     <Compile Include="Git\TreeData.cs" />
@@ -116,9 +118,12 @@
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="Managers\Downloader.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\GitCountObjectsProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LinuxDiskUsageOutputProcessor.cs" />
     <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
     <Compile Include="Helpers\TaskHelpers.cs" />
+    <Compile Include="OutputProcessors\WindowsDiskUsageOutputProcessor.cs" />
     <Compile Include="Platform\DefaultEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Extensions\FileEventExtensions.cs" />
@@ -132,6 +137,8 @@
     <Compile Include="Git\IGitObjectFactory.cs" />
     <Compile Include="Git\Tasks\GitRevertTask.cs" />
     <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Platform\LinuxDiskUsageTask.cs" />
+    <Compile Include="Platform\WindowsDiskUsageTask.cs" />
     <Compile Include="Primitives\Package.cs" />
     <Compile Include="Primitives\TheVersion.cs" />
     <Compile Include="Tasks\ActionTask.cs" />

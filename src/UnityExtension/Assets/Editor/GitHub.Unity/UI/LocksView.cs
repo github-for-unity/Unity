@@ -466,7 +466,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {
@@ -492,7 +492,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {

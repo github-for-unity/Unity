@@ -168,7 +168,7 @@ namespace GitHub.Unity
                                 return;
                             }
 
-                            TaskManager.Run(UsageTracker.IncrementPublishViewButtonPublish, null);
+                            UsageTracker.IncrementPublishViewButtonPublish();
 
                             if (repository == null)
                             {
