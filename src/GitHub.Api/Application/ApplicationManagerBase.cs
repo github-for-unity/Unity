@@ -16,7 +16,7 @@ namespace GitHub.Unity
         private Progress progress = new Progress(TaskBase.Default);
         protected bool isBusy;
         private bool firstRun;
-        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }        
+        protected bool FirstRun { get { return firstRun; } set { firstRun = value; } }
         private Guid instanceId;
         protected Guid InstanceId { get { return instanceId; } set { instanceId = value; } }
 
@@ -75,7 +75,7 @@ namespace GitHub.Unity
                         var getEnvPath = new SimpleProcessTask(TaskManager.Token, "bash".ToNPath(), "-c \"/usr/libexec/path_helper\"")
                                    .Configure(ProcessManager, dontSetupGit: true)
                                    .Catch(e => true); // make sure this doesn't throw if the task fails
-                        var path = getEnvPath.RunWithReturn(true);
+                        var path = getEnvPath.RunSynchronously();
                         if (getEnvPath.Successful)
                         {
                             Logger.Trace("Existing Environment Path Original:{0} Updated:{1}", Environment.Path, path);
@@ -194,7 +194,7 @@ namespace GitHub.Unity
                             Logger.Error(e, "Error running lfs install");
                             return true;
                         })
-                        .RunWithReturn(true);
+                        .RunSynchronously();
                 }
 
                 if (Environment.IsWindows)
@@ -204,7 +204,7 @@ namespace GitHub.Unity
                         {
                             Logger.Error(e, "Error getting the credential helper");
                             return true;
-                        }).RunWithReturn(true);
+                        }).RunSynchronously();
 
                     if (string.IsNullOrEmpty(credentialHelper))
                     {
@@ -215,7 +215,7 @@ namespace GitHub.Unity
                                 Logger.Error(e, "Error setting the credential helper");
                                 return true;
                             })
-                            .RunWithReturn(true);
+                            .RunSynchronously();
                     }
                 }
             }
@@ -238,21 +238,21 @@ namespace GitHub.Unity
 
                     var filesForInitialCommit = new List<string> { gitignore, gitAttrs, assetsGitignore };
 
-                    GitClient.Init().RunWithReturn(true);
+                    GitClient.Init().RunSynchronously();
                     progress.UpdateProgress(10, 100, "Initializing...");
 
                     ConfigureMergeSettings();
                     progress.UpdateProgress(20, 100, "Initializing...");
 
-                    GitClient.LfsInstall().RunWithReturn(true);
+                    GitClient.LfsInstall().RunSynchronously();
                     progress.UpdateProgress(30, 100, "Initializing...");
 
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
                     assetsGitignore.CreateFile();
-                    GitClient.Add(filesForInitialCommit).RunWithReturn(true);
+                    GitClient.Add(filesForInitialCommit).RunSynchronously();
                     progress.UpdateProgress(60, 100, "Initializing...");
-                    GitClient.Commit("Initial commit", null).RunWithReturn(true);
+                    GitClient.Commit("Initial commit", null).RunSynchronously();
                     progress.UpdateProgress(70, 100, "Initializing...");
                     Environment.InitializeRepository();
                     UsageTracker.IncrementProjectsInitialized();
@@ -287,12 +287,12 @@ namespace GitHub.Unity
             GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
                 Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
                 return true;
-            }).RunWithReturn(true);
+            }).RunSynchronously();
 
             GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local).Catch(e => {
                 Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
                 return true;
-            }).RunWithReturn(true);
+            }).RunSynchronously();
         }
 
         public void RestartRepository()

@@ -770,7 +770,7 @@ namespace IntegrationTests
         {
             var runOrder = new List<string>();
             var task = new Task(() => runOrder.Add($"ran"));
-            var act = new ActionTask(task) { Affinity = TaskAffinity.Exclusive };
+            var act = new TPLTask(task) { Affinity = TaskAffinity.Exclusive };
             await act.Start().Task;
             CollectionAssert.AreEqual(new string[] { $"ran" }, runOrder);
         }
@@ -816,19 +816,14 @@ namespace IntegrationTests
                 : base(token, action)
             {}
 
-            public TaskBase Test_GetTopMostTask()
+            public TaskBase Test_GetFirstStartableTask()
             {
-                return base.GetTopMostTask();
-            }
-
-            public TaskBase Test_GetTopMostTaskInCreatedState()
-            {
-                return base.GetTopMostTaskInCreatedState();
+                return base.GetTopMostStartableTask();
             }
         }
 
         [Test]
-        public async Task GetTopMostTaskInCreatedState()
+        public async Task GetTopOfChain_ReturnsTopMostInCreatedState()
         {
             var task1 = new ActionTask(Token, () => { });
             await task1.StartAwait();
@@ -837,20 +832,45 @@ namespace IntegrationTests
 
             task1.Then(task2).Then(task3);
 
-            var top = task3.Test_GetTopMostTaskInCreatedState();
+            var top = task3.GetTopOfChain();
             Assert.AreSame(task2, top);
         }
 
         [Test]
-        public void GetTopMostTask()
+        public void GetTopOfChain_ReturnsTopTaskWhenNotStarted()
         {
-            var task1 = new ActionTask(TaskEx.FromResult(true));
+            var task1 = new TPLTask(TaskEx.FromResult(true));
             var task2 = new TestActionTask(Token, _ => { });
             var task3 = new TestActionTask(Token, _ => { });
 
             task1.Then(task2).Then(task3);
 
-            var top = task3.Test_GetTopMostTask();
+            var top = task3.GetTopOfChain();
+            Assert.AreSame(task1, top);
+        }
+
+        public async Task GetFirstStartableTask_ReturnsNullWhenItsAlreadyStarted()
+        {
+            var task1 = new ActionTask(Token, () => { });
+            await task1.StartAwait();
+            var task2 = new TestActionTask(Token, _ => { });
+            var task3 = new TestActionTask(Token, _ => { });
+
+            task1.Then(task2).Then(task3);
+
+            var top = task3.Test_GetFirstStartableTask();
+            Assert.AreSame(task2, top);
+        }
+
+        public void GetFirstStartableTask_ReturnsTopTaskWhenNotStarted()
+        {
+            var task1 = new ActionTask(Token, () => { });
+            var task2 = new TestActionTask(Token, _ => { });
+            var task3 = new TestActionTask(Token, _ => { });
+
+            task1.Then(task2).Then(task3);
+
+            var top = task3.Test_GetFirstStartableTask();
             Assert.AreSame(task1, top);
         }
 
@@ -860,7 +880,7 @@ namespace IntegrationTests
             var callOrder = new List<string>();
             var dependsOrder = new List<ITask>();
 
-            var innerChainTask1 = new ActionTask(TaskEx.FromResult(LogAndReturnResult(callOrder, "chain2 completed1", true)));
+            var innerChainTask1 = new TPLTask(TaskEx.FromResult(LogAndReturnResult(callOrder, "chain2 completed1", true)));
             var innerChainTask2 = innerChainTask1.Then(_ =>
                 {
                     callOrder.Add("chain2 FuncTask<string>");
@@ -955,6 +975,83 @@ namespace IntegrationTests
         {
             callOrder.Add(msg);
             return result;
+        }
+    }
+
+    [TestFixture]
+    class TaskQueueTests : BaseTest
+    {
+        [Test]
+        public void ConvertsTaskResultsCorrectly()
+        {
+            var vals = new string[] { "2.1", Math.PI.ToString(), "1" };
+            var expected = new double[] { 2.1, Math.PI, 1.0 };
+            var queue = new TaskQueue<string, double>(task => Double.Parse(task.Result));
+            vals.All(s => { queue.Queue(new TPLTask<string>(TaskEx.FromResult(s))); return true; });
+            var ret = queue.RunSynchronously();
+            Assert.AreEqual(expected.Join(","), ret.Join(","));
+        }
+
+        [Test]
+        public void ThrowsIfCannotConvert()
+        {
+            Assert.Throws<ArgumentNullException>(() => new TaskQueue<string, double>());
+            // NPath has an implicit operator to string, but we cannot verify this without using
+            // reflection, so a converter is required
+            Assert.Throws<ArgumentNullException>(() => new TaskQueue<NPath, string>());
+        }
+
+        [Test]
+        public void DoesNotThrowIfItCanConvert()
+        {
+            Assert.DoesNotThrow(() => new TaskQueue<DownloadTask, ITask>());
+        }
+
+        [Test]
+        public void FailingTasksThrowCorrectlyEvenIfFinallyIsPresent()
+        {
+            var queue = new TaskQueue();
+            var task = new ActionTask(Token, () => { throw new Exception(); })
+                .Finally((s, e) => { });
+            queue.Queue(task);
+            Assert.Throws<Exception>(() => queue.RunSynchronously());
+        }
+
+        [Test]
+        public async Task DoubleSchedulingStartsOnlyOnce()
+        {
+            var runOrder = new List<string>();
+            var queue = new TaskQueue();
+            var task1 = new FuncTask<string>(Token, () =>
+                {
+                    runOrder.Add("1");
+                    return "2";
+                });
+            task1.OnStart += _ => runOrder.Add("start 1");
+            task1.OnEnd += (a, b, c, d) => runOrder.Add("end 1");
+            var task2 = new FuncTask<string, string>(Token, (_, str) =>
+                {
+                    runOrder.Add(str);
+                    return "3";
+                });
+            task2.OnStart += _ => runOrder.Add("start 2");
+            task2.OnEnd += (a, b, c, d) => runOrder.Add("end 2");
+            var task3 = new FuncTask<string, string>(Token, (_, str) =>
+            {
+                runOrder.Add(str);
+                return "4";
+            });
+            task3.OnStart += _ => runOrder.Add("start 3");
+            task3.OnEnd += (a, b, c, d) => runOrder.Add("end 3");
+
+            queue.Queue(task1.Then(task2).Then(task3));
+            await queue.StartAwait();
+            var expected = new string[] {
+                "start 1", "1", "end 1",
+                "start 2", "2", "end 2",
+                "start 3", "3", "end 3",
+            };
+            Assert.AreEqual(expected.Join(","), runOrder.Join(","));
         }
     }
 

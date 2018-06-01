@@ -29,7 +29,7 @@ namespace IntegrationTests.Download
 
             var package = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(Environment.FileSystem);
             downloader.QueueDownload(package.Uri, TestBasePath);
 
             StartTrackTime(watch, logger, package.Url);
@@ -54,7 +54,7 @@ namespace IntegrationTests.Download
 
             var package = new Package { Url = $"http://localhost:{server.Port}/nope" };
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(Environment.FileSystem);
             StartTrackTime(watch, logger, package.Url);
             downloader.QueueDownload(package.Uri, TestBasePath);
 
@@ -76,7 +76,7 @@ namespace IntegrationTests.Download
 
             var package = new Package { Url = gitPackage.Url, Md5 = gitLfsPackage.Md5 };
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(Environment.FileSystem);
             downloader.QueueDownload(package.Uri, TestBasePath);
 
             StartTrackTime(watch, logger, package.Url);
@@ -100,7 +100,7 @@ namespace IntegrationTests.Download
             var fileSystem = NPath.FileSystem;
             var package = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(fileSystem);
             StartTrackTime(watch, logger, package.Url);
             downloader.QueueDownload(package.Uri, TestBasePath);
 
@@ -117,7 +117,7 @@ namespace IntegrationTests.Download
             fileSystem.FileDelete(downloadData.File);
             fileSystem.WriteAllBytes(downloadData + ".partial", cutDownloadPathBytes);
 
-            downloader = new Downloader();
+            downloader = new Downloader(fileSystem);
             StartTrackTime(watch, logger, "resuming download");
             downloader.QueueDownload(package.Uri, TestBasePath);
             task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
@@ -140,7 +140,7 @@ namespace IntegrationTests.Download
             var fileSystem = NPath.FileSystem;
             var package = Package.Load(Environment, new UriString($"http://localhost:{server.Port}/unity/git/windows/git-lfs.json"));
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(fileSystem);
             StartTrackTime(watch, logger, package.Url);
             downloader.QueueDownload(package.Uri, TestBasePath);
 
@@ -150,7 +150,7 @@ namespace IntegrationTests.Download
             var downloadData = await downloader.Task;
             var downloadPath = downloadData.FirstOrDefault().File;
 
-            downloader = new Downloader();
+            downloader = new Downloader(fileSystem);
             StartTrackTime(watch, logger, "downloading again");
             downloader.QueueDownload(package.Uri, TestBasePath);
             task = await TaskEx.WhenAny(downloader.Start().Task, TaskEx.Delay(Timeout));
@@ -175,12 +175,12 @@ namespace IntegrationTests.Download
 
             var events = new List<string>();
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(Environment.FileSystem);
             downloader.QueueDownload(package2.Uri, TestBasePath);
             downloader.QueueDownload(package1.Uri, TestBasePath);
-            downloader.DownloadStart += d => events.Add("start " + d.Url.Filename);
-            downloader.DownloadComplete += d => events.Add("end " + d.Url.Filename);
-            downloader.DownloadFailed += (d, _) => events.Add("failed " + d.Url.Filename);
+            downloader.OnDownloadStart += url => events.Add("start " + url.Filename);
+            downloader.OnDownloadComplete += (url, file) => events.Add("end " + url.Filename);
+            downloader.OnDownloadFailed += (url, ex) => events.Add("failed " + url.Filename);
 
             server.Delay = 1;
             StartTrackTime(watch, logger);

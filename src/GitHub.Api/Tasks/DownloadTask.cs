@@ -49,12 +49,9 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        public override NPath RunWithReturn(bool success)
+        protected override NPath RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
-
-            RaiseOnStart();
-
             try
             {
                 result = RunDownload(success);
@@ -62,13 +59,8 @@ namespace GitHub.Unity
             catch (Exception ex)
             {
                 if (!RaiseFaultHandlers(ex))
-                    throw;
+                    throw exception;
             }
-            finally
-            {
-                RaiseOnEnd(result);
-            }
-
             return result;
         }
 
@@ -76,7 +68,6 @@ namespace GitHub.Unity
         /// The actual functionality to download with optional hash verification
         /// subclasses that wish to return the contents of the downloaded file
         /// or do something else with it can override this instead of RunWithReturn.
-        /// If you do, you must call RaiseOnStart()/RaiseOnEnd()
         /// </summary>
         /// <param name="success"></param>
         /// <returns></returns>

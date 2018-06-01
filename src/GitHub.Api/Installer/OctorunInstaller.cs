@@ -38,7 +38,7 @@ namespace GitHub.Unity
                     tempZipExtractPath, sharpZipLibHelper,
                     fileSystem)
                     .Catch(e => { Logger.Error(e, "Error extracting octorun"); return true; });
-            var extractPath = unzipTask.RunWithReturn(true);
+            var extractPath = unzipTask.RunSynchronously();
             if (unzipTask.Successful)
                 path = MoveOctorun(extractPath.Combine("octorun"));
             return path;
