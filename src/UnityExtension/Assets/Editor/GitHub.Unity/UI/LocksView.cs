@@ -51,6 +51,7 @@ namespace GitHub.Unity
         [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
         [NonSerialized] private int controlId;
         [NonSerialized] private UnityEngine.Object lastActivatedObject;
+        [NonSerialized] private Dictionary<string, bool> visibleItems = new Dictionary<string, bool>();
 
         [SerializeField] private Vector2 scroll;
         [SerializeField] private List<GitLockEntry> gitLockEntries = new List<GitLockEntry>();
@@ -106,15 +107,19 @@ namespace GitHub.Unity
                 var endDisplay = scroll.y + containingRect.height;
 
                 var rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
-
                 for (var index = 0; index < gitLockEntries.Count; index++)
                 {
                     var entry = gitLockEntries[index];
 
                     var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.LocksEntryHeight);
 
-                    var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
-                    if (shouldRenderEntry)
+                    if (Event.current.type == EventType.Layout)
+                    {
+                        var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                        visibleItems[entry.GitLock.ID] = shouldRenderEntry;
+                    }
+
+                    if (visibleItems[entry.GitLock.ID])
                     {
                         entryRect = RenderEntry(entryRect, entry);
                     }
@@ -225,6 +230,7 @@ namespace GitHub.Unity
             var scrollIndex = (int)(scrollValue / Styles.LocksEntryHeight);
 
             assets.Clear();
+            visibleItems.Clear();
 
             gitLockEntries = locks.Select(gitLock =>
             {
@@ -244,6 +250,7 @@ namespace GitHub.Unity
                     assets.Add(assetGuid, gitLockEntry);
                 }
 
+                visibleItems.Add(gitLockEntry.GitLock.ID, false);
                 return gitLockEntry;
             }).ToList();
 

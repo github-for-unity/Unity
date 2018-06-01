@@ -25,7 +25,7 @@ namespace IntegrationTests
         public override void TestFixtureSetUp()
         {
             base.TestFixtureSetUp();
-            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"));
+            server = new TestWebServer.HttpServer(SolutionDirectory.Combine("files"), 50000);
             Task.Factory.StartNew(server.Start);
             ApplicationConfiguration.WebTimeout = 10000;
         }
@@ -174,9 +174,9 @@ namespace IntegrationTests
             var gitLfsInstallationPath = TestBasePath.Combine("GitInstall").Combine(GitInstaller.GitInstallDetails.GitLfsDirectory);
 
             var gitZipUri = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-slim.zip");
-            var downloader = new Downloader();
+            var downloader = new Downloader(Environment.FileSystem);
             downloader.QueueDownload(gitZipUri, tempZipExtractPath);
-            downloader.RunWithReturn(true);
+            downloader.RunSynchronously();
 
             var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
             ZipHelper.Instance.Extract(tempZipExtractPath.Combine(gitZipUri.Filename), gitExtractPath, TaskManager.Token, null);
@@ -209,9 +209,9 @@ namespace IntegrationTests
             var customGitInstall = TestBasePath.Combine("CustomGitInstall").Combine(GitInstaller.GitInstallDetails.GitDirectory);
 
             var gitZipUri = new UriString($"http://localhost:{server.Port}/unity/git/windows/git-slim.zip");
-            var downloader = new Downloader();
+            var downloader = new Downloader(Environment.FileSystem);
             downloader.QueueDownload(gitZipUri, tempZipExtractPath);
-            downloader.RunWithReturn(true);
+            downloader.RunSynchronously();
 
             var gitExtractPath = tempZipExtractPath.Combine("git").CreateDirectory();
             ZipHelper.Instance.Extract(tempZipExtractPath.Combine(gitZipUri.Filename), gitExtractPath, TaskManager.Token, null);

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using GitHub.Logging;
-using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -20,111 +16,39 @@ namespace GitHub.Unity
         }
     }
 
-    class Downloader : FuncListTask<DownloadData>
+    class Downloader : TaskQueue<NPath, DownloadData>
     {
-        public event Action<DownloadData> DownloadStart;
-        public event Action<DownloadData> DownloadComplete;
-        public event Action<DownloadData, Exception> DownloadFailed;
+        public event Action<UriString> OnDownloadStart;
+        public event Action<UriString, NPath> OnDownloadComplete;
+        public event Action<UriString, Exception> OnDownloadFailed;
 
-        private readonly List<DownloaderTask> downloaders = new List<DownloaderTask>();
-
-        public override string Message { get; set; } = "Downloading...";
-
-        public Downloader() : base(TaskManager.Instance.Token, RunDownloaders)
+        private readonly IFileSystem fileSystem;
+        public Downloader(IFileSystem fileSystem)
+            : base(t =>
+            {
+                var dt = t as DownloadTask;
+                var destinationFile = dt.TargetDirectory.Combine(dt.Url.Filename);
+                return new DownloadData(dt.Url, destinationFile);
+            })
         {
+            this.fileSystem = fileSystem;
             Name = "Downloader";
+            Message = "Downloading...";
         }
 
         public void QueueDownload(UriString url, NPath targetDirectory)
         {
-            var downloaderTask = new DownloaderTask();
-            downloaderTask.QueueDownload(url, targetDirectory);
-            downloaders.Add(downloaderTask);
-        }
-
-        private static List<DownloadData> RunDownloaders(bool success, FuncListTask<DownloadData> source)
-        {
-            Downloader self = (Downloader)source;
-            List<DownloadData> result = null;
-            var listOfTasks = new List<Task<DownloadData>>();
-            foreach (var downloader in self.downloaders)
+            var download = new DownloadTask(Token, fileSystem, url, targetDirectory);
+            download.OnStart += t => OnDownloadStart?.Invoke(((DownloadTask)t).Url);
+            download.OnEnd += (t, res, s, ex) =>
             {
-                downloader.DownloadStart += self.DownloadStart;
-                downloader.DownloadComplete += self.DownloadComplete;
-                downloader.DownloadFailed += self.DownloadFailed;
-                listOfTasks.Add(downloader.Run());
-            }
-            var res = TaskEx.WhenAll(listOfTasks).Result;
-            if (res != null)
-                result = new List<DownloadData>(res);
-            return result;
-        }
-
-        class DownloaderTask
-        {
-            public event Action<DownloadData> DownloadStart;
-            public event Action<DownloadData> DownloadComplete;
-            public event Action<DownloadData, Exception> DownloadFailed;
-
-            private readonly List<ITask<NPath>> queuedTasks = new List<ITask<NPath>>();
-            private readonly TaskCompletionSource<DownloadData> aggregateDownloads = new TaskCompletionSource<DownloadData>();
-            private readonly IFileSystem fs;
-            private readonly CancellationToken cancellationToken;
-
-            private volatile bool isSuccessful = true;
-            private volatile Exception exception;
-            private DownloadData result;
-
-            public DownloaderTask()
-            {
-                fs = NPath.FileSystem;
-                cancellationToken = TaskManager.Instance.Token;
-                DownloadComplete += d => aggregateDownloads.TrySetResult(d);
-                DownloadFailed += (_, e) => aggregateDownloads.TrySetException(e);
-            }
-
-            public Task<DownloadData> Run()
-            {
-                foreach (var task in queuedTasks)
-                    task.Start();
-                if (queuedTasks.Count == 0)
-                    DownloadComplete(result);
-                return aggregateDownloads.Task;
-            }
-
-            public Task<DownloadData> QueueDownload(UriString url, NPath targetDirectory)
-            {
-                var destinationFile = targetDirectory.Combine(url.Filename);
-                result = new DownloadData(url, destinationFile);
-
-                Action<ITask<NPath>, NPath, bool, Exception> verifyDownload = (t, res, success, ex) =>
-                {
-                    isSuccessful &= success;
-                    if (!success)
-                        exception = ex;
-                    if (!isSuccessful)
-                    {
-                        DownloadFailed(result, exception);
-                    }
-                    else
-                    {
-                        DownloadComplete(result);
-                    }
-                };
-
-                var fileDownload = DownloadFile(url, targetDirectory, result, verifyDownload);
-                fileDownload.OnStart += _ => DownloadStart?.Invoke(result);
-                queuedTasks.Add(fileDownload);
-                return aggregateDownloads.Task;
-            }
-
-            private ITask<NPath> DownloadFile(UriString url, NPath targetDirectory, DownloadData res, Action<ITask<NPath>, NPath, bool, Exception> verifyDownload)
-            {
-                var download = new DownloadTask(cancellationToken, fs, url, targetDirectory)
-                    .Catch(e => { DownloadFailed(res, e); return true; });
-                download.OnEnd += verifyDownload;
-                return download;
-            }
+                if (s)
+                    OnDownloadComplete?.Invoke(((DownloadTask)t).Url, res);
+                else
+                    OnDownloadFailed?.Invoke(((DownloadTask)t).Url, ex);
+            };
+            // queue after hooking up events so OnDownload* gets called first
+            Queue(download);
         }
 
         public static bool Download(ILogging logger, UriString url,
