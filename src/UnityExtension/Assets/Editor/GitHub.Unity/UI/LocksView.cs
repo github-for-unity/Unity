@@ -418,8 +418,8 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            Repository.Refresh(CacheType.GitStatus);
-            Repository.Refresh(CacheType.GitLocks);
+            Refresh(CacheType.GitStatus);
+            Refresh(CacheType.GitLocks);
         }
 
         public override void OnDataUpdate()

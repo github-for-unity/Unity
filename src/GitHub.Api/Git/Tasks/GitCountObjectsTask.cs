@@ -2,11 +2,11 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class GitCountObjectsTask : ProcessTask<GitCountObjects>
+    class GitCountObjectsTask : ProcessTask<int>
     {
         private const string TaskName = "git count-objects";
 
-        public GitCountObjectsTask(CancellationToken token, IOutputProcessor<GitCountObjects> processor = null)
+        public GitCountObjectsTask(CancellationToken token, IOutputProcessor<int> processor = null)
             : base(token, processor ?? new GitCountObjectsProcessor())
         {
             Name = TaskName;

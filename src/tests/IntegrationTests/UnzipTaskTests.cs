@@ -15,10 +15,9 @@ namespace IntegrationTests
         [Test]
         public async Task UnzipWorks()
         {
-            InitializeTaskManager();
-
             var cacheContainer = Substitute.For<ICacheContainer>();
             Environment = new IntegrationTestEnvironment(cacheContainer, TestBasePath, SolutionDirectory);
+            InitializeTaskManager();
 
             var destinationPath = TestBasePath.Combine("gitlfs_zip").CreateDirectory();
             var archiveFilePath = AssemblyResources.ToFile(ResourceType.Platform, "git-lfs.zip", destinationPath, Environment);

@@ -188,9 +188,6 @@ namespace GitHub.Unity
         {
             var cache = cacheContainer.GetCache(cacheType);
             cache.InvalidateData();
-
-            // Ensuring that the GitLock cache is kept up to date
-            cacheContainer.GetCache(CacheType.GitLocks).ValidateData();
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
@@ -309,7 +306,6 @@ namespace GitHub.Unity
         {
             var branchName = x.Name;
             var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
-            var isActive = branchName == currentBranchName;
             return new GitBranch(branchName, trackingName);
         }
 

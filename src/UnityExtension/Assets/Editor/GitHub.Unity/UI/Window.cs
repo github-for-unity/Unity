@@ -195,6 +195,7 @@ namespace GitHub.Unity
             base.Refresh();
             if (ActiveView != null)
                 ActiveView.Refresh();
+            Refresh(CacheType.GitLocks);
             Redraw();
         }
 
