@@ -14,7 +14,7 @@ namespace GitHub.Unity
         {
             Name = TaskName;
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
-            arguments = String.Format("lfs lock \"{0}\"", path);
+            arguments = String.Format("lock \"{0}\"", path);
         }
 
         public override string ProcessArguments => arguments;

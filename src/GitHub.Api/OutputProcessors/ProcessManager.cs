@@ -1,8 +1,6 @@
 ﻿using GitHub.Logging;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -16,6 +14,7 @@ namespace GitHub.Unity
         private readonly IEnvironment environment;
         private readonly IProcessEnvironment gitEnvironment;
         private readonly CancellationToken cancellationToken;
+        private readonly HashSet<IProcess> processes = new HashSet<IProcess>();
 
         public ProcessManager(IEnvironment environment, IProcessEnvironment gitEnvironment, CancellationToken cancellationToken)
         {
@@ -49,7 +48,7 @@ namespace GitHub.Unity
             gitEnvironment.Configure(startInfo, workingDirectory ?? environment.RepositoryPath, dontSetupGit);
 
             string filename = executable.Value;
-            if (executable.Value.IsRelative && filename != "where" && filename != "which")
+            if (executable.Value.IsRelative && filename.StartsWith("git"))
             {
                 var file = FindExecutableInPath(executable.Value.FileName, false, startInfo.EnvironmentVariables["PATH"].ToNPathList(environment).ToArray());
                 filename = file.IsInitialized ? file : executable.Value.FileName;
@@ -57,6 +56,11 @@ namespace GitHub.Unity
             startInfo.FileName = filename;
             startInfo.Arguments = arguments ?? processTask.ProcessArguments;
             processTask.Configure(startInfo);
+            processTask.OnStartProcess += p => processes.Add(p);
+            processTask.OnEndProcess += p => {
+                if (processes.Contains(p))
+                    processes.Remove(p);
+            };
             return processTask;
         }
 
@@ -112,6 +116,12 @@ namespace GitHub.Unity
             p.StartInfo.RedirectStandardError = true;
             processTask.Configure(p);
             return processTask;
+        }
+
+        public void Stop()
+        {
+            foreach (var p in processes.ToArray())
+                p.Stop();
         }
 
         public static NPath FindExecutableInPath(string executable, bool recurse = false, params NPath[] searchPaths)

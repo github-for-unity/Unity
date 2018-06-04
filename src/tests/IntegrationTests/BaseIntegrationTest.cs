@@ -86,6 +86,7 @@ namespace IntegrationTests
             TaskManager = new TaskManager();
             SyncContext = new ThreadSynchronizationContext(TaskManager.Token);
             TaskManager.UIScheduler = new SynchronizationContextTaskScheduler(SyncContext);
+            ApplicationManager = new ApplicationManagerBase(SyncContext, Environment);
         }
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,

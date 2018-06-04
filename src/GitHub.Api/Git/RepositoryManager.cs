@@ -195,6 +195,11 @@ namespace GitHub.Unity
         public ITask Fetch(string remote)
         {
             var task = GitClient.Fetch(remote);
+            task.OnEnd += (_, __, success, ___) =>
+            {
+                if (success)
+                    UpdateGitAheadBehindStatus().Start();
+            };
             return HookupHandlers(task, false);
         }
 
@@ -207,6 +212,11 @@ namespace GitHub.Unity
         public ITask Push(string remote, string branch)
         {
             var task = GitClient.Push(remote, branch);
+            task.OnEnd += (_, __, success, ___) =>
+            {
+                if (success)
+                    UpdateGitAheadBehindStatus().Start();
+            };
             return HookupHandlers(task, false);
         }
 

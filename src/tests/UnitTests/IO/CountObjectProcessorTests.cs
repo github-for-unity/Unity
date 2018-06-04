@@ -18,12 +18,12 @@ namespace UnitTests
                 null
             };
 
-            AssertProcessOutput(output, new GitCountObjects(2488, 4237));
+            AssertProcessOutput(output, 4237);
         }
 
-        private void AssertProcessOutput(IEnumerable<string> lines, GitCountObjects expected)
+        private void AssertProcessOutput(IEnumerable<string> lines, int expected)
         {
-            GitCountObjects? result = null;
+            int? result = null;
             var outputProcessor = new GitCountObjectsProcessor();
             outputProcessor.OnEntry += status => { result = status; };
 
@@ -33,7 +33,7 @@ namespace UnitTests
             }
 
             Assert.IsTrue(result.HasValue);
-            result.Value.AssertEqual(expected);
+            Assert.AreEqual(expected, result.Value);
         }
     }
 }

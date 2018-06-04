@@ -1,6 +1,6 @@
 namespace GitHub.Unity
 {
-    public class GitCountObjectsProcessor : BaseOutputProcessor<GitCountObjects>
+    public class GitCountObjectsProcessor : BaseOutputProcessor<int>
     {
         public override void LineReceived(string line)
         {
@@ -11,14 +11,18 @@ namespace GitHub.Unity
 
             //2488 objects, 4237 kilobytes
 
-            var proc = new LineParser(line);
+            try
+            {
+                var proc = new LineParser(line);
 
-            var objects = int.Parse(proc.ReadUntilWhitespace());
-            proc.ReadUntil(',');
-            proc.SkipWhitespace();
-            var kilobytes = int.Parse(proc.ReadUntilWhitespace());
+                proc.ReadUntil(',');
+                proc.SkipWhitespace();
+                var kilobytes = int.Parse(proc.ReadUntilWhitespace());
 
-            RaiseOnEntry(new GitCountObjects(objects, kilobytes));
+                RaiseOnEntry(kilobytes);
+            }
+            catch {}
+            return;
         }
     }
 }

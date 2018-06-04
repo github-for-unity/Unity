@@ -105,14 +105,20 @@ namespace GitHub.Unity
             }
 
             // if we're here, success!
-            lock(_lock)
+            lock (_lock)
             {
                 usageStore = usageLoader.Load(userId);
                 usageStore.LastSubmissionDate = currentTimeOffset;
                 usageStore.Model.RemoveReports(currentTimeOffset.Date);
                 usageLoader.Save(usageStore);
             }
+
+            // update the repo size for the current report, while we're at it
+            CaptureRepoSize();
         }
+
+        protected virtual void CaptureRepoSize()
+        {}
 
         public virtual void IncrementNumberOfStartups()
         {
@@ -336,13 +342,39 @@ namespace GitHub.Unity
 
     class UsageTracker : UsageTrackerSync
     {
-        public UsageTracker(ITaskManager taskManager, ISettings userSettings,
+        public UsageTracker(ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager,
+            ISettings userSettings,
             IEnvironment environment, string instanceId)
             : base(userSettings,
                    new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
                    environment.UnityVersion, instanceId)
         {
             TaskManager = taskManager;
+            Environment = environment;
+            GitClient = gitClient;
+            ProcessManager = processManager;
+        }
+
+        protected override void CaptureRepoSize()
+        {
+            try
+            {
+                var gitSize = GitClient.CountObjects()
+                    .Catch(_ => true)
+                    .RunSynchronously();
+                base.UpdateRepoSize(gitSize);
+
+                var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
+                if (gitLfsDataPath.Exists())
+                {
+                    var lfsSize = new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token)
+                        .Configure(ProcessManager)
+                        .Catch(_ => true)
+                        .RunSynchronously();
+                    base.UpdateLfsDiskUsage(lfsSize);
+                }
+            }
+            catch {}
         }
 
         public override void IncrementApplicationMenuMenuItemCommandLine() => TaskManager.Run(base.IncrementApplicationMenuMenuItemCommandLine);
@@ -365,6 +397,9 @@ namespace GitHub.Unity
         public override void UpdateRepoSize(int kilobytes) => TaskManager.Run(() => base.UpdateRepoSize(kilobytes));
 
         protected ITaskManager TaskManager { get; }
+        protected IEnvironment Environment { get; }
+        protected IGitClient GitClient { get; }
+        public IProcessManager ProcessManager { get; }
     }
 
     interface IUsageLoader

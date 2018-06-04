@@ -158,7 +158,7 @@ namespace TestApp
                 if (outfile.IsInitialized)
                     outfile.WriteAllText(json);
                 else
-                    Logger.Info(json);
+                    Console.WriteLine(json);
                 return 0;
             }
 

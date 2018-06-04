@@ -7,7 +7,7 @@ using static GitHub.Unity.GitInstaller;
 
 namespace GitHub.Unity
 {
-    abstract class ApplicationManagerBase : IApplicationManager
+    class ApplicationManagerBase : IApplicationManager
     {
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 
@@ -45,9 +45,10 @@ namespace GitHub.Unity
         {
             LogHelper.TracingEnabled = UserSettings.Get(Constants.TraceLoggingKey, false);
             ApplicationConfiguration.WebTimeout = UserSettings.Get(Constants.WebTimeoutKey, ApplicationConfiguration.WebTimeout);
+            ApplicationConfiguration.GitTimeout = UserSettings.Get(Constants.GitTimeoutKey, ApplicationConfiguration.GitTimeout);
             Platform.Initialize(ProcessManager, TaskManager);
             progress.OnProgress += progressReporter.UpdateProgress;
-            UsageTracker = new UsageTracker(TaskManager, UserSettings, Environment, InstanceId.ToString());
+            UsageTracker = new UsageTracker(TaskManager, GitClient, ProcessManager, UserSettings, Environment, InstanceId.ToString());
 
 #if ENABLE_METRICS
             var metricsService = new MetricsService(ProcessManager,
@@ -191,7 +192,6 @@ namespace GitHub.Unity
                 if (Environment.RepositoryPath.IsInitialized)
                 {
                     ConfigureMergeSettings();
-                    CaptureRepoSize();
 
                     GitClient.LfsInstall()
                         .Catch(e =>
@@ -300,37 +300,6 @@ namespace GitHub.Unity
             }).RunSynchronously();
         }
 
-        private void CaptureRepoSize()
-        {
-            GitClient.CountObjects()
-                     .Finally((success, gitObjects) =>
-                     {
-                         if (success)
-                         {
-                             UsageTracker.UpdateRepoSize(gitObjects.kilobytes);
-                         }
-                     })
-                     .Start();
-
-            var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
-            if (gitLfsDataPath.Exists())
-            {
-                var diskUsageTask = Environment.IsWindows
-                    ? (IProcessTask<int>)new WindowsDiskUsageTask(gitLfsDataPath, TaskManager.Token)
-                    : new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token);
-
-                diskUsageTask
-                    .Configure(ProcessManager)
-                    .Finally((success, kilobytes) =>
-                    {
-                        if (success)
-                        {
-                            UsageTracker.UpdateLfsDiskUsage(kilobytes);
-                        }
-                    }).Start();
-            }
-        }
-
         public void RestartRepository()
         {
             if (!Environment.RepositoryPath.IsInitialized)
@@ -346,8 +315,8 @@ namespace GitHub.Unity
             Logger.Trace($"Got a repository? {(Environment.Repository != null ? Environment.Repository.LocalPath : "null")}");
         }
 
-        protected abstract void InitializeUI();
-        protected abstract void InitializationComplete();
+        protected virtual void InitializeUI() {}
+        protected virtual void InitializationComplete() {}
 
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)
@@ -356,6 +325,10 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
+                if (ProcessManager != null)
+                {
+                    ProcessManager.Stop();
+                }
                 if (TaskManager != null)
                 {
                     TaskManager.Dispose();

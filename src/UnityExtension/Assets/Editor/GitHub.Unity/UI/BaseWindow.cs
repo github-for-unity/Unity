@@ -1,5 +1,7 @@
 using GitHub.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +14,11 @@ namespace GitHub.Unity
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] protected bool inLayout;
+
+        public BaseWindow()
+        {
+            RefreshEvents = new Dictionary<CacheType, int>();
+        }
 
         public virtual void Initialize(IApplicationManager applicationManager)
         {
@@ -117,6 +124,30 @@ namespace GitHub.Unity
             IsRefreshing = false;
         }
 
+        public void Refresh(CacheType type)
+        {
+            if (Repository == null)
+                return;
+
+            IsRefreshing = true;
+            if (!RefreshEvents.ContainsKey(type))
+                RefreshEvents.Add(type, 0);
+            RefreshEvents[type]++;
+            Repository.Refresh(type);
+        }
+
+        public void ReceivedEvent(CacheType type)
+        {
+            if (!RefreshEvents.ContainsKey(type))
+                RefreshEvents.Add(type, 0);
+            var val = RefreshEvents[type] - 1;
+            RefreshEvents[type] = val > -1 ? val : 0;
+            if (IsRefreshing && !RefreshEvents.Values.Any(x => x > 0))
+            {
+                DoneRefreshing();
+            }
+        }
+
         public virtual void DoEmptyGUI()
         {}
         public virtual void DoProgressGUI()
@@ -138,6 +169,7 @@ namespace GitHub.Unity
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
+        public Dictionary<CacheType, int> RefreshEvents { get; set; }
         private ILogging logger;
         protected ILogging Logger
         {

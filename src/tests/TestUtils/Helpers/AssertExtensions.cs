@@ -114,11 +114,5 @@ namespace TestUtils
             Action action = () => gitStatus.AssertEqual(other);
             action.ShouldThrow<AssertionException>();
         }
-
-        public static void AssertEqual(this GitCountObjects gitStatus, GitCountObjects other)
-        {
-            gitStatus.Objects.Should().Be(other.Objects, "Objects should be equal");
-            gitStatus.Kilobytes.Should().Be(other.Kilobytes, "KilobytesS should be equal");
-        }
     }
 }

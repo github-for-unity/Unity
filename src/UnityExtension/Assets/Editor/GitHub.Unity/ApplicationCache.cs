@@ -599,7 +599,15 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                if (forcedInvalidation || !log.SequenceEqual(value))
+                if (value == null)
+                {
+                    if (forcedInvalidation || log.Count > 0)
+                    {
+                        log.Clear();
+                        isUpdated = true;
+                    }
+                }
+                else if (forcedInvalidation || !log.SequenceEqual(value))
                 {
                     log = value;
                     isUpdated = true;
@@ -688,7 +696,15 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                if (forcedInvalidation || !entries.SequenceEqual(value))
+                if (value == null)
+                {
+                    if (forcedInvalidation || entries.Count > 0)
+                    {
+                        entries.Clear();
+                        isUpdated = true;
+                    }
+                }
+                else if (forcedInvalidation || !entries.SequenceEqual(value))
                 {
                     entries = value;
                     isUpdated = true;
@@ -721,7 +737,15 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                if (forcedInvalidation || !gitLocks.SequenceEqual(value))
+                if (value == null)
+                {
+                    if (forcedInvalidation || gitLocks.Count > 0)
+                    {
+                        gitLocks.Clear();
+                        isUpdated = true;
+                    }
+                }
+                else if (forcedInvalidation || !gitLocks.SequenceEqual(value))
                 {
                     gitLocks = value;
                     isUpdated = true;

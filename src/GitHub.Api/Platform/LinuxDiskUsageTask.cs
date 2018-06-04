@@ -9,8 +9,8 @@ namespace GitHub.Unity
         public LinuxDiskUsageTask(NPath directory, CancellationToken token)
             : base(token, new LinuxDiskUsageOutputProcessor())
         {
-            Name = "du";
-            arguments = string.Format("-h \"{0}\"", directory);
+            Name = "du" + DefaultEnvironment.ExecutableExt;
+            arguments = string.Format("-sH \"{0}\"", directory);
         }
 
         public override string ProcessName { get { return Name; } }

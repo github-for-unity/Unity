@@ -9,3 +9,4 @@ build/
 TestResult.xml
 submodules/
 *.stackdump
+*.lastcodeanalysissucceeded
