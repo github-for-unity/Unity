@@ -106,7 +106,7 @@ namespace GitHub.Unity
                     gotOutput.Set();
                     if (e.Data != null)
                     {
-                        var line = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
+                        var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
                         errors.Add(line.TrimEnd('\r', '\n'));
                         Logger.Trace(line);
                     }
@@ -121,7 +121,7 @@ namespace GitHub.Unity
                     gotOutput.Set();
                     if (e.Data != null)
                     {
-                        var line = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
+                        var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
                         outputProcessor.LineReceived(line.TrimEnd('\r','\n'));
                     }
                     else
