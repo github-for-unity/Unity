@@ -4,7 +4,7 @@ var octokitWrapper = require("./octokit");
 
 var twoFactorRegex = new RegExp("must specify two-factor authentication otp code", "gi");
 
-var scopes = ["user", "repo", "gist", "write:public_key"];
+var scopes = ["user", "repo"];
 
 var handleAuthentication = function (username, password, onSuccess, onFailure, twoFactor) {
     if (!config.clientId || !config.clientSecret) {
