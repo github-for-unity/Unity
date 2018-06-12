@@ -1,8 +1,8 @@
 # Authenticating to GitHub
 
-## How to login to GitHub
+## How to sign in to GitHub
 
-1. In Unity find the **GitHub** window. If you can't find it, you can switch to it by choosing **GitHub** from the **Window** menu.
+1. Open the **GitHub** window by going to the top level **Window** menu and selecting **GitHub**, as shown below.
 
     <img src="images/github-menu-item.png" alt="GitHub menu item in the Window menu" width="500px"/>
 
@@ -14,17 +14,17 @@
 
    <img src="images/github-authenticate.png" alt="GitHub menu item in the Window menu" width="350px"/>
 
-      If your account requires Two Factor Authencation. You will be prompted for your auth code.
+      If your account requires Two Factor Authentication, you will be prompted for your auth code.
 
       <img src="images/github-two-factor.png" alt="GitHub menu item in the Window menu" width="350px"/>
 
-Before you authenticate, you must already have a GitHub account.
+You will need to create a GitHub account before you can sign in, if you don't have one already.
 
 - For more information on creating a GitHub account, see "[Signing up for a new GitHub account](https://help.github.com/articles/signing-up-for-a-new-github-account/)".
 
 ### Personal access tokens
 
-If all signin options above fail, you can manually create a personal access token and use it as your password.
+If the sign in operation above fails, you can manually create a personal access token and use it as your password.
 
 The scopes for the personal access token are: `user`, `repo`.
 - *user* scope: Grants access to the user profile data. We currently use this to display your avatar and check whether your plans lets you publish private repositories.
