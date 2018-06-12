@@ -429,4 +429,7 @@
   <data name="DiscardConfirmYes" xml:space="preserve">
     <value>Discard</value>
   </data>
+  <data name="PluginDisabled" xml:space="preserve">
+    <value>GitHub for Unity is disabled.</value>
+  </data>
 </root>

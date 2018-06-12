@@ -7,7 +7,8 @@ namespace GitHub.Unity
         void Initialize(string unityVersion, NPath extensionInstallPath, NPath unityApplicationPath, NPath unityApplicationContentsPath, NPath assetsPath);
         void InitializeRepository(NPath? expectedRepositoryPath = null);
         string ExpandEnvironmentVariables(string name);
-        string GetEnvironmentVariable(string v);
+        string GetEnvironmentVariable(string key);
+        void SetEnvironmentVariable(string key, string value);
         string GetSpecialFolder(Environment.SpecialFolder folder);
 
         string Path { get; set; }
@@ -41,5 +42,6 @@ namespace GitHub.Unity
         ISettings LocalSettings { get; }
         ISettings SystemSettings { get; }
         ISettings UserSettings { get; }
+        bool IsDisabled { get; }
     }
 }

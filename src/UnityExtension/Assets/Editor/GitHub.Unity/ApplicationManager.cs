@@ -31,12 +31,21 @@ namespace GitHub.Unity
             EnvironmentCache.Instance.Flush();
 
             isBusy = false;
-            LfsLocksModificationProcessor.Initialize(Environment, Platform);
+            LfsLocksModificationProcessor.Initialize(this);
             ProjectWindowInterface.Initialize(this);
-            var window = Window.GetWindow();
+            var window = Window.FindWindow();
             if (window != null)
                 window.InitializeWindow(this);
             SetProjectToTextSerialization();
+        }
+
+        protected override void ShutdownUI()
+        {
+            LfsLocksModificationProcessor.Initialize(null);
+            ProjectWindowInterface.Initialize(null);
+            var window = Window.FindWindow();
+            if (window != null)
+                window.Shutdown();
         }
 
         protected void SetProjectToTextSerialization()

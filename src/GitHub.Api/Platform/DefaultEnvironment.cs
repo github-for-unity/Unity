@@ -119,9 +119,14 @@ namespace GitHub.Unity
             return Environment.ExpandEnvironmentVariables(name);
         }
 
-        public string GetEnvironmentVariable(string variable)
+        public string GetEnvironmentVariable(string key)
         {
-            return Environment.GetEnvironmentVariable(variable);
+            return Environment.GetEnvironmentVariable(key);
+        }
+
+        public void SetEnvironmentVariable(string key, string value)
+        {
+            Environment.SetEnvironmentVariable(key, value);
         }
 
         public NPath LogPath { get; }
@@ -234,6 +239,9 @@ namespace GitHub.Unity
 
         public static string ExecutableExt { get { return OnWindows ? ".exe" : string.Empty; } }
         public string ExecutableExtension { get { return IsWindows ? ".exe" : string.Empty; } }
+
+        public bool IsDisabled => GetEnvironmentVariable(Constants.GitHubUnityDisable) == "1";
+
         protected static ILogging Logger { get; } = LogHelper.GetLogger<DefaultEnvironment>();
     }
 }

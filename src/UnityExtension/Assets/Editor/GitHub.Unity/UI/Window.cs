@@ -93,7 +93,7 @@ namespace GitHub.Unity
             window.Show();
         }
 
-        public static Window GetWindow()
+        public static Window FindWindow()
         {
             return Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window;
         }
@@ -101,8 +101,6 @@ namespace GitHub.Unity
         public override void Initialize(IApplicationManager applicationManager)
         {
             base.Initialize(applicationManager);
-
-            applicationManager.OnProgress += ApplicationManagerOnProgress;
 
             HistoryView.InitializeView(this);
             ChangesView.InitializeView(this);
@@ -123,9 +121,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
-            if (Repository != null)
-                ValidateCachedData(Repository);
-
             if (ActiveView != null)
                 ActiveView.OnEnable();
 
@@ -138,6 +133,7 @@ namespace GitHub.Unity
         public override void OnDisable()
         {
             base.OnDisable();
+            DetachHandlers(Repository);
             if (ActiveView != null)
                 ActiveView.OnDisable();
         }
@@ -153,6 +149,7 @@ namespace GitHub.Unity
 
         public override void OnFocusChanged()
         {
+            base.OnFocusChanged();
             if (ActiveView != null)
                 ActiveView.OnFocusChanged();
         }
@@ -162,7 +159,9 @@ namespace GitHub.Unity
             base.OnRepositoryChanged(oldRepository);
 
             DetachHandlers(oldRepository);
-            AttachHandlers(Repository);
+            AttachHandlers();
+            if (ActiveView != null)
+                ActiveView.OnRepositoryChanged(oldRepository);
 
             if (HasRepository)
             {
@@ -205,9 +204,11 @@ namespace GitHub.Unity
             SetProgressMessage(Localization.MessageRefreshed, 100);
         }
 
-        private void ValidateCachedData(IRepository repository)
+        private void ValidateCachedData()
         {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChangedEvent);
+            if (!HasRepository)
+                return;
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -272,7 +273,7 @@ namespace GitHub.Unity
                 hasRemote = false;
             }
 
-            if (Repository != null)
+            if (HasRepository)
             {
                 if (currentBranch == null || currentRemoteName == null || currentBranchAndRemoteHasUpdate)
                 {
@@ -347,26 +348,28 @@ namespace GitHub.Unity
             }
         }
 
-        private void AttachHandlers(IRepository repository)
+        private void AttachHandlers()
         {
-            if (repository == null)
+            Manager.OnProgress += ApplicationManagerOnProgress;
+            if (!HasRepository)
                 return;
-            repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
-            repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
-            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
-            repository.OnProgress += UpdateProgress;
+            Repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
+            Repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
+            Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
+            Repository.OnProgress += UpdateProgress;
             Platform.Keychain.ConnectionsChanged += ConnectionsChanged;
+            ValidateCachedData();
         }
 
         private void DetachHandlers(IRepository repository)
         {
+            Manager.OnProgress -= ApplicationManagerOnProgress;
             if (repository == null)
                 return;
             repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
             repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
             repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
             repository.OnProgress -= UpdateProgress;
-            Manager.OnProgress -= ApplicationManagerOnProgress;
             Platform.Keychain.ConnectionsChanged -= ConnectionsChanged;
         }
 
@@ -414,7 +417,10 @@ namespace GitHub.Unity
             }
 
             if (!ThreadingHelper.InUIThread)
-                TaskManager.RunInUI(Redraw);
+            {
+                if (TaskManager != null)
+                    TaskManager.RunInUI(Redraw);
+            }
             else
                 Redraw();
         }
@@ -481,7 +487,8 @@ namespace GitHub.Unity
             else
             {
                 timeSinceLastRotation = -1f;
-                spinner.Stop();
+                if (spinner != null)
+                    spinner.Stop();
             }
         }
 
@@ -822,7 +829,7 @@ namespace GitHub.Unity
         private void SignOut(object obj)
         {
             UriString host;
-            if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
+            if (HasRepository && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
             {
                 host = new UriString(Repository.CloneUrl.ToRepositoryUri()
                     .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));

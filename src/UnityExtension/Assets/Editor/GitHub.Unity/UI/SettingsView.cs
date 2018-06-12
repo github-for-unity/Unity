@@ -51,22 +51,15 @@ namespace GitHub.Unity
             base.OnEnable();
             gitPathView.OnEnable();
             userSettingsView.OnEnable();
-            AttachHandlers(Repository);
-
-            if (Repository != null)
-            {
-                ValidateCachedData(Repository);
-            }
-
             metricsHasChanged = true;
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
+            DetachHandlers(Repository);
             gitPathView.OnDisable();
             userSettingsView.OnDisable();
-            DetachHandlers(Repository);
         }
 
         public override void OnDataUpdate()
@@ -74,76 +67,38 @@ namespace GitHub.Unity
             base.OnDataUpdate();
             userSettingsView.OnDataUpdate();
             gitPathView.OnDataUpdate();
-
             MaybeUpdateData();
         }
 
-        public override void Refresh()
+        public override void OnRepositoryChanged(IRepository oldRepository)
         {
-            base.Refresh();
-            gitPathView.Refresh();
-            userSettingsView.Refresh();
-            Refresh(CacheType.RepositoryInfo);
+            base.OnRepositoryChanged(oldRepository);
+            DetachHandlers(oldRepository);
+            AttachHandlers();
+            userSettingsView.OnRepositoryChanged(oldRepository);
+            gitPathView.OnRepositoryChanged(oldRepository);
         }
 
-        public override void OnGUI()
+        private void AttachHandlers()
         {
-            scroll = GUILayout.BeginScrollView(scroll);
-            {
-                userSettingsView.OnGUI();
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-                if (Repository != null)
-                {
-                    OnRepositorySettingsGUI();
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-                }
-
-                gitPathView.OnGUI();
-                OnPrivacyGui();
-                OnGeneralSettingsGui();
-                OnLoggingSettingsGui();
-            }
-
-            GUILayout.EndScrollView();
-
-            DoProgressGUI();
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
+            if (!HasRepository)
                 return;
-            }
-
-            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
-        }
-
-        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
-                currentRemoteHasUpdate = true;
-                Redraw();
-            }
+            Repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
+            ValidateCachedData();
         }
 
         private void DetachHandlers(IRepository repository)
         {
             if (repository == null)
-            {
                 return;
-            }
-
             repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
         }
 
-        private void ValidateCachedData(IRepository repository)
+        private void ValidateCachedData()
         {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
+            if (!HasRepository)
+                return;
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -154,7 +109,7 @@ namespace GitHub.Unity
                 metricsHasChanged = false;
             }
 
-            if (Repository == null)
+            if (!HasRepository)
                 return;
 
             if (currentRemoteHasUpdate)
@@ -172,6 +127,50 @@ namespace GitHub.Unity
                     repositoryRemoteName = currentRemote.Value.Name;
                     newRepositoryRemoteUrl = repositoryRemoteUrl = currentRemote.Value.Url;
                 }
+            }
+        }
+
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            gitPathView.Refresh();
+            userSettingsView.Refresh();
+            Refresh(CacheType.RepositoryInfo);
+        }
+
+        public override void OnGUI()
+        {
+            scroll = GUILayout.BeginScrollView(scroll);
+            {
+                userSettingsView.OnGUI();
+
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+                if (HasRepository)
+                {
+                    OnRepositorySettingsGUI();
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                }
+
+                gitPathView.OnGUI();
+                OnPrivacyGui();
+                OnGeneralSettingsGui();
+                OnLoggingSettingsGui();
+            }
+
+            GUILayout.EndScrollView();
+
+            DoProgressGUI();
+        }
+
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                currentRemoteHasUpdate = true;
+                Redraw();
             }
         }
 

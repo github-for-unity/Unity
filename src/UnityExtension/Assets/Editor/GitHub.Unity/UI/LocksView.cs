@@ -404,9 +404,6 @@ namespace GitHub.Unity
             {
                 locksControl.LoadIcons();
             }
-
-            AttachHandlers(Repository);
-            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -426,6 +423,75 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+            DetachHandlers(oldRepository);
+            AttachHandlers();
+        }
+
+        private void AttachHandlers()
+        {
+            if (!HasRepository)
+                return;
+            Repository.LocksChanged += RepositoryOnLocksChanged;
+            Repository.LocksChanged += RepositoryOnStatusEntriesChanged;
+            User.Changed += UserOnChanged;
+            ValidateCachedData();
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.LocksChanged -= RepositoryOnLocksChanged;
+            repository.LocksChanged -= RepositoryOnStatusEntriesChanged;
+            User.Changed -= UserOnChanged;
+        }
+
+        private void ValidateCachedData()
+        {
+            if (!HasRepository)
+                return;
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastUserChangedEvent);
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (!HasRepository)
+                return;
+
+            if (currentUserHasUpdate)
+            {
+                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
+                var keychainConnection = Platform.Keychain.Connections.FirstOrDefault();
+                if (keychainConnection != null)
+                    currentUsername = keychainConnection.Username;
+                else
+                    currentUsername = "";
+                currentUserHasUpdate = false;
+            }
+
+            if (currentLocksHasUpdate)
+            {
+                lockedFiles = Repository.CurrentLocks;
+            }
+
+            if (currentStatusEntriesHasUpdate)
+            {
+                gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
+            }
+
+            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
+            {
+                currentStatusEntriesHasUpdate = false;
+                currentLocksHasUpdate = false;
+                BuildLocksControl();
+            }
         }
 
         public override void OnGUI()
@@ -516,29 +582,6 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
-                return;
-            }
-
-            repository.LocksChanged += RepositoryOnLocksChanged;
-            repository.LocksChanged += RepositoryOnStatusEntriesChanged;
-            User.Changed += UserOnChanged;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
-                return;
-            }
-
-            repository.LocksChanged -= RepositoryOnLocksChanged;
-            repository.LocksChanged -= RepositoryOnStatusEntriesChanged;
-            User.Changed -= UserOnChanged;
-        }
 
         private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
         {
@@ -567,49 +610,6 @@ namespace GitHub.Unity
                 lastUserChangedEvent = cacheUpdateEvent;
                 currentUserHasUpdate = true;
                 Redraw();
-            }
-        }
-
-        private void ValidateCachedData(IRepository repository)
-        {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
-            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastUserChangedEvent);
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (Repository == null)
-            {
-                return;
-            }
-
-            if (currentUserHasUpdate)
-            {
-                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                var keychainConnection = Platform.Keychain.Connections.FirstOrDefault();
-                if (keychainConnection != null)
-                    currentUsername = keychainConnection.Username;
-                else
-                    currentUsername = "";
-                currentUserHasUpdate = false;
-            }
-
-            if (currentLocksHasUpdate)
-            {
-                lockedFiles = Repository.CurrentLocks;
-            }
-
-            if (currentStatusEntriesHasUpdate)
-            {
-                gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
-            }
-
-            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
-            {
-                currentStatusEntriesHasUpdate = false;
-                currentLocksHasUpdate = false;
-                BuildLocksControl();
             }
         }
 

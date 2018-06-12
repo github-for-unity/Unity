@@ -254,23 +254,22 @@ namespace GitHub.Unity
         {
             if (disposing)
             {
-                if (!disposed)
-                {
-                    disposed = true;
-                    HeadChanged = null;
-                    IndexChanged = null;
-                    ConfigChanged = null;
-                    RepositoryCommitted = null;
-                    RepositoryChanged = null;
-                    LocalBranchesChanged = null;
-                    RemoteBranchesChanged = null;
+                if (disposed) return;
+                disposed = true;
 
-                    Stop();
-                    if (nativeInterface != null)
-                    {
-                        nativeInterface.Dispose();
-                        nativeInterface = null;
-                    }
+                HeadChanged = null;
+                IndexChanged = null;
+                ConfigChanged = null;
+                RepositoryCommitted = null;
+                RepositoryChanged = null;
+                LocalBranchesChanged = null;
+                RemoteBranchesChanged = null;
+
+                Stop();
+                if (nativeInterface != null)
+                {
+                    nativeInterface.Dispose();
+                    nativeInterface = null;
                 }
             }
         }

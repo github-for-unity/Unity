@@ -611,11 +611,10 @@ namespace GitHub.Unity
 
         private void Dispose(bool disposing)
         {
-            if (disposed) return;
-            disposed = true;
-
             if (disposing)
             {
+                if (disposed) return;
+                disposed = true;
                 CurrentBranchUpdated = null;
                 GitStatusUpdated = null;
                 GitAheadBehindStatusUpdated = null;
@@ -624,7 +623,6 @@ namespace GitHub.Unity
                 LocalBranchesUpdated = null;
                 RemoteBranchesUpdated = null;
                 DataNeedsRefreshing = null;
-                Stop();
                 watcher.Dispose();
             }
         }

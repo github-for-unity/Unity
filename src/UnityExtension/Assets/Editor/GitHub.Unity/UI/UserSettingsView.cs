@@ -29,6 +29,18 @@ namespace GitHub.Unity
             gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AttachHandlers();
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            DetachHandlers();
+        }
+
         public override void Refresh()
         {
             base.Refresh();
@@ -39,6 +51,33 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        private void AttachHandlers()
+        {
+            User.Changed += UserOnChanged;
+            ValidateCachedData();
+        }
+
+        private void DetachHandlers()
+        {
+            User.Changed -= UserOnChanged;
+        }
+
+        private void ValidateCachedData()
+        {
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
+        }
+
+        private void MaybeUpdateData()
+        {
+            if (userHasChanges)
+            {
+                userHasChanges = false;
+                gitName = newGitName = User.Name;
+                gitEmail = newGitEmail = User.Email;
+                needsSaving = false;
+            }
         }
 
         public override void OnGUI()
@@ -74,47 +113,12 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            AttachHandlers();
-
-            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
-            DetachHandlers();
-        }
-        
-        private void AttachHandlers()
-        {
-            User.Changed += UserOnChanged;
-        }
-
         private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             lastCheckUserChangedEvent = cacheUpdateEvent;
             userHasChanges = true;
             isBusy = false;
             Redraw();
-        }
-
-        private void DetachHandlers()
-        {
-            User.Changed -= UserOnChanged;
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (userHasChanges)
-            {
-                userHasChanges = false;
-                gitName = newGitName = User.Name;
-                gitEmail = newGitEmail = User.Email;
-                needsSaving = false;
-            }
         }
 
         public override bool IsBusy

@@ -13,7 +13,6 @@ namespace GitHub.Unity
         [NonSerialized] private IUser cachedUser;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
-        [NonSerialized] protected bool inLayout;
 
         public BaseWindow()
         {
@@ -36,26 +35,35 @@ namespace GitHub.Unity
                 Redraw();
         }
 
+        public void Shutdown()
+        {
+            OnDisable();
+            cachedRepository = null;
+            initialized = false;
+            initializeWasCalled = false;
+        }
+
         public virtual void Redraw()
         {
             Repaint();
         }
 
         public virtual void Refresh()
-        {
-        }
+        {}
 
         public virtual void Finish(bool result)
         {}
 
         public virtual void Awake()
         {
+            cachedRepository = EntryPoint.ApplicationManager.Environment.Repository;
             if (!initialized)
                 InitializeWindow(EntryPoint.ApplicationManager, false);
         }
 
         public virtual void OnEnable()
         {
+            cachedRepository = EntryPoint.ApplicationManager.Environment.Repository;
             if (!initialized)
                 InitializeWindow(EntryPoint.ApplicationManager, false);
         }
@@ -83,19 +91,14 @@ namespace GitHub.Unity
                 if (cachedRepository != Environment.Repository || initializeWasCalled)
                 {
                     initializeWasCalled = false;
-                    OnRepositoryChanged(cachedRepository);
+                    var oldRepository = cachedRepository;
                     cachedRepository = Environment.Repository;
+                    OnRepositoryChanged(oldRepository);
                 }
-                inLayout = true;
                 OnDataUpdate();
             }
 
             OnUI();
-
-            if (Event.current.type == EventType.Repaint)
-            {
-                inLayout = false;
-            }
         }
 
         private void OnFocus()
@@ -126,7 +129,7 @@ namespace GitHub.Unity
 
         public void Refresh(CacheType type)
         {
-            if (Repository == null)
+            if (!HasRepository)
                 return;
 
             IsRefreshing = true;
@@ -160,8 +163,8 @@ namespace GitHub.Unity
         public abstract bool IsBusy { get; }
         public bool IsRefreshing { get; private set; }
         public bool HasFocus { get; private set; }
-        public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
-        public bool HasRepository { get { return Repository != null; } }
+        public IRepository Repository { get { return cachedRepository; } }
+        public bool HasRepository { get { return cachedRepository != null; } }
         public IUser User { get { return cachedUser; } }
         public bool HasUser { get { return User != null; } }
 

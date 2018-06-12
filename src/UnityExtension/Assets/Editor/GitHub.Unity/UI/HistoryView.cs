@@ -335,8 +335,7 @@ namespace GitHub.Unity
                 treeChanges.UpdateIcons(Styles.FolderIcon);
             }
 
-            AttachHandlers(Repository);
-            ValidateCachedData(Repository);
+            AttachHandlers();
         }
 
         public override void OnDisable()
@@ -358,6 +357,37 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+            DetachHandlers(oldRepository);
+            AttachHandlers();
+        }
+
+        private void AttachHandlers()
+        {
+            if (!HasRepository)
+                return;
+            Repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
+            Repository.LogChanged += RepositoryOnLogChanged;
+            ValidateCachedData();
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
+            repository.LogChanged -= RepositoryOnLogChanged;
+        }
+
+        private void ValidateCachedData()
+        {
+            if (!HasRepository)
+                return;
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastTrackingStatusChangedEvent);
+        }
         public override void OnFocusChanged()
         {
             base.OnFocusChanged();
@@ -515,40 +545,10 @@ namespace GitHub.Unity
             }
         }
 
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
-                return;
-            }
-
-            repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
-            repository.LogChanged += RepositoryOnLogChanged;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
-                return;
-            }
-
-            repository.TrackingStatusChanged -= RepositoryOnTrackingStatusChanged;
-            repository.LogChanged -= RepositoryOnLogChanged;
-        }
-
-        private void ValidateCachedData(IRepository repository)
-        {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastTrackingStatusChangedEvent);
-        }
-
         private void MaybeUpdateData()
         {
-            if (Repository == null)
-            {
+            if (!HasRepository)
                 return;
-            }
 
             if (currentTrackingStatusHasUpdate)
             {

@@ -63,14 +63,23 @@ namespace IntegrationTests
             return name;
         }
 
-        public string GetEnvironmentVariable(string v)
+        public string GetEnvironmentVariable(string key)
         {
-            var environmentVariable = defaultEnvironment.GetEnvironmentVariable(v);
+            var environmentVariable = defaultEnvironment.GetEnvironmentVariable(key);
             if (enableTrace)
             {
-                logger.Trace("GetEnvironmentVariable: {0}={1}", v, environmentVariable);
+                logger.Trace("GetEnvironmentVariable: {0}={1}", key, environmentVariable);
             }
             return environmentVariable;
+        }
+
+        public void SetEnvironmentVariable(string key, string value)
+        {
+            defaultEnvironment.SetEnvironmentVariable(key, value);
+            if (enableTrace)
+            {
+                logger.Trace("SetEnvironmentVariable: {0}={1}", key, value);
+            }
         }
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
@@ -133,5 +142,6 @@ namespace IntegrationTests
         public ISettings LocalSettings => defaultEnvironment.LocalSettings;
         public ISettings SystemSettings => defaultEnvironment.SystemSettings;
         public ISettings UserSettings => defaultEnvironment.UserSettings;
+        public bool IsDisabled => defaultEnvironment.IsDisabled;
     }
 }

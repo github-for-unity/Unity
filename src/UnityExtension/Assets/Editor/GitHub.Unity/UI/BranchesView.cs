@@ -81,9 +81,6 @@ namespace GitHub.Unity
                 treeRemotes.ViewHasFocus = hasFocus;
                 treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
             }
-
-            AttachHandlers(Repository);
-            ValidateCachedData(Repository);
         }
 
         public override void OnDisable()
@@ -104,6 +101,39 @@ namespace GitHub.Unity
             base.OnDataUpdate();
             MaybeUpdateData();
         }
+
+        public override void OnRepositoryChanged(IRepository oldRepository)
+        {
+            base.OnRepositoryChanged(oldRepository);
+            DetachHandlers(oldRepository);
+            AttachHandlers();
+        }
+
+        private void AttachHandlers()
+        {
+            if (!HasRepository)
+                return;
+            Repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
+            Repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
+            ValidateCachedData();
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+                return;
+            repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
+            repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
+        }
+
+        private void ValidateCachedData()
+        {
+            if (!HasRepository)
+                return;
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.Branches, lastLocalAndRemoteBranchListChangedEvent);
+            Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChange);
+        }
+
 
         public override void OnSelectionChange()
         {
@@ -176,24 +206,6 @@ namespace GitHub.Unity
         public override void OnGUI()
         {
             Render();
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
-            repository.CurrentBranchAndRemoteChanged += RepositoryOnCurrentBranchAndRemoteChanged;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            repository.LocalAndRemoteBranchListChanged -= RepositoryOnLocalAndRemoteBranchListChanged;
-            repository.CurrentBranchAndRemoteChanged -= RepositoryOnCurrentBranchAndRemoteChanged;
-        }
-
-        private void ValidateCachedData(IRepository repository)
-        {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.Branches, lastLocalAndRemoteBranchListChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChange);
         }
 
         private void Render()

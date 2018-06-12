@@ -26,21 +26,13 @@ namespace GitHub.Unity
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
-        private static bool IsInitialized { get { return Repository != null && Repository.CurrentRemote.HasValue; } }
+        private static bool HasRepository { get { return Repository != null && Repository.CurrentRemote.HasValue; } }
 
         public static void Initialize(IApplicationManager theManager)
         {
-            EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
-            EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-
+            DetachHandlers();
             manager = theManager;
-
-            if (IsInitialized)
-            {
-                Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
-                Repository.LocksChanged += RepositoryOnLocksChanged;
-                ValidateCachedData();
-            }
+            AttachHandlers();
         }
 
         private static bool EnsureInitialized()
@@ -53,11 +45,32 @@ namespace GitHub.Unity
                 guids = new List<string>();
             if (guidsLocks == null)
                 guidsLocks = new List<string>();
-            return IsInitialized;
+            return HasRepository;
+        }
+
+        private static void AttachHandlers()
+        {
+            if (!HasRepository)
+                return;
+            EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
+            Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
+            Repository.LocksChanged += RepositoryOnLocksChanged;
+            ValidateCachedData();
+        }
+
+        private static void DetachHandlers()
+        {
+            EditorApplication.projectWindowItemOnGUI -= OnProjectWindowItemGUI;
+            if (!HasRepository)
+                return;
+            Repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+            Repository.LocksChanged -= RepositoryOnLocksChanged;
         }
 
         private static void ValidateCachedData()
         {
+            if (!HasRepository)
+                return;
             Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastRepositoryStatusChangedEvent);
             Repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
         }

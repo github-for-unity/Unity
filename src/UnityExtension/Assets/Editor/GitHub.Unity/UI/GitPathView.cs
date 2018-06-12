@@ -36,11 +36,6 @@ namespace GitHub.Unity
         [NonSerialized] private GitInstaller.GitInstallationState installationState;
         [NonSerialized] private GitInstaller.GitInstallDetails installDetails;
 
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-        }
-
         public override void OnEnable()
         {
             base.OnEnable();

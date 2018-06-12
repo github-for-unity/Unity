@@ -27,5 +27,8 @@ namespace GitHub.Unity
         public static readonly TheVersion MinimumGitLfsVersion = TheVersion.Parse("2.0");
         public static readonly TheVersion DesiredGitVersion = TheVersion.Parse("2.11");
         public static readonly TheVersion DesiredGitLfsVersion = TheVersion.Parse("2.4");
+
+        public const string GitHubUnityDisable = "GITHUB_UNITY_DISABLE";
+
     }
 }

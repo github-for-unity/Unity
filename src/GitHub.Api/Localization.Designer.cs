@@ -637,6 +637,15 @@ namespace GitHub.Unity {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PluginDisabled.
+        /// </summary>
+        public static string PluginDisabled {
+            get {
+                return ResourceManager.GetString("PluginDisabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Publish.
         /// </summary>
         public static string PublishButton {

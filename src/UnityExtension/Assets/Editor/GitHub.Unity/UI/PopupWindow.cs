@@ -174,11 +174,10 @@ namespace GitHub.Unity
             {
                 if (client == null)
                 {
-                    var repository = Environment.Repository;
                     UriString host;
-                    if (repository != null && !string.IsNullOrEmpty(repository.CloneUrl))
+                    if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
                     {
-                        host = repository.CloneUrl.ToRepositoryUrl();
+                        host = Repository.CloneUrl.ToRepositoryUrl();
                     }
                     else
                     {

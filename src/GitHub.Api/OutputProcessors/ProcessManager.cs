@@ -13,14 +13,12 @@ namespace GitHub.Unity
 
         private readonly IEnvironment environment;
         private readonly IProcessEnvironment gitEnvironment;
-        private readonly CancellationToken cancellationToken;
         private readonly HashSet<IProcess> processes = new HashSet<IProcess>();
 
-        public ProcessManager(IEnvironment environment, IProcessEnvironment gitEnvironment, CancellationToken cancellationToken)
+        public ProcessManager(IEnvironment environment, IProcessEnvironment gitEnvironment)
         {
             this.environment = environment;
             this.gitEnvironment = gitEnvironment;
-            this.cancellationToken = cancellationToken;
         }
 
         public T Configure<T>(T processTask, NPath? executable = null, string arguments = null,
@@ -124,6 +122,22 @@ namespace GitHub.Unity
                 p.Stop();
         }
 
+        private bool disposed = false;
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (disposed) return;
+                disposed = true;
+                Stop();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
         public static NPath FindExecutableInPath(string executable, bool recurse = false, params NPath[] searchPaths)
         {
             Guard.ArgumentNotNullOrWhiteSpace(executable, "executable");
@@ -133,7 +147,5 @@ namespace GitHub.Unity
                 .SelectMany(x => x.Files(executable, recurse))
                 .FirstOrDefault();
         }
-
-        public CancellationToken CancellationToken { get { return cancellationToken; } }
     }
 }

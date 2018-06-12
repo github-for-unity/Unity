@@ -28,6 +28,9 @@ namespace GitHub.Unity
         public virtual void OnDataUpdate()
         {}
 
+        public virtual void OnRepositoryChanged(IRepository oldRepository)
+        {}
+
         public virtual void OnGUI()
         {}
 
@@ -96,7 +99,7 @@ namespace GitHub.Unity
         public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
         public virtual bool IsBusy
         {
-            get { return (Manager != null && Manager.IsBusy) || (Repository != null && Repository.IsBusy); }
+            get { return (Manager != null && Manager.IsBusy) || (HasRepository && Repository.IsBusy); }
         }
 
         public Rect Position { get { return Parent.Position; } }

@@ -244,7 +244,7 @@ namespace GitHub.Unity
                 if (authenticationService == null)
                 {
                     UriString host;
-                    if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
+                    if (HasRepository && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
                     {
                         host = new UriString(Repository.CloneUrl.ToRepositoryUri()
                             .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));

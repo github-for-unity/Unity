@@ -22,21 +22,34 @@ namespace GitHub.Unity
         {
             base.InitializeView(parent);
             gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
-            Redraw();
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
             AttachHandlers();
-
-            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
             DetachHandlers();
+        }
+
+        private void AttachHandlers()
+        {
+            User.Changed += UserOnChanged;
+            ValidateCachedData();
+        }
+
+        private void DetachHandlers()
+        {
+            User.Changed -= UserOnChanged;
+        }
+
+        private void ValidateCachedData()
+        {
+            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastCheckUserChangedEvent);
         }
 
         public override void OnGUI()
@@ -91,11 +104,6 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        private void AttachHandlers()
-        {
-            User.Changed += UserOnChanged;
-        }
-
         private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             if (!lastCheckUserChangedEvent.Equals(cacheUpdateEvent))
@@ -104,11 +112,6 @@ namespace GitHub.Unity
                 userHasChanges = true;
                 Redraw();
             }
-        }
-
-        private void DetachHandlers()
-        {
-            User.Changed -= UserOnChanged;
         }
 
         private void MaybeUpdateData()

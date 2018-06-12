@@ -55,7 +55,7 @@ namespace IntegrationTests
 
             var platform = new Platform(environment);
             var gitEnvironment = platform.GitEnvironment;
-            var processManager = new ProcessManager(environment, gitEnvironment, TaskManager.Token);
+            var processManager = new ProcessManager(environment, gitEnvironment);
 
             List<GitBranch> gitBranches = null;
             gitBranches = await processManager

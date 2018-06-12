@@ -37,7 +37,7 @@ namespace GitHub.Unity
             Environment = environment;
             TaskManager = new TaskManager(UIScheduler);
             Platform = new Platform(Environment);
-            ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment, TaskManager.Token);
+            ProcessManager = new ProcessManager(Environment, Platform.GitEnvironment);
             GitClient = new GitClient(Environment, ProcessManager, TaskManager.Token);
         }
 
@@ -317,6 +317,7 @@ namespace GitHub.Unity
 
         protected virtual void InitializeUI() {}
         protected virtual void InitializationComplete() {}
+        protected virtual void ShutdownUI() {}
 
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)
@@ -325,20 +326,13 @@ namespace GitHub.Unity
             {
                 if (disposed) return;
                 disposed = true;
-                if (ProcessManager != null)
-                {
-                    ProcessManager.Stop();
-                }
-                if (TaskManager != null)
-                {
-                    TaskManager.Dispose();
-                    TaskManager = null;
-                }
-                if (repositoryManager != null)
-                {
-                    repositoryManager.Dispose();
-                    repositoryManager = null;
-                }
+                ShutdownUI();
+                ProcessManager?.Dispose();
+                TaskManager?.Dispose();
+                repositoryManager?.Dispose();
+                ProcessManager = null;
+                TaskManager = null;
+                repositoryManager = null;
             }
         }
 
