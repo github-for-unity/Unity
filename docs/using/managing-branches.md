@@ -1,6 +1,7 @@
 # Managing branches
 
 Initial **Branches** view
+
 <img src="images/branches-initial-view.png" alt="Post commit view"/>
 
 ## Create branch
@@ -32,6 +33,6 @@ The branch will be checked out.
 2. Right-click on a local branch and select `Delete` or click the `Delete` button above the Local branches list.
 <img src="images/switch-or-delete.png" alt="Post commit view"/>
 
-3. A dialog appears asking `Are you sure you want to delete the branch: ‘branch name’?`. Select `Delete`.
+3. A dialog appears asking `Are you sure you want to delete the branch: 'branch name'?`. Select `Delete`.
 
 The branch will be deleted.
