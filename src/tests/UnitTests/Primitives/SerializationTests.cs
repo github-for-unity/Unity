@@ -37,6 +37,25 @@ namespace UnitTests.Primitives
             Assert.AreEqual(dt3, dt4);
         }
 
+        [Test]
+        public void DateTimeSerializationRoundTripFormatPointZ()
+        {
+            var dt1 = DateTimeOffset.ParseExact("2018-05-01T15:04:29.00Z", new []{ Constants.Iso8601FormatPointZ }, CultureInfo.InvariantCulture, Constants.DateTimeStyle);
+            DateTimeOffset.ParseExact("2018-05-01T15:04:29.00Z", Constants.Iso8601Formats, CultureInfo.InvariantCulture, Constants.DateTimeStyle);
+            var str1 = dt1.ToJson();
+            var ret1 = str1.FromJson<DateTimeOffset>();
+            Assert.AreEqual(dt1, ret1);
+        }
+
+        [Test]
+        public void DateTimeSerializationRoundTripFormatZ()
+        {
+            var dt1 = DateTimeOffset.ParseExact("2018-05-01T15:04:29Z", Constants.Iso8601Formats, CultureInfo.InvariantCulture, Constants.DateTimeStyle);
+            var str1 = dt1.ToJson();
+            var ret1 = str1.FromJson<DateTimeOffset>();
+            Assert.AreEqual(dt1, ret1);
+        }
+
         class TestData
         {
             public List<string> Things { get; set; } = new List<string>();

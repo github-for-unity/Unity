@@ -13,10 +13,12 @@ namespace GitHub.Unity
         public const string GitTimeoutKey = "GitTimeout";
         public const string Iso8601Format = @"yyyy-MM-dd\THH\:mm\:ss.fffzzz";
         public const string Iso8601FormatZ = @"yyyy-MM-dd\THH\:mm\:ss\Z";
+        public const string Iso8601FormatPointZ = @"yyyy-MM-dd\THH\:mm\:ss.ff\Z";
         public static readonly string[] Iso8601Formats = {
             Iso8601FormatZ,
             @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
             Iso8601Format,
+            Iso8601FormatPointZ,
             @"yyyy-MM-dd\THH\:mm\:sszzz",
         };
         public const DateTimeStyles DateTimeStyle = DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal;
