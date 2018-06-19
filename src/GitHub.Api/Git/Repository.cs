@@ -188,6 +188,12 @@ namespace GitHub.Unity
         {
             var cache = cacheContainer.GetCache(cacheType);
             cache.InvalidateData();
+
+            // take the opportunity to possibly refresh the locks cache, if it has timed out
+            if (cacheType != CacheType.GitLocks)
+            {
+                cacheContainer.GetCache(CacheType.GitLocks).ValidateData();
+            }
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
