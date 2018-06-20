@@ -13,13 +13,23 @@ namespace GitHub.Unity
         public const string GitTimeoutKey = "GitTimeout";
         public const string Iso8601Format = @"yyyy-MM-dd\THH\:mm\:ss.fffzzz";
         public const string Iso8601FormatZ = @"yyyy-MM-dd\THH\:mm\:ss\Z";
-        public const string Iso8601FormatPointZ = @"yyyy-MM-dd\THH\:mm\:ss.ff\Z";
         public static readonly string[] Iso8601Formats = {
+            Iso8601Format,
             Iso8601FormatZ,
             @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
-            Iso8601Format,
-            Iso8601FormatPointZ,
+            @"yyyy-MM-dd\THH\:mm\:ss.ffffffzzz",
+            @"yyyy-MM-dd\THH\:mm\:ss.fffffzzz",
+            @"yyyy-MM-dd\THH\:mm\:ss.ffffzzz",
+            @"yyyy-MM-dd\THH\:mm\:ss.ffzzz",
+            @"yyyy-MM-dd\THH\:mm\:ss.fzzz",
             @"yyyy-MM-dd\THH\:mm\:sszzz",
+            @"yyyy-MM-dd\THH\:mm\:ss.fffffff\Z",
+            @"yyyy-MM-dd\THH\:mm\:ss.ffffff\Z",
+            @"yyyy-MM-dd\THH\:mm\:ss.fffff\Z",
+            @"yyyy-MM-dd\THH\:mm\:ss.ffff\Z",
+            @"yyyy-MM-dd\THH\:mm\:ss.fff\Z",
+            @"yyyy-MM-dd\THH\:mm\:ss.ff\Z",
+            @"yyyy-MM-dd\THH\:mm\:ss.f\Z",
         };
         public const DateTimeStyles DateTimeStyle = DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal;
         public const string SkipVersionKey = "SkipVersion";

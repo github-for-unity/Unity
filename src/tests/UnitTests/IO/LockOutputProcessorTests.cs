@@ -74,7 +74,7 @@ namespace UnitTests
         [Test]
         public void ShouldParseVSTSLocksFormat()
         {
-            var nowString = DateTimeOffset.UtcNow.ToString(Constants.Iso8601FormatPointZ);
+            var nowString = DateTimeOffset.UtcNow.ToString(@"yyyy-MM-dd\THH\:mm\:ss.ff\Z");
             var now = DateTimeOffset.ParseExact(nowString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
             var output = new[]
             {

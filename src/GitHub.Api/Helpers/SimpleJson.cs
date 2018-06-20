@@ -1250,17 +1250,7 @@ namespace GitHub.Unity.Json
         internal static readonly Type[] EmptyTypes = new Type[0];
         internal static readonly Type[] ArrayConstructorParameterTypes = new Type[] { typeof(int) };
 
-        private static readonly string[] Iso8601Format = new string[]
-                                                             {
-                                                                @"yyyy-MM-dd\THH\:mm\:sszzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ss\Z",
-                                                                @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
-                                                                @"yyyy-MM-dd\THH:mm:ss.fffzzz",
-                                                                @"yyyy-MM-dd\THH:mm:sszzz",
-                                                                @"yyyy-MM-dd\THH:mm:ss\Z",
-                                                             };
+        private static readonly string[] Iso8601Formats = Constants.Iso8601Formats;
 
         public PocoJsonSerializerStrategy()
         {
@@ -1504,9 +1494,9 @@ namespace GitHub.Unity.Json
             if (input is NPath || input is UriString)
                 output = input.ToString();
             else if (input is DateTime)
-                output = ((DateTime)input).ToUniversalTime().ToString(Iso8601Format[0], CultureInfo.InvariantCulture);
+                output = ((DateTime)input).ToUniversalTime().ToString(Iso8601Formats[0], CultureInfo.InvariantCulture);
             else if (input is DateTimeOffset)
-                output = ((DateTimeOffset)input).ToUniversalTime().ToString(Iso8601Format[0], CultureInfo.InvariantCulture);
+                output = ((DateTimeOffset)input).ToUniversalTime().ToString(Iso8601Formats[0], CultureInfo.InvariantCulture);
             else if (input is Guid)
                 output = ((Guid)input).ToString("D");
             else if (input is Uri)
