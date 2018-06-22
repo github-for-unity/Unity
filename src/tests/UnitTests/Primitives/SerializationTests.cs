@@ -11,6 +11,41 @@ namespace UnitTests.Primitives
     [TestFixture]
     class SerializationTests
     {
+        [TestCase("2018-05-01T12:04:29.1234567-02:00", "2018-05-01T14:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.123456-02:00", "2018-05-01T14:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.12345-02:00", "2018-05-01T14:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.1234-02:00", "2018-05-01T14:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.123-02:00", "2018-05-01T14:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.12-02:00", "2018-05-01T14:04:29.120+00:00")]
+        [TestCase("2018-05-01T12:04:29.1-02:00", "2018-05-01T14:04:29.100+00:00")]
+        [TestCase("2018-05-01T12:04:29-02:00", "2018-05-01T14:04:29.000+00:00")]
+        [TestCase("2018-05-01T12:04:29.1234567Z", "2018-05-01T12:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.123456Z", "2018-05-01T12:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.12345Z", "2018-05-01T12:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.1234Z", "2018-05-01T12:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.123Z", "2018-05-01T12:04:29.123+00:00")]
+        [TestCase("2018-05-01T12:04:29.12Z", "2018-05-01T12:04:29.120+00:00")]
+        [TestCase("2018-05-01T12:04:29.1Z", "2018-05-01T12:04:29.100+00:00")]
+        [TestCase("2018-05-01T12:04:29Z", "2018-05-01T12:04:29.000+00:00")]
+        public void FromLocalStringToUniversalDateTimeOffset(string input, string expected)
+        {
+            var dtInput = DateTimeOffset.ParseExact(input, Constants.Iso8601Formats, CultureInfo.InvariantCulture, Constants.DateTimeStyle);
+            var output = dtInput.ToUniversalTime().ToString(Constants.Iso8601Format);
+            Assert.AreEqual(expected, output);
+
+            var json = $@"{{""date"":""{input}""}}";
+            Assert.DoesNotThrow(() => json.FromJson<ADateTimeOffset>(lowerCase: true));
+        }
+
+        [Test]
+        public void JsonSerializationUsesKnownFormat()
+        {
+            var now = DateTimeOffset.Now;
+            var output = new ADateTimeOffset { Date = now };
+            var json = output.ToJson(lowerCase: true);
+            Assert.AreEqual($@"{{""date"":""{ now.ToUniversalTime().ToString(Constants.Iso8601Format, CultureInfo.InvariantCulture) }""}}", json);
+        }
+
         [Test]
         public void DateTimeSerializationRoundTrip()
         {
@@ -51,6 +86,11 @@ namespace UnitTests.Primitives
             Assert.AreEqual(dt2, ret2);
 
             Assert.AreEqual(dt1, dt2);
+        }
+
+        class ADateTimeOffset
+        {
+            public DateTimeOffset Date;
         }
 
         class TestData
