@@ -10,10 +10,10 @@ environment:
 clone_script:
 - ps: >-
     if(-not $env:appveyor_pull_request_number) {
-      git lfs clone -q -n --branch=$env:appveyor_repo_branch https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
+      git clone -q -n --branch=$env:appveyor_repo_branch https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
       git checkout -qf $env:appveyor_repo_commit
     } else {
-      git lfs clone -q -n https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
+      git clone -q -n https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
       git fetch -q origin +refs/pull/$env:appveyor_pull_request_number/merge:
       git lfs fetch origin FETCH_HEAD
       git checkout -qf FETCH_HEAD
@@ -22,19 +22,11 @@ clone_script:
     Set-Location $env:appveyor_build_folder
 
 install:
-- ps: >-
+- ps: |
     git submodule sync
-
     git submodule init
 
     $full_build = Test-Path env:GHFU_KEY
-    $packagingbuild = $env:BUILD_TYPE -eq "packaging"
-    $dopackage = $full_build -and ($env:APPVEYOR_PULL_REQUEST_NUMBER -or $env:APPVEYOR_REPO_BRANCH -eq "master" -or $packagingbuild)
-
-    $message = "Building "
-    if ($dopackage) { $message += "and packaging "}
-    $message += "version " + $env:APPVEYOR_BUILD_NUMBER + " "
-    Write-Host $message
 
     if ($full_build) {
       $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
@@ -52,8 +44,15 @@ install:
     }
 
     git submodule update
-
     nuget restore GitHub.Unity.sln
+
+    $packagingbuild = $env:BUILD_TYPE -eq "packaging"
+    $dopackage = $full_build -and ($env:APPVEYOR_PULL_REQUEST_NUMBER -or $env:APPVEYOR_REPO_BRANCH -eq "master" -or $packagingbuild)
+
+    $message = "Building "
+    if ($dopackage) { $message += "and packaging "}
+    $message += "version " + $env:APPVEYOR_BUILD_NUMBER + " "
+    Write-Host $message
 
     $destdir = Join-Path $env:appveyor_build_folder 'mono'
     $destfile = Join-Path $destdir 'mono48.7z'
