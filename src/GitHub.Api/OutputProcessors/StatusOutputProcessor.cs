@@ -224,7 +224,7 @@ namespace GitHub.Unity
                 Guard.ArgumentNotNull(x, nameof(x));
                 Guard.ArgumentNotNull(y, nameof(y));
 
-                const string meta = ".meta";
+                var meta = ".meta";
                 var xHasMeta = x.EndsWith(meta);
                 var yHasMeta = y.EndsWith(meta);
 
