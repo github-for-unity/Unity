@@ -303,6 +303,45 @@ namespace UnitTests
             });
         }
 
+        public void ShouldSortOutputCorrectly3()
+        {
+            var output = new[]
+            {
+                "## master",
+                "?? Assets/Assets.Test.dll",
+                "?? Assets/Assets.Test.dll.meta",
+                "?? Plugins/GitHub.Unity.dll",
+                "?? Plugins/GitHub.Unity.dll.mdb",
+                "?? Plugins/GitHub.Unity.dll.mdb.meta",
+                "?? Plugins/GitHub.Unity2.dll",
+                "?? Plugins/GitHub.Unity2.dll.mdb",
+                "?? Plugins/GitHub.Unity2.dll.mdb.meta",
+                "?? Plugins/GitHub.Unity2.dll.meta",
+                "?? Plugins/GitHub.Unity.dll.meta",
+                "?? blah.txt",
+                null
+            };
+
+            AssertProcessOutput(output, new GitStatus
+            {
+                LocalBranch = "master",
+                Entries = new List<GitStatusEntry>
+                {
+                    new GitStatusEntry(@"Assets/Assets.Test.dll", TestRootPath + @"\Assets/Assets.Test.dll", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Assets/Assets.Test.dll.meta", TestRootPath + @"\Assets/Assets.Test.dll.meta", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"blah.txt", TestRootPath + @"\blah.txt", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll", TestRootPath + @"\Plugins/GitHub.Unity.dll", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.meta", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb.meta", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll", TestRootPath + @"\Plugins/GitHub.Unity2.dll", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity2.dll.meta", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity2.dll.mdb", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity2.dll.mdb.meta", null, GitFileStatus.Untracked),
+                }
+            });
+        }
+
         private void AssertProcessOutput(IEnumerable<string> lines, GitStatus expected)
         {
             var gitObjectFactory = SubstituteFactory.CreateGitObjectFactory(TestRootPath);

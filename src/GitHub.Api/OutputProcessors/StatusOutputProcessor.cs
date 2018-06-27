@@ -224,30 +224,21 @@ namespace GitHub.Unity
                 Guard.ArgumentNotNull(x, nameof(x));
                 Guard.ArgumentNotNull(y, nameof(y));
 
-                var metaString = ".meta";
-                var xIsMeta = x.EndsWith(metaString);
-                var yIsMeta = y.EndsWith(metaString);
+                const string meta = ".meta";
+                var xHasMeta = x.EndsWith(meta);
+                var yHasMeta = y.EndsWith(meta);
 
-                if (xIsMeta || yIsMeta)
+                if(!xHasMeta && !yHasMeta) return StringComparer.InvariantCulture.Compare(x, y);
+
+                var xPure = xHasMeta ? x.Substring(0, x.Length - meta.Length) : x;
+                var yPure = yHasMeta ? y.Substring(0, y.Length - meta.Length) : y;
+
+                if (xHasMeta)
                 {
-                    var compareX = !xIsMeta ? x : x.Substring(0, x.Length - 5);
-                    var compareY = !yIsMeta ? y : y.Substring(0, y.Length - 5);
-
-                    var comparisonResult = StringComparer.InvariantCultureIgnoreCase.Compare(compareX, compareY);
-                    if (comparisonResult != 0)
-                    {
-                        return comparisonResult;
-                    }
-
-                    if (xIsMeta)
-                    {
-                        return 1;
-                    }
-
-                    return -1;
+                    return xPure.Equals(y) ? 1 : StringComparer.InvariantCulture.Compare(xPure, yPure);
                 }
 
-                return StringComparer.InvariantCultureIgnoreCase.Compare(x, y);
+                return yPure.Equals(x) ? -1 : StringComparer.InvariantCulture.Compare(xPure, yPure);
             }
         }
     }
