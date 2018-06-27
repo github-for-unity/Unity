@@ -294,7 +294,7 @@ namespace GitHub.Unity
 
                     if (currentRemoteName != updatedRepoRemote)
                     {
-                        currentRemoteName = updatedRepoBranch;
+                        currentRemoteName = updatedRepoRemote;
                         shouldUpdateContentFields = true;
                     }
 
