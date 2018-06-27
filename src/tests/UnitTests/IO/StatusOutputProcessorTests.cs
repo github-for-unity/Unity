@@ -251,64 +251,6 @@ namespace UnitTests
             var output = new[]
             {
                 "## master",
-                "?? GitHub.Unity.dll",
-                "?? GitHub.Unity.dll.mdb",
-                "?? GitHub.Unity.dll.mdb.meta",
-                "?? GitHub.Unity.dll.meta",
-                null
-            };
-
-            AssertProcessOutput(output, new GitStatus
-            {
-                LocalBranch = "master",
-                Entries = new List<GitStatusEntry>
-                {
-                    new GitStatusEntry(@"GitHub.Unity.dll", TestRootPath + @"\GitHub.Unity.dll", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"GitHub.Unity.dll.meta", TestRootPath + @"\GitHub.Unity.dll.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"GitHub.Unity.dll.mdb", TestRootPath + @"\GitHub.Unity.dll.mdb", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"GitHub.Unity.dll.mdb.meta", TestRootPath + @"\GitHub.Unity.dll.mdb.meta", null, GitFileStatus.Untracked),
-                }
-            });
-        }
-
-        [Test]
-        public void ShouldSortOutputCorrectly2()
-        {
-            var output = new[]
-            {
-                "## master",
-                "?? Assets/Assets.Test.dll",
-                "?? Assets/Assets.Test.dll.meta",
-                "?? Plugins/GitHub.Unity.dll",
-                "?? Plugins/GitHub.Unity.dll.mdb",
-                "?? Plugins/GitHub.Unity.dll.mdb.meta",
-                "?? Plugins/GitHub.Unity.dll.meta",
-                "?? blah.txt",
-                null
-            };
-
-            AssertProcessOutput(output, new GitStatus
-            {
-                LocalBranch = "master",
-                Entries = new List<GitStatusEntry>
-                {
-                    new GitStatusEntry(@"Assets/Assets.Test.dll", TestRootPath + @"\Assets/Assets.Test.dll", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Assets/Assets.Test.dll.meta", TestRootPath + @"\Assets/Assets.Test.dll.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"blah.txt", TestRootPath + @"\blah.txt", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll", TestRootPath + @"\Plugins/GitHub.Unity.dll", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb.meta", null, GitFileStatus.Untracked),
-                }
-            });
-        }
-
-        [Test]
-        public void ShouldSortOutputCorrectly3()
-        {
-            var output = new[]
-            {
-                "## master",
                 "?? Assets/Assets.Test.dll",
                 "?? Assets/Assets.Test.dll.meta",
                 "?? Plugins/GitHub.Unity.dll",
