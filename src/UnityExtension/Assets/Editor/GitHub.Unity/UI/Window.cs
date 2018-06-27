@@ -40,6 +40,7 @@ namespace GitHub.Unity
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
         [SerializeField] private bool hasItemsToCommit;
+        [SerializeField] private bool isTrackingRemoteBranch;
         [SerializeField] private GUIContent currentBranchContent;
         [SerializeField] private GUIContent currentRemoteUrlContent;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
@@ -279,7 +280,17 @@ namespace GitHub.Unity
                     currentBranchAndRemoteHasUpdate = false;
 
                     var repositoryCurrentBranch = Repository.CurrentBranch;
-                    var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
+                    string updatedRepoBranch;
+                    if (repositoryCurrentBranch.HasValue)
+                    {
+                        updatedRepoBranch = repositoryCurrentBranch.Value.Name;
+                        isTrackingRemoteBranch = !string.IsNullOrEmpty(repositoryCurrentBranch.Value.Tracking);
+                    }
+                    else
+                    {
+                        updatedRepoBranch = null;
+                        isTrackingRemoteBranch = false;
+                    }
 
                     var repositoryCurrentRemote = Repository.CurrentRemote;
                     if (repositoryCurrentRemote.HasValue)
@@ -313,6 +324,8 @@ namespace GitHub.Unity
             }
             else
             {
+                isTrackingRemoteBranch = false;
+
                 if (currentRemoteName != null)
                 {
                     currentRemoteName = null;
@@ -591,7 +604,7 @@ namespace GitHub.Unity
                     EditorGUI.EndDisabledGroup();
 
                     // Push button
-                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusAhead == 0);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || isTrackingRemoteBranch && statusAhead == 0);
                     {
                         var pushButtonText = statusAhead > 0 ? new GUIContent(String.Format(Localization.PushButtonCount, statusAhead)) : pushButtonContent;
                         var pushClicked = GUILayout.Button(pushButtonText, Styles.ToolbarButtonStyle);
