@@ -186,7 +186,7 @@ namespace GitHub.Unity
             return Styles.GetFileStatusIcon(gitFileStatus, node.IsLocked);
         }
 
-        protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitStatusEntryTreeData? treeData, bool isContainer)
+        protected override ChangesTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitStatusEntryTreeData? treeData)
         {
             var gitStatusEntry = GitStatusEntry.Default;
             var isLocked = false;
