@@ -303,6 +303,7 @@ namespace UnitTests
             });
         }
 
+        [Test]
         public void ShouldSortOutputCorrectly3()
         {
             var output = new[]
