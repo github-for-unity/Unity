@@ -64,8 +64,7 @@ namespace GitHub.Unity
 
         public override string ToString()
         {
-            var s = Tracking ?? "[NULL]";
-            return $"{Name} Tracking? {s}";
+            return $"{Name} Tracking? {Tracking ?? "[NULL]"}";
         }
     }
 }
