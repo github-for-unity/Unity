@@ -10,12 +10,12 @@ namespace GitHub.Unity
         public string name;
         public string tracking;
 
-        public GitBranch(string name, string tracking)
+        public GitBranch(string name, string tracking = null)
         {
             Guard.ArgumentNotNullOrWhiteSpace(name, "name");
 
             this.name = name;
-            this.tracking = tracking;
+            this.tracking = tracking ?? string.Empty;
         }
 
         public override int GetHashCode()
@@ -64,7 +64,8 @@ namespace GitHub.Unity
 
         public override string ToString()
         {
-            return $"{Name} Tracking? {Tracking}";
+            var s = Tracking ?? "[NULL]";
+            return $"{Name} Tracking? {s}";
         }
     }
 }

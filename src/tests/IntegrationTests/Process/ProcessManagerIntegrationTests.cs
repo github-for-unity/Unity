@@ -23,7 +23,7 @@ namespace IntegrationTests
                 .StartAsAsync();
 
             gitBranches.Should().BeEquivalentTo(
-                new GitBranch("master", "origin/master: behind 1"),
+                new GitBranch("master", "origin/master"),
                 new GitBranch("feature/document", "origin/feature/document"));
         }
 
