@@ -119,7 +119,7 @@ namespace GitHub.Unity
             RunLockUnlock(IsObjectUnlocked, CreateLockObjectTask, Localization.RequestLockActionTitle, "Failed to lock: no permissions");
         }
 
-        [MenuItem(AssetsMenuReleaseLockForced, false, 10001)]
+        [MenuItem(AssetsMenuReleaseLock, false, 10001)]
         private static void ContextMenu_Unlock()
         {
             RunLockUnlock(IsObjectLocked, x => CreateUnlockObjectTask(x, false), Localization.ReleaseLockActionTitle, "Failed to unlock: no permissions");
