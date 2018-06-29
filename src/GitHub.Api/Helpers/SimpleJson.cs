@@ -1250,17 +1250,7 @@ namespace GitHub.Unity.Json
         internal static readonly Type[] EmptyTypes = new Type[0];
         internal static readonly Type[] ArrayConstructorParameterTypes = new Type[] { typeof(int) };
 
-        private static readonly string[] Iso8601Format = new string[]
-                                                             {
-                                                                @"yyyy-MM-dd\THH\:mm\:sszzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffffffzzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ss.fffzzz",
-                                                                @"yyyy-MM-dd\THH\:mm\:ss\Z",
-                                                                @"yyyy-MM-dd\THH:mm:ss.fffffffzzz",
-                                                                @"yyyy-MM-dd\THH:mm:ss.fffzzz",
-                                                                @"yyyy-MM-dd\THH:mm:sszzz",
-                                                                @"yyyy-MM-dd\THH:mm:ss\Z",
-                                                             };
+        private static readonly string[] Iso8601Format = Constants.Iso8601Formats;
 
         public PocoJsonSerializerStrategy()
         {

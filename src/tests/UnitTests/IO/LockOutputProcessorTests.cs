@@ -68,6 +68,25 @@ namespace UnitTests
                 new GitLock("2f9cfde9c159d50e235cc1402c3e534b0bf2198afb20760697a5f9b07bf04fb3", "somezip.zip".ToNPath(), new GitUser("GitHub User", ""), now)
             };
 
+            AssertProcessOutput(output, expected);
+        }
+
+        [Test]
+        public void ShouldParseVSTSLocksFormat()
+        {
+            var nowString = DateTimeOffset.UtcNow.ToString(@"yyyy-MM-dd\THH\:mm\:ss.ff\Z");
+            var now = DateTimeOffset.ParseExact(nowString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+            var output = new[]
+            {
+                $@"[{{""id"":""7""   ,""path"":""Assets/Main.unity"",""owner"":{{""name"":""GitHub User""}},""locked_at"":""{nowString}""}}]",
+                string.Empty,
+                "1 lock(s) matched query.",
+                null
+            };
+
+            var expected = new[] {
+                new GitLock("7", "Assets/Main.unity".ToNPath(), new GitUser("GitHub User", ""), now),
+            };
 
             AssertProcessOutput(output, expected);
         }
