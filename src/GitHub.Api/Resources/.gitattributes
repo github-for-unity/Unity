@@ -17,6 +17,7 @@
 *.iff filter=lfs diff=lfs merge=lfs -text
 *.pict filter=lfs diff=lfs merge=lfs -text
 *.dds filter=lfs diff=lfs merge=lfs -text
+*.xcf filter=lfs diff=lfs merge=lfs -text
 
 # Audio formats
 *.mp3 filter=lfs diff=lfs merge=lfs -text
