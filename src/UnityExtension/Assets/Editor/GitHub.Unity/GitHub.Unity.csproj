@@ -104,9 +104,6 @@
     <Compile Include="UI\Subview.cs" />
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
-  <Choose>
-    <When Condition="$(Buildtype) == 'Internal'" />
-  </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
