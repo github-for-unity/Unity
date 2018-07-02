@@ -17,8 +17,8 @@ namespace GitHub.Unity
         /// <exception cref="AuthorizationException">
         /// The login authorization failed.
         /// </exception>
-        Task<LoginResultData> Login(UriString host, string username, string password);
-        Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode);
+        LoginResultData Login(UriString host, string username, string password);
+        LoginResultData ContinueLogin(LoginResultData loginResultData, string twofacode);
 
         /// <summary>
         /// Logs out of GitHub server.

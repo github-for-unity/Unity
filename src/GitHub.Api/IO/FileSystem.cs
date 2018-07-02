@@ -23,13 +23,11 @@ namespace GitHub.Unity
         IEnumerable<string> GetDirectories(string path);
         IEnumerable<string> GetDirectories(string path, string pattern);
         IEnumerable<string> GetDirectories(string path, string pattern, SearchOption searchOption);
-        string GetDirectoryName(string path);
         string GetFileNameWithoutExtension(string fileName);
         IEnumerable<string> GetFiles(string path);
         IEnumerable<string> GetFiles(string path, string pattern);
         IEnumerable<string> GetFiles(string path, string pattern, SearchOption searchOption);
         string GetFullPath(string path);
-        string GetParentDirectory(string path);
         string GetRandomFileName();
         string GetTempPath();
         Stream OpenRead(string path);
@@ -46,6 +44,7 @@ namespace GitHub.Unity
         void WriteLines(string path, string[] contents);
 
         char DirectorySeparatorChar { get; }
+        string GetProcessDirectory();
     }
 
 
@@ -102,11 +101,6 @@ namespace GitHub.Unity
             return Path.GetFullPath(path);
         }
 
-        public string GetDirectoryName(string path)
-        {
-            return Path.GetDirectoryName(path);
-        }
-
         public bool DirectoryExists(string path)
         {
             return Directory.Exists(path);
@@ -116,11 +110,6 @@ namespace GitHub.Unity
         {
             var attr = File.GetAttributes(path);
             return (attr & FileAttributes.Directory) == FileAttributes.Directory;
-        }
-
-        public string GetParentDirectory(string path)
-        {
-            return Directory.GetParent(path).FullName;
         }
 
         public IEnumerable<string> GetDirectories(string path, string pattern)
@@ -163,7 +152,7 @@ namespace GitHub.Unity
                 yield break;
 
 #if ENABLE_MONO
-            if (NPath.IsLinux)
+            if (NPath.IsUnix)
             {
                 try
                 {
@@ -177,7 +166,7 @@ namespace GitHub.Unity
             {
                 var realdir = dir;
 #if ENABLE_MONO
-                if (NPath.IsLinux)
+                if (NPath.IsUnix)
                 {
                     try
                     {
@@ -239,6 +228,11 @@ namespace GitHub.Unity
         {
             if (currentDirectory != null)
                 return currentDirectory;
+            return Directory.GetCurrentDirectory();
+        }
+
+        public string GetProcessDirectory()
+        {
             return Directory.GetCurrentDirectory();
         }
 

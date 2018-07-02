@@ -14,8 +14,9 @@ namespace GitHub.Unity
 
         private FieldInfo quitActionField;
 
-        public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext)
-            : base(synchronizationContext as SynchronizationContext)
+        public ApplicationManager(IMainThreadSynchronizationContext synchronizationContext,
+            IEnvironment environment)
+            : base(synchronizationContext as SynchronizationContext, environment)
         {
             FirstRun = ApplicationCache.Instance.FirstRun;
             InstanceId = ApplicationCache.Instance.InstanceId;
@@ -31,7 +32,7 @@ namespace GitHub.Unity
 
             isBusy = false;
             LfsLocksModificationProcessor.Initialize(Environment, Platform);
-            ProjectWindowInterface.Initialize(Environment.Repository);
+            ProjectWindowInterface.Initialize(this);
             var window = Window.GetWindow();
             if (window != null)
                 window.InitializeWindow(this);
@@ -100,6 +101,5 @@ namespace GitHub.Unity
         }
 
         public override IProcessEnvironment GitEnvironment { get { return Platform.GitEnvironment; } }
-        public override IEnvironment Environment { get { return EnvironmentCache.Instance.Environment; } }
     }
 }

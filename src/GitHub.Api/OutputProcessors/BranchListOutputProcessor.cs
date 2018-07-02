@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
@@ -15,30 +16,42 @@ namespace GitHub.Unity
             if (proc.IsAtEnd)
                 return;
 
-            var active = proc.Matches('*');
-            proc.SkipWhitespace();
-            var detached = proc.Matches("(HEAD ");
-            var name = "detached";
-            if (detached)
+            try
             {
-                proc.MoveToAfter(')');
-            }
-            else
-            {
-                name = proc.ReadUntilWhitespace();
-            }
-            proc.SkipWhitespace();
-            proc.ReadUntilWhitespace();
-            var tracking = proc.Matches(trackingBranchRegex);
-            var trackingName = "";
-            if (tracking)
-            {
-                trackingName = proc.ReadChunk('[', ']');
-            }
+                proc.Matches('*');
+                proc.SkipWhitespace();
+                var detached = proc.Matches("(HEAD ");
+                var name = "detached";
+                if (detached)
+                {
+                    proc.MoveToAfter(')');
+                }
+                else
+                {
+                    name = proc.ReadUntilWhitespace();
+                }
+                proc.SkipWhitespace();
+                proc.ReadUntilWhitespace();
+                var tracking = proc.Matches(trackingBranchRegex);
+                var trackingName = "";
+                if (tracking)
+                {
+                    trackingName = proc.ReadChunk('[', ']');
+                    var indexOf = trackingName.IndexOf(':');
+                    if (indexOf != -1)
+                    {
+                        trackingName = trackingName.Substring(0, indexOf);
+                    }
+                }
 
-            var branch = new GitBranch(name, trackingName);
+                var branch = new GitBranch(name, trackingName);
 
-            RaiseOnEntry(branch);
+                RaiseOnEntry(branch);
+            }
+            catch(Exception ex)
+            {
+                Logger.Warning(ex, "Unexpected input when listing branches");
+            }
         }
     }
 }

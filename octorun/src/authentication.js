@@ -4,7 +4,7 @@ var octokitWrapper = require("./octokit");
 
 var twoFactorRegex = new RegExp("must specify two-factor authentication otp code", "gi");
 
-var scopes = ["user", "repo", "gist", "write:public_key"];
+var scopes = ["user", "repo"];
 
 var handleAuthentication = function (username, password, onSuccess, onFailure, twoFactor) {
     if (!config.clientId || !config.clientSecret) {
@@ -15,7 +15,7 @@ var handleAuthentication = function (username, password, onSuccess, onFailure, t
         throw "appName missing";
     }
 
-    var octokit = octokitWrapper.createOctokit();
+    var octokit = octokitWrapper.createOctokit(config.appName);
 
     octokit.authenticate({
         type: "basic",
@@ -27,7 +27,6 @@ var handleAuthentication = function (username, password, onSuccess, onFailure, t
     if (twoFactor) {
         headers = {
             "X-GitHub-OTP": twoFactor,
-            "user-agent": config.appName
         };
     }
 

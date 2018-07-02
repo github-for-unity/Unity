@@ -13,12 +13,13 @@ namespace GitHub.Unity
         public string path;
         public GitUser owner;
         [NotSerialized] public string lockedAtString;
+        private string LockedAtString { get { return lockedAtString != null ? lockedAtString : String.Empty; } }
         public DateTimeOffset locked_at
         {
             get
             {
                 DateTimeOffset dt;
-                if (!DateTimeOffset.TryParseExact(lockedAtString, Constants.Iso8601Formats,
+                if (!DateTimeOffset.TryParseExact(LockedAtString.ToEmptyIfNull(), Constants.Iso8601Formats,
                         CultureInfo.InvariantCulture, Constants.DateTimeStyle, out dt))
                 {
                     locked_at = DateTimeOffset.MinValue;

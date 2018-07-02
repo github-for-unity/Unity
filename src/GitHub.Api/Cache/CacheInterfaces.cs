@@ -102,6 +102,7 @@ namespace GitHub.Unity
         GitBranch? CurrentGitBranch { get; }
         ConfigRemote? CurrentConfigRemote { get; }
         ConfigBranch? CurrentConfigBranch { get; }
+        string CurrentHead { get; }
     }
 
     public interface IRepositoryInfoCache : IManagedCache, IRepositoryInfoCacheData, ICanUpdate<IRepositoryInfoCacheData>

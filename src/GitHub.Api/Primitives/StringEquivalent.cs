@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.Serialization;
 
 namespace GitHub.Unity
 {
     [Serializable]
-    public abstract class StringEquivalent<T> : ISerializable, IXmlSerializable where T : StringEquivalent<T>
+    public abstract class StringEquivalent<T> : ISerializable where T : StringEquivalent<T>
     {
         protected string Value;
 
@@ -84,21 +81,6 @@ namespace GitHub.Unity
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("Value", Value);
-        }
-
-        public XmlSchema GetSchema()
-        {
-            return null;
-        }
-
-        public void ReadXml(XmlReader reader)
-        {
-            Value = reader.ReadString();
-        }
-
-        public void WriteXml(XmlWriter writer)
-        {
-            writer.WriteString(Value);
         }
 
         public int Length

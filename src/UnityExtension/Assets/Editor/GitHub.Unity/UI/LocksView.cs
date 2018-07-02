@@ -51,12 +51,15 @@ namespace GitHub.Unity
         [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
         [NonSerialized] private int controlId;
         [NonSerialized] private UnityEngine.Object lastActivatedObject;
+        [NonSerialized] private Dictionary<string, bool> visibleItems = new Dictionary<string, bool>();
 
         [SerializeField] private Vector2 scroll;
         [SerializeField] private List<GitLockEntry> gitLockEntries = new List<GitLockEntry>();
         [SerializeField] public GitLockEntryDictionary assets = new GitLockEntryDictionary();
         [SerializeField] public GitStatusDictionary gitStatusDictionary = new GitStatusDictionary();
         [SerializeField] private GitLockEntry selectedEntry;
+        [SerializeField] public NPath projectPath;
+
         public bool IsEmpty { get { return gitLockEntries.Count == 0; } }
 
         public GitLockEntry SelectedEntry
@@ -69,8 +72,8 @@ namespace GitHub.Unity
             {
                 selectedEntry = value;
 
-                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default
-                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath))
+                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default && projectPath.IsInitialized
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(projectPath))
                     : null;
 
                 lastActivatedObject = activeObject;
@@ -104,15 +107,19 @@ namespace GitHub.Unity
                 var endDisplay = scroll.y + containingRect.height;
 
                 var rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
-
                 for (var index = 0; index < gitLockEntries.Count; index++)
                 {
                     var entry = gitLockEntries[index];
 
                     var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.LocksEntryHeight);
 
-                    var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
-                    if (shouldRenderEntry)
+                    if (Event.current.type == EventType.Layout)
+                    {
+                        var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                        visibleItems[entry.GitLock.ID] = shouldRenderEntry;
+                    }
+
+                    if (visibleItems[entry.GitLock.ID])
                     {
                         entryRect = RenderEntry(entryRect, entry);
                     }
@@ -223,6 +230,7 @@ namespace GitHub.Unity
             var scrollIndex = (int)(scrollValue / Styles.LocksEntryHeight);
 
             assets.Clear();
+            visibleItems.Clear();
 
             gitLockEntries = locks.Select(gitLock =>
             {
@@ -235,13 +243,14 @@ namespace GitHub.Unity
 
                 var gitLockEntry = new GitLockEntry(gitLock, gitFileStatus);
                 LoadIcon(gitLockEntry, true);
-                var path = gitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath);
+                var path = gitLock.Path.MakeAbsolute().RelativeTo(projectPath);
                 var assetGuid = AssetDatabase.AssetPathToGUID(path);
                 if (!string.IsNullOrEmpty(assetGuid))
                 {
                     assets.Add(assetGuid, gitLockEntry);
                 }
 
+                visibleItems.Add(gitLockEntry.GitLock.ID, false);
                 return gitLockEntry;
             }).ToList();
 
@@ -409,8 +418,8 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            Repository.Refresh(CacheType.GitStatus);
-            Repository.Refresh(CacheType.GitLocks);
+            Refresh(CacheType.GitStatus);
+            Refresh(CacheType.GitLocks);
         }
 
         public override void OnDataUpdate()
@@ -464,7 +473,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {
@@ -490,7 +499,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {
@@ -611,6 +620,7 @@ namespace GitHub.Unity
                 locksControl = new LocksControl();
             }
 
+            locksControl.projectPath = Environment.UnityProjectPath;
             locksControl.Load(lockedFiles, gitStatusEntries);
         }
         public override void OnSelectionChange()

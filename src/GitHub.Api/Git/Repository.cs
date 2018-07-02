@@ -188,6 +188,12 @@ namespace GitHub.Unity
         {
             var cache = cacheContainer.GetCache(cacheType);
             cache.InvalidateData();
+
+            // take the opportunity to possibly refresh the locks cache, if it has timed out
+            if (cacheType != CacheType.GitLocks)
+            {
+                cacheContainer.GetCache(CacheType.GitLocks).ValidateData();
+            }
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
@@ -235,15 +241,16 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote)
+        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote, string head)
         {
             taskManager.RunInUI(() =>
             {
                 var data = new RepositoryInfoCacheData();
                 data.CurrentConfigBranch = branch;
-                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value.name, branch.Value) : null;
+                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
                 data.CurrentConfigRemote = remote;
                 data.CurrentGitRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
+                data.CurrentHead = head;
                 name = null;
                 cloneUrl = null;
                 cacheContainer.RepositoryInfoCache.UpdateData(data);
@@ -296,16 +303,15 @@ namespace GitHub.Unity
         private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> localConfigBranchDictionary)
         {
             taskManager.RunInUI(() => {
-                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(CurrentBranchName, x)).ToArray();
+                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(x)).ToArray();
                 cacheContainer.BranchCache.SetLocals(localConfigBranchDictionary, gitLocalBranches);
             });
         }
 
-        private static GitBranch GetLocalGitBranch(string currentBranchName, ConfigBranch x)
+        private static GitBranch GetLocalGitBranch(ConfigBranch x)
         {
             var branchName = x.Name;
-            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
-            var isActive = branchName == currentBranchName;
+            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : null;
             return new GitBranch(branchName, trackingName);
         }
 
@@ -344,6 +350,7 @@ namespace GitHub.Unity
         public GitRemote? CurrentRemote => cacheContainer.RepositoryInfoCache.CurrentGitRemote;
         public List<GitLogEntry> CurrentLog => cacheContainer.GitLogCache.Log;
         public List<GitLock> CurrentLocks => cacheContainer.GitLocksCache.GitLocks;
+        public string CurrentHead => cacheContainer.RepositoryInfoCache.CurrentHead;
 
         public UriString CloneUrl
         {
