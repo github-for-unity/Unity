@@ -660,14 +660,13 @@ namespace GitHub.Unity
             return nodeIcon;
         }
 
-        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitBranchTreeData? treeData, bool isContainer)
+        protected override TreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, GitBranchTreeData? treeData)
         {
             var node = new TreeNode {
                 Path = path,
                 Label = label,
                 Level = level,
                 IsFolder = isFolder,
-                IsContainer = isContainer,
                 IsActive = isActive,
                 IsHidden = isHidden,
                 IsCollapsed = isCollapsed,
