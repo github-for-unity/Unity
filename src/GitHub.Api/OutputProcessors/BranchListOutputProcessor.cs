@@ -37,6 +37,11 @@ namespace GitHub.Unity
                 if (tracking)
                 {
                     trackingName = proc.ReadChunk('[', ']');
+                    var indexOf = trackingName.IndexOf(':');
+                    if (indexOf != -1)
+                    {
+                        trackingName = trackingName.Substring(0, indexOf);
+                    }
                 }
 
                 var branch = new GitBranch(name, trackingName);
