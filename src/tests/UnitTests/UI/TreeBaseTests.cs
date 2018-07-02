@@ -113,14 +113,13 @@ namespace UnitTests
             TestTreeListener.AddCheckedNode(node);
         }
 
-        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData, bool isContainer)
+        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData)
         {
             if (traceLogging)
             {
                 Logger.Trace(
-                    "CreateTreeNode(path: {0}, label: {1}, level: {2}, isFolder: {3}, " +
-                    "isActive: {4}, isHidden: {5}, isCollapsed: {6}, isChecked: {7}, treeData: {8})", path, label,
-                    level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData?.ToString() ?? "[NULL]");
+                    "CreateTreeNode(path: {0}, label: {1}, level: {2}, isFolder: {3}, isActive: {4}, isHidden: {5}, isCollapsed: {6}, isChecked: {7}, treeData: {8})",
+                    path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData?.ToString() ?? "[NULL]");
             }
 
             TestTreeListener.CreateTreeNode(path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked,

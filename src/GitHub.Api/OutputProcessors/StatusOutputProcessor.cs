@@ -191,7 +191,7 @@ namespace GitHub.Unity
                 return;
 
             gitStatus.Entries = gitStatus.Entries
-                                         .OrderBy(entry => entry.Path)
+                                         .OrderBy(entry => entry.Path, StatusOutputPathComparer.Instance)
                                          .ToList();
 
             RaiseOnEntry(gitStatus);
@@ -213,6 +213,33 @@ namespace GitHub.Unity
         private void HandleUnexpected(string line)
         {
             Logger.Error("Unexpected Input:\"{0}\"", line);
+        }
+
+        class StatusOutputPathComparer : IComparer<string>
+        {
+            internal static StatusOutputPathComparer Instance => new StatusOutputPathComparer();
+
+            public int Compare(string x, string y)
+            {
+                Guard.ArgumentNotNull(x, nameof(x));
+                Guard.ArgumentNotNull(y, nameof(y));
+
+                var meta = ".meta";
+                var xHasMeta = x.EndsWith(meta);
+                var yHasMeta = y.EndsWith(meta);
+
+                if(!xHasMeta && !yHasMeta) return StringComparer.InvariantCulture.Compare(x, y);
+
+                var xPure = xHasMeta ? x.Substring(0, x.Length - meta.Length) : x;
+                var yPure = yHasMeta ? y.Substring(0, y.Length - meta.Length) : y;
+
+                if (xHasMeta)
+                {
+                    return xPure.Equals(y) ? 1 : StringComparer.InvariantCulture.Compare(xPure, yPure);
+                }
+
+                return yPure.Equals(x) ? -1 : StringComparer.InvariantCulture.Compare(xPure, yPure);
+            }
         }
     }
 }
