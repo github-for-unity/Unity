@@ -251,8 +251,8 @@ namespace UnitTests
             var output = new[]
             {
                 "## master",
-                "?? Assets/Assets.Test.dll",
                 "?? Assets/Assets.Test.dll.meta",
+                "?? Assets/Assets.Test.dll",
                 "?? Plugins/GitHub.Unity.dll",
                 "?? Plugins/GitHub.Unity.dll.mdb",
                 "?? Plugins/GitHub.Unity.dll.mdb.meta",
