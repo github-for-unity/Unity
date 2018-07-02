@@ -209,7 +209,7 @@ namespace GitHub.Unity
             isBusy = false;
             if (success)
             {
-                TaskManager.Run(UsageTracker.IncrementAuthenticationViewButtonAuthentication, null);
+                UsageTracker.IncrementAuthenticationViewButtonAuthentication();
 
                 Clear();
                 Finish(true);
@@ -254,7 +254,7 @@ namespace GitHub.Unity
                         host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
                     }
 
-                    AuthenticationService = new AuthenticationService(host, Platform.Keychain, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
+                    AuthenticationService = new AuthenticationService(Manager.ProcessManager, Manager.TaskManager, host, Platform.Keychain, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
                 }
                 return authenticationService;
             }

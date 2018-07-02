@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
     public interface IKeychain
     {
         IKeychainAdapter Connect(UriString host);
-        Task<IKeychainAdapter> Load(UriString host);
-        Task Clear(UriString host, bool deleteFromCredentialManager);
-        Task Save(UriString host);
+        IKeychainAdapter Load(UriString host);
+        void Clear(UriString host, bool deleteFromCredentialManager);
+        void Save(UriString host);
         void SetCredentials(ICredential credential);
         void Initialize();
         Connection[] Connections { get; }

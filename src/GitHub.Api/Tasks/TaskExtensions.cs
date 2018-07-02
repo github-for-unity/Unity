@@ -68,7 +68,7 @@ namespace GitHub.Unity
 
         public static ITask<T> Then<T>(this ITask task, Task<T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
         {
-            var cont = new FuncTask<T>(continuation) { Affinity = affinity, Name = $"ThenAsync<{typeof(T)}>" };
+            var cont = new TPLTask<T>(continuation) { Affinity = affinity, Name = $"ThenAsync<{typeof(T)}>" };
             return task.Then(cont, runOptions);
         }
 

@@ -108,6 +108,7 @@ namespace GitHub.Unity
             var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
+            psi.EnvironmentVariables["DISPLAY"] = "0";
         }
     }
 }

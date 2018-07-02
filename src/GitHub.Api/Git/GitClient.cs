@@ -38,7 +38,9 @@ namespace GitHub.Unity
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
         ITask<TheVersion> Version(IOutputProcessor<TheVersion> processor = null);
         ITask<TheVersion> LfsVersion(IOutputProcessor<TheVersion> processor = null);
+        ITask<int> CountObjects(IOutputProcessor<int> processor = null);
         ITask<GitUser> SetConfigNameAndEmail(string username, string email);
+        ITask<string> GetHead(IOutputProcessor<string> processor = null);
     }
 
     class GitClient : IGitClient
@@ -98,6 +100,12 @@ namespace GitHub.Unity
                 .Configure(processManager);
         }
 
+        public ITask<int> CountObjects(IOutputProcessor<int> processor = null)
+        {
+            return new GitCountObjectsTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
         public ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
             return new GitConfigGetTask(key, configSource, cancellationToken, processor)
@@ -143,7 +151,7 @@ namespace GitHub.Unity
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
         {
             return new GitListLocksTask(local, cancellationToken, processor)
-                .Configure(processManager);
+                .Configure(processManager, environment.GitLfsExecutablePath);
         }
 
         public ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null)
@@ -293,13 +301,19 @@ namespace GitHub.Unity
             IOutputProcessor<string> processor = null)
         {
             return new GitLockTask(file, cancellationToken, processor)
-                .Configure(processManager);
+                .Configure(processManager, environment.GitLfsExecutablePath);
         }
 
         public ITask<string> Unlock(NPath file, bool force,
             IOutputProcessor<string> processor = null)
         {
             return new GitUnlockTask(file, force, cancellationToken, processor)
+                .Configure(processManager, environment.GitLfsExecutablePath);
+        }
+
+        public ITask<string> GetHead(IOutputProcessor<string> processor = null)
+        {
+            return new FirstNonNullLineProcessTask(cancellationToken, "rev-parse --short HEAD") { Name = "Getting current head..." }
                 .Configure(processManager);
         }
 

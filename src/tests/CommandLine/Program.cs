@@ -6,6 +6,8 @@ using System.Threading;
 using GitHub.Unity;
 using GitHub;
 using GitHub.Logging;
+using System.Net;
+using System.Text;
 
 namespace TestApp
 {
@@ -39,6 +41,18 @@ namespace TestApp
             server.Stop();
         }
 
+        static TestWebServer.HttpServer RunWebServer(int port)
+        {
+            var path = typeof(Program).Assembly.Location.ToNPath().Parent.Combine("files");
+            var server = new TestWebServer.HttpServer(path, port);
+            var thread = new Thread(() =>
+            {
+                server.Start();
+            });
+            thread.Start();
+            return server;
+        }
+
         static int Main(string[] args)
         {
             LogHelper.LogAdapter = new ConsoleLogAdapter();
@@ -61,7 +75,15 @@ namespace TestApp
             string url = null;
             string readVersion = null;
             string msg = null;
+            string host = null;
+            bool runUsage = false;
 
+            var arguments = new List<string>(args);
+            if (arguments.Contains("usage"))
+            {
+                runUsage = true;
+                arguments.RemoveRange(0, 2);
+            }
 
             p = p
                 .Add("r=", (int v) => retCode = v)
@@ -69,22 +91,54 @@ namespace TestApp
                 .Add("e=|error=", v => error = v)
                 .Add("f=|file=", v => data = File.ReadAllText(v))
                 .Add("ef=|errorFile=", v => error = File.ReadAllText(v))
-                .Add("s=|sleep=", (int v) => sleepms = v)
+                .Add("sleep=", (int v) => sleepms = v)
                 .Add("i|input", v => readInputToEof = true)
                 .Add("w|web", v => runWebServer = true)
-                .Add("port=", (int v) => webServerPort = v)
+                .Add("p|port=", "Port", (int v) => webServerPort = v)
                 .Add("g|generateVersion", v => generateVersion = true)
                 .Add("v=|version=", v => version = v)
-                .Add("p|gen-package", "Pass --version --url --path --md5 --rn --msg to generate a package", v => generatePackage = true)
+                .Add("gen-package", "Pass --version --url --path --md5 --rn --msg to generate a package", v => generatePackage = true)
                 .Add("u=|url=", v => url = v)
                 .Add("path=", v => path = v.ToNPath())
                 .Add("rn=", "Path to file with release notes", v => releaseNotes = v.ReadAllTextIfFileExists())
                 .Add("msg=", "Path to file with message for package", v => msg = v.ReadAllTextIfFileExists())
                 .Add("readVersion=", v => readVersion = v)
                 .Add("o=|outfile=", v => outfile = v.ToNPath().MakeAbsolute())
-                .Add("h|help", v => p.WriteOptionDescriptions(Console.Out));
+                .Add("h=", "Host", v => host = v)
+                .Add("help", v => p.WriteOptionDescriptions(Console.Out));
 
-            p.Parse(args);
+            var extra = p.Parse(arguments);
+            if (runUsage)
+            {
+                extra.Remove("usage");
+                p.Parse(extra);
+
+                path = extra[extra.Count - 1].ToNPath();
+                var server = RunWebServer(webServerPort);
+                var webRequest = (HttpWebRequest)WebRequest.Create(new UriString("http://localhost:" + webServerPort + "/api/usage/unity"));
+                webRequest.Method = "POST";
+                using (var sw = new StreamWriter(webRequest.GetRequestStream()))
+                {
+                    foreach (var line in path.ReadAllLines())
+                    {
+                        sw.WriteLine(line);
+                    }
+                }
+                using (var webResponse = (HttpWebResponse)webRequest.GetResponseWithoutException())
+                {
+                    MemoryStream ms = new MemoryStream();
+                    var responseLength = webResponse.ContentLength;
+                    using (var sr = new StreamWriter(ms))
+                    using (var responseStream = webResponse.GetResponseStream())
+                    {
+                        Utils.Copy(responseStream, ms, responseLength);
+                    }
+                    Console.WriteLine(Encoding.ASCII.GetString(ms.ToArray()));
+                }
+
+                server.Stop();
+                return 0;
+            }
 
             if (generatePackage)
             {
@@ -104,7 +158,7 @@ namespace TestApp
                 if (outfile.IsInitialized)
                     outfile.WriteAllText(json);
                 else
-                    Logger.Info(json);
+                    Console.WriteLine(json);
                 return 0;
             }
 

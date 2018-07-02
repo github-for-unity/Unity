@@ -14,8 +14,7 @@ namespace GitHub.Unity
         public GitFileStatus status;
         public bool staged;
 
-        public GitStatusEntry(string path, string fullPath, string projectPath,
-            GitFileStatus status,
+        public GitStatusEntry(string path, string fullPath, string projectPath, GitFileStatus status,
             string originalPath = null, bool staged = false)
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");

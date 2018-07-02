@@ -8,9 +8,9 @@ namespace GitHub.Unity
 
         private LoginResult loginResultData;
 
-        public AuthenticationService(UriString host, IKeychain keychain, NPath nodeJsExecutablePath, NPath octorunExecutablePath)
+        public AuthenticationService(IProcessManager processManager, ITaskManager taskManager, UriString host, IKeychain keychain, NPath nodeJsExecutablePath, NPath octorunExecutablePath)
         {
-            client = new ApiClient(host, keychain, EntryPoint.ApplicationManager.ProcessManager, EntryPoint.ApplicationManager.TaskManager, nodeJsExecutablePath, octorunExecutablePath);
+            client = new ApiClient(host, keychain, processManager, taskManager, nodeJsExecutablePath, octorunExecutablePath);
         }
 
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)

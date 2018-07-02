@@ -9,7 +9,7 @@ using FluentAssertions;
 namespace UnitTests
 {
     [TestFixture]
-    class LockOutputProcessorTests : BaseOutputProcessorTests
+    class LocksTests : BaseOutputProcessorTests
     {
         private void AssertProcessOutput(IEnumerable<string> lines, GitLock[] expected)
         {
@@ -51,25 +51,58 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldParseTwoLocksFormat1()
+        public void ShouldParseTwoLocksFormat()
         {
             var now = DateTimeOffset.ParseExact(DateTimeOffset.UtcNow.ToString(Constants.Iso8601FormatZ), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
             var output = new[]
             {
                 @"[{""id"":""12"", ""path"":""folder/somefile.png"", ""owner"":{""name"":""GitHub User""}, ""locked_at"":""" + now.ToString(Constants.Iso8601FormatZ) + "\"}" +
-                @" ,{""id"":""21"", ""path"":""somezip.zip"", ""owner"":{""name"":""GitHub User""}, ""locked_at"":""" + now.ToString(Constants.Iso8601FormatZ) + "\"}]",
+                @" ,{""id"":""2f9cfde9c159d50e235cc1402c3e534b0bf2198afb20760697a5f9b07bf04fb3"", ""path"":""somezip.zip"", ""owner"":{""name"":""GitHub User""}, ""locked_at"":""" + now.ToString(Constants.Iso8601FormatZ) + "\"}]",
                 string.Empty,
                 "2 lock(s) matched query.",
                 null
             };
 
             var expected = new[] {
-                new GitLock(12, "folder/somefile.png".ToNPath(), new GitUser("GitHub User", ""), now),
-                new GitLock(21, "somezip.zip".ToNPath(), new GitUser("GitHub User", ""), now)
+                new GitLock("12", "folder/somefile.png".ToNPath(), new GitUser("GitHub User", ""), now),
+                new GitLock("2f9cfde9c159d50e235cc1402c3e534b0bf2198afb20760697a5f9b07bf04fb3", "somezip.zip".ToNPath(), new GitUser("GitHub User", ""), now)
             };
 
+            AssertProcessOutput(output, expected);
+        }
 
-         AssertProcessOutput(output, expected);
+        [Test]
+        public void ShouldParseVSTSLocksFormat()
+        {
+            var nowString = DateTimeOffset.UtcNow.ToString(@"yyyy-MM-dd\THH\:mm\:ss.ff\Z");
+            var now = DateTimeOffset.ParseExact(nowString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+            var output = new[]
+            {
+                $@"[{{""id"":""7""   ,""path"":""Assets/Main.unity"",""owner"":{{""name"":""GitHub User""}},""locked_at"":""{nowString}""}}]",
+                string.Empty,
+                "1 lock(s) matched query.",
+                null
+            };
+
+            var expected = new[] {
+                new GitLock("7", "Assets/Main.unity".ToNPath(), new GitUser("GitHub User", ""), now),
+            };
+
+            AssertProcessOutput(output, expected);
+        }
+
+        [Test]
+        public void GitLockComparisons()
+        {
+            GitLock lock1 = GitLock.Default;
+            GitLock lock2 = GitLock.Default;
+            Assert.IsTrue(lock1.Equals(lock2));
+            Assert.IsTrue(lock1 == lock2);
+            // these are the defaults
+            lock1 = new GitLock(null, NPath.Default, GitUser.Default, DateTimeOffset.MinValue);
+            lock2 = new GitLock();
+            Assert.IsTrue(lock1.Equals(lock2));
+            Assert.IsTrue(lock1 == lock2);
         }
     }
 }
