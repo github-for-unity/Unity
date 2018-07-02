@@ -247,7 +247,7 @@ namespace GitHub.Unity
             {
                 var data = new RepositoryInfoCacheData();
                 data.CurrentConfigBranch = branch;
-                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value.name, branch.Value) : null;
+                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
                 data.CurrentConfigRemote = remote;
                 data.CurrentGitRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
                 data.CurrentHead = head;
@@ -303,15 +303,15 @@ namespace GitHub.Unity
         private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> localConfigBranchDictionary)
         {
             taskManager.RunInUI(() => {
-                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(CurrentBranchName, x)).ToArray();
+                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(x)).ToArray();
                 cacheContainer.BranchCache.SetLocals(localConfigBranchDictionary, gitLocalBranches);
             });
         }
 
-        private static GitBranch GetLocalGitBranch(string currentBranchName, ConfigBranch x)
+        private static GitBranch GetLocalGitBranch(ConfigBranch x)
         {
             var branchName = x.Name;
-            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
+            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : null;
             return new GitBranch(branchName, trackingName);
         }
 
