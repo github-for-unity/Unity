@@ -69,6 +69,7 @@ namespace GitHub.Unity
             RepositoryPath = repositoryPath;
 
             DotGitPath = repositoryPath.Combine(".git");
+            NPath CommonPath;
             if (DotGitPath.FileExists())
             {
                 DotGitPath =
@@ -76,13 +77,28 @@ namespace GitHub.Unity
                               .Where(x => x.StartsWith("gitdir:"))
                               .Select(x => x.Substring(7).Trim().ToNPath())
                               .First();
+                if (DotGitPath.Combine("commondir").FileExists())
+                {
+                    CommonPath = DotGitPath.Combine("commondir").ReadAllLines()
+                        .Select(x => x.Trim().ToNPath())
+                        .First();
+                    CommonPath = DotGitPath.Combine(CommonPath);
+                }
+                else
+                {
+                    CommonPath = DotGitPath;
+                }
+            }
+            else
+            {
+                CommonPath = DotGitPath;
             }
 
-            BranchesPath = DotGitPath.Combine("refs", "heads");
-            RemotesPath = DotGitPath.Combine("refs", "remotes");
+            BranchesPath = CommonPath.Combine("refs", "heads");
+            RemotesPath = CommonPath.Combine("refs", "remotes");
             DotGitIndex = DotGitPath.Combine("index");
             DotGitHead = DotGitPath.Combine("HEAD");
-            DotGitConfig = DotGitPath.Combine("config");
+            DotGitConfig = CommonPath.Combine("config");
             DotGitCommitEditMsg = DotGitPath.Combine("COMMIT_EDITMSG");
         }
 
