@@ -10,10 +10,10 @@ An additional way to lock a file is by selecting it and going to `Assets` -> `Re
 ## View locks
 
 After requesting a lock, a lock icon appears in the bottom right-hand corner of the file.
-<img src="images/locks-view.png"/>
+<img src="images/locked-scene.png"/>
 
 A list of all locked files will appear in the **Locks** view in the GitHub tab.
-<img src="images/locked-scene.png"/>
+<img src="images/locks-view.png"/>
 
 ## Release locks
 
@@ -22,7 +22,7 @@ There are three ways to release locks:
 1. From the Project tab, right-click on the locked file to open the context menu and select the option to `Release Lock`.
 <img src="images/release-lock.png"/>
 
-2. From the GitHub tab under **Locks** view, right-click to open the context menu and select to `Release Lock`.
+2. From the GitHub tab under the **Locks** view, right-click to open the context menu and select to `Release Lock`.
 <img src="images/locks-view-right-click.png"/>
 
 3. Select the file to unlock and go to select the menu option `Assets` -> `Release Lock`.
