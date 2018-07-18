@@ -1,3 +1,6 @@
 [submodule "script"]
 	path = script
 	url = git@github.com:github-for-unity/UnityBuildScripts
+[submodule "submodules/packaging"]
+	path = submodules/packaging
+	url = https://github.com/github-for-unity/packaging
