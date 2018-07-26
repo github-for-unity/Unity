@@ -55,7 +55,9 @@ namespace GitHub.Unity
             }
 
             state = VerifyZipFiles(state);
+#if !DEBUG
             state = GetZipsIfNeeded(state);
+#endif
             state = GrabZipFromResourcesIfNeeded(state);
             state = ExtractGit(state);
 
