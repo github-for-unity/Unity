@@ -55,8 +55,14 @@ namespace GitHub.Unity
             }
 
             state = VerifyZipFiles(state);
+            // on developer builds, prefer local zips over downloading
+#if DEVELOPER_BUILD
+            state = GrabZipFromResourcesIfNeeded(state);
+            state = GetZipsIfNeeded(state);
+#else
             state = GetZipsIfNeeded(state);
             state = GrabZipFromResourcesIfNeeded(state);
+#endif
             state = ExtractGit(state);
 
             // if installing from zip failed (internet down maybe?), try to find a usable system git
