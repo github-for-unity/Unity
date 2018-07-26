@@ -295,8 +295,25 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
   -->
+  <Target Name="AfterBuild">
+    <Copy
+      SourceFiles="PlatformResources\linux\git-lfs.zip;PlatformResources\linux\git-lfs.json"
+      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\linux"
+      SkipUnchangedFiles="true"
+      />
+
+    <Copy
+      SourceFiles="PlatformResources\mac\git-lfs.zip;PlatformResources\mac\git-lfs.json"
+      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\mac"
+      SkipUnchangedFiles="true"
+      />
+
+    <Copy
+      SourceFiles="PlatformResources\windows\git.zip;PlatformResources\windows\git.json;PlatformResources\windows\git-lfs.zip;PlatformResources\windows\git-lfs.json"
+      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\windows"
+      SkipUnchangedFiles="true"
+      />
+  </Target>
   <Import Project="..\..\common\build.targets" />
 </Project>
