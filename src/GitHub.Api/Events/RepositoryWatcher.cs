@@ -30,6 +30,7 @@ namespace GitHub.Unity
         private readonly NPath[] ignoredPaths;
         private readonly ManualResetEventSlim pauseEvent;
         private NativeInterface nativeInterface;
+        private NativeInterface worktreeNativeInterface;
         private bool running;
         private int lastCountOfProcessedEvents = 0;
         private bool processingEvents;
@@ -64,6 +65,11 @@ namespace GitHub.Unity
             try
             {
                 nativeInterface = new NativeInterface(pathsRepositoryPath);
+
+                if (paths.IsWorktree)
+                {
+                    worktreeNativeInterface = new NativeInterface(paths.WorktreeDotGitPath);
+                }
             }
             catch (Exception ex)
             {
@@ -80,6 +86,18 @@ namespace GitHub.Unity
             }
 
             Logger.Trace("Watching Path: \"{0}\"", paths.RepositoryPath.ToString());
+
+            if (paths.IsWorktree)
+            {
+                if (worktreeNativeInterface == null)
+                {
+                    Logger.Warning("Worktree NativeInterface is null");
+                    throw new InvalidOperationException("Worktree NativeInterface is null");
+                }
+
+                Logger.Trace("Watching Additional Path for Worktree: \"{0}\"", paths.WorktreeDotGitPath);
+            }
+
             running = true;
             pauseEvent.Reset();
             Task.Factory.StartNew(WatcherLoop, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
@@ -131,6 +149,15 @@ namespace GitHub.Unity
                 processedEventCount = ProcessEvents(fileEvents);
             }
 
+            if (worktreeNativeInterface != null)
+            {
+                fileEvents = worktreeNativeInterface.GetEvents();
+                if (fileEvents.Length > 0)
+                {
+                    processedEventCount = processedEventCount + ProcessEvents(fileEvents);
+                }
+            }
+
             lastCountOfProcessedEvents = processedEventCount;
             processingEvents = false;
             signalProcessingEventsDone.Set();
@@ -158,7 +185,7 @@ namespace GitHub.Unity
                 var fileA = eventDirectory.Combine(fileEvent.FileA);
 
                 // handling events in .git/*
-                if (fileA.IsChildOf(paths.DotGitPath))
+                if (fileA.IsChildOf(paths.DotGitPath) || (paths.WorktreeDotGitPath.IsInitialized && fileA.IsChildOf(paths.WorktreeDotGitPath)))
                 {
                     if (!events.Contains(EventType.ConfigChanged) && fileA.Equals(paths.DotGitConfig))
                     {

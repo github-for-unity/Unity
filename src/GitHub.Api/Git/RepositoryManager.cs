@@ -60,6 +60,8 @@ namespace GitHub.Unity
         NPath DotGitIndex { get; }
         NPath DotGitHead { get; }
         NPath DotGitConfig { get; }
+        NPath WorktreeDotGitPath { get; }
+        bool IsWorktree { get; }
     }
 
     class RepositoryPathConfiguration : IRepositoryPathConfiguration
@@ -67,8 +69,10 @@ namespace GitHub.Unity
         public RepositoryPathConfiguration(NPath repositoryPath)
         {
             RepositoryPath = repositoryPath;
+            WorktreeDotGitPath = NPath.Default;
 
             DotGitPath = repositoryPath.Combine(".git");
+            NPath commonPath;
             if (DotGitPath.FileExists())
             {
                 DotGitPath =
@@ -76,17 +80,37 @@ namespace GitHub.Unity
                               .Where(x => x.StartsWith("gitdir:"))
                               .Select(x => x.Substring(7).Trim().ToNPath())
                               .First();
+                if (DotGitPath.Combine("commondir").FileExists())
+                {
+                    commonPath = DotGitPath.Combine("commondir").ReadAllLines()
+                        .Select(x => x.Trim().ToNPath())
+                        .First();
+                    commonPath = DotGitPath.Combine(commonPath);
+
+                    IsWorktree = true;
+                    WorktreeDotGitPath = commonPath;
+                }
+                else
+                {
+                    commonPath = DotGitPath;
+                }
+            }
+            else
+            {
+                commonPath = DotGitPath;
             }
 
-            BranchesPath = DotGitPath.Combine("refs", "heads");
-            RemotesPath = DotGitPath.Combine("refs", "remotes");
+            BranchesPath = commonPath.Combine("refs", "heads");
+            RemotesPath = commonPath.Combine("refs", "remotes");
             DotGitIndex = DotGitPath.Combine("index");
             DotGitHead = DotGitPath.Combine("HEAD");
-            DotGitConfig = DotGitPath.Combine("config");
+            DotGitConfig = commonPath.Combine("config");
             DotGitCommitEditMsg = DotGitPath.Combine("COMMIT_EDITMSG");
         }
 
+        public bool IsWorktree { get; }
         public NPath RepositoryPath { get; }
+        public NPath WorktreeDotGitPath { get; }
         public NPath DotGitPath { get; }
         public NPath BranchesPath { get; }
         public NPath RemotesPath { get; }
