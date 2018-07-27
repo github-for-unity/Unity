@@ -34,7 +34,4 @@ Details about how the team is organizing and shipping GitHub for Unity:
 
 These documents contain more details on how to use the GitHub for Unity plugin:
 - **[Installing and Updating the GitHub for Unity package](using/how-to-install-and-update.md)**
-
-These documents contain more details on how to use the GitHub for Unity plugin:
-- **[Installing and Updating the GitHub for Unity package](using/how-to-install-and-update.md)**
 - **[Getting Started with the GitHub for Unity package](using/getting-started.md)**
