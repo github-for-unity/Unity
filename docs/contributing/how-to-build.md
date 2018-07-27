@@ -13,7 +13,7 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
 
 ### MacOS
 
-- Mono 4.x required.
+- Mono 4.x required. You can install it via brew with `brew tap shana/mono && brew install mono@4.8`
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
   - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]/Unity.app/Contents/Managed` into the `lib` directory in order for the build to work
@@ -35,12 +35,25 @@ git submodule deinit script
 
 ### Important pre-build steps
 
-To be able to authenticate in GitHub for Unity, you'll need to:
+The build needs to reference `UnityEngine.dll` and `UnityEditor.dll`. These DLLs are included with Unity. If you've installed Unity in the default location, the build will be able to find them automatically. If not, copy these DLLs from `[your Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work.
+
+#### Developer OAuth app
+
+Because GitHub for Unity uses OAuth web application flow to interact with the GitHub API and perform actions on behalf of a user, it needs to be bundled with a Client ID and Secret.
+
+For external contributors, we have bundled a developer OAuth application in the source so that you can complete the sign in flow locally without needing to configure your own application.
+
+These are listed in `src/GitHub.Api/Application/ApplicationInfo.cs`
+
+DO NOT TRUST THIS CLIENT ID AND SECRET! THIS IS ONLY FOR TESTING PURPOSES!!
+
+The limitation with this developer application is that this will not work with GitHub Enterprise. You will see sign-in will fail on the OAuth callback due to the credentials not being present there.
+
+To provide your own Client ID and Client Secret:
 
 - [Register a new developer application](https://github.com/settings/developers) in your profile.
 - Copy [common/ApplicationInfo_Local.cs-example](../../common/ApplicationInfo_Local.cs-example) to `common/ApplicationInfo_Local.cs` and fill out the clientId/clientSecret fields for your application.
 
-The build needs to reference `UnityEngine.dll` and `UnityEditor.dll`. These DLLs are included with Unity. If you've installed Unity in the default location, the build will be able to find them automatically. If not, copy these DLLs from `[your Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work.
 
 ### Visual Studio
 
@@ -56,13 +69,12 @@ Once you've built the solution for the first time, you can open `src/UnityExtens
 
 The build also creates a Unity test project called `GitHubExtension` inside a directory called `github-unity-test` next to your local clone. For instance, if the repository is located at `c:\Projects\Unity` the test project will be at `c:\Projects\github-unity-test\GitHubExtension`. You can use this project to test binary builds of the extension in a clean environment (all needed DLLs will be copied to it every time you build).
 
-Note: some files might be locked by Unity if have one of the build output projects open when you compile from VS or the command line. This is expected and shouldn't cause issues with your builds. 
+Note: some files might be locked by Unity if have one of the build output projects open when you compile from VS or the command line. This is expected and shouldn't cause issues with your builds.
 
 ## Solution organization
 
 The `GitHub.Unity.sln` solution includes several projects:
 
-- dotnet-httpclient35 and octokit: external dependencies for threading and github api support, respectively. These are the submodules.
 - packaging: empty projects with build rules that copy DLLs to various locations for testing
 - Tests: unit and integration test projects
 - GitHub.Logging: A logging helper library
