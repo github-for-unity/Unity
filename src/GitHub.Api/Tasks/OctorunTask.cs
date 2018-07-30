@@ -77,9 +77,18 @@ namespace GitHub.Unity
                 : new UriString(cloneUrl.ToRepositoryUri()
                     .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
 
-            var adapter = keychain.Load(host, true);
-            if (adapter != null)
+            var adapter = keychain.Connect(host);
+            if (adapter.Credential?.Token != null)
+            {
                 userToken = adapter.Credential.Token;
+            }
+            else
+            {
+                // use a cached adapter if there is one filled out
+                adapter = keychain.LoadFromSystem(host);
+                if (adapter != null)
+                    userToken = adapter.Credential.Token;
+            }
         }
 
         public override void Configure(ProcessStartInfo psi)

@@ -9,9 +9,9 @@
             Credential = credential;
         }
 
-        public void UpdateToken(string token, string username)
+        public void Update(string token, string username)
         {
-            Credential.UpdateToken(token, username);
+            Credential.Update(token, username);
         }
 
         public void Clear()
@@ -23,5 +23,8 @@
     public interface IKeychainAdapter
     {
         ICredential Credential { get; }
+        void Set(ICredential credential);
+        void Update(string token, string username);
+        void Clear();
     }
 }

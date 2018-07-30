@@ -95,40 +95,35 @@ namespace GitHub.Unity
         public IKeychainAdapter Connect(UriString host)
         {
             Guard.ArgumentNotNull(host, nameof(host));
-
             return FindOrCreateAdapter(host);
         }
 
-        public IKeychainAdapter Load(UriString host, bool dontClear = false)
+        public IKeychainAdapter LoadFromSystem(UriString host)
         {
             Guard.ArgumentNotNull(host, nameof(host));
 
             var keychainAdapter = Connect(host) as KeychainAdapter;
-            var keychainItem = credentialManager.Load(host);
-            if (keychainItem == null)
+            var credential = credentialManager.Load(host);
+            if (credential == null)
             {
-                if (!dontClear)
-                {
-                    logger.Warning("Cannot load host from Credential Manager; removing from cache");
-                    Clear(host, false);
-                }
+                logger.Warning("Cannot load host from Credential Manager; removing from cache");
+                Clear(host, false);
                 keychainAdapter = null;
             }
             else
             {
+                keychainAdapter.Set(credential);
                 var connection = GetConnection(host);
                 if (connection.Username == null)
                 {
-                    connection.Username = keychainItem.Username;
+                    connection.Username = credential.Username;
                     SaveConnectionsToDisk();
                 }
 
-                if (keychainItem.Username != connection.Username)
+                if (credential.Username != connection.Username)
                 {
-                    logger.Warning("Keychain Username:\"{0}\" does not match cached Username:\"{1}\"; Hopefully it works", keychainItem.Username, connection.Username);
+                    logger.Warning("Keychain Username:\"{0}\" does not match cached Username:\"{1}\"; Hopefully it works", credential.Username, connection.Username);
                 }
-
-                keychainAdapter.Set(keychainItem);
             }
             return keychainAdapter;
         }
@@ -159,30 +154,12 @@ namespace GitHub.Unity
             RemoveCredential(host, deleteFromCredentialManager);
         }
 
-        public void Save(UriString host)
+        public void SaveToSystem(UriString host)
         {
             Guard.ArgumentNotNull(host, nameof(host));
 
             var keychainAdapter = AddCredential(host);
             AddConnection(new Connection(host, keychainAdapter.Credential.Username));
-        }
-
-        public void SetCredentials(ICredential credential)
-        {
-            Guard.ArgumentNotNull(credential, nameof(credential));
-
-            var keychainAdapter = GetKeychainAdapter(credential.Host);
-            keychainAdapter.Set(credential);
-        }
-
-        public void SetToken(UriString host, string token, string username)
-        {
-            Guard.ArgumentNotNull(host, nameof(host));
-            Guard.ArgumentNotNull(token, nameof(token));
-            Guard.ArgumentNotNull(username, nameof(username));
-
-            var keychainAdapter = GetKeychainAdapter(host);
-            keychainAdapter.UpdateToken(token, username);
         }
 
         private void LoadConnectionsFromDisk()

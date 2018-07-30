@@ -176,7 +176,7 @@ namespace UnitTests
             fileSystem.DidNotReceive().WriteAllLines(Args.String, Arg.Any<string[]>());
 
             var uriString = keychain.Hosts.FirstOrDefault();
-            var keychainAdapter = keychain.Load(uriString);
+            var keychainAdapter = keychain.LoadFromSystem(uriString);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
             keychainAdapter.Credential.Host.Should().Be(hostUri);
@@ -222,7 +222,7 @@ namespace UnitTests
             fileSystem.ClearReceivedCalls();
 
             var uriString = keychain.Hosts.FirstOrDefault();
-            var keychainAdapter = keychain.Load(uriString);
+            var keychainAdapter = keychain.LoadFromSystem(uriString);
             keychainAdapter.Should().BeNull();
 
             fileSystem.DidNotReceive().FileExists(Args.String);
@@ -281,21 +281,21 @@ namespace UnitTests
 
             keychainAdapter.Credential.Should().BeNull();
 
-            keychain.SetCredentials(new Credential(hostUri, username, password));
+            keychainAdapter.Set(new Credential(hostUri, username, password));
 
             keychainAdapter.Credential.Should().NotBeNull();
             keychainAdapter.Credential.Host.Should().Be(hostUri);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(password);
 
-            keychain.SetToken(hostUri, token, username);
+            keychainAdapter.Update(token, username);
 
             keychainAdapter.Credential.Should().NotBeNull();
             keychainAdapter.Credential.Host.Should().Be(hostUri);
             keychainAdapter.Credential.Username.Should().Be(username);
             keychainAdapter.Credential.Token.Should().Be(token);
 
-            keychain.Save(hostUri);
+            keychain.SaveToSystem(hostUri);
 
             fileSystem.DidNotReceive().FileExists(Args.String);
             fileSystem.DidNotReceive().FileDelete(Args.String);
@@ -352,7 +352,7 @@ namespace UnitTests
 
             keychainAdapter.Credential.Should().BeNull();
 
-            keychain.SetCredentials(new Credential(hostUri, username, password));
+            keychainAdapter.Set(new Credential(hostUri, username, password));
 
             keychainAdapter.Credential.Should().NotBeNull();
             keychainAdapter.Credential.Host.Should().Be(hostUri);

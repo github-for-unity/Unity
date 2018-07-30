@@ -225,7 +225,7 @@ namespace GitHub.Unity
 
         private IKeychainAdapter GetValidatedKeychainAdapter(Connection keychainConnection)
         {
-            var keychainAdapter = keychain.Load(keychainConnection.Host);
+            var keychainAdapter = keychain.LoadFromSystem(keychainConnection.Host);
             if (keychainAdapter == null)
                 throw new KeychainEmptyException();
 
