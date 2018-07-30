@@ -72,8 +72,7 @@ namespace GitHub.Unity
             float fTotal = Total;
             float fValue = Value;
             Percentage = fValue / fTotal;
-            float delta = fValue / fTotal - previousValue / fTotal;
-            delta = delta * 100f / fTotal;
+            var delta = (fValue / fTotal - previousValue / fTotal) * 100f;
 
             if (Value != previousValue && (fValue == 0f || delta > 1f || fValue == fTotal))
             { // signal progress in 1% increments or if we don't know what the total is
