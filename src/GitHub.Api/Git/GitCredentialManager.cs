@@ -60,7 +60,7 @@ namespace GitHub.Unity
 
                 if (String.IsNullOrEmpty(kvpCreds))
                 {
-                    Logger.Error("No credentials are stored");
+                    // we didn't find credentials, stop here
                     return null;
                 }
 

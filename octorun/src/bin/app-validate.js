@@ -1,6 +1,5 @@
 var commander = require("commander");
 var package = require('../../package.json');
-var endOfLine = require('os').EOL;
 var ApiWrapper = require('../api');
 var output = require('../output');
 

@@ -100,7 +100,7 @@ namespace IntegrationTests
         public NPath GitLfsExecutablePath => defaultEnvironment.GitLfsExecutablePath;
         public GitInstaller.GitInstallationState GitInstallationState { get { return defaultEnvironment.GitInstallationState; } set { defaultEnvironment.GitInstallationState = value; } }
 
-        public NPath NodeJsExecutablePath => defaultEnvironment.NodeJsExecutablePath;
+        public NPath NodeJsExecutablePath { get; set; }
 
         public NPath OctorunScriptPath { get; set; }
 

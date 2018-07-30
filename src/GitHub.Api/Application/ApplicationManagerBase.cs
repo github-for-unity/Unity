@@ -53,9 +53,8 @@ namespace GitHub.Unity
 #if ENABLE_METRICS
             var metricsService = new MetricsService(ProcessManager,
                 TaskManager,
-                Environment.FileSystem,
-                Environment.NodeJsExecutablePath,
-                Environment.OctorunScriptPath);
+                Platform.Keychain,
+                Environment);
             UsageTracker.MetricsService = metricsService;
 #endif
         }

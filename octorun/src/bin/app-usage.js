@@ -1,9 +1,7 @@
-var commander = require("commander");
-var package = require('../../package.json')
-var config = require("../configuration");
-var endOfLine = require('os').EOL;
+var commander = require('commander');
+var package = require('../../package.json');
+var config = require('../configuration');
 var fs = require('fs');
-var util = require('util');
 var output = require('../output');
 
 commander

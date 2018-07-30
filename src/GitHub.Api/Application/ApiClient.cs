@@ -16,23 +16,25 @@ namespace GitHub.Unity
         private readonly IKeychain keychain;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath nodeJsExecutablePath;
-        private readonly NPath octorunScriptPath;
         private readonly ILoginManager loginManager;
+        private readonly IEnvironment environment;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, NPath nodeJsExecutablePath, NPath octorunScriptPath)
+        public ApiClient(UriString hostUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment)
         {
-            Guard.ArgumentNotNull(hostUrl, nameof(hostUrl));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
 
-            HostAddress = HostAddress.Create(hostUrl);
-            OriginalUrl = hostUrl;
+            var host = String.IsNullOrEmpty(hostUrl)
+                ? UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri)
+                : new UriString(hostUrl.ToRepositoryUri()
+                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+
+            HostAddress = HostAddress.Create(host);
+            OriginalUrl = host;
             this.keychain = keychain;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.nodeJsExecutablePath = nodeJsExecutablePath;
-            this.octorunScriptPath = octorunScriptPath;
-            loginManager = new LoginManager(keychain, processManager, taskManager, nodeJsExecutablePath, octorunScriptPath);
+            this.environment = environment;
+            loginManager = new LoginManager(keychain, processManager, taskManager, environment);
         }
 
         public ITask Logout(UriString host)
@@ -40,14 +42,15 @@ namespace GitHub.Unity
             return loginManager.Logout(host);
         }
 
-        public void CreateRepository(string name, string description, bool isPrivate, Action<GitHubRepository, Exception> callback, string organization = null)
+        public void CreateRepository(string name, string description, bool isPrivate,
+            Action<GitHubRepository, Exception> callback, string organization = null)
         {
             Guard.ArgumentNotNull(callback, "callback");
 
             new FuncTask<GitHubRepository>(taskManager.Token, () =>
             {
-                var user = GetCurrentUser();
-                var keychainAdapter = keychain.Connect(OriginalUrl);
+                // this validates the user, again
+                GetCurrentUser();
 
                 var command = new StringBuilder("publish -r \"");
                 command.Append(name);
@@ -72,8 +75,7 @@ namespace GitHub.Unity
                     command.Append(" -p");
                 }
 
-                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, command.ToString(),
-                        user: user.Login, userToken: keychainAdapter.Credential.Token)
+                var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, command.ToString())
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -106,11 +108,8 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             new FuncTask<Organization[]>(taskManager.Token, () =>
             {
-                var user = GetCurrentUser();
-                var keychainAdapter = keychain.Connect(OriginalUrl);
-
-                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "organizations",
-                        user: user.Login, userToken: keychainAdapter.Credential.Token)
+                var octorunTask = new OctorunTask(taskManager.Token, keychain, environment,
+                        "organizations")
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -208,8 +207,7 @@ namespace GitHub.Unity
 
         private GitHubUser GetCurrentUser()
         {
-            //TODO: ONE_USER_LOGIN This assumes we only support one login
-            var keychainConnection = keychain.Connections.FirstOrDefault();
+            var keychainConnection = keychain.Connections.FirstOrDefault(x => x.Host == OriginalUrl);
             if (keychainConnection == null)
                 throw new KeychainEmptyException();
 
@@ -249,8 +247,7 @@ namespace GitHub.Unity
         {
             try
             {
-                var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath, octorunScriptPath, "validate",
-                        user: keychainConnection.Username, userToken: keychainAdapter.Credential.Token)
+                var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, "validate")
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();

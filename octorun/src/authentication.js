@@ -1,4 +1,3 @@
-var endOfLine = require('os').EOL;
 var config = require("./configuration");
 var octokitWrapper = require("./octokit");
 

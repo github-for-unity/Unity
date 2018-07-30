@@ -99,22 +99,30 @@ namespace GitHub.Unity
             return FindOrCreateAdapter(host);
         }
 
-        public IKeychainAdapter Load(UriString host)
+        public IKeychainAdapter Load(UriString host, bool dontClear = false)
         {
             Guard.ArgumentNotNull(host, nameof(host));
 
-            var keychainAdapter = FindOrCreateAdapter(host);
-            var connection = GetConnection(host);
-
+            var keychainAdapter = Connect(host) as KeychainAdapter;
             var keychainItem = credentialManager.Load(host);
             if (keychainItem == null)
             {
-                logger.Warning("Cannot load host from Credential Manager; removing from cache");
-                Clear(host, false);
+                if (!dontClear)
+                {
+                    logger.Warning("Cannot load host from Credential Manager; removing from cache");
+                    Clear(host, false);
+                }
                 keychainAdapter = null;
             }
             else
             {
+                var connection = GetConnection(host);
+                if (connection.Username == null)
+                {
+                    connection.Username = keychainItem.Username;
+                    SaveConnectionsToDisk();
+                }
+
                 if (keychainItem.Username != connection.Username)
                 {
                     logger.Warning("Keychain Username:\"{0}\" does not match cached Username:\"{1}\"; Hopefully it works", keychainItem.Username, connection.Username);
@@ -262,11 +270,11 @@ namespace GitHub.Unity
         private Connection GetConnection(UriString host)
         {
             if (!connections.ContainsKey(host))
-                throw new ArgumentException($"{host} is not found", nameof(host));
+                return AddConnection(new Connection(host, null));
             return connections[host];
         }
 
-        private void AddConnection(Connection connection)
+        private Connection AddConnection(Connection connection)
         {
             // create new connection in the connection cache for this host
             if (connections.ContainsKey(connection.Host))
@@ -274,6 +282,7 @@ namespace GitHub.Unity
             else
                 connections.Add(connection.Host, connection);
             SaveConnectionsToDisk();
+            return connection;
         }
 
         private void RemoveConnection(UriString host)

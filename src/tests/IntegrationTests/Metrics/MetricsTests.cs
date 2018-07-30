@@ -110,7 +110,7 @@ namespace IntegrationTests
             storePath.WriteAllText(savedStore.ToJson(lowerCase: true));
             settings.Get(Arg.Is<string>(Constants.MetricsKey), Arg.Any<bool>()).Returns(true);
 
-            var metricsService = new MetricsService(ProcessManager, TaskManager, Environment.FileSystem, TestApp, TestApp);
+            var metricsService = new MetricsService(ProcessManager, TaskManager, Platform.Keychain, Environment);
             usageTracker.MetricsService = metricsService;
             var method = usageTracker.GetType().GetMethod("SendUsage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             method.Invoke(usageTracker, null);

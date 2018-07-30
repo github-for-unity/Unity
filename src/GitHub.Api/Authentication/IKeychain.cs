@@ -6,7 +6,7 @@ namespace GitHub.Unity
     public interface IKeychain
     {
         IKeychainAdapter Connect(UriString host);
-        IKeychainAdapter Load(UriString host);
+        IKeychainAdapter Load(UriString host, bool dontClear = false);
         void Clear(UriString host, bool deleteFromCredentialManager);
         void Save(UriString host);
         void SetCredentials(ICredential credential);

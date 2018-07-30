@@ -62,11 +62,14 @@ namespace IntegrationTests
             cacheContainer.SetCacheInitializer(CacheType.GitUser, () => GitUserCache.Instance);
             cacheContainer.SetCacheInitializer(CacheType.RepositoryInfo, () => RepositoryInfoCache.Instance);
 
-            Environment = new IntegrationTestEnvironment(cacheContainer,
-                repoPath,
-                SolutionDirectory,
-                enableTrace: enableEnvironmentTrace,
-                initializeRepository: initializeRepository);
+            var environment = new IntegrationTestEnvironment(cacheContainer,
+               repoPath,
+               SolutionDirectory,
+               enableTrace: enableEnvironmentTrace,
+               initializeRepository: initializeRepository);
+            environment.NodeJsExecutablePath = TestApp;
+            environment.OctorunScriptPath = TestApp;
+            Environment = environment;
         }
 
         protected void InitializePlatform(NPath repoPath,
