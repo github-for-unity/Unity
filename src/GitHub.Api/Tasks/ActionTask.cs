@@ -31,16 +31,30 @@ namespace GitHub.Unity
 
         public override void RunSynchronously()
         {
-            foreach (var task in queuedTasks)
-                task.Start();
-            base.RunSynchronously();
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
+                    task.Start();
+                base.RunSynchronously();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(true);
+            }
         }
 
         protected override void Schedule()
         {
-            foreach (var task in queuedTasks)
-                task.Start();
-            base.Schedule();
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
+                    task.Start();
+                base.Schedule();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(true);
+            }
         }
 
         private void InvokeFinishOnlyOnSuccess(ITask task, bool success, Exception ex)
@@ -115,16 +129,29 @@ namespace GitHub.Unity
 
         public override List<TResult> RunSynchronously()
         {
-            foreach (var task in queuedTasks)
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
                 task.Start();
-            return base.RunSynchronously();
+                return base.RunSynchronously();
+            }
+
+            aggregateTask.TrySetResult(new List<TResult>());
+            return Result;
         }
 
         protected override void Schedule()
         {
-            foreach (var task in queuedTasks)
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
                 task.Start();
-            base.Schedule();
+                base.Schedule();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(new List<TResult>());
+            }
         }
 
         private void InvokeFinishOnlyOnSuccess(ITask<TTaskResult> task, TTaskResult result, bool success, Exception ex)
