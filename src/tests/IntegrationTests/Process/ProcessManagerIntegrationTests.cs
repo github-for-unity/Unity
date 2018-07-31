@@ -13,6 +13,7 @@ namespace IntegrationTests
     class ProcessManagerIntegrationTests : BaseGitEnvironmentTest
     {
         [Test]
+        [Category("DoNotRunOnAppVeyor")]
         public async Task BranchListTest()
         {
             InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
