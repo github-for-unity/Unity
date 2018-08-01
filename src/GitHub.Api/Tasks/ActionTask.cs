@@ -31,15 +31,31 @@ namespace GitHub.Unity
 
         public override void RunSynchronously()
         {
-            foreach (var task in queuedTasks)
-                task.Start();
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
+                    task.Start();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(true);
+            }
+
             base.RunSynchronously();
         }
 
         protected override void Schedule()
         {
-            foreach (var task in queuedTasks)
-                task.Start();
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
+                    task.Start();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(true);
+            }
+
             base.Schedule();
         }
 
@@ -115,15 +131,31 @@ namespace GitHub.Unity
 
         public override List<TResult> RunSynchronously()
         {
-            foreach (var task in queuedTasks)
-                task.Start();
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
+                    task.Start();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(new List<TResult>());
+            }
+
             return base.RunSynchronously();
         }
 
         protected override void Schedule()
         {
-            foreach (var task in queuedTasks)
-                task.Start();
+            if (queuedTasks.Any())
+            {
+                foreach (var task in queuedTasks)
+                    task.Start();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(new List<TResult>());
+            }
+
             base.Schedule();
         }
 
