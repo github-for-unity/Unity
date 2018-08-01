@@ -35,12 +35,13 @@ namespace GitHub.Unity
             {
                 foreach (var task in queuedTasks)
                     task.Start();
-                base.RunSynchronously();
             }
             else
             {
                 aggregateTask.TrySetResult(true);
             }
+
+            base.RunSynchronously();
         }
 
         protected override void Schedule()
@@ -49,12 +50,13 @@ namespace GitHub.Unity
             {
                 foreach (var task in queuedTasks)
                     task.Start();
-                base.Schedule();
             }
             else
             {
                 aggregateTask.TrySetResult(true);
             }
+
+            base.Schedule();
         }
 
         private void InvokeFinishOnlyOnSuccess(ITask task, bool success, Exception ex)
@@ -132,12 +134,14 @@ namespace GitHub.Unity
             if (queuedTasks.Any())
             {
                 foreach (var task in queuedTasks)
-                task.Start();
-                return base.RunSynchronously();
+                    task.Start();
+            }
+            else
+            {
+                aggregateTask.TrySetResult(new List<TResult>());
             }
 
-            aggregateTask.TrySetResult(new List<TResult>());
-            return Result;
+            return base.RunSynchronously();
         }
 
         protected override void Schedule()
@@ -145,13 +149,14 @@ namespace GitHub.Unity
             if (queuedTasks.Any())
             {
                 foreach (var task in queuedTasks)
-                task.Start();
-                base.Schedule();
+                    task.Start();
             }
             else
             {
                 aggregateTask.TrySetResult(new List<TResult>());
             }
+
+            base.Schedule();
         }
 
         private void InvokeFinishOnlyOnSuccess(ITask<TTaskResult> task, TTaskResult result, bool success, Exception ex)
