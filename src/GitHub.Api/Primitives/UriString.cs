@@ -28,7 +28,8 @@ namespace GitHub.Unity
         public UriString(string uriString) : base(NormalizePath(uriString))
         {
             if (uriString == null || uriString.Length == 0) return;
-            if (Uri.TryCreate(uriString, UriKind.Absolute, out url))
+            if (Uri.TryCreate(uriString, UriKind.Absolute, out url)
+                || Uri.TryCreate("https://" + uriString, UriKind.Absolute, out url))
             {
                 if (!url.IsFile)
                     SetUri(url);

@@ -6,8 +6,8 @@ function ApiWrapper() {
         throw "appName missing";
     }
 
-    if (!config.user || !config.token) {
-        throw "user and/or token missing";
+    if (!config.token) {
+        throw "token missing";
     }
 
     this.octokit = octokitWrapper.createOctokit(config.appName);

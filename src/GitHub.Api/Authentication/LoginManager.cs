@@ -22,8 +22,7 @@ namespace GitHub.Unity
         private readonly IKeychain keychain;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath? nodeJsExecutablePath;
-        private readonly NPath? octorunScript;
+        private readonly IEnvironment environment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginManager"/> class.
@@ -35,15 +34,14 @@ namespace GitHub.Unity
         /// <param name="octorunScript"></param>
         public LoginManager(
             IKeychain keychain, IProcessManager processManager, ITaskManager taskManager,
-            NPath? nodeJsExecutablePath = null, NPath? octorunScript = null)
+            IEnvironment environment)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
 
             this.keychain = keychain;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.nodeJsExecutablePath = nodeJsExecutablePath;
-            this.octorunScript = octorunScript;
+            this.environment = environment;
         }
 
         /// <inheritdoc/>
@@ -58,8 +56,8 @@ namespace GitHub.Unity
 
             // Start by saving the username and password, these will be used by the `IGitHubClient`
             // until an authorization token has been created and acquired:
-            keychain.Connect(host);
-            keychain.SetCredentials(new Credential(host, username, password));
+            var keychainAdapter = keychain.Connect(host);
+            keychainAdapter.Set(new Credential(host, username, password));
 
             try
             {
@@ -71,16 +69,13 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
+                    keychainAdapter.Update(loginResultData.Token, username);
+
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
                         username = RetrieveUsername(loginResultData, username);
-                    }
-
-                    keychain.SetToken(host, loginResultData.Token, username);
-
-                    if (loginResultData.Code == LoginResultCodes.Success)
-                    {
-                        keychain.Save(host);
+                        keychainAdapter.Update(loginResultData.Token, username);
+                        keychain.SaveToSystem(host);
                     }
 
                     return loginResultData;
@@ -101,6 +96,9 @@ namespace GitHub.Unity
         {
             var host = loginResultData.Host;
             var keychainAdapter = keychain.Connect(host);
+            if (keychainAdapter.Credential == null) {
+                return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
+            }
             var username = keychainAdapter.Credential.Username;
             var password = keychainAdapter.Credential.Token;
             try
@@ -114,9 +112,10 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
+                    keychainAdapter.Update(loginResultData.Token, username);
                     username = RetrieveUsername(loginResultData, username);
-                    keychain.SetToken(host, loginResultData.Token, username);
-                    keychain.Save(host);
+                    keychainAdapter.Update(loginResultData.Token, username);
+                    keychain.SaveToSystem(host);
 
                     return loginResultData;
                 }
@@ -146,22 +145,12 @@ namespace GitHub.Unity
             string code = null
         )
         {
-            if (!nodeJsExecutablePath.HasValue)
-            {
-                throw new InvalidOperationException("nodeJsExecutablePath must be set");
-            }
-
-            if (!octorunScript.HasValue)
-            {
-                throw new InvalidOperationException("octorunScript must be set");
-            }
-
             var hasTwoFactorCode = code != null;
 
             var arguments = hasTwoFactorCode ? "login --twoFactor" : "login";
-            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value,
-                arguments, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-            loginTask.Configure(processManager, workingDirectory: octorunScript.Value.Parent.Parent, withInput: true);
+            var loginTask = new OctorunTask(taskManager.Token, keychain, environment,
+                arguments);
+            loginTask.Configure(processManager, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -198,8 +187,8 @@ namespace GitHub.Unity
                 return username;
             }
 
-            var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
-                user: username, userToken: loginResultData.Token).Configure(processManager);
+            var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, "validate")
+                .Configure(processManager);
 
             var validateResult = octorunTask.RunSynchronously();
             if (!validateResult.IsSuccess)

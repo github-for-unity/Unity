@@ -54,28 +54,41 @@ namespace GitHub.Unity
     {
         private readonly string clientId;
         private readonly string clientSecret;
-        private readonly string user;
         private readonly string userToken;
 
         private readonly NPath pathToNodeJs;
         private readonly NPath pathToOctorunJs;
         private readonly string arguments;
 
-        public OctorunTask(CancellationToken token, NPath pathToNodeJs, NPath pathToOctorunJs, string arguments,
-            string clientId = null,
-            string clientSecret = null,
-            string user = null,
-            string userToken = null,
+        public OctorunTask(CancellationToken token, IKeychain keychain, IEnvironment environment,
+            string arguments,
             IOutputProcessor<OctorunResult> processor = null)
             : base(token, processor ?? new OctorunResultOutputProcessor())
         {
-            this.clientId = clientId;
-            this.clientSecret = clientSecret;
-            this.user = user;
-            this.userToken = userToken;
-            this.pathToNodeJs = pathToNodeJs;
-            this.pathToOctorunJs = pathToOctorunJs;
+            this.clientId = ApplicationInfo.ClientId;
+            this.clientSecret = ApplicationInfo.ClientSecret;
+            this.pathToNodeJs = environment.NodeJsExecutablePath;
+            this.pathToOctorunJs = environment.OctorunScriptPath;
             this.arguments = $"\"{pathToOctorunJs}\" {arguments}";
+
+            var cloneUrl = environment.Repository?.CloneUrl;
+            var host = String.IsNullOrEmpty(cloneUrl)
+                ? UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri)
+                : new UriString(cloneUrl.ToRepositoryUri()
+                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+
+            var adapter = keychain.Connect(host);
+            if (adapter.Credential?.Token != null)
+            {
+                userToken = adapter.Credential.Token;
+            }
+            else
+            {
+                // use a cached adapter if there is one filled out
+                adapter = keychain.LoadFromSystem(host);
+                if (adapter != null)
+                    userToken = adapter.Credential.Token;
+            }
         }
 
         public override void Configure(ProcessStartInfo psi)
@@ -85,21 +98,8 @@ namespace GitHub.Unity
             psi.WorkingDirectory = pathToOctorunJs.Parent.Parent.Parent;
 
             psi.EnvironmentVariables.Add("OCTOKIT_USER_AGENT", $"{ApplicationInfo.ApplicationSafeName}/{ApplicationInfo.Version}");
-
-            if (clientId != null)
-            {
-                psi.EnvironmentVariables.Add("OCTOKIT_CLIENT_ID", clientId);
-            }
-
-            if (clientSecret != null)
-            {
-                psi.EnvironmentVariables.Add("OCTOKIT_CLIENT_SECRET", clientSecret);
-            }
-
-            if (user != null)
-            {
-                psi.EnvironmentVariables.Add("OCTORUN_USER", user);
-            }
+            psi.EnvironmentVariables.Add("OCTOKIT_CLIENT_ID", clientId);
+            psi.EnvironmentVariables.Add("OCTOKIT_CLIENT_SECRET", clientSecret);
 
             if (userToken != null)
             {

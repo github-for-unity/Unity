@@ -213,7 +213,22 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            connection = Platform.Keychain.Connections.FirstOrDefault();
+            UriString host = null;
+            if (!HasRepository || String.IsNullOrEmpty(Repository.CloneUrl))
+            {
+                var firstConnection = Platform.Keychain.Connections.FirstOrDefault();
+                if (firstConnection != null)
+                    host = firstConnection.Host;
+                else
+                    host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+            }
+            else
+            {
+                host = new UriString(Repository.CloneUrl.ToRepositoryUri()
+                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+            }
+
+            connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host.ToUriString() == host);
 
             if (repositoryProgressHasUpdate)
             {
@@ -568,6 +583,24 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
+
+                if (!HasRepository)
+                {
+                    GUILayout.FlexibleSpace();
+
+                    if (connection == null)
+                    {
+                        if (GUILayout.Button("Sign in", EditorStyles.toolbarButton))
+                            SignIn(null);
+                    }
+                    else
+                    {
+                        if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
+                        {
+                            DoAccountDropdown();
+                        }
+                    }
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -826,27 +859,14 @@ namespace GitHub.Unity
 
         private void GoToProfile(object obj)
         {
-            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-            var keychainConnection = Platform.Keychain.Connections.First();
-            var uriString = new UriString(keychainConnection.Host).Combine(keychainConnection.Username);
+            var uriString = new UriString(connection.Host).Combine(connection.Username);
             Application.OpenURL(uriString);
         }
 
         private void SignOut(object obj)
         {
-            UriString host;
-            if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
-            {
-                host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-            }
-            else
-            {
-                host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-            }
-
-            var apiClient = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
-            apiClient.Logout(host).FinallyInUI((s, e) => Redraw());
+            var loginManager = new LoginManager(Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
+            loginManager.Logout(connection.Host).FinallyInUI((s, e) => Redraw());
         }
 
         public new void ShowNotification(GUIContent content)

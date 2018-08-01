@@ -35,24 +35,15 @@ namespace GitHub.Unity
         [NonSerialized] private string error;
         [NonSerialized] private bool ownersNeedLoading;
 
+        private Connection Connection { get { return Platform.Keychain.Connections.First(); } }
+
         public IApiClient Client
         {
             get
             {
                 if (client == null)
                 {
-                    var repository = Environment.Repository;
-                    UriString host;
-                    if (repository != null && !string.IsNullOrEmpty(repository.CloneUrl))
-                    {
-                        host = repository.CloneUrl.ToRepositoryUrl();
-                    }
-                    else
-                    {
-                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-                    }
-
-                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
+                    client = new ApiClient(Connection.Host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment);
                 }
 
                 return client;
@@ -89,13 +80,10 @@ namespace GitHub.Unity
 
         private void LoadOwners()
         {
-            var keychainConnections = Platform.Keychain.Connections;
-            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-
             isBusy = true;
 
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-            username = keychainConnections.First().Username;
+            username = Connection.Username;
 
             Client.GetOrganizations(orgs =>
             {
@@ -129,7 +117,7 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
             {
-            	GUILayout.Label(PublishToGithubLabel, EditorStyles.boldLabel);
+                GUILayout.Label(PublishToGithubLabel, EditorStyles.boldLabel);
             }
             GUILayout.EndHorizontal();
 
@@ -202,7 +190,7 @@ namespace GitHub.Unity
             {
                 return PublishLimitPrivateRepositoriesError;
             }
-            
+
             return ex.Message;
         }
 

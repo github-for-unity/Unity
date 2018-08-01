@@ -175,17 +175,8 @@ namespace GitHub.Unity
                 if (client == null)
                 {
                     var repository = Environment.Repository;
-                    UriString host;
-                    if (repository != null && !string.IsNullOrEmpty(repository.CloneUrl))
-                    {
-                        host = repository.CloneUrl.ToRepositoryUrl();
-                    }
-                    else
-                    {
-                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-                    }
-
-                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
+                    UriString host = repository != null ? repository.CloneUrl : null;
+                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment);
                 }
 
                 return client;
