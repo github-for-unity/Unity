@@ -137,7 +137,7 @@ namespace GitHub.Unity
                         RestartRepository();
                     }
 
-                    progress.UpdateProgress(100, 100, "Initialization failed");
+                    progress.UpdateProgress(100, 100, "Initialized");
                 }
                 catch (Exception ex)
                 {
