@@ -494,7 +494,6 @@ namespace GitHub.Unity
                     toolbarButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
                     toolbarButtonStyle.name = "HistoryToolbarButtonStyle";
                     toolbarButtonStyle.richText = true;
-                    toolbarButtonStyle.wordWrap = true;
                 }
                 return toolbarButtonStyle;
             }
