@@ -283,6 +283,7 @@ namespace GitHub.Unity
             {
                 var scale = itemRect.height / 90f;
                 var size = new Vector2(texture.width * scale, texture.height * scale);
+                size = size / EditorGUIUtility.pixelsPerPoint;
                 var offset = new Vector2(itemRect.width * Mathf.Min(.4f * scale, .2f), itemRect.height * Mathf.Min(.2f * scale, .2f));
                 rect = new Rect(itemRect.center.x - size.x * .5f + offset.x, itemRect.center.y - size.y * .5f + offset.y, size.x, size.y);
             }
