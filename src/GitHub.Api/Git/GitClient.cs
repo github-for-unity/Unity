@@ -278,7 +278,7 @@ namespace GitHub.Unity
         ITask<string> GetHead(IOutputProcessor<string> processor = null);
     }
 
-    class GitClient : IGitClient
+    public class GitClient : IGitClient
     {
         private const string UserNameConfigKey = "user.name";
         private const string UserEmailConfigKey = "user.email";
