@@ -44,8 +44,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git config get` to get a configuration value.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="configSource"></param>
+        /// <param name="key">The configuration key to get</param>
+        /// <param name="configSource">The config source (unspecified, local,user,global) to use</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> GetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null);
@@ -53,9 +53,9 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git config set` to set a configuration value.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="configSource"></param>
+        /// <param name="key">The configuration key to set</param>
+        /// <param name="value">The value to set</param>
+        /// <param name="configSource">The config source (unspecified, local,user,global) to use</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null);
@@ -77,8 +77,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git pull` to perform a pull operation.
         /// </summary>
-        /// <param name="remote"></param>
-        /// <param name="branch"></param>
+        /// <param name="remote">The remote to pull from</param>
+        /// <param name="branch">The branch to pull</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Pull(string remote, string branch, IOutputProcessor<string> processor = null);
@@ -86,8 +86,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git push` to perform a push operation.
         /// </summary>
-        /// <param name="remote"></param>
-        /// <param name="branch"></param>
+        /// <param name="remote">The remote to push to</param>
+        /// <param name="branch">The branch to push</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Push(string remote, string branch, IOutputProcessor<string> processor = null);
@@ -95,7 +95,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git revert` to perform a revert operation.
         /// </summary>
-        /// <param name="changeset"></param>
+        /// <param name="changeset">The changeset to revert</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null);
@@ -103,7 +103,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git fetch` to perform a fetch operation.
         /// </summary>
-        /// <param name="remote"></param>
+        /// <param name="remote">The remote to fetch from</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Fetch(string remote, IOutputProcessor<string> processor = null);
@@ -111,7 +111,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git checkout` to switch branches.
         /// </summary>
-        /// <param name="branch"></param>
+        /// <param name="branch">The branch to checkout</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> SwitchBranch(string branch, IOutputProcessor<string> processor = null);
@@ -119,8 +119,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git branch -d` to delete a branch.
         /// </summary>
-        /// <param name="branch"></param>
-        /// <param name="deleteUnmerged"></param>
+        /// <param name="branch">The branch to delete</param>
+        /// <param name="deleteUnmerged">The flag to indicate the branch should be deleted even if not merged</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> DeleteBranch(string branch, bool deleteUnmerged = false, IOutputProcessor<string> processor = null);
@@ -128,8 +128,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git branch` to create a branch.
         /// </summary>
-        /// <param name="branch"></param>
-        /// <param name="baseBranch"></param>
+        /// <param name="branch">The name of branch to create</param>
+        /// <param name="baseBranch">The name of branch to create from</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> CreateBranch(string branch, string baseBranch, IOutputProcessor<string> processor = null);
@@ -137,8 +137,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git remote add` to add a git remote.
         /// </summary>
-        /// <param name="remote"></param>
-        /// <param name="url"></param>
+        /// <param name="remote">The remote to add</param>
+        /// <param name="url">The url of the remote</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> RemoteAdd(string remote, string url, IOutputProcessor<string> processor = null);
@@ -146,7 +146,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git remote rm` to remove a git remote.
         /// </summary>
-        /// <param name="remote"></param>
+        /// <param name="remote">The remote to remove</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> RemoteRemove(string remote, IOutputProcessor<string> processor = null);
@@ -154,8 +154,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git remote set-url` to change the url of a git remote.
         /// </summary>
-        /// <param name="remote"></param>
-        /// <param name="url"></param>
+        /// <param name="remote">The remote to change</param>
+        /// <param name="url">The url to change to</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> RemoteChange(string remote, string url, IOutputProcessor<string> processor = null);
@@ -163,8 +163,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git commit` to perform a commit operation.
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="body"></param>
+        /// <param name="message">The commit message summary</param>
+        /// <param name="body">The commit message body</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Commit(string message, string body, IOutputProcessor<string> processor = null);
@@ -172,7 +172,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes at least one `git add` command to add the list of files to the git index.
         /// </summary>
-        /// <param name="files"></param>
+        /// <param name="files">The file to add</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Add(IList<string> files, IOutputProcessor<string> processor = null);
@@ -187,7 +187,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes at least one `git checkout` command to discard changes to the list of files.
         /// </summary>
-        /// <param name="files"></param>
+        /// <param name="files">The files to discard</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Discard(IList<string> files, IOutputProcessor<string> processor = null);
@@ -202,7 +202,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git reset HEAD` command to remove files from the git index.
         /// </summary>
-        /// <param name="files"></param>
+        /// <param name="files">The files to remove</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Remove(IList<string> files, IOutputProcessor<string> processor = null);
@@ -210,9 +210,9 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes at least one `git add` command to add the list of files to the git index. Followed by a `git commit` command to commit the changes.
         /// </summary>
-        /// <param name="files"></param>
-        /// <param name="message"></param>
-        /// <param name="body"></param>
+        /// <param name="files">The files to add and commit</param>
+        /// <param name="message">The commit message summary</param>
+        /// <param name="body">The commit message body</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> AddAndCommit(IList<string> files, string message, string body, IOutputProcessor<string> processor = null);
@@ -220,7 +220,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git lfs lock` to lock a file.
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="file">The file to lock</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Lock(NPath file, IOutputProcessor<string> processor = null);
@@ -228,8 +228,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git lfs unlock` to unlock a file.
         /// </summary>
-        /// <param name="file"></param>
-        /// <param name="force"></param>
+        /// <param name="file">The file to unlock</param>
+        /// <param name="force">If force should be used</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
         ITask<string> Unlock(NPath file, bool force, IOutputProcessor<string> processor = null);
@@ -265,8 +265,8 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes two `git set config` commands to set the git name and email.
         /// </summary>
-        /// <param name="username"></param>
-        /// <param name="email"></param>
+        /// <param name="username">The username to set</param>
+        /// <param name="email">The email to set</param>
         /// <returns><see cref="GitUser"/> output</returns>
         ITask<GitUser> SetConfigNameAndEmail(string username, string email);
 
