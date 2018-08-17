@@ -59,14 +59,6 @@
       <Name>GitHub.Unity</Name>
       <Private>True</Private>
     </ProjectReference>
-    <Reference Include="AsyncBridge.Net35, Version=0.2.3333.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\AsyncBridge.Net35.0.2.3333.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
@@ -80,6 +72,18 @@
     <Compile Include="Class1.cs" />
     <None Include="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\ExtensionLoader\ExtensionLoader.cs">
       <Link>ExtensionLoader.cs</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll">
+      <Link>ReadOnlyCollectionsInterfaces.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\packages\AsyncBridge.Net35.0.2.3333.0\lib\net35-Client\AsyncBridge.Net35.dll">
+      <Link>AsyncBridge.Net35.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll">
+      <Link>System.Threading.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
