@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -15,14 +15,14 @@
     <LangVersion>6</LangVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <OutputPath>..\UnityExtension\Assets\Editor\build</OutputPath>
+    <OutputPath>..\UnityExtension\Assets\Editor\build\</OutputPath>
   </PropertyGroup>
   <Import Project="..\..\common\properties.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;$(BuildDefs)</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;$(BuildDefs);NET_4_6</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -32,7 +32,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;$(BuildDefs)</DefineConstants>
+    <DefineConstants>TRACE;$(BuildDefs);NET_4_6</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <BuildConfid>Release</BuildConfid>
@@ -44,7 +44,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs)</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs);NET_4_6</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -264,15 +264,10 @@
     <EmbeddedResource Include="PlatformResources\mac\git-lfs.json" />
     <EmbeddedResource Include="PlatformResources\windows\git-lfs.json" />
     <EmbeddedResource Include="PlatformResources\windows\git.json" />
-    <None Include="PlatformResources\linux\git-lfs.zip" />
-    <None Include="PlatformResources\mac\git-lfs.zip" />
-    <None Include="PlatformResources\windows\git-lfs.zip" />
-    <None Include="PlatformResources\windows\git.zip" />
     <EmbeddedResource Include="Resources\octorun.zip" />
     <EmbeddedResource Include="Resources\octorun.zip.md5" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <EmbeddedResource Include="Localization.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
@@ -285,24 +280,5 @@
   <Target Name="BeforeBuild">
   </Target>
   -->
-  <Target Name="AfterBuild">
-    <Copy
-      SourceFiles="PlatformResources\linux\git-lfs.zip;PlatformResources\linux\git-lfs.json"
-      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\linux"
-      SkipUnchangedFiles="true"
-      />
-
-    <Copy
-      SourceFiles="PlatformResources\mac\git-lfs.zip;PlatformResources\mac\git-lfs.json"
-      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\mac"
-      SkipUnchangedFiles="true"
-      />
-
-    <Copy
-      SourceFiles="PlatformResources\windows\git.zip;PlatformResources\windows\git.json;PlatformResources\windows\git-lfs.zip;PlatformResources\windows\git-lfs.json"
-      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\windows"
-      SkipUnchangedFiles="true"
-      />
-  </Target>
   <Import Project="..\..\common\build.targets" />
 </Project>
