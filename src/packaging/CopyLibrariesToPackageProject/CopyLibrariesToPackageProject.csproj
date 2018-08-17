@@ -34,12 +34,21 @@
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.45.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df76b}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
+      <Name>GitHub.Unity</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.45.csproj">
+      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30b}</Project>
       <Name>GitHub.Unity</Name>
       <Private>True</Private>
     </ProjectReference>

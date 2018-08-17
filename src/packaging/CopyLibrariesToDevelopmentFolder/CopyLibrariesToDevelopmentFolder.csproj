@@ -29,8 +29,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
+      <Name>GitHub.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.45.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df76B}</Project>
       <Name>GitHub.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
@@ -41,7 +48,6 @@
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

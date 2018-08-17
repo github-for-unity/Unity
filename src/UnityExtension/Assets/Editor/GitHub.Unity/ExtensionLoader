@@ -1,0 +1,13 @@
+using System;
+using UnityEditor;
+using UnityEngine;
+using GitHub.Logging;
+
+namespace GitHub.Unity
+{
+    [InitializeOnLoad]
+    public class EntryPoint : ScriptableObject
+    {
+
+    }
+}
