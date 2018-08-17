@@ -25,6 +25,11 @@ if %ChangeConfigurationToDebug%==1 (
 	set Configuration=Debug
 )
 
+set FrameworkVersion=v3.5
+if not %3.==. (
+	set FrameworkVersion=%3
+)
+
 set Unity=%UnityPath%\Editor\Unity.exe
 if not exist "%Unity%" ( 
 	echo Cannot find Unity at %Unity%
@@ -39,8 +44,8 @@ if not exist "%Unity%" (
 	cd ..
 	
 	call common\nuget.exe restore GitHub.Unity.sln
-	echo xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
-	call xbuild GitHub.Unity.sln /property:Configuration=%Configuration%
+	echo xbuild GitHub.Unity.sln /property:Configuration=%Configuration% property:TargetFrameworkVersion=%FrameworkVersion%
+	call xbuild GitHub.Unity.sln /property:Configuration=%Configuration% property:TargetFrameworkVersion=%FrameworkVersion%
 	
 	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\deleteme*
 	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.pdb
@@ -50,6 +55,9 @@ if not exist "%Unity%" (
 	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string Version" common\SolutionInfo.cs`) do call :Package %%G
 	
 	goto End
+
+	rem TODO: Put FrameworkVersion into unitypackage name
+	rem TODO: Remove AsyncBridge related metas
 	
 	:Package
 	set Version=%1

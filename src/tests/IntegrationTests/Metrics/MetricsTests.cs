@@ -1,4 +1,6 @@
-﻿using GitHub.Unity;
+﻿#if ENABLE_METRICS
+
+using GitHub.Unity;
 using NSubstitute;
 using NUnit.Framework;
 using System;
@@ -119,3 +121,5 @@ namespace IntegrationTests
         }
     }
 }
+
+#endif

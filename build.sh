@@ -9,6 +9,11 @@ if [ $# -gt 1 ]; then
 	Target=$2
 fi
 
+FrameworkVersion="v3.5"
+if [ $# -gt 2 ]; then
+	FrameworkVersion=$3
+fi
+
 if [ x"$Target" == x"Rebuild" ]; then
 	rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.dll
 	rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.mdb
@@ -32,7 +37,7 @@ else
 	mono common/nuget.exe restore GitHub.Unity.sln
 fi
 
-xbuild GitHub.Unity.sln /verbosity:minimal /property:Configuration=$Configuration /target:$Target || true
+xbuild GitHub.Unity.sln /verbosity:minimal /property:Configuration=$Configuration /property:TargetFrameworkVersion=$FrameworkVersion /target:$Target || true
 
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/deleteme*

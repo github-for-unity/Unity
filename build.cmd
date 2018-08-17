@@ -11,6 +11,11 @@ if not %2.==. (
 	set Target=%2
 )
 
+set FrameworkVersion=v3.5
+if not %3.==. (
+	set FrameworkVersion=%3
+)
+
 if %Target%==Rebuild (
 	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.dll
 	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.mdb
@@ -25,8 +30,8 @@ if %Target%==Rebuild (
 
 call common\nuget.exe restore GitHub.Unity.sln
 
-echo xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=%Configuration% /target:%Target%
-call xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=%Configuration% /target:%Target%
+echo xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=%Configuration% /property:TargetFrameworkVersion=%FrameworkVersion% /target:%Target%
+call xbuild GitHub.Unity.sln /verbosity:normal /property:Configuration=%Configuration% /property:TargetFrameworkVersion=%FrameworkVersion% /target:%Target%
 
 del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\deleteme*
 del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\deleteme*
