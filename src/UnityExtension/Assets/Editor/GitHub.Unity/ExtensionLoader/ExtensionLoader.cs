@@ -47,6 +47,7 @@ namespace GitHub.Unity
                 inSourceMode = File.Exists(scriptPath);
                 ToggleAssemblies();
                 //ExtensionLoader.instance.Initialized = true;
+                AssetDatabase.SaveAssets();
             }
 
         }
