@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class TaskManager : ITaskManager
+    public class TaskManager : ITaskManager
     {
         private static readonly ILogging logger = LogHelper.GetLogger<TaskManager>();
 

@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace GitHub.Unity
 {
-    class ProcessEnvironment : IProcessEnvironment
+    public class ProcessEnvironment : IProcessEnvironment
     {
         protected IEnvironment Environment { get; private set; }
         protected ILogging Logger { get; private set; }
