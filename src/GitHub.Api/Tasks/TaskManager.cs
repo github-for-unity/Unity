@@ -17,7 +17,19 @@ namespace GitHub.Unity
         public CancellationToken Token { get { return cts.Token; } }
 
         private static ITaskManager instance;
-        public static ITaskManager Instance => instance;
+        public static ITaskManager Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new TaskManager();
+                }
+
+                return instance;
+            }
+        }
+
         private ProgressReporter progressReporter = new ProgressReporter();
 
         public event Action<IProgress> OnProgress
