@@ -19,8 +19,14 @@ And you should see the GitHub spinner:
   - History: A history of commits with title, time stamp, and commit author
   - Branches: A list of local and remote branches with the ability to create new branches, switch branches, or checkout remote branches
   - Settings: your git configuration (pulled from your local git credentials if they have been previously set), your repository configuration (you can manually put the URL to any remote repository here instead of using the Publish button to publish to GitHub), a list of locked files, your git installation details, and general settings to help us better help you if you get stuck
-4. You can 
-
-# Connecting to an Existing Repository
 
 # Connecting to an Existing Repository that already has the GitHub for Unity package
+If you have an existing Unity project which already has the GitHub for Unity plugin installed and is connected to a remote repository (with the initial commit), you can access the project from another machine. 
+1. Clone the repository on the second machine (either through command line or with GitHub Desktop https://desktop.github.com/).
+2. Open Unity Editor and click Open.
+3. Browse to the location of the cloned repository and select the parent directory.
+4. When the project opens the plugin should be enabled. If you don't see the GitHub tab, enable it as above.
+5. Enter your credentials and verify that the system git location and remote origin link are correct.
+6. Submit and push the initial commit.
+For further questions see Issue#891
+
