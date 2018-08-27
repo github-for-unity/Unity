@@ -5,6 +5,10 @@
 These documents contain more details on how to use the GitHub for Unity plugin:
 - **[Installing and Updating the GitHub for Unity package](https://github.com/github-for-unity/Unity/blob/master/docs/using/how-to-install-and-update.md)**
 - **[Getting Started with the GitHub for Unity package](https://github.com/github-for-unity/Unity/blob/master/docs/using/getting-started.md)**
+- **[Authenticating to GitHub](https://github.com/github-for-unity/Unity/blob/master/docs/using/authenticating-to-github.md)**
+- **[Managing Branches](https://github.com/github-for-unity/Unity/blob/master/docs/using/managing-branches.md)**
+- **[Locking Files](https://github.com/github-for-unity/Unity/blob/master/docs/using/locking-files.md)**
+- **[Working with Changes](https://github.com/github-for-unity/Unity/blob/master/docs/using/working-with-changes.md)**
 
 ## Table of Contents
 
@@ -118,6 +122,8 @@ To set up credentials in Git so you can push and pull, you can sign in to GitHub
 
 ![Authentication screenshot](https://user-images.githubusercontent.com/121322/27644895-8f22f904-5bd9-11e7-8a93-e6bfe0c24a74.png)
 
+For more information on Authentication: - **[Authenticating to GitHub](https://github.com/github-for-unity/Unity/blob/master/docs/using/authenticating-to-github.md)**
+
 ### Publish a new repository
 
 1.  Go to [github.com](https://github.com) and create a new empty repository - do not add a license, readme or other files during the creation process.
@@ -132,6 +138,8 @@ You can see which files have been changed and commit them through the Changes ta
 
 ![Changes tab screenshot](https://user-images.githubusercontent.com/121322/27644933-ab00af72-5bd9-11e7-84c3-edec495f87f5.png)
 
+For more information on working with changes: - **[Working with Changes](https://github.com/github-for-unity/Unity/blob/master/docs/using/working-with-changes.md#commit-changes)**
+
 ### Pushing/pulling your work - History tab
 
 The history tab includes a `Push` button to push your work to the server. Make sure you have a remote url configured in the `Settings` tab so that you can push and pull your work.
@@ -139,6 +147,9 @@ The history tab includes a `Push` button to push your work to the server. Make s
 To receive updates from the server by clicking on the `Pull` button. You cannot pull if you have local changes, so commit your changes before pulling.
 
 ![History tab screenshot](https://user-images.githubusercontent.com/121322/27644965-c1109bba-5bd9-11e7-9257-4fa38f5c67d1.png)
+
+
+For more information on working with changes: - **[Working with Changes](https://github.com/github-for-unity/Unity/blob/master/docs/using/working-with-changes.md#pulling-changes)**
 
 ### Branches tab
 

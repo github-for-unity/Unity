@@ -1,6 +1,6 @@
 # Working with changes
 
-## Commit changes to GitHub
+## Commit changes
 
 All changes made to a repository will show up under the **Changes** view.
 
