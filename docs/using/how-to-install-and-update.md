@@ -45,4 +45,7 @@ Once you've downloaded the package file, you can quickly install it within Unity
 # Updating the GitHub for Unity Package
 
 - If you are running Unity and wish to update GitHub for Unity (unless explicitly stated), be sure that the files in `x64` and `x86` are not selected.
+
+  ![image](https://user-images.githubusercontent.com/417571/44666907-6e6d5a80-a9e7-11e8-8f97-b3b52250a75d.png)
+
 - Otherwise, it's best to stop Unity and delete GitHub for Unity from your project. Startup Unity and run the package installer like normal. Allowing it to restore everything.
