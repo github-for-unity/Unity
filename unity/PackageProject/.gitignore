@@ -9,6 +9,7 @@
 *.dylib
 *.so
 *.bundle
+*.cs
 ProjectVersion.txt
 
 Library/
