@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>deleteme</RootNamespace>
     <AssemblyName>deleteme</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OutputPath>build</OutputPath>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <BuildConfiguration>Release</BuildConfiguration>
@@ -20,6 +21,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <BuildConfiguration>Debug</BuildConfiguration>
@@ -28,36 +30,38 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.45.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df76b}</Project>
+      <Name>GitHub.Api.45</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.45.csproj">
+      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30b}</Project>
+      <Name>GitHub.Unity.45</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.csproj">
       <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30a}</Project>
       <Name>GitHub.Unity</Name>
       <Private>True</Private>
     </ProjectReference>
-    <Reference Include="AsyncBridge.Net35, Version=0.2.3333.0, Culture=neutral, PublicKeyToken=b3b1c0202c0d6a87, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\AsyncBridge.Net35.0.2.3333.0\lib\net35-Client\AsyncBridge.Net35.dll</HintPath>
+    <ProjectReference Include="..\..\UnityExtension\Assets\Editor\GitHub.Unity\GitHub.Unity.45.csproj">
+      <Project>{add7a18b-dd2a-4c22-a2c1-488964eff30b}</Project>
+      <Name>GitHub.Unity</Name>
       <Private>True</Private>
-    </Reference>
-    <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    </ProjectReference>
     <Reference Include="System" />
     <Reference Include="sfw.net">
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Threading, Version=1.0.3333.0, Culture=neutral, PublicKeyToken=402899b480e6f383, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -66,6 +70,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <None Include="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\ExtensionLoader\ExtensionLoader.cs">
+      <Link>ExtensionLoader.cs</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll">
+      <Link>ReadOnlyCollectionsInterfaces.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\packages\AsyncBridge.Net35.0.2.3333.0\lib\net35-Client\AsyncBridge.Net35.dll">
+      <Link>AsyncBridge.Net35.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll">
+      <Link>System.Threading.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

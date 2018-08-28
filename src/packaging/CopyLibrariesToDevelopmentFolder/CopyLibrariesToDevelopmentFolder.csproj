@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>deleteme</RootNamespace>
     <AssemblyName>deleteme</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OutputPath>$(SolutionDir)src\UnityExtension\Assets\Editor\build</OutputPath>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -27,11 +29,19 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
       <Name>GitHub.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\GitHub.Api\GitHub.Api.45.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df76B}</Project>
+      <Name>GitHub.Api.45</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
@@ -41,7 +51,6 @@
       <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

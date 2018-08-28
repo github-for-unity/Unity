@@ -1,0 +1,8 @@
+{
+    "name": "ExtensionLoader",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

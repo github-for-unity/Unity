@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{ADD7A18B-DD2A-4C22-A2C1-488964EFF30B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GitHub.Unity</RootNamespace>
+    <AssemblyName>GitHub.Unity.45</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <OutputPath>$(SolutionDir)\unity\TestProject\Assets\Plugins\GitHub\Editor</OutputPath>
+    <IntermediateOutputPath>..\..\..\obj\</IntermediateOutputPath>
+  </PropertyGroup>
+  <Import Project="..\..\..\..\..\common\properties.props" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;$(BuildDefs);NET_4_6</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>4</LangVersion>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;$(BuildDefs);NET_4_6</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>4</LangVersion>
+    <BuildConfid>Release</BuildConfid>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'dev|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs);NET_4_6</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>4</LangVersion>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Threading" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEditor">
+      <HintPath>$(UnityDir)Managed\UnityEditor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(UnityDir)Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.45.csproj">
+      <Project>{b389adaf-62cc-486e-85b4-2d8b078df76B}</Project>
+      <Name>GitHub.Api.45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\GitHub.Logging\GitHub.Logging.csproj">
+      <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
+      <Name>GitHub.Logging</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationCache.cs" />
+    <Compile Include="ApplicationManager.cs" />
+    <Compile Include="RunLocationShim.cs" />
+    <Compile Include="ScriptObjectSingleton.cs" />
+    <Compile Include="SerializableDictionary.cs" />
+    <Compile Include="Threading\SingleThreadSynchronizationContext.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Logging\UnityLogAdapter.cs" />
+    <Compile Include="EntryPoint.cs" />
+    <Compile Include="UpdateCheck.cs" />
+    <Compile Include="Misc\Installer.cs" />
+    <Compile Include="UI\BaseWindow.cs" />
+    <Compile Include="UI\ChangesTreeControl.cs" />
+    <Compile Include="UI\LfsLocksModificationProcessor.cs" />
+    <Compile Include="UI\PopupWindow.cs" />
+    <Compile Include="UI\ProjectWindowInterface.cs" />
+    <Compile Include="Misc\Styles.cs" />
+    <Compile Include="Misc\Utility.cs" />
+    <Compile Include="Services\AuthenticationService.cs" />
+    <Compile Include="UI\AuthenticationView.cs" />
+    <Compile Include="UI\BranchesView.cs" />
+    <Compile Include="UI\ChangesView.cs" />
+    <Compile Include="UI\HistoryView.cs" />
+    <Compile Include="UI\IView.cs" />
+    <Compile Include="UI\LoadingView.cs" />
+    <Compile Include="UI\PublishView.cs" />
+    <Compile Include="UI\InitProjectView.cs" />
+    <Compile Include="UI\LocksView.cs" />
+    <Compile Include="UI\Spinner.cs" />
+    <Compile Include="UI\TreeControl.cs" />
+    <Compile Include="UI\UserSettingsView.cs" />
+    <Compile Include="UI\GitPathView.cs" />
+    <Compile Include="UI\SettingsView.cs" />
+    <Compile Include="UI\Subview.cs" />
+    <Compile Include="UI\Window.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\added%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\added.png" />
+    <EmbeddedResource Include="IconsAndLogos\big-logo%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\big-logo-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\big-logo-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\big-logo.png" />
+    <EmbeddedResource Include="IconsAndLogos\branch%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\branch-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\branch-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\branch.png" />
+    <EmbeddedResource Include="IconsAndLogos\conflicted%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\conflicted.png" />
+    <EmbeddedResource Include="IconsAndLogos\current-branch-indicator%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\current-branch-indicator-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\current-branch-indicator-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\current-branch-indicator.png" />
+    <EmbeddedResource Include="IconsAndLogos\dot%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\dot-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\dot-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\dot.png" />
+    <EmbeddedResource Include="IconsAndLogos\dropdown-list-icon%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\dropdown-list-icon.png" />
+    <EmbeddedResource Include="IconsAndLogos\empty-state-init@2x.png" />
+    <EmbeddedResource Include="IconsAndLogos\empty-state-init.png" />
+    <EmbeddedResource Include="IconsAndLogos\favorite-branch-indicator.png" />
+    <EmbeddedResource Include="IconsAndLogos\git-merge%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\git-merge-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\git-merge-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\git-merge.png" />
+    <EmbeddedResource Include="IconsAndLogos\local-commit%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\local-commit-icon%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\local-commit-icon.png" />
+    <EmbeddedResource Include="IconsAndLogos\local-commit-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\local-commit-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\local-commit.png" />
+    <EmbeddedResource Include="IconsAndLogos\lock%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\lock-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\lock-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\lock.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked-by-person%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked-by-person.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked-modified%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked-modified.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked-removed%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked-removed.png" />
+    <EmbeddedResource Include="IconsAndLogos\locked.png" />
+    <EmbeddedResource Include="IconsAndLogos\modified%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\modified.png" />
+    <EmbeddedResource Include="IconsAndLogos\moved%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\moved.png" />
+    <EmbeddedResource Include="IconsAndLogos\removed%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\removed.png" />
+    <EmbeddedResource Include="IconsAndLogos\repo%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\repo-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\repo-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\repo.png" />
+    <EmbeddedResource Include="IconsAndLogos\small-logo%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\small-logo-light%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\small-logo-light.png" />
+    <EmbeddedResource Include="IconsAndLogos\small-logo.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-sprite%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-sprite.png" />
+    <EmbeddedResource Include="IconsAndLogos\tracked-branch-indicator.png" />
+    <EmbeddedResource Include="IconsAndLogos\untracked%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\untracked.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(SolutionDir)eula.txt">
+      <Link>eula.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)credits.txt">
+      <Link>credits.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\globe%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\globe.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\spinner-inside%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-inside.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-outside%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\spinner-outside.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IconsAndLogos\code%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\code.png" />
+    <EmbeddedResource Include="IconsAndLogos\merge%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\merge.png" />
+    <EmbeddedResource Include="IconsAndLogos\rocket%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\rocket.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\..\common\nativelibraries.props" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Import Project="..\..\..\..\..\common\build.targets" />
+</Project>
