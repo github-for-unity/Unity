@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class ProcessManager : IProcessManager
+    public class ProcessManager : IProcessManager
     {
         private static readonly ILogging logger = LogHelper.GetLogger<ProcessManager>();
 

@@ -9,6 +9,7 @@ These documents contain more details on how to use the GitHub for Unity plugin:
 - **[Managing Branches](https://github.com/github-for-unity/Unity/blob/master/docs/using/managing-branches.md)**
 - **[Locking Files](https://github.com/github-for-unity/Unity/blob/master/docs/using/locking-files.md)**
 - **[Working with Changes](https://github.com/github-for-unity/Unity/blob/master/docs/using/working-with-changes.md)**
+- **[Using the Api](https://github.com/github-for-unity/Unity/blob/master/docs/using/using-the-api.md)**
 
 ## Table of Contents
 
