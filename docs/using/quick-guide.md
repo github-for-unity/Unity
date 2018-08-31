@@ -39,12 +39,12 @@ These documents contain more details on how to use the GitHub for Unity plugin:
 ### Requirements
 
 -   Unity 5.4 or higher
-    -   There's currently an blocker issue opened for 5.3 support, so we know it doesn't run there. Personal edition is fine.
+    -   There's currently a blocker issue opened for 5.3 support, so we know it doesn't run there. Personal edition is fine.
 -   Git and Git LFS 2.x
 
 #### Git on macOS
 
-The current release has limited macOS support. macOS users will need to install the latest [Git](https://git-scm.com/downloads) and [Git LFS](https://git-lfs.github.com/) manually, and make sure these are on the path. You can configure the Git location in the Settings tab on the GitHub window.
+The current release has limited macOS support. macOS users will need to install the latest [Git](https://git-scm.com/downloads) and [Git LFS](https://git-lfs.github.com/) manually, and make sure these are on the path. You can configure the Git location in the `Settings` tab on the GitHub window.
 
 The easiest way of installing git and git lfs is to install [Homebrew](https://brew.sh/) and then do `brew install git git-lfs`.
 
@@ -73,10 +73,9 @@ Once the extension is installed, you can open a command line with the same Git a
 ### Installation
 
 This extensions needs to be installed (and updated) for each Unity project that you want to version control.
-First step is to download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases);
-it will be saved as a file with the extension `.unitypackage`.
+First step is to download the latest package from [the releases page](https://github.com/github-for-unity/Unity/releases); it will be saved as a file with the extension `.unitypackage`.
 To install it, open Unity, then open the project you want to version control, and then double click on the downloaded package.
-Alternatively, import the package by clicking Assets, Import Package, Custom Package, then select the downloaded package.
+Alternatively, import the package by clicking `Assets`, `Import Package`, `Custom Package`, then select the downloaded package.
 
 #### Log files
 
@@ -102,7 +101,7 @@ further.
 
 ### Opening the GitHub window
 
-You can access the GitHub window by going to Windows -> GitHub. The window opens by default next to the Inspector window.
+You can access the GitHub window by going to `Windows` -> `GitHub`. The window opens by default next to the Inspector window.
 
 ### Initialize Repository
 
@@ -135,7 +134,7 @@ For more information on Authentication: - **[Authenticating to GitHub](https://g
 
 ### Commiting your work - Changes tab
 
-You can see which files have been changed and commit them through the Changes tab. `.meta` files will show up in relation to their files on the tree, so you can select a file for comitting and automatically have their `.meta`
+You can see which files have been changed and commit them through the `Changes` tab. `.meta` files will show up in relation to their files on the tree, so you can select a file for comitting and automatically have their `.meta`
 
 ![Changes tab screenshot](https://user-images.githubusercontent.com/121322/27644933-ab00af72-5bd9-11e7-84c3-edec495f87f5.png)
 
@@ -158,7 +157,7 @@ For more information on working with changes: - **[Working with Changes](https:/
 
 ### Settings tab
 
-You can configure your user data in the Settings tab, along with the path to the Git installation.
+You can configure your user data in the `Settings` tab, along with the path to the Git installation.
 
 Locked files will appear in a list in the Settings tab. You can see who has locked a file and release file locks after you've pushed your work.
 
