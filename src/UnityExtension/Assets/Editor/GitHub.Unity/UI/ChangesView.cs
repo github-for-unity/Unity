@@ -6,6 +6,18 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
+    enum CommitType
+    {
+        Feat,
+        Fix,
+        Doc,
+        Style,
+        Refactor,
+        Perf,
+        Test,
+        Chore
+    }
+
     [Serializable]
     class ChangesView : Subview
     {
@@ -18,9 +30,23 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
+        private const string TypeLabel = "Type";
+        private const string ScopeLabel = "Scope";
+        private const string SubjectLabel = "Subject";
+        private const string BodytLabel = "Body";
+        private const string FooterLabel = "Footer";
+
         [SerializeField] private bool currentBranchHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
+
+        private bool useCommitizen
+        {
+            get
+            {
+                return Manager.UserSettings.Get(Constants.CommitizenKey, true);
+            }
+        }
 
         [NonSerialized] private GUIContent discardGuiContent;
         [NonSerialized] private bool isBusy;
@@ -28,6 +54,10 @@ namespace GitHub.Unity
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
         [SerializeField] private string currentBranch = "[unknown]";
+
+        [SerializeField] private CommitType commitType = CommitType.Feat;
+        [SerializeField] private string scope = "";
+        [SerializeField] private string footer = "";
 
         [SerializeField] private Vector2 treeScroll;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
@@ -95,7 +125,15 @@ namespace GitHub.Unity
             DoProgressGUI();
 
             // Do the commit details area
-            DoCommitGUI();
+            if (useCommitizen)
+            {
+                DoCommitizenGUI();
+            }
+            else
+            {
+                DoCommitGUI();
+            }
+
             EditorGUI.EndDisabledGroup();
         }
 
@@ -463,6 +501,65 @@ namespace GitHub.Unity
             GUILayout.EndHorizontal();
         }
 
+        private void DoCommitizenGUI()
+        {
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Space(Styles.CommitAreaPadding);
+
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(Styles.CommitAreaPadding);
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        commitType = (CommitType)EditorGUILayout.EnumPopup(TypeLabel, commitType);
+                        GUILayout.Label(ScopeLabel);
+                        scope = EditorGUILayout.TextField(scope, Styles.TextFieldStyle);
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Label(SubjectLabel);
+                    commitMessage = EditorGUILayout.TextField(commitMessage, Styles.TextFieldStyle);
+                    GUILayout.Space(Styles.CommitAreaPadding * 2);
+
+                    GUILayout.Label(DescriptionLabel);
+                    commitBody = EditorGUILayout.TextArea(commitBody, Styles.CommitDescriptionFieldStyle, GUILayout.Height(6 * 15f));
+
+                    GUILayout.Space(Styles.CommitAreaPadding);
+
+                    GUILayout.Label(FooterLabel);
+                    footer = EditorGUILayout.TextField(footer, Styles.TextFieldStyle);
+
+                    GUILayout.Space(Styles.CommitAreaPadding);
+
+                    // Disable committing when already committing or if we don't have all the data needed
+                    //Debug.LogFormat("IsBusy:{0} string.IsNullOrEmpty(commitMessage): {1} treeChanges.GetCheckedFiles().Any(): {2}", 
+                    //    IsBusy, string.IsNullOrEmpty(commitMessage), treeChanges.GetCheckedFiles().Any());
+                    EditorGUI.BeginDisabledGroup(IsBusy || string.IsNullOrEmpty(commitMessage) || !treeChanges.GetCheckedFiles().Any());
+                    {
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.Button(String.Format(CommitButton, currentBranch), Styles.CommitButtonStyle))
+                            {
+                                GUI.FocusControl(null);
+                                Commit();
+                            }
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                    EditorGUI.EndDisabledGroup();
+
+                    GUILayout.Space(Styles.CommitAreaPadding);
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.Space(Styles.CommitAreaPadding);
+            }
+            GUILayout.EndHorizontal();
+        }
+
         private void SelectAll()
         {
             this.treeChanges.SetCheckStateOnAll(true);
@@ -478,6 +575,13 @@ namespace GitHub.Unity
             isBusy = true;
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
+
+            if (useCommitizen)
+            {
+                scope = scope != "" ? string.Format("({0})", scope) : "";
+                footer = footer != "" ? string.Format("({0})", footer) : "";
+                commitMessage = string.Format("{0}{1}:{2}{3}", commitType, scope, commitMessage, footer);
+            }
 
             if (files.Count == gitStatusEntries.Count)
             {

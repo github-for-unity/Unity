@@ -23,6 +23,23 @@ namespace GitHub.Logging
             }
         }
 
+        private static bool commitizenEnabled;
+        public static bool CommitizenEnabled
+        {
+            get
+            {
+                return commitizenEnabled;
+            }
+            set
+            {
+                if (commitizenEnabled != value)
+                {
+                    commitizenEnabled = value;
+                    Instance.Info("Commitizen " + (value ? "Enabled" : "Disabled"));
+                }
+            }
+        }
+
         private static LogAdapterBase logAdapter = nullLogAdapter;
 
         public static LogAdapterBase LogAdapter
