@@ -30,11 +30,9 @@ namespace GitHub.Unity
         private const string OneChangedFileLabel = "1 changed file";
         private const string NoChangedFilesLabel = "No changed files";
 
-        private const string TypeLabel = "Type";
+        private const string TypeLabel = "Commit Type";
         private const string ScopeLabel = "Scope";
-        private const string SubjectLabel = "Subject";
-        private const string BodytLabel = "Body";
-        private const string FooterLabel = "Footer";
+        private const string FooterLabel = "Commit Footer";
 
         [SerializeField] private bool currentBranchHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
@@ -519,7 +517,7 @@ namespace GitHub.Unity
                     }
                     GUILayout.EndHorizontal();
 
-                    GUILayout.Label(SubjectLabel);
+                    GUILayout.Label(SummaryLabel);
                     commitMessage = EditorGUILayout.TextField(commitMessage, Styles.TextFieldStyle);
                     GUILayout.Space(Styles.CommitAreaPadding * 2);
 
