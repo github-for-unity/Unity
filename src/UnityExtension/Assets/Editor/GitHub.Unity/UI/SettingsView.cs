@@ -28,12 +28,12 @@ namespace GitHub.Unity
         [NonSerialized] private bool currentRemoteHasUpdate;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private bool metricsHasChanged;
-        [NonSerialized] private bool commitizen;
 
         [SerializeField] private GitPathView gitPathView = new GitPathView();
         [SerializeField] private bool hasRemote;
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private bool metricsEnabled;
+        [SerializeField] private bool commitizen;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
