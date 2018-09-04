@@ -200,7 +200,7 @@ namespace GitHub.Unity
         ITask<string> DiscardAll(IOutputProcessor<string> processor = null);
 
         /// <summary>
-        /// Executes `git reset HEAD` command to remove files from the git index.
+        /// Executes at least one `git reset HEAD` command to remove files from the git index.
         /// </summary>
         /// <param name="files">The files to remove</param>
         /// <param name="processor">A custom output processor instance</param>
@@ -549,8 +549,22 @@ namespace GitHub.Unity
         public ITask<string> Remove(IList<string> files,
             IOutputProcessor<string> processor = null)
         {
-            return new GitRemoveFromIndexTask(files, cancellationToken, processor)
-                .Configure(processManager);
+            GitRemoveFromIndexTask last = null;
+            foreach (var batch in files.Spool(5000))
+            {
+                var current = new GitRemoveFromIndexTask(batch, cancellationToken, processor).Configure(processManager);
+                if (last == null)
+                {
+                    last = current;
+                }
+                else
+                {
+                    last.Then(current);
+                    last = current;
+                }
+            }
+
+            return last;
         }
 
         ///<inheritdoc/>
