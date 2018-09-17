@@ -34,6 +34,24 @@ namespace GitHub.Unity
         private const string ScopeLabel = "Scope";
         private const string FooterLabel = "Commit Footer";
 
+        private static Dictionary<CommitType, string> TypeDescription = new Dictionary<CommitType, string>()
+        {
+            {CommitType.Feat, "A new feature"},
+            {CommitType.Fix, "A bug fix"},
+            {CommitType.Doc, "Documentation only changes"},
+            {
+                CommitType.Style,
+                "Changes that do not affect the meaning of the code(white-space, formatting, missing semi-colons, etc)"
+            },
+            {CommitType.Refactor, "A code change that neither fixes a bug or add a feature"},
+            {CommitType.Perf, "A code change that improves performance"},
+            {CommitType.Test, "Adding missing tests"},
+            {
+                CommitType.Chore,
+                "Changes to the build process or auxiliary tools and libraries such as documentation generation"
+            }
+        };
+
         [SerializeField] private bool currentBranchHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
@@ -508,7 +526,7 @@ namespace GitHub.Unity
                 GUILayout.BeginVertical();
                 {
                     GUILayout.Space(Styles.CommitAreaPadding);
-
+                    EditorGUILayout.HelpBox(TypeDescription[commitType], MessageType.Info);
                     GUILayout.BeginHorizontal();
                     {
                         commitType = (CommitType)EditorGUILayout.EnumPopup(TypeLabel, commitType);
@@ -578,7 +596,7 @@ namespace GitHub.Unity
             {
                 scope = scope != "" ? string.Format("({0})", scope) : "";
                 footer = footer != "" ? string.Format("({0})", footer) : "";
-                commitMessage = string.Format("{0}{1}:{2}{3}", commitType, scope, commitMessage, footer);
+                commitMessage = string.Format("{0}{1}:{2} {3}", commitType, scope, commitMessage, footer);
             }
 
             if (files.Count == gitStatusEntries.Count)
@@ -599,6 +617,9 @@ namespace GitHub.Unity
 
                             commitMessage = "";
                             commitBody = "";
+                            scope = "";
+                            footer = "";
+                            commitType = CommitType.Feat;
                         }
                         isBusy = false;
                     }).Start();
