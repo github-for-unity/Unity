@@ -22,6 +22,8 @@ namespace GitHub.Unity
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
+        private const string CommitToolSettingTitle = "Commit Message Tool";
+        private const string UseCommitizenLabel = "Use Commitizen";
 
         [NonSerialized] private bool currentRemoteHasUpdate;
         [NonSerialized] private bool isBusy;
@@ -31,6 +33,7 @@ namespace GitHub.Unity
         [SerializeField] private bool hasRemote;
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private bool metricsEnabled;
+        [SerializeField] private bool commitizen;
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
@@ -104,6 +107,7 @@ namespace GitHub.Unity
                 OnPrivacyGui();
                 OnGeneralSettingsGui();
                 OnLoggingSettingsGui();
+                OnCommitMessageSettingGui();
             }
 
             GUILayout.EndScrollView();
@@ -266,6 +270,23 @@ namespace GitHub.Unity
             {
                 ApplicationConfiguration.GitTimeout = gitTimeout;
                 Manager.UserSettings.Set(Constants.GitTimeoutKey, gitTimeout);
+            }
+        }
+
+        private void OnCommitMessageSettingGui()
+        {
+            GUILayout.Label(CommitToolSettingTitle, EditorStyles.boldLabel);
+
+            commitizen = LogHelper.CommitizenEnabled;
+
+            EditorGUI.BeginChangeCheck();
+            {
+                commitizen = GUILayout.Toggle(commitizen, UseCommitizenLabel);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                LogHelper.CommitizenEnabled = commitizen;
+                Manager.UserSettings.Set(Constants.CommitizenKey, commitizen);
             }
         }
 
