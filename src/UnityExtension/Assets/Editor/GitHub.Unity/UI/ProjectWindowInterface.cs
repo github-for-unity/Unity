@@ -67,6 +67,7 @@ namespace GitHub.Unity
             if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
             {
                 lastRepositoryStatusChangedEvent = cacheUpdateEvent;
+                AssetDatabase.Refresh();
                 entries.Clear();
                 entries.AddRange(Repository.CurrentChanges);
                 OnStatusUpdate();
