@@ -26,7 +26,7 @@ namespace GitHub.Unity
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
-        private static bool IsInitialized { get { return Repository != null && Repository.CurrentRemote.HasValue; } }
+        private static bool IsInitialized { get { return Repository != null; } }
 
         public static void Initialize(IApplicationManager theManager)
         {
