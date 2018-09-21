@@ -1,35 +1,26 @@
-version: '{build}.{branch}'
+version: '1.1.0.{build}'
 environment:
   GHFU_KEY:
     secure: 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
-clone_script:
-- ps: >-
-    if(-not $env:appveyor_pull_request_number) {
-      git lfs clone -q -n --branch=$env:appveyor_repo_branch https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
-      git checkout -qf $env:appveyor_repo_commit
-    } else {
-      git lfs clone -q -n https://github.com/$env:appveyor_repo_name.git $env:appveyor_build_folder
-      git fetch -q origin +refs/pull/$env:appveyor_pull_request_number/merge:
-      git lfs fetch origin FETCH_HEAD
-      git checkout -qf FETCH_HEAD
-    }
-    
-    Set-Location $env:appveyor_build_folder
+  matrix:
+    - node_version: '8'
 
 install:
-- ps: >-
-    git submodule sync
-
-    git submodule init
-
+- ps: |
     $full_build = Test-Path env:GHFU_KEY
 
+    git submodule sync
+    git submodule init
+
     if ($full_build) {
+      $env:BUILD_TYPE="full"
       $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
       $fileContent += $env:GHFU_KEY.Replace(' ', "`n")
       $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
+      Install-Product node $env:node_version
     } else {
+      $env:BUILD_TYPE="partial"
       git submodule deinit script
       $destdir = Join-Path $env:appveyor_build_folder 'lib'
       $destfile = Join-Path $destdir 'deps.zip'
@@ -40,8 +31,8 @@ install:
     }
 
     git submodule update
-
     nuget restore GitHub.Unity.sln
+- if %BUILD_TYPE%==full cd submodules\packaging\unitypackage && node .\yarn.js install --prefer-offline
 
 assembly_info:
   patch: false
@@ -60,10 +51,30 @@ test:
   categories:
     except:
     - DoNotRunOnAppVeyor
-artifacts:
-- path: unity\PackageProject
-  type: zip
-  name: github-for-unity-packageproject
-- path: build\*.log
-on_failure:
-  - ps: Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+on_success:
+- ps: |
+    if ($full_build) {
+      $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
+      Get-ChildItem -Recurse "$($sourcedir)\*.pdb" | foreach { $_.fullname.substring(0, $_.fullname.length - $_.extension.length) } | foreach { Write-Output "Generating $($_).mdb"; & 'lib\pdb2mdb.exe' "$($_).dll" }
+    }
+- if %BUILD_TYPE%==full cd %appveyor_build_folder%\submodules\packaging\unitypackage && node yarn.js start --path %appveyor_build_folder%\unity\PackageProject --out %appveyor_build_folder% --file github-for-unity-%appveyor_build_version%
+- ps: |
+    if ($full_build) {
+      Set-Location $env:appveyor_build_folder
+      $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
+      $zipfile="$($env:appveyor_build_folder)\github-for-unity-$($env:appveyor_build_version).zip"
+      $packagefile="$($env:appveyor_build_folder)\github-for-unity-$($env:appveyor_build_version).unitypackage"
+      $commitfile="$sourcedir\commit"
+
+      Add-Content $commitfile $appveyor_repo_commit
+
+      Write-Output "Zipping $sourcedir to $zipfile"
+      7z a $zipfile $sourcedir
+
+      Write-Output "Uploading $zipfile"
+      Push-AppveyorArtifact $zipfile
+      Push-AppveyorArtifact $packagefile
+      Push-AppveyorArtifact "$($packagefile).md5"
+    }
+on_finish:
+- ps: Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
