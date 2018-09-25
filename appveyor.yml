@@ -6,10 +6,23 @@ environment:
     - node_version: '8'
 
 install:
-- ps: |
+- ps: >-
     $full_build = Test-Path env:GHFU_KEY
 
+    $package = $full_build
+
+    $message = "Building "
+
+    if ($package) { $message += "and packaging "}
+
+    if ($full_build) { $message += "(full build)" } else { $message += "(partial build)" }
+
+    $message += " version " + $env:APPVEYOR_BUILD_NUMBER + " "
+
+    Write-Host $message
+
     git submodule sync
+
     git submodule init
 
     if ($full_build) {
@@ -31,7 +44,9 @@ install:
     }
 
     git submodule update
+
     nuget restore GitHub.Unity.sln
+
 - if %BUILD_TYPE%==full cd submodules\packaging\unitypackage && node .\yarn.js install --prefer-offline
 
 assembly_info:
@@ -53,13 +68,13 @@ test:
     - DoNotRunOnAppVeyor
 on_success:
 - ps: |
-    if ($full_build) {
+    if ($package) {
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
       Get-ChildItem -Recurse "$($sourcedir)\*.pdb" | foreach { $_.fullname.substring(0, $_.fullname.length - $_.extension.length) } | foreach { Write-Output "Generating $($_).mdb"; & 'lib\pdb2mdb.exe' "$($_).dll" }
     }
 - if %BUILD_TYPE%==full cd %appveyor_build_folder%\submodules\packaging\unitypackage && node yarn.js start --path %appveyor_build_folder%\unity\PackageProject --out %appveyor_build_folder% --file github-for-unity-%appveyor_build_version%
 - ps: |
-    if ($full_build) {
+    if ($package) {
       Set-Location $env:appveyor_build_folder
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
       $zipfile="$($env:appveyor_build_folder)\github-for-unity-$($env:appveyor_build_version).zip"
