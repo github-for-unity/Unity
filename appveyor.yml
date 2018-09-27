@@ -84,7 +84,7 @@ on_success:
     Set-Location $env:appveyor_build_folder
     if ($package) {
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
-      $zipfile="$($env:appveyor_build_folder)\github-for-unity-$($env:package_version).zip"
+      $zipfile="$($env:appveyor_build_folder)\PackageProject-$($env:package_version).zip"
       $packagefile="$($env:appveyor_build_folder)\github-for-unity-$($env:package_version).unitypackage"
       $commitfile="$sourcedir\commit"
 
@@ -94,11 +94,11 @@ on_success:
       7z a $zipfile $sourcedir
 
       Write-Output "Uploading $zipfile"
-      Push-AppveyorArtifact $zipfile
+      Push-AppveyorArtifact $zipfile -DeploymentName source
       Push-AppveyorArtifact $packagefile -DeploymentName package
       Push-AppveyorArtifact "$($packagefile).md5" -DeploymentName package
     }
 on_finish:
 - ps: |
     Set-Location $env:appveyor_build_folder
-    Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+    Get-ChildItem $env:appveyor_build_folder\build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name -DeploymentName logs }
