@@ -11,16 +11,6 @@ install:
 
     $package = $full_build
 
-    $message = "Building "
-
-    if ($package) { $message += "and packaging "}
-
-    if ($full_build) { $message += "(full build)" } else { $message += "(partial build)" }
-
-    $message += " version " + $env:APPVEYOR_BUILD_NUMBER + " "
-
-    Write-Host $message
-
     git submodule sync
 
     git submodule init
@@ -46,8 +36,24 @@ install:
     git submodule update
 
     nuget restore GitHub.Unity.sln
-
 - if %BUILD_TYPE%==full cd submodules\packaging\unitypackage && node .\yarn.js install --prefer-offline
+- ps: >-
+
+    Set-Location $env:appveyor_build_folder
+
+    $version = Get-Content "$($env:appveyor_build_folder)\common\SolutionInfo.cs" | %{ $regex = "const string Version = `"([^`"]*)`""; if ($_ -match $regex) { $matches[1] } }
+
+    $env:package_version="$($version).$($env:APPVEYOR_BUILD_NUMBER)"
+
+    $message = "Building "
+
+    if ($package) { $message += "and packaging "}
+
+    if ($full_build) { $message += "(full build)" } else { $message += "(partial build)" }
+
+    $message += " version " + $env:package_version + " "
+
+    Write-Host $message
 
 assembly_info:
   patch: false
@@ -72,13 +78,12 @@ on_success:
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
       Get-ChildItem -Recurse "$($sourcedir)\*.pdb" | foreach { $_.fullname.substring(0, $_.fullname.length - $_.extension.length) } | foreach { Write-Output "Generating $($_).mdb"; & 'lib\pdb2mdb.exe' "$($_).dll" }
     }
-- if %BUILD_TYPE%==full cd %appveyor_build_folder%\submodules\packaging\unitypackage && node yarn.js start --path %appveyor_build_folder%\unity\PackageProject --out %appveyor_build_folder% --file github-for-unity-%appveyor_build_version%
+- if %BUILD_TYPE%==full cd %appveyor_build_folder%\submodules\packaging\unitypackage && node yarn.js start --path %appveyor_build_folder%\unity\PackageProject --out %appveyor_build_folder% --file github-for-unity-%package_version%
 - ps: |
     if ($package) {
-      Set-Location $env:appveyor_build_folder
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
-      $zipfile="$($env:appveyor_build_folder)\github-for-unity-$($env:appveyor_build_version).zip"
-      $packagefile="$($env:appveyor_build_folder)\github-for-unity-$($env:appveyor_build_version).unitypackage"
+      $zipfile="$($env:appveyor_build_folder)\github-for-unity-$($env:package_version).zip"
+      $packagefile="$($env:appveyor_build_folder)\github-for-unity-$($env:package_version).unitypackage"
       $commitfile="$sourcedir\commit"
 
       Add-Content $commitfile $appveyor_repo_commit
@@ -88,8 +93,8 @@ on_success:
 
       Write-Output "Uploading $zipfile"
       Push-AppveyorArtifact $zipfile
-      Push-AppveyorArtifact $packagefile
-      Push-AppveyorArtifact "$($packagefile).md5"
+      Push-AppveyorArtifact $packagefile -DeploymentName package
+      Push-AppveyorArtifact "$($packagefile).md5" -DeploymentName package
     }
 on_finish:
 - ps: Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
