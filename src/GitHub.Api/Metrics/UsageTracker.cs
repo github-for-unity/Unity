@@ -94,6 +94,11 @@ namespace GitHub.Unity
                 return;
             }
 
+            var username = GetUsername();
+            if (!String.IsNullOrEmpty(username)) {
+                extractReports.ForEach(x => x.Dimensions.GitHubUser = username);
+            }
+
             try
             {
                 MetricsService.PostUsage(extractReports);
@@ -316,6 +321,11 @@ namespace GitHub.Unity
             }
         }
 
+        protected virtual string GetUsername()
+        {
+            return "";
+        }
+
         public bool Enabled
         {
             get
@@ -344,7 +354,9 @@ namespace GitHub.Unity
     {
         public UsageTracker(ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager,
             ISettings userSettings,
-            IEnvironment environment, string instanceId)
+            IEnvironment environment,
+            IKeychain keychain,
+            string instanceId)
             : base(userSettings,
                    new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
                    environment.UnityVersion, instanceId)
@@ -353,6 +365,7 @@ namespace GitHub.Unity
             Environment = environment;
             GitClient = gitClient;
             ProcessManager = processManager;
+            Keychain = keychain;
         }
 
         protected override void CaptureRepoSize()
@@ -375,6 +388,18 @@ namespace GitHub.Unity
                 }
             }
             catch {}
+        }
+
+        protected override string GetUsername()
+        {
+            string username = "";
+            try {
+                var apiClient = new ApiClient("", Keychain, ProcessManager, TaskManager, Environment);
+                var user = apiClient.GetCurrentUser();
+                username = user.Login;
+            } catch {
+            }
+            return username;
         }
 
         public override void IncrementApplicationMenuMenuItemCommandLine() => TaskManager.Run(base.IncrementApplicationMenuMenuItemCommandLine);
@@ -400,6 +425,7 @@ namespace GitHub.Unity
         protected IEnvironment Environment { get; }
         protected IGitClient GitClient { get; }
         public IProcessManager ProcessManager { get; }
+        protected IKeychain Keychain { get; }
     }
 
     interface IUsageLoader
