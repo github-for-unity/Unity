@@ -74,12 +74,14 @@ test:
     - DoNotRunOnAppVeyor
 on_success:
 - ps: |
+    Set-Location $env:appveyor_build_folder
     if ($package) {
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
       Get-ChildItem -Recurse "$($sourcedir)\*.pdb" | foreach { $_.fullname.substring(0, $_.fullname.length - $_.extension.length) } | foreach { Write-Output "Generating $($_).mdb"; & 'lib\pdb2mdb.exe' "$($_).dll" }
     }
 - if %BUILD_TYPE%==full cd %appveyor_build_folder%\submodules\packaging\unitypackage && node yarn.js start --path %appveyor_build_folder%\unity\PackageProject --out %appveyor_build_folder% --file github-for-unity-%package_version%
 - ps: |
+    Set-Location $env:appveyor_build_folder
     if ($package) {
       $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
       $zipfile="$($env:appveyor_build_folder)\github-for-unity-$($env:package_version).zip"
@@ -97,4 +99,6 @@ on_success:
       Push-AppveyorArtifact "$($packagefile).md5" -DeploymentName package
     }
 on_finish:
-- ps: Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+- ps: |
+    Set-Location $env:appveyor_build_folder
+    Get-ChildItem build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
