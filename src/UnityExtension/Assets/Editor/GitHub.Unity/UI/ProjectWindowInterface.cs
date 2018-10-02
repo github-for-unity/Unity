@@ -89,6 +89,8 @@ namespace GitHub.Unity
         {
             if (!EnsureInitialized())
                 return false;
+            if(!Repository.CurrentRemote.HasValue)
+                return false;
             if (isBusy)
                 return false;
             return Selection.objects.Any(IsObjectUnlocked);
@@ -99,6 +101,8 @@ namespace GitHub.Unity
         {
             if (!EnsureInitialized())
                 return false;
+            if (!Repository.CurrentRemote.HasValue)
+                return false;
             if (isBusy)
                 return false;
             return Selection.objects.Any(IsObjectLocked);
@@ -108,6 +112,8 @@ namespace GitHub.Unity
         private static bool ContextMenu_CanUnlockForce()
         {
             if (!EnsureInitialized())
+                return false;
+            if (!Repository.CurrentRemote.HasValue)
                 return false;
             if (isBusy)
                 return false;
