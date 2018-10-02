@@ -23,7 +23,7 @@
     <Copy
       SourceFiles="@(ToCopy)"
       DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
-      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml')) and !$([System.String]::Copy('%(Extension)').Contains('pdb')) and !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))" />
+      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml'))" />
 
     <CreateItem Include="$(PublishTo)\**\*.*">
       <Output TaskParameter="Include" ItemName="PackageFilesToCopy" />
