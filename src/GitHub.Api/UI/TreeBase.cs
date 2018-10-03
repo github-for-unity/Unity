@@ -300,19 +300,19 @@ namespace GitHub.Unity
             return results;
         }
 
-        private void SetCheckStateOnNode(TNode node, bool isChecked)
+        private void SetCheckStateOnNode(TNode node, bool setChecked)
         {
-            SetCheckStateOnNode(node, isChecked ? CheckState.Checked : CheckState.Empty);
+            SetCheckStateOnNode(node, setChecked ? CheckState.Checked : CheckState.Empty);
         }
 
-        private void SetCheckStateOnNode(TNode node, CheckState nodeCheckState)
+        private void SetCheckStateOnNode(TNode node, CheckState setCheckState)
         {
-            var isChecked = nodeCheckState == CheckState.Checked
-                || nodeCheckState == CheckState.Mixed;
+            var isChecked = setCheckState == CheckState.Checked
+                || setCheckState == CheckState.Mixed;
 
             var wasChecked = node.CheckState == CheckState.Checked;
 
-            node.CheckState = nodeCheckState;
+            node.CheckState = setCheckState;
 
             if (!node.IsFolder)
             {
