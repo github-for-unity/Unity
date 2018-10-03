@@ -185,7 +185,7 @@ namespace GitHub.Unity
         {
             foreach (var node in Nodes)
             {
-                SetCheckStateOnNode(node, isChecked ? CheckState.Checked : CheckState.Empty);
+                SetCheckStateOnNode(node, isChecked);
             }
         }
 
@@ -271,7 +271,7 @@ namespace GitHub.Unity
                 var childNode = Nodes[i];
 
                 var wasChecked = childNode.CheckState == CheckState.Checked;
-                SetCheckStateOnNode(node, isChecked ? CheckState.Checked : CheckState.Empty);
+                SetCheckStateOnNode(node, isChecked);
 
                 if (childNode.IsFolderOrContainer)
                 {
@@ -298,6 +298,11 @@ namespace GitHub.Unity
                 }
             }
             return results;
+        }
+
+        private void SetCheckStateOnNode(TNode node, bool isChecked)
+        {
+            SetCheckStateOnNode(node, isChecked ? CheckState.Checked : CheckState.Empty);
         }
 
         private void SetCheckStateOnNode(TNode node, CheckState nodeCheckState)
