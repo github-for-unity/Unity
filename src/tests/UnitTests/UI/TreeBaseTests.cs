@@ -185,6 +185,11 @@ namespace UnitTests
             }
         }
 
+        public new void ToggleNodeChecked(int idx, TestTreeNode node)
+        {
+            base.ToggleNodeChecked(idx, node);
+        }
+
         protected override List<TestTreeNode> Nodes
         {
             get
@@ -308,6 +313,8 @@ namespace UnitTests
                 return TestTreeListener.PromoteMetaFiles;
             }
         }
+
+
     }
 
     [TestFixture]
@@ -606,6 +613,72 @@ namespace UnitTests
                 }
             });
         }
+
+
+        [Test]
+        public void ShouldCheckParentOfMetaFile()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(true);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+            testTreeListener.PromoteMetaFiles.Returns(true);
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity"
+                },
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity.meta"
+                }
+            };
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder",
+                    Label = "Folder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity",
+                    Label = "Default Scene.unity",
+                    Level = 2,
+                    TreeData = testTreeData[0],
+                    IsContainer = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity.meta",
+                    Label = "Default Scene.unity.meta",
+                    Level = 3,
+                    TreeData = testTreeData[1]
+                }
+            });
+
+            var sceneNode = testTree.CreatedTreeNodes[2];
+            var sceneMetaNode = testTree.CreatedTreeNodes[3];
+
+            testTree.ToggleNodeChecked(3, sceneMetaNode);
+
+            Assert.AreEqual(CheckState.Checked, sceneNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, sceneMetaNode.CheckState);
+
+            testTreeListener.Received(2).AddCheckedNode(Arg.Any<TestTreeNode>());
+        }
+
         [Test]
         public void ShouldPopulateTreeWithSingleEntryWithNonPromotedMetaInPath()
         {

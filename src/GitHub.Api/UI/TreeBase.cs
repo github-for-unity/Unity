@@ -332,7 +332,6 @@ namespace GitHub.Unity
             return results;
         }
 
-
         private void ToggleParentFoldersChecked(int idx, TNode node, bool isChecked)
         {
             while (true)
