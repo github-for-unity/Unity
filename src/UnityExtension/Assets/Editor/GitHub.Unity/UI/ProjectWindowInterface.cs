@@ -26,7 +26,7 @@ namespace GitHub.Unity
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
-        private static bool IsInitialized { get { return Repository != null && Repository.CurrentRemote.HasValue; } }
+        private static bool IsInitialized { get { return Repository != null; } }
 
         public static void Initialize(IApplicationManager theManager)
         {
@@ -67,6 +67,7 @@ namespace GitHub.Unity
             if (!lastRepositoryStatusChangedEvent.Equals(cacheUpdateEvent))
             {
                 lastRepositoryStatusChangedEvent = cacheUpdateEvent;
+                AssetDatabase.Refresh();
                 entries.Clear();
                 entries.AddRange(Repository.CurrentChanges);
                 OnStatusUpdate();
@@ -88,6 +89,8 @@ namespace GitHub.Unity
         {
             if (!EnsureInitialized())
                 return false;
+            if(!Repository.CurrentRemote.HasValue)
+                return false;
             if (isBusy)
                 return false;
             return Selection.objects.Any(IsObjectUnlocked);
@@ -98,6 +101,8 @@ namespace GitHub.Unity
         {
             if (!EnsureInitialized())
                 return false;
+            if (!Repository.CurrentRemote.HasValue)
+                return false;
             if (isBusy)
                 return false;
             return Selection.objects.Any(IsObjectLocked);
@@ -107,6 +112,8 @@ namespace GitHub.Unity
         private static bool ContextMenu_CanUnlockForce()
         {
             if (!EnsureInitialized())
+                return false;
+            if (!Repository.CurrentRemote.HasValue)
                 return false;
             if (isBusy)
                 return false;
