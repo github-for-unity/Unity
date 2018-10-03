@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace TestWebServer
 {
@@ -106,6 +107,18 @@ namespace TestWebServer
 
             if (context.Request.Url.AbsolutePath == "/api/usage/unity")
             {
+                var streamReader = new StreamReader(context.Request.InputStream);
+                string body = null;
+                using (streamReader)
+                {
+                    body = streamReader.ReadToEnd();
+                }
+                
+                var parsedJson = JsonConvert.DeserializeObject(body);
+                var formattedJson = JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+
+                Logger.Info(formattedJson);
+
                 var json = new { result = "Cool unity usage" }.ToJson();
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentLength64 = json.Length;

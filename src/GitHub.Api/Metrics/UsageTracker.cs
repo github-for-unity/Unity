@@ -8,6 +8,13 @@ namespace GitHub.Unity
 {
     class UsageTrackerSync : IUsageTracker
     {
+
+#if DEVELOPER_BUILD
+        protected internal const int MetrisReportTimeout = 30;
+#else
+        protected internal const int MetrisReportTimeout = 3 * 60;
+#endif
+
         private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
 
         private static object _lock = new object();
@@ -44,7 +51,7 @@ namespace GitHub.Unity
 
             Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
-                RunTimer(3 * 60);
+                RunTimer(MetrisReportTimeout);
         }
 
         private void RunTimer(int seconds)
