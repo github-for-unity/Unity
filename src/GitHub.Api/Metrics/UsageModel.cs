@@ -22,6 +22,7 @@ namespace GitHub.Unity
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
         public string CurrentLang { get; set; }
+        public string GitHubUser { get; set; }
     }
 
     public class Measures

@@ -44,9 +44,6 @@ if (fileContents && host) {
             'Content-Type': 'application/json'
         }
     };
-    if (config.token) {
-        options.headers['Authorization'] = 'token ' + config.token;
-    }
 
     var req = https.request(options, function (res) {
         var success = res.statusCode == 200;

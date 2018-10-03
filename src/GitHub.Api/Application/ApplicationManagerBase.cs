@@ -48,7 +48,7 @@ namespace GitHub.Unity
             ApplicationConfiguration.GitTimeout = UserSettings.Get(Constants.GitTimeoutKey, ApplicationConfiguration.GitTimeout);
             Platform.Initialize(ProcessManager, TaskManager);
             progress.OnProgress += progressReporter.UpdateProgress;
-            UsageTracker = new UsageTracker(TaskManager, GitClient, ProcessManager, UserSettings, Environment, InstanceId.ToString());
+            UsageTracker = new UsageTracker(TaskManager, GitClient, ProcessManager, UserSettings, Environment, Platform.Keychain, InstanceId.ToString());
 
 #if ENABLE_METRICS
             var metricsService = new MetricsService(ProcessManager,

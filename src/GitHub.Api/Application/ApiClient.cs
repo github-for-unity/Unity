@@ -205,7 +205,7 @@ namespace GitHub.Unity
                 .Start();
         }
 
-        private GitHubUser GetCurrentUser()
+        public GitHubUser GetCurrentUser()
         {
             var keychainConnection = keychain.Connections.FirstOrDefault(x => x.Host == OriginalUrl);
             if (keychainConnection == null)

@@ -8,6 +8,13 @@ namespace GitHub.Unity
 {
     class UsageTrackerSync : IUsageTracker
     {
+
+#if DEVELOPER_BUILD
+        protected internal const int MetrisReportTimeout = 30;
+#else
+        protected internal const int MetrisReportTimeout = 3 * 60;
+#endif
+
         private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
 
         private static object _lock = new object();
@@ -44,7 +51,7 @@ namespace GitHub.Unity
 
             Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
-                RunTimer(3 * 60);
+                RunTimer(MetrisReportTimeout);
         }
 
         private void RunTimer(int seconds)
@@ -92,6 +99,11 @@ namespace GitHub.Unity
             {
                 Logger.Trace("No items to send");
                 return;
+            }
+
+            var username = GetUsername();
+            if (!String.IsNullOrEmpty(username)) {
+                extractReports.ForEach(x => x.Dimensions.GitHubUser = username);
             }
 
             try
@@ -316,6 +328,11 @@ namespace GitHub.Unity
             }
         }
 
+        protected virtual string GetUsername()
+        {
+            return "";
+        }
+
         public bool Enabled
         {
             get
@@ -344,7 +361,9 @@ namespace GitHub.Unity
     {
         public UsageTracker(ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager,
             ISettings userSettings,
-            IEnvironment environment, string instanceId)
+            IEnvironment environment,
+            IKeychain keychain,
+            string instanceId)
             : base(userSettings,
                    new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
                    environment.UnityVersion, instanceId)
@@ -353,6 +372,7 @@ namespace GitHub.Unity
             Environment = environment;
             GitClient = gitClient;
             ProcessManager = processManager;
+            Keychain = keychain;
         }
 
         protected override void CaptureRepoSize()
@@ -375,6 +395,18 @@ namespace GitHub.Unity
                 }
             }
             catch {}
+        }
+
+        protected override string GetUsername()
+        {
+            string username = "";
+            try {
+                var apiClient = new ApiClient("", Keychain, ProcessManager, TaskManager, Environment);
+                var user = apiClient.GetCurrentUser();
+                username = user.Login;
+            } catch {
+            }
+            return username;
         }
 
         public override void IncrementApplicationMenuMenuItemCommandLine() => TaskManager.Run(base.IncrementApplicationMenuMenuItemCommandLine);
@@ -400,6 +432,7 @@ namespace GitHub.Unity
         protected IEnvironment Environment { get; }
         protected IGitClient GitClient { get; }
         public IProcessManager ProcessManager { get; }
+        protected IKeychain Keychain { get; }
     }
 
     interface IUsageLoader
