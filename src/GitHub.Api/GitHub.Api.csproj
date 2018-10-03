@@ -35,7 +35,7 @@
     <DefineConstants>TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <BuildConfid>Release</BuildConfid>
+    <BuildConfig>Release</BuildConfig>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
