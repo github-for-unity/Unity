@@ -313,8 +313,6 @@ namespace UnitTests
                 return TestTreeListener.PromoteMetaFiles;
             }
         }
-
-
     }
 
     [TestFixture]
@@ -613,7 +611,6 @@ namespace UnitTests
                 }
             });
         }
-
 
         [Test]
         public void ShouldCheckParentOfMetaFile()
