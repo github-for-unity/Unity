@@ -109,6 +109,7 @@ namespace IntegrationTests
         private DateTimeOffset? initializedAtValue;
 
         private bool isInvalidating;
+        protected bool forcedInvalidation;
 
         public event Action<CacheType> CacheInvalidated;
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -134,13 +135,20 @@ namespace IntegrationTests
 
         public void InvalidateData()
         {
-            if (!isInvalidating)
-            {
-                Logger.Trace("Invalidate");
-                isInvalidating = true;
-                LastUpdatedAt = DateTimeOffset.MinValue;
-                CacheInvalidated.SafeInvoke(CacheType);
-            }
+            forcedInvalidation = true;
+            Invalidate();
+        }
+
+        private void Invalidate()
+        {
+            isInvalidating = true;
+            LastUpdatedAt = DateTimeOffset.MinValue;
+            CacheInvalidated.SafeInvoke(CacheType);
+        }
+
+        public void ResetInvalidation()
+        {
+            isInvalidating = false;
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
