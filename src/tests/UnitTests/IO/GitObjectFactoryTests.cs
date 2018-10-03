@@ -18,7 +18,7 @@ namespace UnitTests
                 CurrentDirectory = @"c:\Projects\UnityProject"
             });
 
-            var environment = NSubstitute.Substitute.For<IEnvironment>();
+            var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(@"c:\Projects\UnityProject".ToNPath());
             environment.UnityProjectPath.Returns(@"c:\Projects\UnityProject".ToNPath());
 
@@ -37,7 +37,7 @@ namespace UnitTests
                 CurrentDirectory = @"c:\Projects\UnityProject"
             });
 
-            var environment = NSubstitute.Substitute.For<IEnvironment>();
+            var environment = Substitute.For<IEnvironment>();
             environment.RepositoryPath.Returns(@"c:\Projects\UnityProject".ToNPath());
             environment.UnityProjectPath.Returns(@"c:\Projects\UnityProject".ToNPath());
 
