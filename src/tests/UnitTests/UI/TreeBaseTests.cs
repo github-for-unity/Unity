@@ -671,6 +671,9 @@ namespace UnitTests
             var sceneNode = testTree.CreatedTreeNodes[2];
             var sceneMetaNode = testTree.CreatedTreeNodes[3];
 
+            Assert.AreEqual(CheckState.Empty, sceneNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, sceneMetaNode.CheckState);
+
             testTree.ToggleNodeChecked(3, sceneMetaNode);
 
             Assert.AreEqual(CheckState.Checked, sceneNode.CheckState);
