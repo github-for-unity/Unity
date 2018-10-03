@@ -113,7 +113,7 @@ namespace GitHub.Unity
 
         private static string ParseDriveLetter(string path, out string driveLetter)
         {
-            if (path.Length >= 2 && path[1] == ':')
+            if (path.Length >= 3 && path[1] == ':' && (path[2] == '/' || path[2] == '\\'))
             {
                 driveLetter = path[0].ToString();
                 return path.Substring(2);
