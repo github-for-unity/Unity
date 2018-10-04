@@ -753,6 +753,8 @@ namespace UnitTests
             var bNode = testTree.CreatedTreeNodes[4];
             var cNode = testTree.CreatedTreeNodes[5];
 
+            // Initial state, everything unchecked
+
             Assert.AreEqual(CheckState.Empty, rootNode.CheckState);
             Assert.AreEqual(CheckState.Empty, parentNode.CheckState);
             Assert.AreEqual(CheckState.Empty, aNode.CheckState);
@@ -760,6 +762,8 @@ namespace UnitTests
             Assert.AreEqual(CheckState.Empty, cNode.CheckState);
 
             testTree.ToggleNodeChecked(1, rootNode);
+
+            // Checked the root node, everything checked
 
             Assert.AreEqual(CheckState.Checked, rootNode.CheckState);
             Assert.AreEqual(CheckState.Checked, parentNode.CheckState);
@@ -769,6 +773,8 @@ namespace UnitTests
 
             testTreeListener.Received(3).AddCheckedNode(Arg.Any<TestTreeNode>());
             testTreeListener.ClearReceivedCalls();
+
+            // Unchecked c.txt, c.txt unchecked, parents mixed
 
             testTree.ToggleNodeChecked(5, cNode);
 
@@ -782,6 +788,8 @@ namespace UnitTests
             testTreeListener.ClearReceivedCalls();
 
             testTree.ToggleNodeChecked(5, cNode);
+
+            // Checked c.txt, everything checked
 
             Assert.AreEqual(CheckState.Checked, rootNode.CheckState);
             Assert.AreEqual(CheckState.Checked, parentNode.CheckState);
