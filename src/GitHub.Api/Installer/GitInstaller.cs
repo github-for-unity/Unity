@@ -301,13 +301,17 @@ namespace GitHub.Unity
                         return true;
                     });
                 unzipTask.Progress(p => Progress.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Message));
-                var path = unzipTask.RunSynchronously();
+                var source = unzipTask.RunSynchronously();
                 var target = state.GitInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path;
+                    Logger.Info("Moving Git source:{0} target:{1}", source.ToString(), target.ToString());
+
                     target.DeleteIfExists();
                     target.EnsureParentDirectoryExists();
+
+                    Logger.Info("target Exists: {0}", target.Exists());
+
                     source.Move(target);
                     state.GitIsValid = true;
                     state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
@@ -326,13 +330,17 @@ namespace GitHub.Unity
                         return true;
                     });
                 unzipTask.Progress(p => Progress.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Message));
-                var path = unzipTask.RunSynchronously();
+                var source = unzipTask.RunSynchronously();
                 var target = state.GitLfsInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path;
+                    Logger.Info("Moving Git source:{0} target:{1}", source.ToString(), target.ToString());
+
                     target.DeleteIfExists();
                     target.EnsureParentDirectoryExists();
+
+                    Logger.Info("target Exists: {0}", target.Exists());
+
                     source.Move(target);
                     state.GitLfsIsValid = true;
                 }
