@@ -55,13 +55,15 @@ namespace GitHub.Unity
 
             Logger.Info("MoveOctorun fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
 
-            toPath.DeleteIfExists();
-            toPath.EnsureParentDirectoryExists();
+            Logger.Info("DeleteContents toPath:{0}", toPath.ToString());
+            toPath.DeleteContents();
 
-            Logger.Info("toPath Exists: {0}", toPath.Exists());
+            Logger.Info("MoveFiles fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
+            fromPath.MoveFiles(toPath, true);
 
-            fromPath.Move(toPath);
+            Logger.Info("Delete fromPath:{0}", fromPath.ToString());
             fromPath.Parent.Delete();
+
             return installDetails.ExecutablePath;
         }
 
