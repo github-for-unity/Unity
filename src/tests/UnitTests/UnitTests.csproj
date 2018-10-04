@@ -76,6 +76,7 @@
     <Compile Include="Git\GitConfigTests.cs" />
     <Compile Include="IO\BranchListOutputProcessorTests.cs" />
     <Compile Include="Extensions\EnvironmentExtensionTests.cs" />
+    <Compile Include="IO\GitObjectFactoryTests.cs" />
     <Compile Include="IO\LfsVersionOutputProcessorTests.cs" />
     <Compile Include="IO\LinuxDiskUsageOutputProcessorTests.cs" />
     <Compile Include="IO\LockOutputProcessorTests.cs" />
