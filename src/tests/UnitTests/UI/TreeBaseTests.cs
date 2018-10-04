@@ -680,7 +680,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void ShouldRippleUncheckCorrectly()
+        public void ShouldRippleChecksCorrectly()
         {
             var testTree = new TestTree(true);
             var testTreeListener = testTree.TestTreeListener;
