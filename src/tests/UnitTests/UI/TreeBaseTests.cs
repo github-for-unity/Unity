@@ -799,6 +799,21 @@ namespace UnitTests
 
             testTreeListener.Received(1).AddCheckedNode(Arg.Any<TestTreeNode>());
             testTreeListener.ClearReceivedCalls();
+
+            // Unchecked a.txt b.txt and c.txt, everything checked
+
+            testTree.ToggleNodeChecked(3, aNode);
+            testTree.ToggleNodeChecked(4, bNode);
+            testTree.ToggleNodeChecked(5, cNode);
+
+            Assert.AreEqual(CheckState.Empty, rootNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, parentNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, aNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, bNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, cNode.CheckState);
+
+            testTreeListener.Received(3).RemoveCheckedNode(Arg.Any<TestTreeNode>());
+            testTreeListener.ClearReceivedCalls();
         }
 
         [Test]
