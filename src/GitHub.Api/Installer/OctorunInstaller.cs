@@ -61,7 +61,7 @@ namespace GitHub.Unity
             Logger.Info("MoveFiles fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
             fromPath.MoveFiles(toPath, true);
 
-            Logger.Info("Delete fromPath:{0}", fromPath.ToString());
+            Logger.Info("Delete fromPath.Parent:{0}", fromPath.Parent.ToString());
             fromPath.Parent.Delete();
 
             return installDetails.ExecutablePath;
