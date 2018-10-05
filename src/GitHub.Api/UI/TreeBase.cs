@@ -183,23 +183,9 @@ namespace GitHub.Unity
 
         public void SetCheckStateOnAll(bool isChecked)
         {
-            var nodeCheckState = isChecked ? CheckState.Checked : CheckState.Empty;
             foreach (var node in Nodes)
             {
-                var wasChecked = node.CheckState == CheckState.Checked;
-                node.CheckState = nodeCheckState;
-
-                if (!node.IsFolder)
-                {
-                    if (isChecked && !wasChecked)
-                    {
-                        AddCheckedNode(node);
-                    }
-                    else if (!isChecked && wasChecked)
-                    {
-                        RemoveCheckedNode(node);
-                    }
-                }
+                SetCheckStateOnNode(node, isChecked);
             }
         }
 
@@ -250,39 +236,32 @@ namespace GitHub.Unity
 
         protected void ToggleNodeChecked(int idx, TNode node)
         {
+            CheckState checkState;
             var isChecked = false;
-
             switch (node.CheckState)
             {
                 case CheckState.Mixed:
                 case CheckState.Empty:
-                    node.CheckState = CheckState.Checked;
+                    checkState = CheckState.Checked;
                     isChecked = true;
                     break;
 
                 case CheckState.Checked:
-                    node.CheckState = CheckState.Empty;
+                    checkState = CheckState.Empty;
                     break;
+
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown CheckState");
             }
 
-            if (!node.IsFolder)
-            {
-                if (isChecked)
-                {
-                    AddCheckedNode(node);
-                }
-                else
-                {
-                    RemoveCheckedNode(node);
-                }
-            }
+            SetCheckStateOnNode(node, checkState);
 
             if (node.IsFolderOrContainer)
             {
                 ToggleChildrenChecked(idx, node, isChecked);
             }
 
-            ToggleParentFoldersChecked(idx, node, isChecked);
+            ToggleParentFolderAndContainersChecked(idx, node, checkState);
         }
 
         private void ToggleChildrenChecked(int idx, TNode node, bool isChecked)
@@ -290,20 +269,8 @@ namespace GitHub.Unity
             for (var i = idx + 1; i < Nodes.Count && node.Level < Nodes[i].Level; i++)
             {
                 var childNode = Nodes[i];
-                var wasChecked = childNode.CheckState == CheckState.Checked;
-                childNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
 
-                if (!childNode.IsFolder)
-                {
-                    if (isChecked && !wasChecked)
-                    {
-                        AddCheckedNode(childNode);
-                    }
-                    else if (!isChecked && wasChecked)
-                    {
-                        RemoveCheckedNode(childNode);
-                    }
-                }
+                SetCheckStateOnNode(childNode, isChecked);
 
                 if (childNode.IsFolderOrContainer)
                 {
@@ -332,9 +299,36 @@ namespace GitHub.Unity
             return results;
         }
 
-
-        private void ToggleParentFoldersChecked(int idx, TNode node, bool isChecked)
+        private void SetCheckStateOnNode(TNode node, bool setChecked)
         {
+            SetCheckStateOnNode(node, setChecked ? CheckState.Checked : CheckState.Empty);
+        }
+
+        private void SetCheckStateOnNode(TNode node, CheckState setCheckState)
+        {
+            var isChecked = setCheckState == CheckState.Checked
+                || setCheckState == CheckState.Mixed;
+
+            var wasChecked = node.CheckState == CheckState.Checked;
+
+            node.CheckState = setCheckState;
+
+            if (!node.IsFolder)
+            {
+                if (isChecked && !wasChecked)
+                {
+                    AddCheckedNode(node);
+                }
+                else if (!isChecked && wasChecked)
+                {
+                    RemoveCheckedNode(node);
+                }
+            }
+        }
+
+        private void ToggleParentFolderAndContainersChecked(int idx, TNode node, CheckState checkState)
+        {
+            var isChecked = checkState != CheckState.Empty;
             while (true)
             {
                 if (node.Level > 0)
@@ -384,14 +378,13 @@ namespace GitHub.Unity
 
                     var parentIndex = firstSiblingIndex - 1;
                     var parentNode = Nodes[parentIndex];
-                    if (siblingsInSameState)
-                    {
-                        parentNode.CheckState = isChecked ? CheckState.Checked : CheckState.Empty;
-                    }
-                    else
-                    {
-                        parentNode.CheckState = CheckState.Mixed;
-                    }
+
+                    var parentNodeState =
+                        siblingsInSameState
+                            ? node.CheckState
+                            : CheckState.Mixed;
+
+                    SetCheckStateOnNode(parentNode, parentNodeState);
 
                     idx = parentIndex;
                     node = parentNode;
