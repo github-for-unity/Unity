@@ -53,15 +53,10 @@ namespace GitHub.Unity
         {
             var toPath = installDetails.InstallationPath;
 
-            Logger.Info("MoveOctorun fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
+            Logger.Trace("MoveOctorun fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
 
-            Logger.Info("DeleteContents toPath:{0}", toPath.ToString());
             toPath.DeleteContents();
-
-            Logger.Info("MoveFiles fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
             fromPath.MoveFiles(toPath, true);
-
-            Logger.Info("Delete fromPath.Parent:{0}", fromPath.Parent.ToString());
             fromPath.Parent.Delete();
 
             return installDetails.ExecutablePath;

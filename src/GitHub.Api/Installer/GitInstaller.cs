@@ -305,16 +305,11 @@ namespace GitHub.Unity
                 var target = state.GitInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    Logger.Info("Moving Git source:{0} target:{1}", source.ToString(), target.ToString());
+                    Logger.Trace("Moving Git source:{0} target:{1}", source.ToString(), target.ToString());
 
-                    Logger.Info("DeleteContents target:{0}", target.ToString());
                     target.DeleteContents();
-
-                    Logger.Info("MoveFiles fromPath: {0} toPath:{1}", source.ToString(), target.ToString());
                     source.MoveFiles(target, true);
-
-                    Logger.Info("Delete source:{0}", source.ToString());
-                    source.Delete();
+                    source.Parent.Delete();
 
                     state.GitIsValid = true;
 
@@ -338,16 +333,11 @@ namespace GitHub.Unity
                 var target = state.GitLfsInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    Logger.Info("Moving GitLFS source:{0} target:{1}", source.ToString(), target.ToString());
+                    Logger.Trace("Moving GitLFS source:{0} target:{1}", source.ToString(), target.ToString());
 
-                    Logger.Info("DeleteContents target:{0}", target.ToString());
                     target.DeleteContents();
-
-                    Logger.Info("MoveFiles fromPath: {0} toPath:{1}", source.ToString(), target.ToString());
                     source.MoveFiles(target, true);
-
-                    Logger.Info("Delete source:{0}", source.ToString());
-                    source.Delete();
+                    source.Parent.Delete();
 
                     state.GitLfsIsValid = true;
                 }
