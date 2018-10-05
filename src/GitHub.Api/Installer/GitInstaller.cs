@@ -317,6 +317,7 @@ namespace GitHub.Unity
                     source.Delete();
 
                     state.GitIsValid = true;
+
                     state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
                 }
             }
@@ -339,12 +340,15 @@ namespace GitHub.Unity
                 {
                     Logger.Info("Moving GitLFS source:{0} target:{1}", source.ToString(), target.ToString());
 
-                    target.DeleteIfExists();
-                    target.EnsureParentDirectoryExists();
+                    Logger.Info("DeleteContents target:{0}", target.ToString());
+                    target.DeleteContents();
 
-                    Logger.Info("GitLFS target Exists: {0}", target.Exists());
+                    Logger.Info("MoveFiles fromPath: {0} toPath:{1}", source.ToString(), target.ToString());
+                    source.MoveFiles(target, true);
 
-                    source.Move(target);
+                    Logger.Info("Delete source:{0}", source.ToString());
+                    source.Delete();
+
                     state.GitLfsIsValid = true;
                 }
             }
