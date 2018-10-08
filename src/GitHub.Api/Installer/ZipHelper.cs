@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using ICSharpCode.SharpZipLib.Zip;
+using GitHub.ICSharpCode.SharpZipLib.Zip;
 using GitHub.Logging;
 using System.Collections.Generic;
 
