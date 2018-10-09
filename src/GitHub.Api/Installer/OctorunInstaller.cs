@@ -55,9 +55,7 @@ namespace GitHub.Unity
 
             Logger.Trace("MoveOctorun fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
 
-            toPath.DeleteContents();
-            fromPath.MoveFiles(toPath, true);
-            fromPath.Parent.Delete();
+            CopyHelper.Copy(fromPath, toPath);
 
             return installDetails.ExecutablePath;
         }

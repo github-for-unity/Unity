@@ -307,9 +307,7 @@ namespace GitHub.Unity
                 {
                     Logger.Trace("Moving Git source:{0} target:{1}", source.ToString(), target.ToString());
 
-                    target.DeleteContents();
-                    source.MoveFiles(target, true);
-                    source.Parent.Delete();
+                    CopyHelper.Copy(source, target);
 
                     state.GitIsValid = true;
 
@@ -335,9 +333,7 @@ namespace GitHub.Unity
                 {
                     Logger.Trace("Moving GitLFS source:{0} target:{1}", source.ToString(), target.ToString());
 
-                    target.DeleteContents();
-                    source.MoveFiles(target, true);
-                    source.Parent.Delete();
+                    CopyHelper.Copy(source, target);
 
                     state.GitLfsIsValid = true;
                 }
