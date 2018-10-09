@@ -46,7 +46,13 @@ namespace IntegrationTests
 
                         repositoryWatcher.Start();
 
-                        watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                        await TaskEx.WhenAny(
+                            TaskEx.WhenAll(
+                                watcherAutoResetEvent.RepositoryChanged
+                            ),
+                            TaskEx.Delay(TimeSpan.FromSeconds(10))
+                        );
+
                         watcherAutoResetEvent.Reset();
 
                         repositoryWatcherListener.DidNotReceive().HeadChanged();
@@ -66,16 +72,24 @@ namespace IntegrationTests
                         Logger.Trace("Completed Command");
                         repositoryWatcher.Start();
 
-                        watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                        await TaskEx.WhenAny(
+                            TaskEx.WhenAll(
+                                watcherAutoResetEvent.RepositoryChanged,
+                                watcherAutoResetEvent.LocalBranchesChanged,
+                                watcherAutoResetEvent.RemoteBranchesChanged
+                            ),
+                            TaskEx.Delay(TimeSpan.FromSeconds(10))
+                        );
+
                         watcherAutoResetEvent.Reset();
 
                         repositoryWatcherListener.DidNotReceive().HeadChanged();
                         repositoryWatcherListener.DidNotReceive().ConfigChanged();
                         repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.Received(1).IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+                        repositoryWatcherListener.Received(1).RepositoryChanged();
+                        repositoryWatcherListener.Received(2).LocalBranchesChanged();
+                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
                         repositoryWatcherListener.ClearReceivedCalls();
 
                         repositoryWatcher.Stop();
@@ -86,8 +100,14 @@ namespace IntegrationTests
                         Logger.Trace("Completed Command");
                         repositoryWatcher.Start();
 
-                        watcherAutoResetEvent.RepositoryCommitted.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                        await TaskEx.WhenAny(
+                            TaskEx.WhenAll(
+                                watcherAutoResetEvent.RepositoryCommitted,
+                                watcherAutoResetEvent.IndexChanged
+                            ),
+                            TaskEx.Delay(TimeSpan.FromSeconds(10))
+                        );
+
                         watcherAutoResetEvent.Reset();
 
                         repositoryWatcherListener.DidNotReceive().HeadChanged();
@@ -142,9 +162,16 @@ namespace IntegrationTests
 
                         repositoryWatcher.Start();
 
-                        watcherAutoResetEvent.HeadChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+                        await TaskEx.WhenAny(
+                            TaskEx.WhenAll(
+                                watcherAutoResetEvent.HeadChanged,
+                                watcherAutoResetEvent.IndexChanged,
+                                watcherAutoResetEvent.LocalBranchesChanged,
+                                watcherAutoResetEvent.RemoteBranchesChanged,
+                                watcherAutoResetEvent.RepositoryChanged
+                            ),
+                            TaskEx.Delay(TimeSpan.FromSeconds(10))
+                        );
 
                         Logger.Trace("Continue test");
 
@@ -153,8 +180,8 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
                         repositoryWatcherListener.Received(1).IndexChanged();
                         repositoryWatcherListener.Received(1).RepositoryChanged();
-                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+                        repositoryWatcherListener.Received(2).LocalBranchesChanged();
+                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
                     }
                     finally
                     {
@@ -167,315 +194,315 @@ namespace IntegrationTests
                 Logger.Trace("Ending ShouldDetectBranchChange");
             }
         }
-
-        [Test]
-        public async Task ShouldDetectBranchDelete()
-        {
-            Logger.Trace("Starting ShouldDetectBranchDelete");
-
-            try
-            {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
-
-                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
-                {
-                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
-
-                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
-                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
-
-                    repositoryWatcher.Initialize();
-                    repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
-
-                    try
-                    {
-                        Logger.Trace("Issuing Command");
-
-                        await GitClient.DeleteBranch("feature/document", true).StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Completed Command");
-
-                        repositoryWatcher.Start();
-
-                        watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-
-                        Logger.Trace("Continue test");
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.Received(1).ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.DidNotReceive().IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
-                    }
-                    finally
-                    {
-                        repositoryWatcher.Stop();
-                    }
-                }
-            }
-            finally
-            {
-                Logger.Trace("Ending ShouldDetectBranchDelete");
-            }
-        }
-
-        [Test]
-        public async Task ShouldDetectBranchCreate()
-        {
-            Logger.Trace("Starting ShouldDetectBranchCreate");
-
-            try
-            {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
-
-                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
-                {
-                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
-
-                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
-                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
-
-                    repositoryWatcher.Initialize();
-                    repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
-
-                    try
-                    {
-                        Logger.Trace("Issuing Command");
-
-                        await GitClient.CreateBranch("feature/document2", "feature/document").StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
-
-                        watcherAutoResetEvent.LocalBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.Reset();
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.DidNotReceive().IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
-                        repositoryWatcherListener.ClearReceivedCalls();
-
-                        repositoryWatcher.Stop();
-
-                        Logger.Trace("Issuing Command");
-
-                        await GitClient.CreateBranch("feature2/document2", "feature/document").StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
-
-                        watcherAutoResetEvent.LocalBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.DidNotReceive().IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
-                    }
-                    finally
-                    {
-                        repositoryWatcher.Stop();
-                    }
-                }
-            }
-            finally
-            {
-                Logger.Trace("Ending ShouldDetectBranchCreate");
-            }
-        }
-
-        [Test]
-        public async Task ShouldDetectChangesToRemotes()
-        {
-            Logger.Trace("Starting ShouldDetectChangesToRemotes");
-
-            try
-            {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
-
-                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
-                {
-                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
-
-                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
-                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
-
-                    repositoryWatcher.Initialize();
-                    repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
-
-                    try
-                    {
-                        Logger.Trace("Issuing Command");
-
-                        await GitClient.RemoteRemove("origin").StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
-                        watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.RemoteBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.Reset();
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.Received(1).ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.DidNotReceive().IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
-                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
-                        repositoryWatcherListener.ClearReceivedCalls();
-
-                        repositoryWatcher.Stop();
-
-                        Logger.Trace("Issuing 2nd Command");
-
-                        await GitClient.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Continue 2nd test");
-
-                        repositoryWatcher.Start();
-                        watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.RemoteBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.Received(1).ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.DidNotReceive().IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
-                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
-                    }
-                    finally
-                    {
-                        repositoryWatcher.Stop();
-                    }
-                }
-            }
-            finally
-            {
-                Logger.Trace("Ending ShouldDetectChangesToRemotes");
-            }
-        }
-
-        [Test]
-        public async Task ShouldDetectGitPull()
-        {
-            Logger.Trace("Starting ShouldDetectGitPull");
-
-            try
-            {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
-
-                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
-                {
-                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
-
-                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
-                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
-
-                    repositoryWatcher.Initialize();
-                    repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
-
-                    try
-                    {
-                        Logger.Trace("Issuing Command");
-
-                        await GitClient.Pull("origin", "master").StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
-
-                        watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-                        watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.Received(1).IndexChanged();
-                        repositoryWatcherListener.Received(1).RepositoryChanged();
-                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
-                    }
-                    finally
-                    {
-                        repositoryWatcher.Stop();
-                    }
-                }
-            }
-            finally
-            {
-                Logger.Trace("Ending ShouldDetectGitPull");
-            }
-        }
-
-        [Test]
-        public async Task ShouldDetectGitFetch()
-        {
-            Logger.Trace("Starting ShouldDetectGitFetch");
-
-            try
-            {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
-
-                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
-                {
-                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
-
-                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
-                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent, true);
-
-                    repositoryWatcher.Initialize();
-                    repositoryWatcher.Start();
-
-                    try
-                    {
-                        Logger.Trace("Issuing Command");
-
-                        await GitClient.Fetch("origin").StartAsAsync();
-                        await TaskManager.Wait();
-
-                        Logger.Trace("Continue test");
-
-                        repositoryWatcherListener.DidNotReceive().HeadChanged();
-                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.DidNotReceive().IndexChanged();
-                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
-                    }
-                    finally
-                    {
-                        repositoryWatcher.Stop();
-                    }
-                }
-            }
-            finally
-            {
-                Logger.Trace("Ending ShouldDetectGitFetch");
-            }
-        }
+//
+//        [Test]
+//        public async Task ShouldDetectBranchDelete()
+//        {
+//            Logger.Trace("Starting ShouldDetectBranchDelete");
+//
+//            try
+//            {
+//                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+//
+//                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
+//                {
+//                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
+//
+//                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+//                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
+//
+//                    repositoryWatcher.Initialize();
+//                    repositoryWatcher.Start();
+//                    repositoryWatcher.Stop();
+//
+//                    try
+//                    {
+//                        Logger.Trace("Issuing Command");
+//
+//                        await GitClient.DeleteBranch("feature/document", true).StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Completed Command");
+//
+//                        repositoryWatcher.Start();
+//
+//                        watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//
+//                        Logger.Trace("Continue test");
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.Received(1).ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+//                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+//                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+//                    }
+//                    finally
+//                    {
+//                        repositoryWatcher.Stop();
+//                    }
+//                }
+//            }
+//            finally
+//            {
+//                Logger.Trace("Ending ShouldDetectBranchDelete");
+//            }
+//        }
+//
+//        [Test]
+//        public async Task ShouldDetectBranchCreate()
+//        {
+//            Logger.Trace("Starting ShouldDetectBranchCreate");
+//
+//            try
+//            {
+//                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+//
+//                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
+//                {
+//                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
+//
+//                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+//                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
+//
+//                    repositoryWatcher.Initialize();
+//                    repositoryWatcher.Start();
+//                    repositoryWatcher.Stop();
+//
+//                    try
+//                    {
+//                        Logger.Trace("Issuing Command");
+//
+//                        await GitClient.CreateBranch("feature/document2", "feature/document").StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Continue test");
+//
+//                        repositoryWatcher.Start();
+//
+//                        watcherAutoResetEvent.LocalBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//                        watcherAutoResetEvent.Reset();
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+//                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+//                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+//                        repositoryWatcherListener.ClearReceivedCalls();
+//
+//                        repositoryWatcher.Stop();
+//
+//                        Logger.Trace("Issuing Command");
+//
+//                        await GitClient.CreateBranch("feature2/document2", "feature/document").StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Continue test");
+//
+//                        repositoryWatcher.Start();
+//
+//                        watcherAutoResetEvent.LocalBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+//                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+//                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+//                    }
+//                    finally
+//                    {
+//                        repositoryWatcher.Stop();
+//                    }
+//                }
+//            }
+//            finally
+//            {
+//                Logger.Trace("Ending ShouldDetectBranchCreate");
+//            }
+//        }
+//
+//        [Test]
+//        public async Task ShouldDetectChangesToRemotes()
+//        {
+//            Logger.Trace("Starting ShouldDetectChangesToRemotes");
+//
+//            try
+//            {
+//                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+//
+//                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
+//                {
+//                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
+//
+//                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+//                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
+//
+//                    repositoryWatcher.Initialize();
+//                    repositoryWatcher.Start();
+//                    repositoryWatcher.Stop();
+//
+//                    try
+//                    {
+//                        Logger.Trace("Issuing Command");
+//
+//                        await GitClient.RemoteRemove("origin").StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Continue test");
+//
+//                        repositoryWatcher.Start();
+//                        watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//                        watcherAutoResetEvent.RemoteBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//                        watcherAutoResetEvent.Reset();
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.Received(1).ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+//                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
+//                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
+//                        repositoryWatcherListener.ClearReceivedCalls();
+//
+//                        repositoryWatcher.Stop();
+//
+//                        Logger.Trace("Issuing 2nd Command");
+//
+//                        await GitClient.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Continue 2nd test");
+//
+//                        repositoryWatcher.Start();
+//                        watcherAutoResetEvent.ConfigChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//                        watcherAutoResetEvent.RemoteBranchesChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.Received(1).ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+//                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
+//                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
+//                    }
+//                    finally
+//                    {
+//                        repositoryWatcher.Stop();
+//                    }
+//                }
+//            }
+//            finally
+//            {
+//                Logger.Trace("Ending ShouldDetectChangesToRemotes");
+//            }
+//        }
+//
+//        [Test]
+//        public async Task ShouldDetectGitPull()
+//        {
+//            Logger.Trace("Starting ShouldDetectGitPull");
+//
+//            try
+//            {
+//                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+//
+//                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
+//                {
+//                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
+//
+//                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+//                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
+//
+//                    repositoryWatcher.Initialize();
+//                    repositoryWatcher.Start();
+//                    repositoryWatcher.Stop();
+//
+//                    try
+//                    {
+//                        Logger.Trace("Issuing Command");
+//
+//                        await GitClient.Pull("origin", "master").StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Continue test");
+//
+//                        repositoryWatcher.Start();
+//
+//                        watcherAutoResetEvent.IndexChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//                        watcherAutoResetEvent.RepositoryChanged.WaitOne(TimeSpan.FromSeconds(2)).Should().BeTrue();
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.Received(1).IndexChanged();
+//                        repositoryWatcherListener.Received(1).RepositoryChanged();
+//                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+//                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+//                    }
+//                    finally
+//                    {
+//                        repositoryWatcher.Stop();
+//                    }
+//                }
+//            }
+//            finally
+//            {
+//                Logger.Trace("Ending ShouldDetectGitPull");
+//            }
+//        }
+//
+//        [Test]
+//        public async Task ShouldDetectGitFetch()
+//        {
+//            Logger.Trace("Starting ShouldDetectGitFetch");
+//
+//            try
+//            {
+//                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
+//
+//                using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
+//                {
+//                    var watcherAutoResetEvent = new RepositoryWatcherAutoResetEvent();
+//
+//                    var repositoryWatcherListener = Substitute.For<IRepositoryWatcherListener>();
+//                    repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent, true);
+//
+//                    repositoryWatcher.Initialize();
+//                    repositoryWatcher.Start();
+//
+//                    try
+//                    {
+//                        Logger.Trace("Issuing Command");
+//
+//                        await GitClient.Fetch("origin").StartAsAsync();
+//                        await TaskManager.Wait();
+//
+//                        Logger.Trace("Continue test");
+//
+//                        repositoryWatcherListener.DidNotReceive().HeadChanged();
+//                        repositoryWatcherListener.DidNotReceive().ConfigChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
+//                        repositoryWatcherListener.DidNotReceive().IndexChanged();
+//                        repositoryWatcherListener.DidNotReceive().RepositoryChanged();
+//                        repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
+//                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+//                    }
+//                    finally
+//                    {
+//                        repositoryWatcher.Stop();
+//                    }
+//                }
+//            }
+//            finally
+//            {
+//                Logger.Trace("Ending ShouldDetectGitFetch");
+//            }
+//        }
 
         private RepositoryWatcher CreateRepositoryWatcher(NPath path)
         {
@@ -497,7 +524,8 @@ namespace IntegrationTests
 
     static class RepositoryWatcherListenerExtensions
     {
-        public static void AttachListener(this IRepositoryWatcherListener listener, IRepositoryWatcher repositoryWatcher, RepositoryWatcherAutoResetEvent autoResetEvent = null, bool trace = false)
+        public static void AttachListener(this IRepositoryWatcherListener listener,
+            IRepositoryWatcher repositoryWatcher, RepositoryWatcherAutoResetEvent autoResetEvent = null, bool trace = false)
         {
             var logger = trace ? LogHelper.GetLogger<IRepositoryWatcherListener>() : null;
 
@@ -505,49 +533,49 @@ namespace IntegrationTests
             {
                 logger?.Trace("HeadChanged");
                 listener.HeadChanged();
-                autoResetEvent?.HeadChanged.Set();
+                autoResetEvent?.headChanged.TrySetResult(true);
             };
 
             repositoryWatcher.IndexChanged += () =>
             {
                 logger?.Trace("IndexChanged");
                 listener.IndexChanged();
-                autoResetEvent?.IndexChanged.Set();
+                autoResetEvent?.indexChanged.TrySetResult(true);
             };
 
             repositoryWatcher.ConfigChanged += () =>
             {
                 logger?.Trace("ConfigChanged");
                 listener.ConfigChanged();
-                autoResetEvent?.ConfigChanged.Set();
+                autoResetEvent?.configChanged.TrySetResult(true);
             };
 
             repositoryWatcher.RepositoryCommitted += () =>
             {
                 logger?.Trace("ConfigChanged");
                 listener.RepositoryCommitted();
-                autoResetEvent?.RepositoryCommitted.Set();
+                autoResetEvent?.repositoryCommitted.TrySetResult(true);
             };
 
             repositoryWatcher.RepositoryChanged += () =>
             {
                 logger?.Trace("RepositoryChanged");
                 listener.RepositoryChanged();
-                autoResetEvent?.RepositoryChanged.Set();
+                autoResetEvent?.repositoryChanged.TrySetResult(true);
             };
 
             repositoryWatcher.LocalBranchesChanged += () =>
             {
                 logger?.Trace("LocalBranchesChanged");
                 listener.LocalBranchesChanged();
-                autoResetEvent?.LocalBranchesChanged.Set();
+                autoResetEvent?.localBranchesChanged.TrySetResult(true);
             };
 
             repositoryWatcher.RemoteBranchesChanged += () =>
             {
                 logger?.Trace("RemoteBranchesChanged");
                 listener.RemoteBranchesChanged();
-                autoResetEvent?.RemoteBranchesChanged.Set();
+                autoResetEvent?.remoteBranchesChanged.TrySetResult(true);
             };
         }
 
@@ -565,23 +593,41 @@ namespace IntegrationTests
 
     class RepositoryWatcherAutoResetEvent
     {
-        public AutoResetEvent HeadChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent ConfigChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent RepositoryCommitted { get; } = new AutoResetEvent(false);
-        public AutoResetEvent IndexChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent RepositoryChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent LocalBranchesChanged { get; } = new AutoResetEvent(false);
-        public AutoResetEvent RemoteBranchesChanged { get; } = new AutoResetEvent(false);
+        internal TaskCompletionSource<object> headChanged;
+        public Task HeadChanged => headChanged.Task;
+
+        internal TaskCompletionSource<object> configChanged;
+        public Task ConfigChanged => configChanged.Task;
+
+        internal TaskCompletionSource<object> repositoryCommitted;
+        public Task RepositoryCommitted => repositoryCommitted.Task;
+
+        internal TaskCompletionSource<object> indexChanged;
+        public Task IndexChanged => indexChanged.Task;
+
+        internal TaskCompletionSource<object> repositoryChanged;
+        public Task RepositoryChanged => repositoryChanged.Task;
+
+        internal TaskCompletionSource<object> localBranchesChanged;
+        public Task LocalBranchesChanged => localBranchesChanged.Task;
+
+        internal TaskCompletionSource<object> remoteBranchesChanged;
+        public Task RemoteBranchesChanged => remoteBranchesChanged.Task;
+
+        public RepositoryWatcherAutoResetEvent()
+        {
+            Reset();
+        }
 
         public void Reset()
         {
-            HeadChanged.Reset();
-            ConfigChanged.Reset();
-            RepositoryCommitted.Reset();
-            IndexChanged.Reset();
-            RepositoryChanged.Reset();
-            LocalBranchesChanged.Reset();
-            RemoteBranchesChanged.Reset();
+            headChanged = new TaskCompletionSource<object>();
+            configChanged = new TaskCompletionSource<object>();
+            repositoryCommitted = new TaskCompletionSource<object>();
+            indexChanged = new TaskCompletionSource<object>();
+            repositoryChanged = new TaskCompletionSource<object>();
+            localBranchesChanged = new TaskCompletionSource<object>();
+            remoteBranchesChanged = new TaskCompletionSource<object>();
         }
     }
 }
