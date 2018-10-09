@@ -31,6 +31,10 @@ namespace GitHub.Unity
                     throw;
                 }
             }
+            finally
+            {
+                fromPath.DeleteIfExists();
+            }
         }
         public static void CopyFolder(NPath fromPath, NPath toPath)
         {
@@ -38,7 +42,6 @@ namespace GitHub.Unity
 
             toPath.EnsureParentDirectoryExists();
             fromPath.Move(toPath);
-            fromPath.Delete();
         }
 
         public static void CopyFolderContents(NPath fromPath, NPath toPath)
@@ -47,7 +50,6 @@ namespace GitHub.Unity
 
             toPath.DeleteContents();
             fromPath.MoveFiles(toPath, true);
-            fromPath.Delete();
         }
     }
 }
