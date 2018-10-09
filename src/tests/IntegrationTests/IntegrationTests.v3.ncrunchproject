@@ -1,10 +1,10 @@
 ﻿<ProjectConfiguration>
   <Settings>
     <AdditionalFilesToIncludeForProject>
-      <Value>..\..\..\lib\sfw.net\win\x64\Debug\**.*</Value>
       <Value>..\..\GitHub.Api\PlatformResources\**.*</Value>
-      <Value>..\..\..\script\lib\UnityEditor.dll</Value>
-      <Value>..\..\..\script\lib\UnityEngine.dll</Value>
+      <Value>..\..\..\script\lib\Managed\UnityEditor.dll</Value>
+      <Value>..\..\..\script\lib\Managed\UnityEngine.dll</Value>
+      <Value>..\..\..\lib\sfw\win\x64\**.*</Value>
     </AdditionalFilesToIncludeForProject>
     <HiddenComponentWarnings>
       <Value>AbnormalReferenceResolution</Value>
@@ -16,6 +16,15 @@
       <NamedTestSelector>
         <TestName>IntegrationTests.GitSetupTests.VerifyGitLfsBundle</TestName>
       </NamedTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>IntegrationTests.GitInstallerTestsWithHttp</FixtureName>
+      </FixtureTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>IntegrationTests.GitInstallerTests</FixtureName>
+      </FixtureTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>IntegrationTests.A_GitClientTests</FixtureName>
+      </FixtureTestSelector>
     </IgnoredTests>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
     <RunPostBuildEvents>True</RunPostBuildEvents>

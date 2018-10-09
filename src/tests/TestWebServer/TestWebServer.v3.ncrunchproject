@@ -1,0 +1,8 @@
+﻿<ProjectConfiguration>
+  <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\..\script\lib\Managed\UnityEditor.dll</Value>
+      <Value>..\..\..\script\lib\Managed\UnityEngine.dll</Value>
+    </AdditionalFilesToIncludeForProject>
+  </Settings>
+</ProjectConfiguration>

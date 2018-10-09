@@ -40,10 +40,6 @@
       <HintPath>$(SolutionDir)packages\FluentAssertions.2.2.0.0\lib\net35\FluentAssertions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=2.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)lib\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
     <Reference Include="NCrunch.Framework, Version=3.3.0.6, Culture=neutral, PublicKeyToken=01d101bf6f3e0aea, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\NCrunch.Framework.3.3.0.6\lib\NCrunch.Framework.dll</HintPath>
       <Private>True</Private>

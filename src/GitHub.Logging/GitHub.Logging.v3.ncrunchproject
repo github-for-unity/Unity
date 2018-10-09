@@ -1,5 +1,11 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\script\lib\UnityExtensions\Unity\TestRunner\UnityEngine.TestRunner.dll</Value>
+      <Value>..\..\script\lib\UnityExtensions\Unity\TestRunner\Editor\UnityEditor.TestRunner.dll</Value>
+      <Value>..\..\script\lib\Managed\UnityEditor.dll</Value>
+      <Value>..\..\script\lib\Managed\UnityEngine.dll</Value>
+    </AdditionalFilesToIncludeForProject>
     <HiddenComponentWarnings />
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
