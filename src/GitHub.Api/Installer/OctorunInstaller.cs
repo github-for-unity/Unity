@@ -52,10 +52,13 @@ namespace GitHub.Unity
         private NPath MoveOctorun(NPath fromPath)
         {
             var toPath = installDetails.InstallationPath;
-            toPath.DeleteIfExists();
-            toPath.EnsureParentDirectoryExists();
-            fromPath.Move(toPath);
+
+            Logger.Trace("MoveOctorun fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
+
+            toPath.DeleteContents();
+            fromPath.MoveFiles(toPath, true);
             fromPath.Parent.Delete();
+
             return installDetails.ExecutablePath;
         }
 

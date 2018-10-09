@@ -301,15 +301,18 @@ namespace GitHub.Unity
                         return true;
                     });
                 unzipTask.Progress(p => Progress.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Message));
-                var path = unzipTask.RunSynchronously();
+                var source = unzipTask.RunSynchronously();
                 var target = state.GitInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path;
-                    target.DeleteIfExists();
-                    target.EnsureParentDirectoryExists();
-                    source.Move(target);
+                    Logger.Trace("Moving Git source:{0} target:{1}", source.ToString(), target.ToString());
+
+                    target.DeleteContents();
+                    source.MoveFiles(target, true);
+                    source.Parent.Delete();
+
                     state.GitIsValid = true;
+
                     state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
                 }
             }
@@ -326,14 +329,16 @@ namespace GitHub.Unity
                         return true;
                     });
                 unzipTask.Progress(p => Progress.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Message));
-                var path = unzipTask.RunSynchronously();
+                var source = unzipTask.RunSynchronously();
                 var target = state.GitLfsInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path;
-                    target.DeleteIfExists();
-                    target.EnsureParentDirectoryExists();
-                    source.Move(target);
+                    Logger.Trace("Moving GitLFS source:{0} target:{1}", source.ToString(), target.ToString());
+
+                    target.DeleteContents();
+                    source.MoveFiles(target, true);
+                    source.Parent.Delete();
+
                     state.GitLfsIsValid = true;
                 }
             }
