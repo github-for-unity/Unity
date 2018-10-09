@@ -325,7 +325,11 @@ namespace GitHub.Unity
         public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
         {
             return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
-                .Configure(processManager);
+                .Configure(processManager)
+                .Catch(exception => exception is ProcessException &&
+                    exception.Message.StartsWith("fatal: your current branch") &&
+                    exception.Message.EndsWith("does not have any commits yet"))
+                .Then((success, list) => success ? list : new List<GitLogEntry>());
         }
 
         ///<inheritdoc/>
@@ -596,7 +600,11 @@ namespace GitHub.Unity
         public ITask<string> GetHead(IOutputProcessor<string> processor = null)
         {
             return new FirstNonNullLineProcessTask(cancellationToken, "rev-parse --short HEAD") { Name = "Getting current head..." }
-                .Configure(processManager);
+                .Configure(processManager)
+                   .Catch(exception => exception is ProcessException &&
+                       exception.Message.StartsWith("fatal: your current branch") &&
+                       exception.Message.EndsWith("does not have any commits yet"))
+                   .Then((success, head) => success ? head : null);
         }
 
         protected static ILogging Logger { get; } = LogHelper.GetLogger<GitClient>();
