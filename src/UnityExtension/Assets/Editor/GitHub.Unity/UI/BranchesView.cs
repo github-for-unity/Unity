@@ -514,6 +514,7 @@ namespace GitHub.Unity
                         {
                             UsageTracker.IncrementBranchesViewButtonCheckoutLocalBranch();
                             Redraw();
+                            AssetDatabase.Refresh();
                         }
                         else
                         {

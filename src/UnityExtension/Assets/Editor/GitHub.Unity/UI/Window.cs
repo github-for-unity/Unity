@@ -757,6 +757,8 @@ namespace GitHub.Unity
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
                             Localization.Ok);
+
+                            AssetDatabase.Refresh();
                         }
                         else
                         {
