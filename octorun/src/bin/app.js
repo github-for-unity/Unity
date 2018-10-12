@@ -9,4 +9,5 @@ commander
     .command('organizations', 'Get Organizations')
     .command('publish', 'Publish')
     .command('usage', 'Usage')
+    .command('meta', 'Get Server Meta Data')
     .parse(process.argv);

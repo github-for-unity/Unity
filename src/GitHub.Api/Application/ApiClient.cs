@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using GitHub.Logging;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
+using GitHub.Unity.Json;
 
 namespace GitHub.Unity
 {
     class ApiClient : IApiClient
     {
         private static readonly ILogging logger = LogHelper.GetLogger<ApiClient>();
+        private static readonly Regex httpStatusErrorRegex = new Regex("(?<=[a-z])([A-Z])", RegexOptions.Compiled);
+
         public HostAddress HostAddress { get; }
         public UriString OriginalUrl { get; }
 
@@ -30,6 +35,9 @@ namespace GitHub.Unity
 
             HostAddress = HostAddress.Create(host);
             OriginalUrl = host;
+
+            logger.Trace("OriginalUrl: {1}", HostAddress.ToString(), OriginalUrl.ToString());
+
             this.keychain = keychain;
             this.processManager = processManager;
             this.taskManager = taskManager;
@@ -52,7 +60,10 @@ namespace GitHub.Unity
                 // this validates the user, again
                 GetCurrentUser();
 
-                var command = new StringBuilder("publish -r \"");
+                var command = new StringBuilder("publish -h ");
+                command.Append(OriginalUrl.Host);
+
+                command.Append(" -r \"");
                 command.Append(name);
                 command.Append("\"");
 
@@ -75,7 +86,13 @@ namespace GitHub.Unity
                     command.Append(" -p");
                 }
 
-                var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, command.ToString())
+                var adapter = keychain.Connect(OriginalUrl);
+                if (adapter.Credential == null)
+                {
+                    throw new ApiClientException("No Credentials found");
+                }
+
+                var octorunTask = new OctorunTask(taskManager.Token, environment, command.ToString(), adapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -103,13 +120,88 @@ namespace GitHub.Unity
             .Start();
         }
 
+        public void GetServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null)
+        {
+            Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
+            new FuncTask<GitHubHostMeta>(taskManager.Token, () =>
+            {
+                var octorunTask = new OctorunTask(taskManager.Token, environment, "meta -h " + OriginalUrl.Host)
+                    .Configure(processManager);
+
+                var ret = octorunTask.RunSynchronously();
+                if (ret.IsSuccess)
+                {
+                    var deserializeObject = SimpleJson.DeserializeObject<Dictionary<string, object>>(ret.Output[0]);
+
+                    return new GitHubHostMeta()
+                    {
+                        InstalledVersion = (string)deserializeObject["installed_version"],
+                        GithubServicesSha = (string)deserializeObject["github_services_sha"],
+                        VerifiablePasswordAuthentication = (bool)deserializeObject["verifiable_password_authentication"]
+                    };
+                }
+
+                var message = ret.GetApiErrorMessage();
+
+                logger.Trace("Message: {0}", message);
+
+                if (message != null)
+                {
+                    if (message.Contains("ETIMEDOUT", StringComparison.InvariantCulture))
+                    {
+                        message = "Connection timed out.";
+                    }
+                    else if (message.Contains("ECONNREFUSED", StringComparison.InvariantCulture))
+                    {
+                        message = "Connection refused.";
+                    }
+                    else if (message.Contains("ENOTFOUND", StringComparison.InvariantCulture))
+                    {
+                        message = "Address not found.";
+                    }
+                    else
+                    {
+                        int httpStatusCode;
+                        if (int.TryParse(message, out httpStatusCode))
+                        {
+                            var httpStatus = ((HttpStatusCode)httpStatusCode).ToString();
+                            message = httpStatusErrorRegex.Replace(httpStatus, " $1");
+                        }
+                    }
+                }
+                else
+                {
+                    message = "Error getting server meta";
+                }
+
+                throw new ApiClientException(message);
+            })
+            .FinallyInUI((success, ex, meta) =>
+            {
+                if (success)
+                    onSuccess(meta);
+                else
+                {
+                    logger.Error(ex, "Error getting server meta");
+                    onError?.Invoke(ex);
+                }
+            })
+            .Start();
+        }
+
         public void GetOrganizations(Action<Organization[]> onSuccess, Action<Exception> onError = null)
         {
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             new FuncTask<Organization[]>(taskManager.Token, () =>
             {
-                var octorunTask = new OctorunTask(taskManager.Token, keychain, environment,
-                        "organizations")
+                var adapter = keychain.Connect(OriginalUrl);
+                if (adapter.Credential == null)
+                {
+                    throw new ApiClientException("No Credentials found");
+                }
+
+                var octorunTask = new OctorunTask(taskManager.Token, environment,
+                        "organizations -h " + OriginalUrl.Host, adapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -247,7 +339,12 @@ namespace GitHub.Unity
         {
             try
             {
-                var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, "validate")
+                if (keychainAdapter.Credential == null)
+                {
+                    throw new ApiClientException("No Credentials found");
+                }
+
+                var octorunTask = new OctorunTask(taskManager.Token, environment, "validate -h " + OriginalUrl.Host, keychainAdapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -281,6 +378,13 @@ namespace GitHub.Unity
                 throw;
             }
         }
+    }
+
+    class GitHubHostMeta
+    {
+        public bool VerifiablePasswordAuthentication { get; set; }
+        public string GithubServicesSha { get; set; }
+        public string InstalledVersion { get; set; }
     }
 
     class GitHubUser

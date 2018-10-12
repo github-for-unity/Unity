@@ -14,7 +14,6 @@ namespace GitHub.Unity
         {
             try
             {
-
                 CopyFolder(fromPath, toPath);
             }
             catch (Exception ex1)
@@ -39,7 +38,7 @@ namespace GitHub.Unity
         public static void CopyFolder(NPath fromPath, NPath toPath)
         {
             Logger.Trace("CopyFolder fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
-
+            toPath.DeleteIfExists();
             toPath.EnsureParentDirectoryExists();
             fromPath.Move(toPath);
         }

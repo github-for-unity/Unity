@@ -1,7 +1,7 @@
 var config = require("./configuration");
 var octokitWrapper = require("./octokit");
 
-function ApiWrapper() {
+function ApiWrapper(host) {
     if (!config.appName) {
         throw "appName missing";
     }
@@ -10,7 +10,7 @@ function ApiWrapper() {
         throw "token missing";
     }
 
-    this.octokit = octokitWrapper.createOctokit(config.appName);
+    this.octokit = octokitWrapper.createOctokit(config.appName, host);
 
     this.octokit.authenticate({
         type: "oauth",

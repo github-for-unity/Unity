@@ -73,7 +73,7 @@ namespace GitHub.Unity
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        username = RetrieveUsername(loginResultData, username);
+                        username = RetrieveUsername(loginResultData.Token, username, host);
                         keychainAdapter.Update(loginResultData.Token, username);
                         keychain.SaveToSystem(host);
                     }
@@ -113,7 +113,7 @@ namespace GitHub.Unity
                     }
 
                     keychainAdapter.Update(loginResultData.Token, username);
-                    username = RetrieveUsername(loginResultData, username);
+                    username = RetrieveUsername(loginResultData.Token, username, host);
                     keychainAdapter.Update(loginResultData.Token, username);
                     keychain.SaveToSystem(host);
 
@@ -147,9 +147,9 @@ namespace GitHub.Unity
         {
             var hasTwoFactorCode = code != null;
 
-            var arguments = hasTwoFactorCode ? "login --twoFactor" : "login";
-            var loginTask = new OctorunTask(taskManager.Token, keychain, environment,
-                arguments);
+            var arguments = (hasTwoFactorCode ? "login --twoFactor -h " : "login -h ") + host.Host;
+            
+            var loginTask = new OctorunTask(taskManager.Token, environment, arguments);
             loginTask.Configure(processManager, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
@@ -180,14 +180,14 @@ namespace GitHub.Unity
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
 
-        private string RetrieveUsername(LoginResultData loginResultData, string username)
+        private string RetrieveUsername(string token, string username, UriString host)
         {
             if (!username.Contains("@"))
             {
                 return username;
             }
 
-            var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, "validate")
+            var octorunTask = new OctorunTask(taskManager.Token, environment, "validate -h " + host.Host, token)
                 .Configure(processManager);
 
             var validateResult = octorunTask.RunSynchronously();

@@ -16,9 +16,10 @@ namespace GitHub.Unity
             client = new ApiClient(host, keychain, processManager, taskManager, environment);
         }
 
+        public HostAddress HostAddress { get { return client.HostAddress; } }
+
         public void Login(string username, string password, Action<string> twofaRequired, Action<bool, string> authResult)
         {
-
             loginResultData = null;
             client.Login(username, password, r =>
             {
@@ -27,11 +28,28 @@ namespace GitHub.Unity
             }, authResult);
         }
 
+        public void LoginWithToken(string token, Action<string> twofaRequired, Action<bool, string> authResult)
+        {
+            Login("[token]", token, twofaRequired, authResult);
+        }
+
+
         public void LoginWith2fa(string code)
         {
             if (loginResultData == null)
                 throw new InvalidOperationException("Call Login() first");
             client.ContinueLogin(loginResultData, code);
+        }
+
+        public void GetServerMeta(Action<GitHubHostMeta> serverMeta, Action<string> error)
+        {
+            loginResultData = null;
+            client.GetServerMeta(data =>
+            {
+                serverMeta(data);
+            }, exception => {
+                error(exception.Message);
+            });
         }
     }
 }

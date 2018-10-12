@@ -13,5 +13,6 @@ namespace GitHub.Unity
         void ContinueLogin(LoginResult loginResult, string code);
         ITask Logout(UriString host);
         void GetCurrentUser(Action<GitHubUser> onSuccess, Action<Exception> onError = null);
+        void GetServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null);
     }
 }
