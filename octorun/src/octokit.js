@@ -9,8 +9,9 @@ var createOctokit = function (appName, host) {
         }
     };
 
-    if(host) {
-        octokitConfiguration.baseUrl = "https://" + host;
+    if (host) {
+        octokitConfiguration.host = host;
+        octokitConfiguration.pathPrefix = 'api/v3';
     }
 
     return Octokit(octokitConfiguration);

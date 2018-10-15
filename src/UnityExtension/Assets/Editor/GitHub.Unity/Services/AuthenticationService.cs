@@ -28,11 +28,10 @@ namespace GitHub.Unity
             }, authResult);
         }
 
-        public void LoginWithToken(string token, Action<string> twofaRequired, Action<bool, string> authResult)
+        public void LoginWithToken(string token, Action<bool> authResult)
         {
-            Login("[token]", token, twofaRequired, authResult);
+            client.LoginWithToken(token, authResult);
         }
-
 
         public void LoginWith2fa(string code)
         {

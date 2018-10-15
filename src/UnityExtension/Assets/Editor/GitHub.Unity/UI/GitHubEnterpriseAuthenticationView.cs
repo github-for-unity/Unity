@@ -249,7 +249,7 @@ namespace GitHub.Unity
                         GUI.FocusControl(null);
                         isBusy = true;
                         GetAuthenticationService(serverAddress)
-                            .LoginWithToken(token, DoRequire2fa, DoResult);
+                            .LoginWithToken(token, DoTokenResult);
                     }
                 }
                 GUILayout.EndHorizontal();
@@ -342,6 +342,23 @@ namespace GitHub.Unity
             else
             {
                 errorMessage = msg;
+                Redraw();
+            }
+        }
+
+        private void DoTokenResult(bool success)
+        {
+            isBusy = false;
+            if (success)
+            {
+                UsageTracker.IncrementAuthenticationViewButtonAuthentication();
+
+                Clear();
+                Finish(true);
+            }
+            else
+            {
+                errorMessage = "Error validating token.";
                 Redraw();
             }
         }

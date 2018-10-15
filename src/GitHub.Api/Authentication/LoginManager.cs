@@ -44,6 +44,33 @@ namespace GitHub.Unity
             this.environment = environment;
         }
 
+        public bool LoginWithToken(
+            UriString host,
+            string token)
+        {
+            Guard.ArgumentNotNull(host, nameof(host));
+            Guard.ArgumentNotNullOrWhiteSpace(token, nameof(token));
+
+            var keychainAdapter = keychain.Connect(host);
+            keychainAdapter.Set(new Credential(host, "[token]", token));
+
+            try
+            {
+                var username = RetrieveUsername(token, host);
+                keychainAdapter.Update(token, username);
+                keychain.SaveToSystem(host);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger.Warning(e, "Login Exception");
+
+                keychain.Clear(host, false);
+                return false;
+            }
+        }
+
         /// <inheritdoc/>
         public LoginResultData Login(
             UriString host,
@@ -73,7 +100,7 @@ namespace GitHub.Unity
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        username = RetrieveUsername(loginResultData.Token, username, host);
+                        username = RetrieveUsername(loginResultData.Token, host, username);
                         keychainAdapter.Update(loginResultData.Token, username);
                         keychain.SaveToSystem(host);
                     }
@@ -113,7 +140,7 @@ namespace GitHub.Unity
                     }
 
                     keychainAdapter.Update(loginResultData.Token, username);
-                    username = RetrieveUsername(loginResultData.Token, username, host);
+                    username = RetrieveUsername(loginResultData.Token, host, username);
                     keychainAdapter.Update(loginResultData.Token, username);
                     keychain.SaveToSystem(host);
 
@@ -180,9 +207,9 @@ namespace GitHub.Unity
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
 
-        private string RetrieveUsername(string token, string username, UriString host)
+        private string RetrieveUsername(string token, UriString host, string username = null)
         {
-            if (!username.Contains("@"))
+            if (username != null && !username.Contains("@"))
             {
                 return username;
             }

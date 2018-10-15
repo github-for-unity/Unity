@@ -248,6 +248,27 @@ namespace GitHub.Unity
                 .Start();
         }
 
+        public void LoginWithToken(string token, Action<bool> result)
+        {
+            Guard.ArgumentNotNull(token, "token");
+            Guard.ArgumentNotNull(result, "result");
+
+            new FuncTask<bool>(taskManager.Token,
+                    () => loginManager.LoginWithToken(OriginalUrl, token))
+                .FinallyInUI((success, ex, res) =>
+                {
+                    if (!success)
+                    {
+                        logger.Warning(ex);
+                        result(false);
+                        return;
+                    }
+
+                    result(res);
+                })
+                .Start();
+        }
+
         public void Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
         {
             Guard.ArgumentNotNull(need2faCode, "need2faCode");
