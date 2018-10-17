@@ -57,6 +57,7 @@ namespace GitHub.Unity
         [SerializeField] private float appManagerProgressValue;
         [SerializeField] private string appManagerProgressMessage;
         [SerializeField] private Connection[] connections;
+        [SerializeField] private string primaryConnectionUsername;
 
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
@@ -214,27 +215,43 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
-            UriString host = null;
-            if (!HasRepository || String.IsNullOrEmpty(Repository.CloneUrl))
+            if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
             {
-                var firstConnection = Platform.Keychain.Connections.FirstOrDefault();
-                if (firstConnection != null)
-                {
-                    host = firstConnection.Host;
-                }
-                else
-                {
-                    host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-                }
+                UriString host = new UriString(Repository.CloneUrl.ToRepositoryUri()
+                                               .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+
+                connections = Platform.Keychain.Connections.OrderByDescending(x => x.Host.ToUriString() == host).ToArray();
             }
             else
             {
-                host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+                connections = Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom).ToArray();
             }
 
-            connections = Platform.Keychain.Connections.OrderBy(x => x.Host.ToUriString() == host).ToArray();
-            
+            var connectionCount = connections.Length;
+            if (connectionCount > 1)
+            {
+                var connection = connections.First();
+                var isGitHubDotCom = HostAddress.IsGitHubDotCom(connection);
+
+                if (isGitHubDotCom)
+                {
+                    primaryConnectionUsername = "GitHub: " + connection.Username;
+                }
+                else
+                {
+                    primaryConnectionUsername = connection.Host + ": " + connection.Username;
+                }
+            }
+            else if(connectionCount == 1)
+            {
+                primaryConnectionUsername = connections.First().Username;
+            }
+            else
+            {
+                primaryConnectionUsername = null;
+            }
+
+
             if (repositoryProgressHasUpdate)
             {
                 if (repositoryProgress != null)
@@ -600,8 +617,7 @@ namespace GitHub.Unity
                     }
                     else
                     {
-                        var connection = connections.First();
-                        if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
+                        if (GUILayout.Button(primaryConnectionUsername, EditorStyles.toolbarDropDown))
                         {
                             DoAccountDropdown();
                         }

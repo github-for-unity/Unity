@@ -17,6 +17,5 @@ namespace GitHub.Unity
         void Save(ICredential cred);
         void Delete(UriString host);
         bool HasCredentials();
-        ICredential CachedCredentials { get; }
     }
 }

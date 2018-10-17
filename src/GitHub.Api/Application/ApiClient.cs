@@ -22,6 +22,8 @@ namespace GitHub.Unity
         private readonly ITaskManager taskManager;
         private readonly ILoginManager loginManager;
         private readonly IEnvironment environment;
+        private IKeychainAdapter keychainAdapter;
+        private Connection connection;
 
         public ApiClient(IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment):
             this(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), keychain, processManager, taskManager, environment)
@@ -35,8 +37,6 @@ namespace GitHub.Unity
 
             host = new UriString(host.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
             HostAddress = HostAddress.Create(host);
-
-            logger.Trace("OriginalUrl: {0}", HostAddress.ApiUri.Host);
 
             this.keychain = keychain;
             this.processManager = processManager;
@@ -57,8 +57,7 @@ namespace GitHub.Unity
 
             new FuncTask<GitHubRepository>(taskManager.Token, () =>
             {
-                // this validates the user, again
-                GetCurrentUser();
+                EnsureValidCredentials();
 
                 var command = new StringBuilder("publish");
 
@@ -91,11 +90,7 @@ namespace GitHub.Unity
                     command.Append(" -p");
                 }
 
-                var adapter = keychain.Connect(HostAddress.ApiUri.Host);
-                if (adapter.Credential == null)
-                {
-                    throw new ApiClientException("No Credentials found");
-                }
+                var adapter = EnsureKeychainAdapter();
 
                 var octorunTask = new OctorunTask(taskManager.Token, environment, command.ToString(), adapter.Credential.Token)
                     .Configure(processManager);
@@ -199,11 +194,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             new FuncTask<Organization[]>(taskManager.Token, () =>
             {
-                var adapter = keychain.Connect(HostAddress.ApiUri.Host);
-                if (adapter.Credential == null)
-                {
-                    throw new ApiClientException("No Credentials found");
-                }
+                var adapter = EnsureKeychainAdapter();
 
                 var command = HostAddress.IsGitHubDotCom() ? "organizations" : "organizations -h " + HostAddress.ApiUri.Host;
                 var octorunTask = new OctorunTask(taskManager.Token, environment,
@@ -238,6 +229,17 @@ namespace GitHub.Unity
                 }
             })
             .Start();
+        }
+
+        private IKeychainAdapter EnsureKeychainAdapter()
+        {
+            var adapter = KeychainAdapter;
+            if (adapter.Credential == null)
+            {
+                throw new ApiClientException("No Credentials found");
+            }
+
+            return adapter;
         }
 
         public void GetCurrentUser(Action<GitHubUser> onSuccess, Action<Exception> onError = null)
@@ -324,57 +326,76 @@ namespace GitHub.Unity
                 .Start();
         }
 
+        public void EnsureValidCredentials()
+        {
+            GetCurrentUser();
+        }
+
         public GitHubUser GetCurrentUser()
         {
-            var keychainConnection = keychain.Connections.FirstOrDefault(x => x.Host == (UriString)HostAddress.ApiUri.Host);
-            if (keychainConnection == null)
-                throw new KeychainEmptyException();
-
-            var keychainAdapter = GetValidatedKeychainAdapter(keychainConnection);
-
             // we can't trust that the system keychain has the username filled out correctly.
             // if it doesn't, we need to grab the username from the server and check it
             // unfortunately this means that things will be slower when the keychain doesn't have all the info
-            if (keychainConnection.User == null || keychainAdapter.Credential.Username != keychainConnection.Username)
+            if (Connection.User == null || KeychainAdapter.Credential.Username != Connection.Username)
             {
-                keychainConnection.User = GetValidatedGitHubUser(keychainConnection, keychainAdapter);
+                Connection.User = GetValidatedGitHubUser();
             }
-            return keychainConnection.User;
+
+            return Connection.User;
         }
 
-        private IKeychainAdapter GetValidatedKeychainAdapter(Connection keychainConnection)
+        private Connection Connection
         {
-            var keychainAdapter = keychain.LoadFromSystem(keychainConnection.Host);
-            if (keychainAdapter == null)
-                throw new KeychainEmptyException();
-
-            if (string.IsNullOrEmpty(keychainAdapter.Credential?.Username))
+            get
             {
-                logger.Warning("LoadKeychainInternal: Username is empty");
-                throw new TokenUsernameMismatchException(keychainConnection.Username);
-            }
+                if (connection == null)
+                {
+                    connection = keychain.Connections.FirstOrDefault(x => x.Host == (UriString)HostAddress.ApiUri.Host);
+                }
 
-            if (keychainAdapter.Credential.Username != keychainConnection.Username)
-            {
-                logger.Warning("LoadKeychainInternal: Token username does not match");
+                return connection;
             }
-
-            return keychainAdapter;
         }
 
-        private GitHubUser GetValidatedGitHubUser(Connection keychainConnection, IKeychainAdapter keychainAdapter)
+        private IKeychainAdapter KeychainAdapter
+        {
+            get
+            {
+                if (keychainAdapter == null)
+                {
+                    if (Connection == null)
+                        throw new KeychainEmptyException();
+
+                    var loadedKeychainAdapter = keychain.LoadFromSystem(Connection.Host);
+                    if (loadedKeychainAdapter == null)
+                        throw new KeychainEmptyException();
+
+                    if (string.IsNullOrEmpty(loadedKeychainAdapter.Credential?.Username))
+                    {
+                        logger.Warning("LoadKeychainInternal: Username is empty");
+                        throw new TokenUsernameMismatchException(connection.Username);
+                    }
+
+                    if (loadedKeychainAdapter.Credential.Username != connection.Username)
+                    {
+                        logger.Warning("LoadKeychainInternal: Token username does not match");
+                    }
+
+                    keychainAdapter = loadedKeychainAdapter;
+                }
+
+                return keychainAdapter;
+            }
+        }
+
+        private GitHubUser GetValidatedGitHubUser()
         {
             try
             {
-                if (keychainAdapter.Credential == null)
-                {
-                    throw new ApiClientException("No Credentials found");
-                }
-
-                logger.Trace("GetValidatedGitHubUser with GitHub Token: {0} {1}", keychainAdapter.Credential.Host, keychainAdapter.Credential.Token);
+                var adapter = EnsureKeychainAdapter();
 
                 var command = HostAddress.IsGitHubDotCom() ? "validate" : "validate -h " + HostAddress.ApiUri.Host;
-                var octorunTask = new OctorunTask(taskManager.Token, environment, command, keychainAdapter.Credential.Token)
+                var octorunTask = new OctorunTask(taskManager.Token, environment, command, adapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -382,10 +403,10 @@ namespace GitHub.Unity
                 {
                     var login = ret.Output[1];
 
-                    if (login != keychainConnection.Username)
+                    if (login != Connection.Username)
                     {
                         logger.Trace("LoadKeychainInternal: Api username does not match");
-                        throw new TokenUsernameMismatchException(keychainConnection.Username, login);
+                        throw new TokenUsernameMismatchException(Connection.Username, login);
                     }
 
                     return new GitHubUser

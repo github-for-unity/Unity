@@ -133,6 +133,8 @@ namespace GitHub.Unity
             KeychainAdapter value;
             if (!keychainAdapters.TryGetValue(host, out value))
             {
+                logger.Trace("Creating Adapter {0}", host);
+
                 value = new KeychainAdapter();
                 keychainAdapters.Add(host, value);
             }

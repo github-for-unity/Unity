@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,8 +15,6 @@ namespace GitHub.Unity
             PublishView,
             AuthenticationView,
         }
-
-//        [NonSerialized] private IApiClient client;
 
         [SerializeField] private PopupViewType activeViewType;
         [SerializeField] private AuthenticationView authenticationView;
@@ -118,14 +118,14 @@ namespace GitHub.Unity
             if (viewNeedsAuthentication)
             {
                 var userHasAuthentication = false;
-                foreach (var keychainConnection in Platform.Keychain.Connections)
+                foreach (var keychainConnection in Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom))
                 {
                     var apiClient = new ApiClient(keychainConnection.Host, Platform.Keychain, Platform.ProcessManager, TaskManager,
                         Environment);
 
                     try
                     {
-                        apiClient.GetCurrentUser();
+                        apiClient.EnsureValidCredentials();
                         userHasAuthentication = true;
                         break;
                     }
@@ -186,20 +186,6 @@ namespace GitHub.Unity
             // this triggers a repaint
             Repaint();
         }
-
-//        public IApiClient Client
-//        {
-//            get
-//            {
-//                if (client == null)
-//                {
-//                    var repository = Environment.Repository;
-//                    UriString host = repository != null ? repository.CloneUrl : null;
-//                }
-//
-//                return client;
-//            }
-//        }
 
         private Subview ActiveView
         {
