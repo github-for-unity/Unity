@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEditor;
@@ -12,13 +13,13 @@ namespace GitHub.Unity
 
         private const string WindowTitle = "Authenticate";
 
-        [NonSerialized] private bool isBusy;
-
         [SerializeField] private SubTab changeTab = SubTab.GitHub;
         [SerializeField] private SubTab activeTab = SubTab.GitHub;
 
         [SerializeField] private GitHubAuthenticationView gitHubAuthenticationView;
         [SerializeField] private GitHubEnterpriseAuthenticationView gitHubEnterpriseAuthenticationView;
+        [SerializeField] private bool hasGitHubDotComConnection;
+        [SerializeField] private bool hasGitHubEnterpriseConnection;
 
         public override void InitializeView(IView parent)
         {
@@ -31,6 +32,15 @@ namespace GitHub.Unity
 
             gitHubAuthenticationView.InitializeView(parent);
             gitHubEnterpriseAuthenticationView.InitializeView(parent);
+
+            hasGitHubDotComConnection = Platform.Keychain.Connections.Any(HostAddress.IsGitHubDotCom);
+            hasGitHubEnterpriseConnection = Platform.Keychain.Connections.Any(connection => !HostAddress.IsGitHubDotCom(connection));
+
+            if (hasGitHubDotComConnection)
+            {
+                changeTab = SubTab.GitHubEnterprise;
+                UpdateActiveTab();
+            }
         }
 
         public void Initialize(Exception exception)
@@ -46,7 +56,17 @@ namespace GitHub.Unity
         
         public override bool IsBusy
         {
-            get { return isBusy; }
+            get { return (gitHubAuthenticationView != null && gitHubAuthenticationView.IsBusy) || (gitHubEnterpriseAuthenticationView != null && gitHubEnterpriseAuthenticationView.IsBusy); }
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            MaybeUpdateData();
+        }
+
+        private void MaybeUpdateData()
+        {
         }
 
         private static SubTab TabButton(SubTab tab, string title, SubTab currentTab)
@@ -67,8 +87,17 @@ namespace GitHub.Unity
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    changeTab = TabButton(SubTab.GitHub, "GitHub", changeTab);
-                    changeTab = TabButton(SubTab.GitHubEnterprise, "GitHub Enterprise", changeTab);
+                    EditorGUI.BeginDisabledGroup(hasGitHubDotComConnection || IsBusy);
+                    {
+                        changeTab = TabButton(SubTab.GitHub, "GitHub", changeTab);
+                    }
+                    EditorGUI.EndDisabledGroup();
+
+                    EditorGUI.BeginDisabledGroup(hasGitHubEnterpriseConnection || IsBusy);
+                    {
+                        changeTab = TabButton(SubTab.GitHubEnterprise, "GitHub Enterprise", changeTab);
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
 
                 if (EditorGUI.EndChangeCheck())

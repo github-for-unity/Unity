@@ -5,7 +5,6 @@ namespace GitHub.Unity
     interface IApiClient
     {
         HostAddress HostAddress { get; }
-        UriString OriginalUrl { get; }
         void CreateRepository(string name, string description, bool isPrivate,
             Action<GitHubRepository, Exception> callback, string organization = null);
         void GetOrganizations(Action<Organization[]> onSuccess, Action<Exception> onError = null);
@@ -14,6 +13,6 @@ namespace GitHub.Unity
         void LoginWithToken(string token, Action<bool> result);
         ITask Logout(UriString host);
         void GetCurrentUser(Action<GitHubUser> onSuccess, Action<Exception> onError = null);
-        void GetServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null);
+        void GetEnterpriseServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null);
     }
 }

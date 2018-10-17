@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = System.Object;
 
 namespace GitHub.Unity
 {
@@ -55,7 +56,7 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryProgressMessage;
         [SerializeField] private float appManagerProgressValue;
         [SerializeField] private string appManagerProgressMessage;
-        [SerializeField] private Connection connection;
+        [SerializeField] private Connection[] connections;
 
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
@@ -218,9 +219,13 @@ namespace GitHub.Unity
             {
                 var firstConnection = Platform.Keychain.Connections.FirstOrDefault();
                 if (firstConnection != null)
+                {
                     host = firstConnection.Host;
+                }
                 else
+                {
                     host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+                }
             }
             else
             {
@@ -228,8 +233,8 @@ namespace GitHub.Unity
                     .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
             }
 
-            connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host.ToUriString() == host);
-
+            connections = Platform.Keychain.Connections.OrderBy(x => x.Host.ToUriString() == host).ToArray();
+            
             if (repositoryProgressHasUpdate)
             {
                 if (repositoryProgress != null)
@@ -588,13 +593,14 @@ namespace GitHub.Unity
                 {
                     GUILayout.FlexibleSpace();
 
-                    if (connection == null)
+                    if (!connections.Any())
                     {
                         if (GUILayout.Button("Sign in", EditorStyles.toolbarButton))
                             SignIn(null);
                     }
                     else
                     {
+                        var connection = connections.First();
                         if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
                         {
                             DoAccountDropdown();
@@ -670,13 +676,14 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                if (connection == null)
+                if (!connections.Any())
                 {
                     if (GUILayout.Button("Sign in", EditorStyles.toolbarButton))
                         SignIn(null);
                 }
                 else
                 {
+                    var connection = connections.First();
                     if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
                     {
                         DoAccountDropdown();
@@ -848,9 +855,38 @@ namespace GitHub.Unity
         private void DoAccountDropdown()
         {
             GenericMenu accountMenu = new GenericMenu();
-            accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, "profile");
-            accountMenu.AddSeparator("");
-            accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, "sign out");
+
+            if (connections.Length == 1)
+            {
+                var connection = connections.First();
+                accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, connection);
+                accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, connection);
+                accountMenu.AddSeparator("");
+                accountMenu.AddItem(new GUIContent("Sign In"), false, SignIn, "sign in");
+            }
+            else
+            {
+                for (var index = 0; index < connections.Length; index++)
+                {
+                    var connection = connections[index];
+                    var isGitHubDotCom = HostAddress.IsGitHubDotCom(connection);
+
+                    string rootPath;
+                    if (isGitHubDotCom)
+                    {
+                        rootPath = "GitHub/";
+                    }
+                    else
+                    {
+                        var uriString = connection.Host.ToUriString();
+                        rootPath =  uriString.Host + "/";
+                    }
+
+                    accountMenu.AddItem(new GUIContent(rootPath + "Go to Profile"), false, GoToProfile, connection);
+                    accountMenu.AddItem(new GUIContent(rootPath + "Sign out"), false, SignOut, connection);
+                }
+            }
+
             accountMenu.ShowAsContext();
         }
 
@@ -861,12 +897,14 @@ namespace GitHub.Unity
 
         private void GoToProfile(object obj)
         {
+            var connection = (Connection) obj;
             var uriString = new UriString(connection.Host).Combine(connection.Username);
             Application.OpenURL(uriString);
         }
 
         private void SignOut(object obj)
         {
+            var connection = (Connection)obj;
             var loginManager = new LoginManager(Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
             loginManager.Logout(connection.Host).FinallyInUI((s, e) => Redraw());
         }

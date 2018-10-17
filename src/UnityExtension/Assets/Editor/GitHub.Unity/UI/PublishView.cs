@@ -22,6 +22,10 @@ namespace GitHub.Unity
         private const string PublishLimitPrivateRepositoriesError = "You are currently at your limit of private repositories";
         private const string PublishToGithubLabel = "Publish to GitHub";
 
+        [SerializeField] private Connection[] connections;
+        [SerializeField] private string[] connectionLabels;
+        [SerializeField] private int selectedConnection;
+
         [SerializeField] private string username;
         [SerializeField] private string[] owners = { OwnersDefaultText };
         [SerializeField] private string[] publishOwners;
@@ -33,19 +37,15 @@ namespace GitHub.Unity
         [NonSerialized] private IApiClient client;
         [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
+        [NonSerialized] private bool connectionsNeedLoading;
         [NonSerialized] private bool ownersNeedLoading;
 
-        private Connection Connection { get { return Platform.Keychain.Connections.First(); } }
+//        private Connection Connection { get { return Platform.Keychain.Connections.First(); } }
 
         public IApiClient Client
         {
             get
             {
-                if (client == null)
-                {
-                    client = new ApiClient(Connection.Host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment);
-                }
-
                 return client;
             }
         }
@@ -54,6 +54,7 @@ namespace GitHub.Unity
         {
             base.OnEnable();
             ownersNeedLoading = publishOwners == null && !isBusy;
+            connectionsNeedLoading = connections == null && !isBusy;
         }
 
         public override void OnDataUpdate()
@@ -64,10 +65,18 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (connectionsNeedLoading)
+            {
+                connectionsNeedLoading = false;
+                connections = Platform.Keychain.Connections;
+                connectionLabels = connections.Select(connection =>
+                                       HostAddress.IsGitHubDotCom(connection) ? "GitHub" : connection.Host).ToArray();
+            }
+
             if (ownersNeedLoading)
             {
-                ownersNeedLoading = false;
-                LoadOwners();
+//                ownersNeedLoading = false;
+//                LoadOwners();
             }
         }
 
@@ -83,7 +92,7 @@ namespace GitHub.Unity
             isBusy = true;
 
             //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-            username = Connection.Username;
+//            username = Connection.Username;
 
             Client.GetOrganizations(orgs =>
             {
@@ -123,6 +132,11 @@ namespace GitHub.Unity
 
             EditorGUI.BeginDisabledGroup(isBusy);
             {
+                if (connections.Length > 1)
+                {
+                    selectedConnection = EditorGUILayout.Popup("Connections:", selectedConnection, connectionLabels);
+                }
+
                 selectedOwner = EditorGUILayout.Popup(SelectedOwnerLabel, selectedOwner, owners);
                 repoName = EditorGUILayout.TextField(RepositoryNameLabel, repoName);
                 repoDescription = EditorGUILayout.TextField(DescriptionLabel, repoDescription);

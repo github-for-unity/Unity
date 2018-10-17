@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -174,9 +175,20 @@ namespace GitHub.Unity
         {
             var hasTwoFactorCode = code != null;
 
-            var arguments = (hasTwoFactorCode ? "login --twoFactor -h " : "login -h ") + host.Host;
-            
-            var loginTask = new OctorunTask(taskManager.Token, environment, arguments);
+            var command = new StringBuilder("login");
+
+            if (hasTwoFactorCode)
+            {
+                command.Append(" --twoFactor");
+            }
+
+            if (!HostAddress.IsGitHubDotCom(host))
+            {
+                command.Append(" -h ");
+                command.Append(host.Host);
+            }
+
+            var loginTask = new OctorunTask(taskManager.Token, environment, command.ToString());
             loginTask.Configure(processManager, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
@@ -214,7 +226,8 @@ namespace GitHub.Unity
                 return username;
             }
 
-            var octorunTask = new OctorunTask(taskManager.Token, environment, "validate -h " + host.Host, token)
+            var command = HostAddress.IsGitHubDotCom(host) ? "validate" : "validate -h " + host.Host;
+            var octorunTask = new OctorunTask(taskManager.Token, environment, command, token)
                 .Configure(processManager);
 
             var validateResult = octorunTask.RunSynchronously();

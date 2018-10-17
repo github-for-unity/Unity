@@ -13,7 +13,9 @@ namespace GitHub.Unity
             IEnvironment environment
         )
         {
-            client = new ApiClient(host, keychain, processManager, taskManager, environment);
+            client = host == null
+                ? new ApiClient(keychain, processManager, taskManager, environment)
+                : new ApiClient(host, keychain, processManager, taskManager, environment);
         }
 
         public HostAddress HostAddress { get { return client.HostAddress; } }
@@ -43,7 +45,7 @@ namespace GitHub.Unity
         public void GetServerMeta(Action<GitHubHostMeta> serverMeta, Action<string> error)
         {
             loginResultData = null;
-            client.GetServerMeta(data =>
+            client.GetEnterpriseServerMeta(data =>
             {
                 serverMeta(data);
             }, exception => {

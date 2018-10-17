@@ -16,7 +16,6 @@ namespace GitHub.Unity
         private static readonly Regex httpStatusErrorRegex = new Regex("(?<=[a-z])([A-Z])", RegexOptions.Compiled);
 
         public HostAddress HostAddress { get; }
-        public UriString OriginalUrl { get; }
 
         private readonly IKeychain keychain;
         private readonly IProcessManager processManager;
@@ -24,19 +23,20 @@ namespace GitHub.Unity
         private readonly ILoginManager loginManager;
         private readonly IEnvironment environment;
 
-        public ApiClient(UriString hostUrl, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment)
+        public ApiClient(IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment):
+            this(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), keychain, processManager, taskManager, environment)
         {
+        }
+
+        public ApiClient(UriString host, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment)
+        {
+            Guard.ArgumentNotNull(host, nameof(host));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
 
-            var host = String.IsNullOrEmpty(hostUrl)
-                ? UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri)
-                : new UriString(hostUrl.ToRepositoryUri()
-                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-
+            host = new UriString(host.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
             HostAddress = HostAddress.Create(host);
-            OriginalUrl = host;
 
-            logger.Trace("OriginalUrl: {1}", HostAddress.ToString(), OriginalUrl.ToString());
+            logger.Trace("OriginalUrl: {0}", HostAddress.ApiUri.Host);
 
             this.keychain = keychain;
             this.processManager = processManager;
@@ -60,8 +60,13 @@ namespace GitHub.Unity
                 // this validates the user, again
                 GetCurrentUser();
 
-                var command = new StringBuilder("publish -h ");
-                command.Append(OriginalUrl.Host);
+                var command = new StringBuilder("publish");
+
+                if (!HostAddress.IsGitHubDotCom())
+                {
+                    command.Append(" -h ");
+                    command.Append(HostAddress.ApiUri.Host);
+                }
 
                 command.Append(" -r \"");
                 command.Append(name);
@@ -86,7 +91,7 @@ namespace GitHub.Unity
                     command.Append(" -p");
                 }
 
-                var adapter = keychain.Connect(OriginalUrl);
+                var adapter = keychain.Connect(HostAddress.ApiUri.Host);
                 if (adapter.Credential == null)
                 {
                     throw new ApiClientException("No Credentials found");
@@ -120,12 +125,12 @@ namespace GitHub.Unity
             .Start();
         }
 
-        public void GetServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null)
+        public void GetEnterpriseServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null)
         {
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             new FuncTask<GitHubHostMeta>(taskManager.Token, () =>
             {
-                var octorunTask = new OctorunTask(taskManager.Token, environment, "meta -h " + OriginalUrl.Host)
+                var octorunTask = new OctorunTask(taskManager.Token, environment, "meta -h " + HostAddress.ApiUri.Host)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -133,7 +138,7 @@ namespace GitHub.Unity
                 {
                     var deserializeObject = SimpleJson.DeserializeObject<Dictionary<string, object>>(ret.Output[0]);
 
-                    return new GitHubHostMeta()
+                    return new GitHubHostMeta
                     {
                         InstalledVersion = (string)deserializeObject["installed_version"],
                         GithubServicesSha = (string)deserializeObject["github_services_sha"],
@@ -194,14 +199,15 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(onSuccess, nameof(onSuccess));
             new FuncTask<Organization[]>(taskManager.Token, () =>
             {
-                var adapter = keychain.Connect(OriginalUrl);
+                var adapter = keychain.Connect(HostAddress.ApiUri.Host);
                 if (adapter.Credential == null)
                 {
                     throw new ApiClientException("No Credentials found");
                 }
 
+                var command = HostAddress.IsGitHubDotCom() ? "organizations" : "organizations -h " + HostAddress.ApiUri.Host;
                 var octorunTask = new OctorunTask(taskManager.Token, environment,
-                        "organizations -h " + OriginalUrl.Host, adapter.Credential.Token)
+                        command, adapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
@@ -254,7 +260,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(result, "result");
 
             new FuncTask<bool>(taskManager.Token,
-                    () => loginManager.LoginWithToken(OriginalUrl, token))
+                    () => loginManager.LoginWithToken(HostAddress.ApiUri.Host, token))
                 .FinallyInUI((success, ex, res) =>
                 {
                     if (!success)
@@ -275,7 +281,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(result, "result");
 
             new FuncTask<LoginResultData>(taskManager.Token,
-                () => loginManager.Login(OriginalUrl, username, password))
+                () => loginManager.Login(HostAddress.ApiUri.Host, username, password))
                 .FinallyInUI((success, ex, res) =>
                 {
                     if (!success)
@@ -320,7 +326,7 @@ namespace GitHub.Unity
 
         public GitHubUser GetCurrentUser()
         {
-            var keychainConnection = keychain.Connections.FirstOrDefault(x => x.Host == OriginalUrl);
+            var keychainConnection = keychain.Connections.FirstOrDefault(x => x.Host == (UriString)HostAddress.ApiUri.Host);
             if (keychainConnection == null)
                 throw new KeychainEmptyException();
 
@@ -365,7 +371,10 @@ namespace GitHub.Unity
                     throw new ApiClientException("No Credentials found");
                 }
 
-                var octorunTask = new OctorunTask(taskManager.Token, environment, "validate -h " + OriginalUrl.Host, keychainAdapter.Credential.Token)
+                logger.Trace("GetValidatedGitHubUser with GitHub Token: {0} {1}", keychainAdapter.Credential.Host, keychainAdapter.Credential.Token);
+
+                var command = HostAddress.IsGitHubDotCom() ? "validate" : "validate -h " + HostAddress.ApiUri.Host;
+                var octorunTask = new OctorunTask(taskManager.Token, environment, command, keychainAdapter.Credential.Token)
                     .Configure(processManager);
 
                 var ret = octorunTask.RunSynchronously();
