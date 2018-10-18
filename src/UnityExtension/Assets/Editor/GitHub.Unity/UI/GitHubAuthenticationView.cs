@@ -243,8 +243,7 @@ namespace GitHub.Unity
             {
                 if (authenticationService == null)
                 {
-                    UriString host = Repository != null ? Repository.CloneUrl : null;
-                    AuthenticationService = new AuthenticationService(host, Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
+                    AuthenticationService = new AuthenticationService(HostAddress.GitHubDotComHostAddress.WebUri.Host, Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
                 }
                 return authenticationService;
             }

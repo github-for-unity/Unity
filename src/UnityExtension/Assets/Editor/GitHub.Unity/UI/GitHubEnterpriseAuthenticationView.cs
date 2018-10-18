@@ -203,6 +203,14 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("Back"))
+                    {
+                        GUI.FocusControl(null);
+
+                        hasServerMeta = false;
+                        Redraw();
+                    }
+
                     if (GUILayout.Button(LoginButton) || (!isBusy && enterPressed))
                     {
                         GUI.FocusControl(null);

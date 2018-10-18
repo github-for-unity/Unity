@@ -217,10 +217,11 @@ namespace GitHub.Unity
         {
             if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
             {
-                UriString host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                                               .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+                var host = Repository.CloneUrl
+                                     .ToRepositoryUri()
+                                     .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
 
-                connections = Platform.Keychain.Connections.OrderByDescending(x => x.Host.ToUriString() == host).ToArray();
+                connections = Platform.Keychain.Connections.OrderByDescending(x => x.Host == host).ToArray();
             }
             else
             {
