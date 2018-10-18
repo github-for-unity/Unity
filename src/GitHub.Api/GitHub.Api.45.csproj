@@ -66,12 +66,14 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Threading" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\Organization.cs" />
+    <Compile Include="Authentication\OAuthCallbackListener.cs" />
     <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Cache\CachingClasses.cs" />

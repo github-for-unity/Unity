@@ -145,8 +145,38 @@ namespace GitHub.Unity
                     }
                 }
                 GUILayout.EndHorizontal();
+
+                GUILayout.Space(Styles.BaseSpacing + 3);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("Signin with your browser", Styles.HyperlinkStyle))
+                    {
+                        GUI.FocusControl(null);
+                        StartOAuthListener();
+                    }
+                }
+                GUILayout.EndHorizontal();
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private void StartOAuthListener()
+        {
+            try
+            {
+                var uri = AuthenticationService.StartOAuthListener(() => DoResult(true, null),
+                s => {
+                    errorMessage = s;
+                    TaskManager.RunInUI(Redraw);
+                });
+                Application.OpenURL(uri.ToString());
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                Redraw();
+            }
         }
 
         private void OnGUI2FA()

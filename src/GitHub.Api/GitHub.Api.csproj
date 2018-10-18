@@ -77,12 +77,14 @@
       <HintPath>$(SolutionDir).\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\Organization.cs" />
+    <Compile Include="Authentication\OAuthCallbackListener.cs" />
     <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Cache\CachingClasses.cs" />

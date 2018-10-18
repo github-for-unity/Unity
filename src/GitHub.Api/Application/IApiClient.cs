@@ -14,5 +14,6 @@ namespace GitHub.Unity
         ITask Logout(UriString host);
         void GetCurrentUser(Action<GitHubUser> onSuccess, Action<Exception> onError = null);
         void GetEnterpriseServerMeta(Action<GitHubHostMeta> onSuccess, Action<Exception> onError = null);
+        void CreateOAuthToken(string code, Action<bool, string> result);
     }
 }

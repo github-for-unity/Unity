@@ -6,6 +6,7 @@ using GitHub.Logging;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using GitHub.Unity.Json;
 
 namespace GitHub.Unity
@@ -14,6 +15,7 @@ namespace GitHub.Unity
     {
         private static readonly ILogging logger = LogHelper.GetLogger<ApiClient>();
         private static readonly Regex httpStatusErrorRegex = new Regex("(?<=[a-z])([A-Z])", RegexOptions.Compiled);
+        private static readonly Regex accessTokenRegex = new Regex("access_token=(.*?)&", RegexOptions.Compiled);
 
         public HostAddress HostAddress { get; }
 
@@ -25,7 +27,7 @@ namespace GitHub.Unity
         private IKeychainAdapter keychainAdapter;
         private Connection connection;
 
-        public ApiClient(IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment):
+        public ApiClient(IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment) :
             this(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), keychain, processManager, taskManager, environment)
         {
         }
@@ -275,6 +277,44 @@ namespace GitHub.Unity
                     result(res);
                 })
                 .Start();
+        }
+
+        public void CreateOAuthToken(string code, Action<bool, string> result)
+        {
+            var command = "token -h " + HostAddress.WebUri.Host;
+            var octorunTask = new OctorunTask(taskManager.Token, environment, command, code)
+                .Configure(processManager);
+
+            octorunTask
+                .Then((b, octorunResult) =>
+                {
+                    if (b && octorunResult.IsSuccess)
+                    {
+                        var first = octorunResult.Output.FirstOrDefault();
+                        if (first == null)
+                        {
+                            result(false, "Error validating token.");
+                            return;
+                        }
+
+                        var match = accessTokenRegex.Match(first);
+                        if (match.Success)
+                        {
+                            var token = match.Groups[1].Value;
+                            LoginWithToken(token, b1 => result(b1, "Error validating token."));
+                        }
+                        else
+                        {
+                            result(false, octorunResult.Output.FirstOrDefault());
+                        }
+                    }
+                    else
+                    {
+                        result(false, octorunResult.Output.FirstOrDefault());
+                    }
+                })
+               .Catch(exception => result(false, exception.ToString()))
+               .Start();
         }
 
         public void Login(string username, string password, Action<LoginResult> need2faCode, Action<bool, string> result)
