@@ -79,9 +79,7 @@ namespace GitHub.Unity
 
             if (!clients.TryGetValue(connection.Host, out client))
             {
-                client = HostAddress.IsGitHubDotCom(connection)
-                    ? new ApiClient(Platform.Keychain, Platform.ProcessManager, TaskManager, Environment)
-                    : new ApiClient(connection.Host, Platform.Keychain, Platform.ProcessManager, TaskManager, Environment);
+                client = new ApiClient(Platform.Keychain, Platform.ProcessManager, TaskManager, Environment, connection.Host);
 
                 clients.Add(connection.Host, client);
             }

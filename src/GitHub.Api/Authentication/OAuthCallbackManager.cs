@@ -60,7 +60,8 @@ namespace GitHub.Unity
 
         public void Stop()
         {
-            logger.Debug("Stop");
+            logger.Trace("Stopping");
+            cancelSource.Cancel();
         }
 
         private void Listen()
@@ -86,7 +87,6 @@ namespace GitHub.Unity
                             }
 
                             context.Response.StatusCode = 200;
-                            context.Response.OutputStream.Flush();
                             context.Response.Close();
                         }
                     }
@@ -94,7 +94,7 @@ namespace GitHub.Unity
             }
             catch (Exception ex)
             {
-                logger.Warning(ex, "OAuthCallbackManager Error");
+                logger.Trace(ex.Message);
             }
             finally
             {

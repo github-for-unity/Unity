@@ -120,8 +120,8 @@ namespace GitHub.Unity
                 var userHasAuthentication = false;
                 foreach (var keychainConnection in Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom))
                 {
-                    var apiClient = new ApiClient(keychainConnection.Host, Platform.Keychain, Platform.ProcessManager, TaskManager,
-                        Environment);
+                    var apiClient = new ApiClient(Platform.Keychain, Platform.ProcessManager, TaskManager,
+                        Environment, keychainConnection.Host);
 
                     try
                     {

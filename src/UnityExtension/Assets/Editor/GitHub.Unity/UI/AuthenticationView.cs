@@ -39,8 +39,8 @@ namespace GitHub.Unity
                 Logger.Trace(ex, "Error Starting OAuthCallbackManager");
             }
 
-            gitHubAuthenticationView.InitializeView(parent);
-            gitHubEnterpriseAuthenticationView.InitializeView(parent);
+            gitHubAuthenticationView.InitializeView(this);
+            gitHubEnterpriseAuthenticationView.InitializeView(this);
 
             hasGitHubDotComConnection = Platform.Keychain.Connections.Any(HostAddress.IsGitHubDotCom);
             hasGitHubEnterpriseConnection = Platform.Keychain.Connections.Any(connection => !HostAddress.IsGitHubDotCom(connection));
@@ -76,8 +76,8 @@ namespace GitHub.Unity
 
         public override void Finish(bool result)
         {
-            base.Finish(result);
             OAuthCallbackManager.Stop();
+            base.Finish(result);
         }
 
         private void MaybeUpdateData()

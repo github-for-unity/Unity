@@ -16,9 +16,7 @@ namespace GitHub.Unity
             IEnvironment environment
         )
         {
-            client = host == null
-                ? new ApiClient(keychain, processManager, taskManager, environment)
-                : new ApiClient(host, keychain, processManager, taskManager, environment);
+            client = new ApiClient(keychain, processManager, taskManager, environment, host);
         }
 
         public HostAddress HostAddress { get { return client.HostAddress; } }

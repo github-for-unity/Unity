@@ -27,17 +27,20 @@ namespace GitHub.Unity
         private IKeychainAdapter keychainAdapter;
         private Connection connection;
 
-        public ApiClient(IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment) :
-            this(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), keychain, processManager, taskManager, environment)
+        public ApiClient(IKeychain keychain, IProcessManager processManager, ITaskManager taskManager,
+            IEnvironment environment, UriString host = null)
         {
-        }
-
-        public ApiClient(UriString host, IKeychain keychain, IProcessManager processManager, ITaskManager taskManager, IEnvironment environment)
-        {
-            Guard.ArgumentNotNull(host, nameof(host));
             Guard.ArgumentNotNull(keychain, nameof(keychain));
 
-            host = new UriString(host.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+            if (host == null)
+            {
+                host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
+            }
+            else
+            {
+                host = new UriString(host.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
+            }
+
             HostAddress = HostAddress.Create(host);
 
             this.keychain = keychain;
