@@ -133,5 +133,6 @@ namespace IntegrationTests
         public ISettings LocalSettings => defaultEnvironment.LocalSettings;
         public ISettings SystemSettings => defaultEnvironment.SystemSettings;
         public ISettings UserSettings => defaultEnvironment.UserSettings;
+        public IOAuthCallbackManager OAuthCallbackListener { get; }
     }
 }

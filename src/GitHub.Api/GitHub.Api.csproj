@@ -84,7 +84,7 @@
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\Organization.cs" />
-    <Compile Include="Authentication\OAuthCallbackListener.cs" />
+    <Compile Include="Authentication\OAuthCallbackManager.cs" />
     <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Cache\CachingClasses.cs" />
@@ -338,23 +338,9 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy
-      SourceFiles="PlatformResources\linux\git-lfs.zip;PlatformResources\linux\git-lfs.json"
-      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\linux"
-      SkipUnchangedFiles="true"
-      />
-
-    <Copy
-      SourceFiles="PlatformResources\mac\git-lfs.zip;PlatformResources\mac\git-lfs.json"
-      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\mac"
-      SkipUnchangedFiles="true"
-      />
-
-    <Copy
-      SourceFiles="PlatformResources\windows\git.zip;PlatformResources\windows\git.json;PlatformResources\windows\git-lfs.zip;PlatformResources\windows\git-lfs.json"
-      DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\windows"
-      SkipUnchangedFiles="true"
-      />
+    <Copy SourceFiles="PlatformResources\linux\git-lfs.zip;PlatformResources\linux\git-lfs.json" DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\linux" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="PlatformResources\mac\git-lfs.zip;PlatformResources\mac\git-lfs.json" DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\mac" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="PlatformResources\windows\git.zip;PlatformResources\windows\git.json;PlatformResources\windows\git-lfs.zip;PlatformResources\windows\git-lfs.json" DestinationFolder="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\PlatformResources\windows" SkipUnchangedFiles="true" />
   </Target>
   <Import Project="..\..\common\build.targets" />
 </Project>

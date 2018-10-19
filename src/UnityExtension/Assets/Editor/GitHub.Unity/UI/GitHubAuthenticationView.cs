@@ -34,15 +34,23 @@ namespace GitHub.Unity
         [NonSerialized] private bool enterPressed;
         [NonSerialized] private string password = string.Empty;
         [NonSerialized] private AuthenticationService authenticationService;
-
+        [NonSerialized] private string oAuthState;
+        [NonSerialized] private string oAuthOpenUrl;
 
         public override void InitializeView(IView parent)
         {
+            Logger.Trace("InitializeView");
+
             base.InitializeView(parent);
             need2fa = isBusy = false;
             message = errorMessage = null;
             Title = WindowTitle;
             Size = viewSize;
+
+            oAuthState = Guid.NewGuid().ToString();
+            oAuthOpenUrl = AuthenticationService.GetLoginUrl(oAuthState).ToString();
+
+            OAuthCallbackManager.OnCallback += OnOAuthCallback;
         }
 
         public void Initialize(Exception exception)
@@ -117,7 +125,7 @@ namespace GitHub.Unity
 
                 GUILayout.BeginHorizontal();
                 {
-                    username = EditorGUILayout.TextField(UsernameLabel ,username, Styles.TextFieldStyle);
+                    username = EditorGUILayout.TextField(UsernameLabel, username, Styles.TextFieldStyle);
                 }
                 GUILayout.EndHorizontal();
 
@@ -146,37 +154,22 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.Space(Styles.BaseSpacing + 3);
-                GUILayout.BeginHorizontal();
+                if (OAuthCallbackManager.IsRunning)
                 {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("Signin with your browser", Styles.HyperlinkStyle))
+                    GUILayout.Space(Styles.BaseSpacing + 3);
+                    GUILayout.BeginHorizontal();
                     {
-                        GUI.FocusControl(null);
-                        StartOAuthListener();
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("Signin with your browser", Styles.HyperlinkStyle))
+                        {
+                            GUI.FocusControl(null);
+                            Application.OpenURL(oAuthOpenUrl);
+                        }
                     }
+                    GUILayout.EndHorizontal();
                 }
-                GUILayout.EndHorizontal();
             }
             EditorGUI.EndDisabledGroup();
-        }
-
-        private void StartOAuthListener()
-        {
-            try
-            {
-                var uri = AuthenticationService.StartOAuthListener(() => DoResult(true, null),
-                s => {
-                    errorMessage = s;
-                    TaskManager.RunInUI(Redraw);
-                });
-                Application.OpenURL(uri.ToString());
-            }
-            catch (Exception ex)
-            {
-                errorMessage = ex.Message;
-                Redraw();
-            }
         }
 
         private void OnGUI2FA()
@@ -218,6 +211,15 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
+        private void OnOAuthCallback(string state, string code)
+        {
+            if (state.Equals(oAuthState))
+            {
+                isBusy = true;
+                authenticationService.LoginWithOAuthCode(code, DoOAuthCodeResult);
+            }
+        }
+
         private void DoRequire2fa(string msg)
         {
             need2fa = true;
@@ -235,6 +237,23 @@ namespace GitHub.Unity
         }
 
         private void DoResult(bool success, string msg)
+        {
+            isBusy = false;
+            if (success)
+            {
+                UsageTracker.IncrementAuthenticationViewButtonAuthentication();
+
+                Clear();
+                Finish(true);
+            }
+            else
+            {
+                errorMessage = msg;
+                Redraw();
+            }
+        }
+
+        private void DoOAuthCodeResult(bool success, string msg)
         {
             isBusy = false;
             if (success)

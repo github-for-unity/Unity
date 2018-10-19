@@ -40,6 +40,8 @@ namespace GitHub.Unity
         [NonSerialized] private string password = string.Empty;
         [NonSerialized] private string token = string.Empty;
         [NonSerialized] private AuthenticationService authenticationService;
+        [NonSerialized] private string oAuthState;
+        [NonSerialized] private string oAuthOpenUrl;
 
         public override void InitializeView(IView parent)
         {
@@ -48,6 +50,8 @@ namespace GitHub.Unity
             message = errorMessage = null;
             Title = WindowTitle;
             Size = viewSize;
+
+            OAuthCallbackManager.OnCallback += OnOAuthCallback;
         }
 
         public void Initialize(Exception exception)
@@ -114,6 +118,21 @@ namespace GitHub.Unity
                             else
                             {
                                 OnGUITokenLogin();
+                            }
+
+                            if (OAuthCallbackManager.IsRunning)
+                            {
+                                GUILayout.Space(Styles.BaseSpacing + 3);
+                                GUILayout.BeginHorizontal();
+                                {
+                                    GUILayout.FlexibleSpace();
+                                    if (GUILayout.Button("Signin with your browser", Styles.HyperlinkStyle))
+                                    {
+                                        GUI.FocusControl(null);
+                                        Application.OpenURL(oAuthOpenUrl);
+                                    }
+                                }
+                                GUILayout.EndHorizontal();
                             }
                         }
                         else
@@ -206,9 +225,7 @@ namespace GitHub.Unity
                     if (GUILayout.Button("Back"))
                     {
                         GUI.FocusControl(null);
-
-                        hasServerMeta = false;
-                        Redraw();
+                        BackToGetServerMeta();
                     }
 
                     if (GUILayout.Button(LoginButton) || (!isBusy && enterPressed))
@@ -222,6 +239,14 @@ namespace GitHub.Unity
                 GUILayout.EndHorizontal();
             }
             EditorGUI.EndDisabledGroup();
+        }
+
+        private void BackToGetServerMeta()
+        {
+            hasServerMeta = false;
+            oAuthOpenUrl = null;
+            oAuthState = null;
+            Redraw();
         }
 
         private void OnGUITokenLogin()
@@ -247,9 +272,7 @@ namespace GitHub.Unity
                     if (GUILayout.Button("Back"))
                     {
                         GUI.FocusControl(null);
-
-                        hasServerMeta = false;
-                        Redraw();
+                        BackToGetServerMeta();
                     }
 
                     if (GUILayout.Button(LoginButton) || (!isBusy && enterPressed))
@@ -303,6 +326,17 @@ namespace GitHub.Unity
                 EditorGUI.EndDisabledGroup();
             }
             GUILayout.EndVertical();
+        }
+
+        private void OnOAuthCallback(string state, string code)
+        {
+            TaskManager.RunInUI(() => {
+                if (state.Equals(oAuthState))
+                {
+                    isBusy = true;
+                    authenticationService.LoginWithOAuthCode(code, DoOAuthCodeResult);
+                }
+            });
         }
 
         private void DoServerMetaResult(GitHubHostMeta gitHubHostMeta)
@@ -371,6 +405,23 @@ namespace GitHub.Unity
             }
         }
 
+        private void DoOAuthCodeResult(bool success, string msg)
+        {
+            isBusy = false;
+            if (success)
+            {
+                UsageTracker.IncrementAuthenticationViewButtonAuthentication();
+
+                Clear();
+                Finish(true);
+            }
+            else
+            {
+                errorMessage = msg;
+                Redraw();
+            }
+        }
+
         private void ShowMessage()
         {
             if (message != null)
@@ -400,6 +451,9 @@ namespace GitHub.Unity
                         Manager.ProcessManager,
                         Manager.TaskManager,
                         Environment);
+
+                oAuthState = Guid.NewGuid().ToString();
+                oAuthOpenUrl = authenticationService.GetLoginUrl(oAuthState).ToString();
             }
 
             return authenticationService;

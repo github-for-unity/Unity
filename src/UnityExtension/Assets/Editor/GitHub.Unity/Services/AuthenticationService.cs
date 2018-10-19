@@ -5,24 +5,17 @@ using GitHub.Logging;
 
 namespace GitHub.Unity
 {
-    class AuthenticationService: IDisposable
+    class AuthenticationService
     {
-        private readonly ITaskManager taskManager;
-        private static readonly ILogging logger = LogHelper.GetLogger<AuthenticationService>();
-
         private readonly IApiClient client;
 
         private LoginResult loginResultData;
-        private IOAuthCallbackListener oauthCallbackListener;
-        private CancellationTokenSource oauthCallbackCancellationToken;
-        private string oauthCallbackState;
 
         public AuthenticationService(UriString host, IKeychain keychain,
             IProcessManager processManager, ITaskManager taskManager,
             IEnvironment environment
         )
         {
-            this.taskManager = taskManager;
             client = host == null
                 ? new ApiClient(keychain, processManager, taskManager, environment)
                 : new ApiClient(host, keychain, processManager, taskManager, environment);
@@ -63,56 +56,14 @@ namespace GitHub.Unity
             });
         }
 
-        public Uri StartOAuthListener(Action onSuccess, Action<string> onError)
-        {
-            if (oauthCallbackListener == null)
-            {
-                logger.Trace("Start OAuthCallbackListener");
-                oauthCallbackListener = new OAuthCallbackListener();
-                oauthCallbackCancellationToken = new CancellationTokenSource();
-
-                oauthCallbackState = Guid.NewGuid().ToString();
-                oauthCallbackListener.Listen(
-                    oauthCallbackState,
-                    oauthCallbackCancellationToken.Token,
-                    code => {
-                        logger.Trace("OAuthCallbackListener Response: {0}", code);
-
-                        client.CreateOAuthToken(code, (b, s) => {
-                            if (b)
-                            {
-                                onSuccess();
-                            }
-                            else
-                            {
-                                onError(s);
-                            }
-                        });
-                    });
-            }
-
-            return GetLoginUrl(oauthCallbackState);
-        }
-
-        public void StopOAuthListener()
-        {
-            if (oauthCallbackCancellationToken != null)
-            {
-                oauthCallbackCancellationToken.Cancel();
-            }
-
-            oauthCallbackListener = null;
-            oauthCallbackCancellationToken = null;
-        }
-
-        private Uri GetLoginUrl(string state)
+        public Uri GetLoginUrl(string state)
         {
             var query = new StringBuilder();
 
             query.Append("client_id=");
             query.Append(Uri.EscapeDataString(ApplicationInfo.ClientId));
             query.Append("&redirect_uri=");
-            query.Append(Uri.EscapeDataString("http://localhost:42424/callback"));
+            query.Append(Uri.EscapeDataString(OAuthCallbackManager.CallbackUrl.ToString()));
             query.Append("&scope=");
             query.Append(Uri.EscapeDataString("user,repo"));
             query.Append("&state=");
@@ -126,10 +77,9 @@ namespace GitHub.Unity
             return uriBuilder.Uri;
         }
 
-        public void Dispose()
+        public void LoginWithOAuthCode(string code, Action<bool, string> result)
         {
-            if (oauthCallbackCancellationToken != null)
-                oauthCallbackCancellationToken.Dispose();
+            client.CreateOAuthToken(code, result);
         }
     }
 }

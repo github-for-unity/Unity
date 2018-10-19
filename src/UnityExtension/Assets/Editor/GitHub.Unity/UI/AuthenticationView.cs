@@ -30,6 +30,15 @@ namespace GitHub.Unity
             gitHubAuthenticationView = gitHubAuthenticationView ?? new GitHubAuthenticationView();
             gitHubEnterpriseAuthenticationView = gitHubEnterpriseAuthenticationView ?? new GitHubEnterpriseAuthenticationView();
 
+            try
+            {
+                OAuthCallbackManager.Start();
+            }
+            catch (Exception ex)
+            {
+                Logger.Trace(ex, "Error Starting OAuthCallbackManager");
+            }
+
             gitHubAuthenticationView.InitializeView(parent);
             gitHubEnterpriseAuthenticationView.InitializeView(parent);
 
@@ -63,6 +72,12 @@ namespace GitHub.Unity
         {
             base.OnDataUpdate();
             MaybeUpdateData();
+        }
+
+        public override void Finish(bool result)
+        {
+            base.Finish(result);
+            OAuthCallbackManager.Stop();
         }
 
         private void MaybeUpdateData()
