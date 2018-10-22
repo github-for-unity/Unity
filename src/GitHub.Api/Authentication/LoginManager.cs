@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -44,6 +45,33 @@ namespace GitHub.Unity
             this.environment = environment;
         }
 
+        public bool LoginWithToken(
+            UriString host,
+            string token)
+        {
+            Guard.ArgumentNotNull(host, nameof(host));
+            Guard.ArgumentNotNullOrWhiteSpace(token, nameof(token));
+
+            var keychainAdapter = keychain.Connect(host);
+            keychainAdapter.Set(new Credential(host, "[token]", token));
+
+            try
+            {
+                var username = RetrieveUsername(token, host);
+                keychainAdapter.Update(token, username);
+                keychain.SaveToSystem(host);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger.Warning(e, "Login Exception");
+
+                keychain.Clear(host, false);
+                return false;
+            }
+        }
+
         /// <inheritdoc/>
         public LoginResultData Login(
             UriString host,
@@ -73,7 +101,7 @@ namespace GitHub.Unity
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        username = RetrieveUsername(loginResultData, username);
+                        username = RetrieveUsername(loginResultData.Token, host, username);
                         keychainAdapter.Update(loginResultData.Token, username);
                         keychain.SaveToSystem(host);
                     }
@@ -113,7 +141,7 @@ namespace GitHub.Unity
                     }
 
                     keychainAdapter.Update(loginResultData.Token, username);
-                    username = RetrieveUsername(loginResultData, username);
+                    username = RetrieveUsername(loginResultData.Token, host, username);
                     keychainAdapter.Update(loginResultData.Token, username);
                     keychain.SaveToSystem(host);
 
@@ -147,9 +175,20 @@ namespace GitHub.Unity
         {
             var hasTwoFactorCode = code != null;
 
-            var arguments = hasTwoFactorCode ? "login --twoFactor" : "login";
-            var loginTask = new OctorunTask(taskManager.Token, keychain, environment,
-                arguments);
+            var command = new StringBuilder("login");
+
+            if (hasTwoFactorCode)
+            {
+                command.Append(" --twoFactor");
+            }
+
+            if (!HostAddress.IsGitHubDotCom(host))
+            {
+                command.Append(" -h ");
+                command.Append(host.Host);
+            }
+
+            var loginTask = new OctorunTask(taskManager.Token, environment, command.ToString());
             loginTask.Configure(processManager, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
@@ -180,14 +219,15 @@ namespace GitHub.Unity
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
 
-        private string RetrieveUsername(LoginResultData loginResultData, string username)
+        private string RetrieveUsername(string token, UriString host, string username = null)
         {
-            if (!username.Contains("@"))
+            if (username != null && !username.Contains("@"))
             {
                 return username;
             }
 
-            var octorunTask = new OctorunTask(taskManager.Token, keychain, environment, "validate")
+            var command = HostAddress.IsGitHubDotCom(host) ? "validate" : "validate -h " + host.Host;
+            var octorunTask = new OctorunTask(taskManager.Token, environment, command, token)
                 .Configure(processManager);
 
             var validateResult = octorunTask.RunSynchronously();

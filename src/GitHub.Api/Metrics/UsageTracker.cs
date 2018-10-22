@@ -401,7 +401,7 @@ namespace GitHub.Unity
         {
             string username = "";
             try {
-                var apiClient = new ApiClient("", Keychain, ProcessManager, TaskManager, Environment);
+                var apiClient = new ApiClient(Keychain, ProcessManager, TaskManager, Environment);
                 var user = apiClient.GetCurrentUser();
                 username = user.Login;
             } catch {

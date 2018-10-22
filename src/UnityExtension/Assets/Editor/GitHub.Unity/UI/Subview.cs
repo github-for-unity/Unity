@@ -92,6 +92,7 @@ namespace GitHub.Unity
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
         protected IUsageTracker UsageTracker { get { return Manager.UsageTracker; } }
+        protected IOAuthCallbackManager OAuthCallbackManager { get { return Manager.OAuthCallbackManager; } }
 
         public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
         public virtual bool IsBusy
