@@ -49,7 +49,6 @@ namespace GitHub.Unity
         public static void CopyFolderContents(NPath fromPath, NPath toPath)
         {
             Logger.Trace("CopyFolderContents fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
-
             toPath.DeleteContents();
             fromPath.MoveFiles(toPath, true);
         }
