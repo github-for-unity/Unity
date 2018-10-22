@@ -12,13 +12,15 @@ namespace GitHub.Unity
 
         public static void Copy(NPath fromPath, NPath toPath)
         {
+            Logger.Trace("Copying from " + fromPath + " to " + toPath + ".");
+            
             try
             {
                 CopyFolder(fromPath, toPath);
             }
             catch (Exception ex1)
             {
-                Logger.Warning(ex1, "Error copying from " + fromPath + " to " + toPath + ". Attempting to copy contents.");
+                Logger.Warning(ex1, "Error copying.");
 
                 try
                 {
@@ -26,7 +28,7 @@ namespace GitHub.Unity
                 }
                 catch (Exception ex2)
                 {
-                    Logger.Error(ex2, "Error copying from " + fromPath + " to " + toPath + ".");
+                    Logger.Error(ex1, "Error copying contents.");
                     throw;
                 }
             }
@@ -45,8 +47,7 @@ namespace GitHub.Unity
 
         public static void CopyFolderContents(NPath fromPath, NPath toPath)
         {
-            Logger.Trace("CopyFolderContents fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
-
+            Logger.Trace("CopyFolder Contents fromPath: {0} toPath:{1}", fromPath.ToString(), toPath.ToString());
             toPath.DeleteContents();
             fromPath.MoveFiles(toPath, true);
         }
