@@ -33,12 +33,13 @@ namespace GitHub.Unity
 
             GrabZipFromResources();
 
-            var tempZipExtractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
+            var extractPath = NPath.CreateTempDirectory("octorun_extract_archive_path");
             var unzipTask = new UnzipTask(taskManager.Token, installDetails.ZipFile,
-                    tempZipExtractPath, sharpZipLibHelper,
+                    extractPath, sharpZipLibHelper,
                     fileSystem)
                     .Catch(e => { Logger.Error(e, "Error extracting octorun"); return true; });
-            var extractPath = unzipTask.RunSynchronously();
+            unzipTask.RunSynchronously();
+
             if (unzipTask.Successful)
                 path = MoveOctorun(extractPath.Combine("octorun"));
             return path;
