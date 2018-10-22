@@ -10,7 +10,7 @@ namespace GitHub.Unity
         /// <summary>
         /// Attempts to log into a GitHub server with a username and password.
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="host">The host.</param>
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <returns>The logged in user.</returns>
@@ -28,8 +28,12 @@ namespace GitHub.Unity
         /// <inheritdoc/>
         ITask Logout(UriString hostAddress);
 
-        bool LoginWithToken(
-            UriString host,
-            string token);
+        /// <summary>
+        /// Attempts to log into a GitHub server with a token.
+        /// </summary>
+        /// <param name="host">The host.</param>
+        /// <param name="token">The token.</param>
+        /// <returns></returns>
+        bool LoginWithToken(UriString host, string token);
     }
 }

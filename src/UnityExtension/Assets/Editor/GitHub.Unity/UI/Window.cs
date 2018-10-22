@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Object = System.Object;
 
 namespace GitHub.Unity
 {

@@ -32,14 +32,9 @@ namespace GitHub.Unity
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
 
-            if (host == null)
-            {
-                host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-            }
-            else
-            {
-                host = new UriString(host.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-            }
+            host = host == null
+                ? UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri)
+                : new UriString(host.ToRepositoryUri().GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
 
             HostAddress = HostAddress.Create(host);
 

@@ -45,9 +45,7 @@ namespace GitHub.Unity
             this.environment = environment;
         }
 
-        public bool LoginWithToken(
-            UriString host,
-            string token)
+        public bool LoginWithToken(UriString host, string token)
         {
             Guard.ArgumentNotNull(host, nameof(host));
             Guard.ArgumentNotNullOrWhiteSpace(token, nameof(token));
