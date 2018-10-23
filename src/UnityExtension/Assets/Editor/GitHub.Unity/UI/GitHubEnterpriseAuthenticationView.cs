@@ -334,7 +334,7 @@ namespace GitHub.Unity
                 if (state.Equals(oAuthState))
                 {
                     isBusy = true;
-                    authenticationService.LoginWithOAuthCode(code, DoOAuthCodeResult);
+                    authenticationService.LoginWithOAuthCode(code, (b, s) => TaskManager.RunInUI(() => DoOAuthCodeResult(b, s)));
                 }
             });
         }

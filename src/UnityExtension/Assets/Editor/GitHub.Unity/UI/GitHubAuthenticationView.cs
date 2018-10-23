@@ -216,7 +216,7 @@ namespace GitHub.Unity
             if (state.Equals(oAuthState))
             {
                 isBusy = true;
-                authenticationService.LoginWithOAuthCode(code, DoOAuthCodeResult);
+                authenticationService.LoginWithOAuthCode(code, (b, s) => TaskManager.RunInUI(() => DoOAuthCodeResult(b, s)));
             }
         }
 
@@ -292,7 +292,7 @@ namespace GitHub.Unity
             {
                 if (authenticationService == null)
                 {
-                    AuthenticationService = new AuthenticationService(HostAddress.GitHubDotComHostAddress.WebUri.Host, Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
+                    AuthenticationService = new AuthenticationService(UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri), Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
                 }
                 return authenticationService;
             }

@@ -59,7 +59,7 @@ namespace GitHub.Unity
             {
                 connectionsNeedLoading = false;
                 connections = Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom).ToArray();
-                connectionLabels = connections.Select(c => HostAddress.IsGitHubDotCom(c) ? "GitHub" : c.Host).ToArray();
+                connectionLabels = connections.Select(c => HostAddress.IsGitHubDotCom(c) ? "GitHub" : c.Host.ToUriString().Host).ToArray();
 
                 var connection = connections.First();
                 selectedConnection = 0;
