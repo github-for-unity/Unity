@@ -210,8 +210,6 @@ namespace GitHub.Unity
                             return true;
                         }).RunSynchronously();
 
-                    Logger.Trace("Credential Helper: {0}", credentialHelper);
-
                     if (string.IsNullOrEmpty(credentialHelper))
                     {
                         Logger.Warning("No Windows CredentialHelper found: Setting to wincred");

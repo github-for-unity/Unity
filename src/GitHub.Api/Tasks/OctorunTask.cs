@@ -71,27 +71,7 @@ namespace GitHub.Unity
             this.pathToNodeJs = environment.NodeJsExecutablePath;
             this.pathToOctorunJs = environment.OctorunScriptPath;
             this.arguments = $"\"{pathToOctorunJs}\" {arguments}";
-
             this.userToken = userToken;
-
-//            var cloneUrl = environment.Repository?.CloneUrl;
-//            var host = String.IsNullOrEmpty(cloneUrl)
-//                ? UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri)
-//                : new UriString(cloneUrl.ToRepositoryUri()
-//                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-//
-//            var adapter = keychain.Connect(host);
-//            if (adapter.Credential?.Token != null)
-//            {
-//                userToken = adapter.Credential.Token;
-//            }
-//            else
-//            {
-//                // use a cached adapter if there is one filled out
-//                adapter = keychain.LoadFromSystem(host);
-//                if (adapter != null)
-//                    userToken = adapter.Credential.Token;
-//            }
         }
 
         public override void Configure(ProcessStartInfo psi)
