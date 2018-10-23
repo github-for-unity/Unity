@@ -87,9 +87,11 @@ namespace GitHub.Unity
             if (connection == null || String.IsNullOrEmpty(connection.Host))
                 return false;
 
-            return connection.Host == GitHubDotComHostAddress.WebUri.Host
-                || connection.Host == GitHubDotComHostAddress.ApiUri.Host
-                || connection.Host == gistUri.Host;
+            var connectionHost = connection.Host.ToUriString();
+
+            return connectionHost.Host == GitHubDotComHostAddress.WebUri.Host
+                || connectionHost.Host == GitHubDotComHostAddress.ApiUri.Host
+                || connectionHost.Host == gistUri.Host;
         }
 
         public bool IsGitHubDotCom()

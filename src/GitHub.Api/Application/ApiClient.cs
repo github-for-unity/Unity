@@ -262,7 +262,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(result, "result");
 
             new FuncTask<bool>(taskManager.Token,
-                    () => loginManager.LoginWithToken(HostAddress.ApiUri.Host, token))
+                    () => loginManager.LoginWithToken(HostAddress.WebUri.Host, token))
                 .FinallyInUI((success, ex, res) =>
                 {
                     if (!success)
@@ -279,7 +279,7 @@ namespace GitHub.Unity
 
         public void CreateOAuthToken(string code, Action<bool, string> result)
         {
-            var command = "token -h " + HostAddress.WebUri.Host;
+            var command = "token -h " + HostAddress.ApiUri.Host;
             var octorunTask = new OctorunTask(taskManager.Token, environment, command, code)
                 .Configure(processManager);
 
@@ -321,7 +321,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(result, "result");
 
             new FuncTask<LoginResultData>(taskManager.Token,
-                () => loginManager.Login(HostAddress.ApiUri.Host, username, password))
+                () => loginManager.Login(HostAddress.WebUri.Host, username, password))
                 .FinallyInUI((success, ex, res) =>
                 {
                     if (!success)
@@ -388,7 +388,7 @@ namespace GitHub.Unity
             {
                 if (connection == null)
                 {
-                    connection = keychain.Connections.FirstOrDefault(x => x.Host == (UriString)HostAddress.ApiUri.Host);
+                    connection = keychain.Connections.FirstOrDefault(x => x.Host == (UriString)HostAddress.WebUri.Host);
                 }
 
                 return connection;
