@@ -126,7 +126,7 @@ namespace GitHub.Unity
                                 GUILayout.BeginHorizontal();
                                 {
                                     GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button("Signin with your browser", Styles.HyperlinkStyle))
+                                    if (GUILayout.Button("Sign in with your browser", Styles.HyperlinkStyle))
                                     {
                                         GUI.FocusControl(null);
                                         Application.OpenURL(oAuthOpenUrl);
