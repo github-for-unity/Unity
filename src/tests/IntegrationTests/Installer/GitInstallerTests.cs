@@ -18,7 +18,7 @@ namespace IntegrationTests
         {
             base.OnSetup();
             InitializeEnvironment(TestBasePath, false, false);
-            InitializePlatform(TestBasePath);
+            InitializePlatform();
         }
 
         private TestWebServer.HttpServer server;
@@ -163,7 +163,7 @@ namespace IntegrationTests
         {
             base.OnSetup();
             InitializeEnvironment(TestBasePath, false, false);
-            InitializePlatform(TestBasePath);
+            InitializePlatform();
         }
 
         [Test]

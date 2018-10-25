@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using GitHub.Unity;
 using NSubstitute;
@@ -8,24 +9,26 @@ namespace TestUtils
 {
     static class Args
     {
-        public static string String { get { return Arg.Any<string>(); } }
-        public static bool Bool { get { return Arg.Any<bool>(); } }
-        public static int Int { get { return Arg.Any<int>(); } }
-        public static UriString UriString { get { return Arg.Any<UriString>(); } }
-        public static SearchOption SearchOption { get { return Arg.Any<SearchOption>(); } }
-        public static GitFileStatus GitFileStatus { get { return Arg.Any<GitFileStatus>(); } }
-        public static GitConfigSource GitConfigSource { get { return Arg.Any<GitConfigSource>(); } }
-        public static List<GitLogEntry> GitLogs { get { return Arg.Any<List<GitLogEntry>>(); } }
-        public static GitAheadBehindStatus GitAheadBehindStatus { get { return Arg.Any<GitAheadBehindStatus>(); } }
-        public static GitStatus GitStatus { get { return Arg.Any<GitStatus>(); } }
-        public static List<GitLock> GitLocks { get { return Arg.Any<List<GitLock>>(); } }
-        public static IEnumerable<GitLock> EnumerableGitLock { get { return Arg.Any<IEnumerable<GitLock>>(); } }
-        public static IUser User { get { return Arg.Any<IUser>(); } }
-        public static ConfigBranch? NullableConfigBranch { get { return Arg.Any<ConfigBranch?>(); } }
-        public static ConfigRemote? NullableConfigRemote { get { return Arg.Any<ConfigRemote?>(); } }
-        public static Dictionary<string, ConfigBranch> LocalBranchDictionary { get { return Arg.Any<Dictionary<string, ConfigBranch>>(); } }
-        public static Dictionary<string, ConfigRemote> RemoteDictionary { get { return Arg.Any<Dictionary<string, ConfigRemote>>(); } }
-        public static Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranchDictionary { get { return Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>(); } }
+        public static string String => Arg.Any<string>();
+        public static bool Bool => Arg.Any<bool>();
+        public static int Int => Arg.Any<int>();
+        public static UriString UriString => Arg.Any<UriString>();
+        public static SearchOption SearchOption => Arg.Any<SearchOption>();
+        public static GitFileStatus GitFileStatus => Arg.Any<GitFileStatus>();
+        public static GitConfigSource GitConfigSource => Arg.Any<GitConfigSource>();
+        public static List<GitLogEntry> GitLogs => Arg.Any<List<GitLogEntry>>();
+        public static GitAheadBehindStatus GitAheadBehindStatus => Arg.Any<GitAheadBehindStatus>();
+        public static GitStatus GitStatus => Arg.Any<GitStatus>();
+        public static List<GitLock> GitLocks => Arg.Any<List<GitLock>>();
+        public static IEnumerable<GitLock> EnumerableGitLock => Arg.Any<IEnumerable<GitLock>>();
+        public static IUser User => Arg.Any<IUser>();
+        public static ConfigBranch? NullableConfigBranch => Arg.Any<ConfigBranch?>();
+        public static ConfigRemote? NullableConfigRemote => Arg.Any<ConfigRemote?>();
+        public static Dictionary<string, ConfigBranch> LocalBranchDictionary => Arg.Any<Dictionary<string, ConfigBranch>>();
+        public static Dictionary<string, ConfigRemote> RemoteDictionary => Arg.Any<Dictionary<string, ConfigRemote>>();
+        public static Dictionary<string, Dictionary<string, ConfigBranch>> RemoteBranchDictionary => Arg.Any<Dictionary<string, Dictionary<string, ConfigBranch>>>();
+        public static CacheType CacheType => Arg.Any<CacheType>();
+        public static DateTimeOffset DateTimeOffset => Arg.Any<DateTimeOffset>();
 
         public static ITask<GitStatus?> GitStatusTask
         {
@@ -45,6 +48,5 @@ namespace TestUtils
                 return task;
             }
         }
-
     }
 }

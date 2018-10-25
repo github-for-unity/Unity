@@ -53,14 +53,7 @@ namespace IntegrationTests
             bool initializeRepository = true
             )
         {
-            var cacheContainer = new CacheContainer();
-            cacheContainer.SetCacheInitializer(CacheType.Branches, () => BranchesCache.Instance);
-            cacheContainer.SetCacheInitializer(CacheType.GitAheadBehind, () => GitAheadBehindCache.Instance);
-            cacheContainer.SetCacheInitializer(CacheType.GitLocks, () => GitLocksCache.Instance);
-            cacheContainer.SetCacheInitializer(CacheType.GitLog, () => GitLogCache.Instance);
-            cacheContainer.SetCacheInitializer(CacheType.GitStatus, () => GitStatusCache.Instance);
-            cacheContainer.SetCacheInitializer(CacheType.GitUser, () => GitUserCache.Instance);
-            cacheContainer.SetCacheInitializer(CacheType.RepositoryInfo, () => RepositoryInfoCache.Instance);
+            var cacheContainer = CreateCacheContainer();
 
             var environment = new IntegrationTestEnvironment(cacheContainer,
                repoPath,
@@ -72,9 +65,20 @@ namespace IntegrationTests
             Environment = environment;
         }
 
-        protected void InitializePlatform(NPath repoPath,
-            bool enableEnvironmentTrace = true,
-            string testName = "")
+        protected virtual ICacheContainer CreateCacheContainer()
+        {
+            var cacheContainer = new CacheContainer();
+            cacheContainer.SetCacheInitializer(CacheType.Branches, () => BranchesCache.Instance);
+            cacheContainer.SetCacheInitializer(CacheType.GitAheadBehind, () => GitAheadBehindCache.Instance);
+            cacheContainer.SetCacheInitializer(CacheType.GitLocks, () => GitLocksCache.Instance);
+            cacheContainer.SetCacheInitializer(CacheType.GitLog, () => GitLogCache.Instance);
+            cacheContainer.SetCacheInitializer(CacheType.GitStatus, () => GitStatusCache.Instance);
+            cacheContainer.SetCacheInitializer(CacheType.GitUser, () => GitUserCache.Instance);
+            cacheContainer.SetCacheInitializer(CacheType.RepositoryInfo, () => RepositoryInfoCache.Instance);
+            return cacheContainer;
+        }
+
+        protected void InitializePlatform()
         {
             InitializeTaskManager();
 
@@ -99,7 +103,7 @@ namespace IntegrationTests
             [CallerMemberName] string testName = "")
         {
             InitializeEnvironment(repoPath, enableEnvironmentTrace, true);
-            InitializePlatform(repoPath, enableEnvironmentTrace: enableEnvironmentTrace, testName: testName);
+            InitializePlatform();
             SetupGit(Environment.GetSpecialFolder(System.Environment.SpecialFolder.LocalApplicationData).ToNPath(), testName);
 
             DotGitPath = repoPath.Combine(".git");

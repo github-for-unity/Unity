@@ -83,7 +83,7 @@ namespace IntegrationTests
         public void SubmissionWorks()
         {
             InitializeEnvironment(TestBasePath, false, false);
-            InitializePlatform(TestBasePath, false, "SubmissionWorks");
+            InitializePlatform();
             var userId = Guid.NewGuid().ToString();
             var appVersion = ApplicationInfo.Version;
             var unityVersion = "2017.3f1";
