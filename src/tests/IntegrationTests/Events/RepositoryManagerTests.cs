@@ -49,14 +49,13 @@ namespace IntegrationTests
                 RepositoryManager.WaitForEvents();
                 StopTrackTimeAndLog(watch, logger);
 
-                repositoryManagerListener.DidNotReceive().OnIsBusyChanged(Args.Bool);
-                repositoryManagerListener.DidNotReceive().CurrentBranchUpdated(Args.NullableConfigBranch, Args.NullableConfigRemote);
-                repositoryManagerListener.DidNotReceive().GitAheadBehindStatusUpdated(Args.GitAheadBehindStatus);
-                repositoryManagerListener.DidNotReceive().GitStatusUpdated(Args.GitStatus);
-                repositoryManagerListener.DidNotReceive().GitLocksUpdated(Args.GitLocks);
-                repositoryManagerListener.DidNotReceive().GitLogUpdated(Args.GitLogs);
-                repositoryManagerListener.DidNotReceive().LocalBranchesUpdated(Args.LocalBranchDictionary);
-                repositoryManagerListener.DidNotReceive().RemoteBranchesUpdated(Args.RemoteDictionary, Args.RemoteBranchDictionary);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.GitStatusUpdated), repositoryManagerEvents.GitStatusUpdated);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.LocalBranchesUpdated), repositoryManagerEvents.LocalBranchesUpdated);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.RemoteBranchesUpdated), repositoryManagerEvents.RemoteBranchesUpdated);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.GitAheadBehindStatusUpdated), repositoryManagerEvents.GitAheadBehindStatusUpdated);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.GitLocksUpdated), repositoryManagerEvents.GitLocksUpdated);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.GitLogUpdated), repositoryManagerEvents.GitLogUpdated);
+                await AssertDidNotReceiveEvent(nameof(repositoryManagerEvents.CurrentBranchUpdated), repositoryManagerEvents.CurrentBranchUpdated);
             }
             finally
             {
