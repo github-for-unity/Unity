@@ -20,7 +20,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -30,6 +30,7 @@ namespace IntegrationTests
                     repositoryWatcherListener.AttachListener(repositoryWatcher, watcherAutoResetEvent);
 
                     repositoryWatcher.Initialize();
+                    repositoryWatcher.Start();
 
                     try
                     {
@@ -41,8 +42,6 @@ namespace IntegrationTests
                         await TaskManager.Wait();
 
                         Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -62,19 +61,16 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                         repositoryWatcherListener.ClearReceivedCalls();
 
-                        repositoryWatcher.Stop();
                         Logger.Trace("Issuing Command");
 
                         await GitClient.AddAll().StartAsAsync();
 
                         Logger.Trace("Completed Command");
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
                                 watcherAutoResetEvent.RepositoryChanged,
-                                watcherAutoResetEvent.LocalBranchesChanged,
-                                watcherAutoResetEvent.RemoteBranchesChanged
+                                watcherAutoResetEvent.LocalBranchesChanged
                             ),
                             TaskEx.Delay(TimeSpan.FromSeconds(10))
                         );
@@ -86,17 +82,15 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
                         repositoryWatcherListener.DidNotReceive().IndexChanged();
                         repositoryWatcherListener.Received(1).RepositoryChanged();
-                        repositoryWatcherListener.Received(2).LocalBranchesChanged();
-                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
+                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                         repositoryWatcherListener.ClearReceivedCalls();
 
-                        repositoryWatcher.Stop();
                         Logger.Trace("Issuing Command");
 
                         await GitClient.Commit("Test Commit", string.Empty).StartAsAsync();
 
                         Logger.Trace("Completed Command");
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -113,7 +107,7 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().RepositoryChanged();
                         repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                         repositoryWatcherListener.Received(1).RepositoryCommitted();
-                        repositoryWatcherListener.Received(2).IndexChanged();
+                        repositoryWatcherListener.Received(1).IndexChanged();
                         repositoryWatcherListener.Received(1).LocalBranchesChanged();
                         repositoryWatcherListener.ClearReceivedCalls();
                     }
@@ -136,7 +130,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -147,7 +141,6 @@ namespace IntegrationTests
 
                     repositoryWatcher.Initialize();
                     repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
 
                     try
                     {
@@ -158,14 +151,10 @@ namespace IntegrationTests
 
                         Logger.Trace("Completed Command");
 
-                        repositoryWatcher.Start();
-
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
                                 watcherAutoResetEvent.HeadChanged,
-                                watcherAutoResetEvent.IndexChanged,
                                 watcherAutoResetEvent.LocalBranchesChanged,
-                                watcherAutoResetEvent.RemoteBranchesChanged,
                                 watcherAutoResetEvent.RepositoryChanged
                             ),
                             TaskEx.Delay(TimeSpan.FromSeconds(10))
@@ -176,10 +165,10 @@ namespace IntegrationTests
                         repositoryWatcherListener.Received(1).HeadChanged();
                         repositoryWatcherListener.DidNotReceive().ConfigChanged();
                         repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
-                        repositoryWatcherListener.Received(1).IndexChanged();
+                        repositoryWatcherListener.DidNotReceive().IndexChanged();
                         repositoryWatcherListener.Received(1).RepositoryChanged();
-                        repositoryWatcherListener.Received(2).LocalBranchesChanged();
-                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
+                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                     }
                     finally
                     {
@@ -200,7 +189,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -211,7 +200,6 @@ namespace IntegrationTests
 
                     repositoryWatcher.Initialize();
                     repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
 
                     try
                     {
@@ -221,8 +209,6 @@ namespace IntegrationTests
                         await TaskManager.Wait();
 
                         Logger.Trace("Completed Command");
-
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -263,7 +249,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -274,7 +260,6 @@ namespace IntegrationTests
 
                     repositoryWatcher.Initialize();
                     repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
 
                     try
                     {
@@ -284,8 +269,6 @@ namespace IntegrationTests
                         await TaskManager.Wait();
 
                         Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -305,16 +288,12 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                         repositoryWatcherListener.ClearReceivedCalls();
 
-                        repositoryWatcher.Stop();
-
                         Logger.Trace("Issuing Command");
 
                         await GitClient.CreateBranch("feature2/document2", "feature/document").StartAsAsync();
                         await TaskManager.Wait();
 
                         Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -330,7 +309,7 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().RepositoryCommitted();
                         repositoryWatcherListener.DidNotReceive().IndexChanged();
                         repositoryWatcherListener.DidNotReceive().RepositoryChanged();
-                        repositoryWatcherListener.Received(1).LocalBranchesChanged();
+                        repositoryWatcherListener.Received().LocalBranchesChanged();
                         repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                     }
                     finally
@@ -352,7 +331,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -363,7 +342,6 @@ namespace IntegrationTests
 
                     repositoryWatcher.Initialize();
                     repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
 
                     try
                     {
@@ -373,8 +351,6 @@ namespace IntegrationTests
                         await TaskManager.Wait();
 
                         Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -396,8 +372,6 @@ namespace IntegrationTests
                         repositoryWatcherListener.Received(1).RemoteBranchesChanged();
                         repositoryWatcherListener.ClearReceivedCalls();
 
-                        repositoryWatcher.Stop();
-
                         Logger.Trace("Issuing 2nd Command");
 
                         await GitClient.RemoteAdd("origin", "https://github.com/EvilStanleyGoldman/IOTestsRepo.git").StartAsAsync();
@@ -405,12 +379,9 @@ namespace IntegrationTests
 
                         Logger.Trace("Continue 2nd test");
 
-                        repositoryWatcher.Start();
-
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
-                                watcherAutoResetEvent.ConfigChanged,
-                                watcherAutoResetEvent.RemoteBranchesChanged
+                                watcherAutoResetEvent.ConfigChanged
                             ),
                             TaskEx.Delay(TimeSpan.FromSeconds(10))
                         );
@@ -423,7 +394,7 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().IndexChanged();
                         repositoryWatcherListener.DidNotReceive().RepositoryChanged();
                         repositoryWatcherListener.DidNotReceive().LocalBranchesChanged();
-                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
+                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
                     }
                     finally
                     {
@@ -444,7 +415,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanSynchronized))
                 {
@@ -455,7 +426,6 @@ namespace IntegrationTests
 
                     repositoryWatcher.Initialize();
                     repositoryWatcher.Start();
-                    repositoryWatcher.Stop();
 
                     try
                     {
@@ -465,8 +435,6 @@ namespace IntegrationTests
                         await TaskManager.Wait();
 
                         Logger.Trace("Continue test");
-
-                        repositoryWatcher.Start();
 
                         await TaskEx.WhenAny(
                             TaskEx.WhenAll(
@@ -506,7 +474,7 @@ namespace IntegrationTests
 
             try
             {
-                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
+                InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized, createRepositoryManager: false);
 
                 using (var repositoryWatcher = CreateRepositoryWatcher(TestRepoMasterCleanUnsynchronized))
                 {

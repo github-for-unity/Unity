@@ -94,6 +94,7 @@ namespace IntegrationTests
 
         protected IEnvironment InitializePlatformAndEnvironment(NPath repoPath,
             bool enableEnvironmentTrace = false,
+            bool createRepositoryManager = true,
             Action<IRepositoryManager> onRepositoryManagerCreated = null,
             [CallerMemberName] string testName = "")
         {
@@ -115,14 +116,18 @@ namespace IntegrationTests
             DotGitHead = DotGitPath.Combine("HEAD");
             DotGitConfig = DotGitPath.Combine("config");
 
-            RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
-            RepositoryManager.Initialize();
+            if (createRepositoryManager)
+            {
+                RepositoryManager = GitHub.Unity.RepositoryManager.CreateInstance(Platform, TaskManager, GitClient, repoPath);
+                RepositoryManager.Initialize();
 
-            onRepositoryManagerCreated?.Invoke(RepositoryManager);
+                onRepositoryManagerCreated?.Invoke(RepositoryManager);
 
-            Environment.Repository?.Initialize(RepositoryManager, TaskManager);
+                Environment.Repository?.Initialize(RepositoryManager, TaskManager);
 
-            RepositoryManager.Start();
+                RepositoryManager.Start();
+            }
+
             Environment.Repository?.Start();
             return Environment;
         }
