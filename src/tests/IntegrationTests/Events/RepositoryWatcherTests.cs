@@ -10,7 +10,7 @@ using GitHub.Logging;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Category("DoNotRunOnAppVeyor")]
     class RepositoryWatcherTests : BaseGitEnvironmentTest
     {
         [Test]
@@ -147,7 +147,6 @@ namespace IntegrationTests
                         Logger.Trace("Issuing Command");
 
                         await GitClient.SwitchBranch("feature/document").StartAsAsync();
-                        await TaskManager.Wait();
 
                         Logger.Trace("Completed Command");
 
@@ -155,6 +154,7 @@ namespace IntegrationTests
                             TaskEx.WhenAll(
                                 watcherAutoResetEvent.HeadChanged,
                                 watcherAutoResetEvent.LocalBranchesChanged,
+                                watcherAutoResetEvent.RemoteBranchesChanged,
                                 watcherAutoResetEvent.RepositoryChanged
                             ),
                             TaskEx.Delay(TimeSpan.FromSeconds(10))
@@ -168,7 +168,7 @@ namespace IntegrationTests
                         repositoryWatcherListener.DidNotReceive().IndexChanged();
                         repositoryWatcherListener.Received(1).RepositoryChanged();
                         repositoryWatcherListener.Received(1).LocalBranchesChanged();
-                        repositoryWatcherListener.DidNotReceive().RemoteBranchesChanged();
+                        repositoryWatcherListener.Received(1).RemoteBranchesChanged();
                     }
                     finally
                     {

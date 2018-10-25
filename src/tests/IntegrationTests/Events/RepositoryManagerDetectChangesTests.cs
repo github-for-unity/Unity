@@ -14,7 +14,7 @@ using GitHub.Logging;
 
 namespace IntegrationTests
 {
-    [TestFixture]
+    [TestFixture, Category("DoNotRunOnAppVeyor")]
     class RepositoryManagerDetectionTests : BaseGitEnvironmentTest
     {
         private IBranchCache branchCache;
