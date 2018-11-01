@@ -13,7 +13,7 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
 
 ### MacOS
 
-- Mono 4.x required. You can install it via brew with `brew tap shana/mono && brew install mono@4.8`
+- [Mono 4.x](https://download.mono-project.com/archive/4.8.1/macos-10-universal/) required. You can install it via brew with `brew tap shana/mono && brew install mono@4.8`
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
   - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]/Unity.app/Contents/Managed` into the `lib` directory in order for the build to work
