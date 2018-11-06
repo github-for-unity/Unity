@@ -255,7 +255,7 @@ namespace GitHub.Unity
                 {
                     var login = ret.Output[1];
 
-                    if (login != keychainConnection.Username)
+                    if (!string.Equals(login, keychainConnection.Username, StringComparison.InvariantCultureIgnoreCase))
                     {
                         logger.Trace("LoadKeychainInternal: Api username does not match");
                         throw new TokenUsernameMismatchException(keychainConnection.Username, login);
