@@ -21,6 +21,8 @@ namespace GitHub.Unity
             environment = env;
             platform = plat;
             platform.Keychain.ConnectionsChanged += UserMayHaveChanged;
+            // we need to do this to get the initial user information up front
+            UserMayHaveChanged();
 
             repository = environment.Repository;
             if (repository != null)
@@ -37,19 +39,21 @@ namespace GitHub.Unity
 
         public static AssetMoveResult OnWillMoveAsset(string oldPath, string newPath)
         {
-            return IsLocked(oldPath) || IsLocked(newPath) ? AssetMoveResult.FailedMove : AssetMoveResult.DidNotMove;
+            return IsLockedBySomeoneElse(oldPath) || IsLockedBySomeoneElse(newPath) ? AssetMoveResult.FailedMove : AssetMoveResult.DidNotMove;
         }
 
         public static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions option)
         {
-            return IsLocked(assetPath) ? AssetDeleteResult.FailedDelete : AssetDeleteResult.DidNotDelete;
+            return IsLockedBySomeoneElse(assetPath) ? AssetDeleteResult.FailedDelete : AssetDeleteResult.DidNotDelete;
         }
 
+        // Returns true if this file can be edited by this user
         public static bool IsOpenForEdit(string assetPath, out string message)
         {
             var lck = GetLock(assetPath);
-            message = lck.HasValue ? "File is locked for editing by " + lck.Value.Owner : null;
-            return !lck.HasValue;
+            var canEdit = !IsLockedBySomeoneElse(lck);
+            message = !canEdit ? "File is locked for editing by " + lck.Value.Owner : null;
+            return canEdit;
         }
 
         private static void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -66,9 +70,14 @@ namespace GitHub.Unity
             loggedInUser = platform.Keychain.Connections.Select(x => x.Username).FirstOrDefault();
         }
 
-        private static bool IsLocked(string assetPath)
+        private static bool IsLockedBySomeoneElse(GitLock? lck)
         {
-            return GetLock(assetPath).HasValue;
+            return lck.HasValue && !lck.Value.Owner.Name.Equals(loggedInUser);
+        }
+
+        private static bool IsLockedBySomeoneElse(string assetPath)
+        {
+            return IsLockedBySomeoneElse(GetLock(assetPath));
         }
 
         private static GitLock? GetLock(string assetPath)
@@ -78,9 +87,9 @@ namespace GitHub.Unity
 
             GitLock lck;
             var repositoryPath = environment.GetRepositoryPath(assetPath.ToNPath());
-            if (!locks.TryGetValue(repositoryPath, out lck) || lck.Owner.Name.Equals(loggedInUser))
-                return null;
-            return lck;
+            if (locks.TryGetValue(repositoryPath, out lck))
+                return lck;
+            return null;
         }
     }
 }
