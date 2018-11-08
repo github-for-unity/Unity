@@ -7,7 +7,7 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
-    class HistoryControl
+    public class HistoryControl
     {
         private const string HistoryEntryDetailFormat = "{0}     {1}";
 

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    abstract class BaseWindow :  EditorWindow, IView
+    public abstract class BaseWindow :  EditorWindow, IView
     {
         [NonSerialized] private bool initialized = false;
         [NonSerialized] private IUser cachedUser;

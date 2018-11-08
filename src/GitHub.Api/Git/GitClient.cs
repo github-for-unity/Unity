@@ -200,6 +200,15 @@ namespace GitHub.Unity
         ITask<string> DiscardAll(IOutputProcessor<string> processor = null);
 
         /// <summary>
+        /// Executes at least one `git checkout` command to checkout files at the given changeset
+        /// </summary>
+        /// <param name="changeset">The md5 of the changeset</param>
+        /// <param name="files">The files to check out</param>
+        /// <param name="processor">A custom output processor instance</param>
+        /// <returns>String output of git command</returns>
+        ITask<string> CheckoutVersion(string changeset, IEnumerable<string> files, IOutputProcessor<string> processor = null);
+
+        /// <summary>
         /// Executes at least one `git reset HEAD` command to remove files from the git index.
         /// </summary>
         /// <param name="files">The files to remove</param>
@@ -240,6 +249,13 @@ namespace GitHub.Unity
         /// <param name="processor">A custom output processor instance</param>
         /// <returns><see cref="List&lt;T&gt;"/> of <see cref="GitLogEntry"/> output</returns>
         ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null);
+
+        /// <summary>
+        /// Executes `git log -- <file>` to get the history of a specific file.
+        /// </summary>
+        /// <param name="processor">A custom output processor instance</param>
+        /// <returns><see cref="List&lt;T&gt;"/> of <see cref="GitLogEntry"/> output</returns>
+        ITask<List<GitLogEntry>> LogFile(NPath file, BaseOutputListProcessor<GitLogEntry> processor = null);
 
         /// <summary>
         /// Executes `git --version` to get the git version.
@@ -325,6 +341,17 @@ namespace GitHub.Unity
         public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
         {
             return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
+                .Configure(processManager)
+                .Catch(exception => exception is ProcessException &&
+                    exception.Message.StartsWith("fatal: your current branch") &&
+                    exception.Message.EndsWith("does not have any commits yet"))
+                .Then((success, list) => success ? list : new List<GitLogEntry>());
+        }
+
+        ///<inheritdoc/>
+        public ITask<List<GitLogEntry>> LogFile(NPath file, BaseOutputListProcessor<GitLogEntry> processor = null)
+        {
+            return new GitLogTask(file, new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager)
                 .Catch(exception => exception is ProcessException &&
                     exception.Message.StartsWith("fatal: your current branch") &&
@@ -546,6 +573,13 @@ namespace GitHub.Unity
         public ITask<string> DiscardAll(IOutputProcessor<string> processor = null)
         {
             return new GitCheckoutTask(cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        ///<inheritdoc/>
+        public ITask<string> CheckoutVersion(string changeset, IEnumerable<string> files, IOutputProcessor<string> processor = null)
+        {
+            return new GitCheckoutTask(changeset, files, cancellationToken, processor)
                 .Configure(processManager);
         }
 

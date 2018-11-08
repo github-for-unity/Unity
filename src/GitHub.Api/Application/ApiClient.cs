@@ -283,13 +283,13 @@ namespace GitHub.Unity
         }
     }
 
-    class GitHubUser
+    public class GitHubUser
     {
         public string Name { get; set; }
         public string Login { get; set; }
     }
 
-    class GitHubRepository
+    public class GitHubRepository
     {
         public string Name { get; set; }
         public string CloneUrl { get; set; }

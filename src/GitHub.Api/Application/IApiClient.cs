@@ -2,7 +2,7 @@
 
 namespace GitHub.Unity
 {
-    interface IApiClient
+    public interface IApiClient
     {
         HostAddress HostAddress { get; }
         UriString OriginalUrl { get; }
