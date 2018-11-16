@@ -1,20 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6B0EAB30-511A-44C1-87FE-D9AB7E34D115}</ProjectGuid>
+    <ProjectGuid>{F94F8AE1-C171-4A83-89E8-6557CA91A188}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GitHub.Unity</RootNamespace>
-    <AssemblyName>ExtensionLoader</AssemblyName>
+    <AssemblyName>GitHub.UnityShim</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <OutputPath>..\..\..\..\obj\</OutputPath>
-    <IntermediateOutputPath>..\..\..\..\obj\</IntermediateOutputPath>
+    <TargetFrameworkProfile />
+    <LangVersion>6</LangVersion>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <OutputPath>..\UnityExtension\Assets\Editor\build\</OutputPath>
   </PropertyGroup>
-  <Import Project="..\..\..\..\..\..\common\properties.props" />
+  <Import Project="..\..\common\properties.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -22,7 +25,6 @@
     <DefineConstants>DEBUG;TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>4</LangVersion>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
@@ -33,8 +35,7 @@
     <DefineConstants>TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>4</LangVersion>
-    <BuildConfid>Release</BuildConfid>
+    <BuildConfig>Release</BuildConfig>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
@@ -46,18 +47,16 @@
     <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>4</LangVersion>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    <CodeAnalysisRuleSet>..\..\common\codeanalysis-debug.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <ProjectReference Include="..\..\..\..\..\UnityShim\UnityShim.csproj">
-      <Project>{F94F8AE1-C171-4A83-89E8-6557CA91A188}</Project>
-      <Name>UnityShim</Name>
-    </ProjectReference>
     <Reference Include="UnityEditor">
       <HintPath>$(UnityDir)Managed\UnityEditor.dll</HintPath>
       <Private>False</Private>
@@ -68,15 +67,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExtensionLoader.cs" />
-    <Compile Include="UnityAPIWrapper.cs" />
+    <Compile Include="UnityShim.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="..\..\common\build.targets" />
 </Project>

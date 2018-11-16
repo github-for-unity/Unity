@@ -88,7 +88,7 @@ namespace GitHub.Unity
         {
             if (!EnsureInitialized())
                 return false;
-            if(!Repository.CurrentRemote.HasValue)
+            if (!Repository.CurrentRemote.HasValue)
                 return false;
             if (isBusy)
                 return false;
@@ -222,7 +222,8 @@ namespace GitHub.Unity
                 guidsLocks.Add(g);
             }
 
-            EditorApplication.RepaintProjectWindow();
+            //EditorApplication.RepaintProjectWindow();
+            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
         }
 
         private static void OnStatusUpdate()

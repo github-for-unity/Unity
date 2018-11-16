@@ -1,8 +1,11 @@
 {
     "name": "GitHub.Unity",
-    "references": [],
+    "references": [
+    ],
+    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
 }

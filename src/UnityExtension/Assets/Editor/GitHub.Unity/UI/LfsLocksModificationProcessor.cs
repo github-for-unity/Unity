@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GitHub.Logging;
 using UnityEditor;
+using UnityEngine;
 
 namespace GitHub.Unity
 {
@@ -25,6 +26,8 @@ namespace GitHub.Unity
             UserMayHaveChanged();
 
             repository = environment.Repository;
+            UnityShim.Editor_finishedDefaultHeaderGUI += InspectorHeaderFinished;
+
             if (repository != null)
             {
                 repository.LocksChanged += RepositoryOnLocksChanged;
@@ -51,8 +54,14 @@ namespace GitHub.Unity
         public static bool IsOpenForEdit(string assetPath, out string message)
         {
             var lck = GetLock(assetPath);
-            var canEdit = !IsLockedBySomeoneElse(lck);
-            message = !canEdit ? "File is locked for editing by " + lck.Value.Owner : null;
+            bool canEdit = true;
+            if (assetPath.EndsWith(".meta"))
+            {
+                canEdit &= !IsLockedBySomeoneElse(lck);
+                assetPath = assetPath.TrimEnd(".meta");
+            }
+            canEdit &= !IsLockedBySomeoneElse(lck);
+            message = !canEdit ? string.Format("File is locked for editing by {0}", lck.Value.Owner.Name) : null;
             return canEdit;
         }
 
@@ -90,6 +99,39 @@ namespace GitHub.Unity
             if (locks.TryGetValue(repositoryPath, out lck))
                 return lck;
             return null;
+        }
+
+        private static void InspectorHeaderFinished(Editor editor)
+        {
+            string message = "";
+            if (!IsOpenForEdit(AssetDatabase.GetAssetPath(editor.target), out message))
+            {
+                var enabled = GUI.enabled;
+                GUI.enabled = true;
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(9);
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.BeginVertical(GUILayout.Width(32));
+                        {
+                            GUILayout.Label(Utility.GetIcon("big-logo.png", "small-logo@2x.png"), GUILayout.Width(32), GUILayout.Height(32));
+                        }
+                        GUILayout.EndVertical();
+
+                        GUILayout.BeginVertical();
+                        {
+                            GUILayout.Space(9);
+                            GUILayout.Label(message, Styles.HeaderBranchLabelStyle);
+                        }
+                        GUILayout.EndVertical();
+                    }
+                    GUILayout.EndHorizontal();
+                }
+                GUILayout.EndVertical();
+                GUI.enabled = enabled;
+            }
+
         }
     }
 }
