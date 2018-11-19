@@ -42,6 +42,32 @@ namespace GitHub.Unity
             EditorApplication.update += Initialize;
         }
 
+        [MenuItem("Window/GitHub/Disable", false, 1000)]
+        public static void Menu_Disable()
+        {
+            Environment.SetEnvironmentVariable(GITHUB_UNITY_DISABLE, "1");
+            DisableAssemblies();
+        }
+
+        [MenuItem("Window/GitHub/Disable", true, 1000)]
+        public static bool Menu_CanDisable()
+        {
+            return !IsDisabled;
+        }
+
+        [MenuItem("Window/GitHub/Enable", false, 1001)]
+        public static void Menu_Enable()
+        {
+            Environment.SetEnvironmentVariable(GITHUB_UNITY_DISABLE, "0");
+            ToggleAssemblies();
+        }
+
+        [MenuItem("Window/GitHub/Enable", true, 1001)]
+        public static bool Menu_CanEnable()
+        {
+            return IsDisabled;
+        }
+
         private static void Initialize()
         {
             EditorApplication.update -= Initialize;
@@ -56,7 +82,6 @@ namespace GitHub.Unity
                 //ExtensionLoader.instance.Initialized = true;
                 AssetDatabase.SaveAssets();
             }
-
         }
 
         private static void ToggleAssemblies()
@@ -68,6 +93,18 @@ namespace GitHub.Unity
 #else
             ToggleAssemblies(path, assemblies45, false);
             ToggleAssemblies(path, assemblies20, true);
+#endif
+        }
+
+        private static void DisableAssemblies()
+        {
+            var path = inSourceMode ? sourceModePath : realPath;
+#if NET_4_6
+            ToggleAssemblies(path, assemblies20, false);
+            ToggleAssemblies(path, assemblies45, false);
+#else
+            ToggleAssemblies(path, assemblies45, false);
+            ToggleAssemblies(path, assemblies20, false);
 #endif
         }
 

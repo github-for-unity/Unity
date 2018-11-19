@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
+#if !UNITY_2018_2_OR_NEWER
 using UnityEngine.TestTools;
+#endif
 using NUnit.Framework;
 using System.Collections;
 using GitHub.Unity;

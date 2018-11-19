@@ -10,8 +10,8 @@ namespace GitHub.Unity
     {
         private const float DefaultNotificationTimeout = 2f;
         private const string Title = "GitHub";
-        private const string Menu_Window_GitHub = "Window/GitHub";
-        private const string Menu_Window_GitHub_Command_Line = "Window/GitHub Command Line";
+        private const string Menu_Window_GitHub = "Window/GitHub/Show Window";
+        private const string Menu_Window_GitHub_Command_Line = "Window/GitHub/Command Line";
 
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress repositoryProgress;
@@ -57,13 +57,13 @@ namespace GitHub.Unity
         [SerializeField] private string appManagerProgressMessage;
         [SerializeField] private Connection connection;
 
-        [MenuItem(Menu_Window_GitHub)]
+        [MenuItem(Menu_Window_GitHub, false, 1)]
         public static void Window_GitHub()
         {
             ShowWindow(EntryPoint.ApplicationManager);
         }
 
-        [MenuItem(Menu_Window_GitHub_Command_Line)]
+        [MenuItem(Menu_Window_GitHub_Command_Line, false, 2)]
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
@@ -72,14 +72,14 @@ namespace GitHub.Unity
 
 #if DEBUG
 
-        [MenuItem("GitHub/Select Window")]
+        [MenuItem("GitHub/Select Window", false, 1)]
         public static void GitHub_SelectWindow()
         {
             var window = Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window;
             Selection.activeObject = window;
         }
 
-        [MenuItem("GitHub/Restart")]
+        [MenuItem("GitHub/Restart", false, 2)]
         public static void GitHub_Restart()
         {
             EntryPoint.Restart();

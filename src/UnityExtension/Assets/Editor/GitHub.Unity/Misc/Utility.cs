@@ -5,16 +5,24 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace GitHub.Unity
 {
     class Utility : ScriptableObject
     {
+        private static Dictionary<string, Texture2D> iconCache = new Dictionary<string, Texture2D>();
+
         public static Texture2D GetIcon(string filename, string filename2x = "")
         {
             if (EditorGUIUtility.pixelsPerPoint > 1f && !string.IsNullOrEmpty(filename2x))
             {
                 filename = filename2x;
+            }
+
+            if (iconCache.ContainsKey(filename))
+            {
+                return iconCache[filename];
             }
 
             Texture2D texture2D = null;
@@ -35,6 +43,7 @@ namespace GitHub.Unity
                 texture2D.hideFlags = HideFlags.HideAndDontSave;
             }
 
+            iconCache.Add(filename, texture2D);
             return texture2D;
         }
 
