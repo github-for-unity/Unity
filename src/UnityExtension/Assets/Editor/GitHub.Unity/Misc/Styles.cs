@@ -806,7 +806,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return Utility.GetIcon("current-branch-indicator.png", "current-branch-indicator@2x.png");
+                return Utility.GetIcon("current-branch-indicator.png", "current-branch-indicator@2x.png", Utility.IsDarkTheme);
             }
         }
 
@@ -846,7 +846,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return  Utility.GetIcon("small-logo.png");
+                return Utility.IsDarkTheme ? Utility.GetIcon("small-logo-light.png", "small-logo-light@2x.png") : Utility.GetIcon("small-logo.png", "small-logo@2x.png");
             }
         }
 
@@ -854,7 +854,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return Utility.IsDarkTheme ? Utility.GetIcon("big-logo-light.png") : Utility.GetIcon("big-logo.png");
+                return Utility.IsDarkTheme ? Utility.GetIcon("big-logo-light.png", "big-logo-light@2x.png") : Utility.GetIcon("big-logo.png", "big-logo@2x.png");
             }
         }
 
@@ -870,7 +870,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return Utility.GetIcon("dot.png", "dot@2x.png");
+                return Utility.GetIcon("dot.png", "dot@2x.png", Utility.IsDarkTheme);
             }
         }
 
@@ -878,7 +878,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return Utility.GetIcon("local-commit-icon.png", "local-commit-icon@2x.png");
+                return Utility.GetIcon("local-commit-icon.png", "local-commit-icon@2x.png", Utility.IsDarkTheme);
             }
         }
 
@@ -894,7 +894,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return Utility.GetIcon("repo.png", "repo@2x.png");
+                return Utility.GetIcon("repo.png", "repo@2x.png", Utility.IsDarkTheme);
             }
         }
 
@@ -908,10 +908,10 @@ namespace GitHub.Unity
 
         public static Texture2D EmptyStateInit
         {
-          get
-          {
-            return Utility.GetIcon("empty-state-init.png", "empty-state-init@2x.png");
-          }
+            get
+            {
+                return Utility.GetIcon("empty-state-init.png", "empty-state-init@2x.png");
+            }
         }
 
         public static Texture2D DropdownListIcon
@@ -926,7 +926,7 @@ namespace GitHub.Unity
         {
             get
             {
-                return Utility.GetIcon("globe.png", "globe@2x.png");
+                return Utility.GetIcon("globe.png", "globe@2x.png", Utility.IsDarkTheme);
             }
         }
 
