@@ -9,4 +9,6 @@ commander
     .command('organizations', 'Get Organizations')
     .command('publish', 'Publish')
     .command('usage', 'Usage')
+    .command('token', 'Create OAuth Token')
+    .command('meta', 'Get Server Meta Data')
     .parse(process.argv);

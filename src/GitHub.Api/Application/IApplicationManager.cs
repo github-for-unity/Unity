@@ -16,6 +16,7 @@ namespace GitHub.Unity
         ITaskManager TaskManager { get; }
         IGitClient GitClient { get; }
         IUsageTracker UsageTracker { get; }
+        IOAuthCallbackManager OAuthCallbackManager { get; }
         bool IsBusy { get; }
         void Run();
         void InitializeRepository();

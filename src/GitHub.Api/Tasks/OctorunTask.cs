@@ -60,8 +60,9 @@ namespace GitHub.Unity
         private readonly NPath pathToOctorunJs;
         private readonly string arguments;
 
-        public OctorunTask(CancellationToken token, IKeychain keychain, IEnvironment environment,
+        public OctorunTask(CancellationToken token, IEnvironment environment,
             string arguments,
+            string userToken = null,
             IOutputProcessor<OctorunResult> processor = null)
             : base(token, processor ?? new OctorunResultOutputProcessor())
         {
@@ -70,25 +71,7 @@ namespace GitHub.Unity
             this.pathToNodeJs = environment.NodeJsExecutablePath;
             this.pathToOctorunJs = environment.OctorunScriptPath;
             this.arguments = $"\"{pathToOctorunJs}\" {arguments}";
-
-            var cloneUrl = environment.Repository?.CloneUrl;
-            var host = String.IsNullOrEmpty(cloneUrl)
-                ? UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri)
-                : new UriString(cloneUrl.ToRepositoryUri()
-                    .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-
-            var adapter = keychain.Connect(host);
-            if (adapter.Credential?.Token != null)
-            {
-                userToken = adapter.Credential.Token;
-            }
-            else
-            {
-                // use a cached adapter if there is one filled out
-                adapter = keychain.LoadFromSystem(host);
-                if (adapter != null)
-                    userToken = adapter.Credential.Token;
-            }
+            this.userToken = userToken;
         }
 
         public override void Configure(ProcessStartInfo psi)
