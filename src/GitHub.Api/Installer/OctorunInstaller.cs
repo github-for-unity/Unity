@@ -87,7 +87,7 @@ namespace GitHub.Unity
             public const string DefaultZipMd5Url = "http://github-vs.s3.amazonaws.com/unity/octorun/octorun.zip.md5";
             public const string DefaultZipUrl = "http://github-vs.s3.amazonaws.com/unity/octorun/octorun.zip";
 
-            public const string PackageVersion = "902910f4";
+            public const string PackageVersion = "902910f48";
             private const string PackageName = "octorun";
             private const string zipFile = "octorun.zip";
 
