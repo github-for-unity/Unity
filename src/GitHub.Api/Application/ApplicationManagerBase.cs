@@ -318,6 +318,8 @@ namespace GitHub.Unity
         protected virtual void InitializationComplete() {}
 
         private bool disposed = false;
+        private IOAuthCallbackManager oAuthCallbackManager;
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -356,6 +358,20 @@ namespace GitHub.Unity
         public ISettings SystemSettings { get { return Environment.SystemSettings; } }
         public ISettings UserSettings { get { return Environment.UserSettings; } }
         public IUsageTracker UsageTracker { get; protected set; }
+
+        public IOAuthCallbackManager OAuthCallbackManager
+        {
+            get
+            {
+                if (oAuthCallbackManager == null)
+                {
+                    oAuthCallbackManager = new OAuthCallbackManager();
+                }
+
+                return oAuthCallbackManager;
+            }
+        }
+
         public bool IsBusy { get { return isBusy; } }
         protected TaskScheduler UIScheduler { get; private set; }
         protected SynchronizationContext SynchronizationContext { get; private set; }

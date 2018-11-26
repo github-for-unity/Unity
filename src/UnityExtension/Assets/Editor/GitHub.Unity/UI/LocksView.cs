@@ -119,7 +119,7 @@ namespace GitHub.Unity
                         visibleItems[entry.GitLock.ID] = shouldRenderEntry;
                     }
 
-                    if (visibleItems[entry.GitLock.ID])
+                    if (visibleItems.ContainsKey(entry.GitLock.ID) && visibleItems[entry.GitLock.ID])
                     {
                         entryRect = RenderEntry(entryRect, entry);
                     }

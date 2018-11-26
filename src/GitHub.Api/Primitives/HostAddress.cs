@@ -75,14 +75,23 @@ namespace GitHub.Unity
                    || hostUri.IsSameHost(gistUri);
         }
 
-        public static bool IsGitHubDotCom(string url)
+        public static bool IsGitHubDotCom(UriString hostUri)
         {
-            if (String.IsNullOrEmpty(url))
+            return hostUri.Host == GitHubDotComHostAddress.WebUri.Host
+                || hostUri.Host == GitHubDotComHostAddress.ApiUri.Host
+                || hostUri.Host == gistUri.Host;
+        }
+
+        public static bool IsGitHubDotCom(Connection connection)
+        {
+            if (connection == null || String.IsNullOrEmpty(connection.Host))
                 return false;
-            Uri uri = null;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
-                return false;
-            return IsGitHubDotCom(uri);
+
+            var connectionHost = connection.Host.ToUriString();
+
+            return connectionHost.Host == GitHubDotComHostAddress.WebUri.Host
+                || connectionHost.Host == GitHubDotComHostAddress.ApiUri.Host
+                || connectionHost.Host == gistUri.Host;
         }
 
         public bool IsGitHubDotCom()
