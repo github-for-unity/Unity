@@ -16,6 +16,7 @@ namespace GitHub.Unity
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress repositoryProgress;
         [NonSerialized] private IProgress appManagerProgress;
+        [NonSerialized] private bool firstOnGUI = true;
 
         [SerializeField] private double progressMessageClearTime = -1;
         [SerializeField] private double notificationClearTime = -1;
@@ -112,8 +113,6 @@ namespace GitHub.Unity
             SettingsView.InitializeView(this);
             LocksView.InitializeView(this);
             InitProjectView.InitializeView(this);
-
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             if (!HasRepository)
             {
@@ -214,6 +213,12 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (firstOnGUI)
+            {
+                titleContent = new GUIContent(Title, Styles.SmallLogo);
+            }
+            firstOnGUI = false;
+
             if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
             {
                 var host = Repository.CloneUrl
