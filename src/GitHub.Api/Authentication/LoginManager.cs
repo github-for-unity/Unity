@@ -99,7 +99,7 @@ namespace GitHub.Unity
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        username = RetrieveUsername(loginResultData.Token, host, username);
+                        username = RetrieveUsername(loginResultData.Token, host);
                         keychainAdapter.Update(loginResultData.Token, username);
                         keychain.SaveToSystem(host);
                     }
@@ -139,7 +139,7 @@ namespace GitHub.Unity
                     }
 
                     keychainAdapter.Update(loginResultData.Token, username);
-                    username = RetrieveUsername(loginResultData.Token, host, username);
+                    username = RetrieveUsername(loginResultData.Token, host);
                     keychainAdapter.Update(loginResultData.Token, username);
                     keychain.SaveToSystem(host);
 
@@ -217,13 +217,8 @@ namespace GitHub.Unity
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
 
-        private string RetrieveUsername(string token, UriString host, string username = null)
+        private string RetrieveUsername(string token, UriString host)
         {
-            if (username != null && !username.Contains("@"))
-            {
-                return username;
-            }
-
             var command = HostAddress.IsGitHubDotCom(host) ? "validate" : "validate -h " + host.Host;
             var octorunTask = new OctorunTask(taskManager.Token, environment, command, token)
                 .Configure(processManager);
