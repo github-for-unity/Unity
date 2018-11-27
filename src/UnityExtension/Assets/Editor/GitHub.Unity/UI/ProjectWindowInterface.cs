@@ -222,6 +222,13 @@ namespace GitHub.Unity
                 guidsLocks.Add(g);
             }
 
+            // https://github.com/github-for-unity/Unity/pull/959#discussion_r236694800
+            // We need to repaint not only the project window, but also the inspector.
+            // so that we can show the "this thing is locked by X" and that the IsOpenForEdit call happens
+            // and the inspector is disabled. There's no way to refresh the editor directly
+            // (well, there is, but it's an internal api), so this just causes Unity to repaint everything.
+            // Nail, meet bazooka, unfortunately, but that's the only way to do it with public APIs ¯_(ツ)_/¯
+            
             //EditorApplication.RepaintProjectWindow();
             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
         }
