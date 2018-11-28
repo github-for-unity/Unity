@@ -115,6 +115,10 @@
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\UnityShim\UnityShim.csproj">
+      <Project>{F94F8AE1-C171-4A83-89E8-6557CA91A188}</Project>
+      <Name>UnityShim</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="IconsAndLogos\added%402x.png" />

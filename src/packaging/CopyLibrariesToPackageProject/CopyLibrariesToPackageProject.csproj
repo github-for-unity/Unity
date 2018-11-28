@@ -74,6 +74,10 @@
       <Link>ExtensionLoader.cs</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="$(SolutionDir)\src\UnityExtension\Assets\Editor\GitHub.Unity\ExtensionLoader\UnityAPIWrapper.cs">
+      <Link>UnityAPIWrapper.cs</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="$(SolutionDir)\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET20\ReadOnlyCollectionsInterfaces.dll">
       <Link>ReadOnlyCollectionsInterfaces.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
