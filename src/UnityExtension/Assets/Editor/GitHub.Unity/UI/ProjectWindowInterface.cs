@@ -18,6 +18,7 @@ namespace GitHub.Unity
         private static List<GitLock> locks = new List<GitLock>();
         private static List<string> guids = new List<string>();
         private static List<string> guidsLocks = new List<string>();
+        private static string loggedInUser;
 
         private static IApplicationManager manager;
         private static bool isBusy = false;
@@ -25,7 +26,9 @@ namespace GitHub.Unity
         private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
+        private static CacheUpdateEvent lastUserChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
+        private static IPlatform Platform { get { return manager != null ? manager.Platform : null; } }
         private static bool IsInitialized { get { return Repository != null; } }
 
         public static void Initialize(IApplicationManager theManager)
@@ -34,6 +37,9 @@ namespace GitHub.Unity
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 
             manager = theManager;
+
+            Platform.Keychain.ConnectionsChanged += KeychainMayHaveChanged;
+            KeychainMayHaveChanged();
 
             if (IsInitialized)
             {
@@ -83,6 +89,11 @@ namespace GitHub.Unity
             }
         }
 
+        private static void KeychainMayHaveChanged()
+        {
+            loggedInUser = Platform.Keychain.Connections.Select(x => x.Username).FirstOrDefault();
+        }
+
         [MenuItem(AssetsMenuRequestLock, true, 10000)]
         private static bool ContextMenu_CanLock()
         {
@@ -104,7 +115,7 @@ namespace GitHub.Unity
                 return false;
             if (isBusy)
                 return false;
-            return Selection.objects.Any(IsObjectLocked);
+            return Selection.objects.Any(f => IsObjectLocked(f , true));
         }
 
         [MenuItem(AssetsMenuReleaseLockForced, true, 10002)]
@@ -181,13 +192,19 @@ namespace GitHub.Unity
 
         private static bool IsObjectLocked(Object selected)
         {
+            return IsObjectLocked(selected, false);
+        }
+
+        private static bool IsObjectLocked(Object selected, bool isLockedByCurrentUser)
+        {
             if (selected == null)
                 return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            return locks.Any(x => repositoryPath == x.Path);
+            var isObjectLocked = locks.Any(x => repositoryPath == x.Path && (!isLockedByCurrentUser || x.Owner.Name == loggedInUser));
+            return isObjectLocked;
         }
 
         private static ITask CreateUnlockObjectTask(Object selected, bool force)
