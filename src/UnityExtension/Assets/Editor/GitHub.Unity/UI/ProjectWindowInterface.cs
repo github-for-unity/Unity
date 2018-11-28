@@ -26,7 +26,6 @@ namespace GitHub.Unity
         private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
-        private static CacheUpdateEvent lastUserChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
         private static IPlatform Platform { get { return manager != null ? manager.Platform : null; } }
         private static bool IsInitialized { get { return Repository != null; } }
@@ -203,8 +202,7 @@ namespace GitHub.Unity
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            var isObjectLocked = locks.Any(x => repositoryPath == x.Path && (!isLockedByCurrentUser || x.Owner.Name == loggedInUser));
-            return isObjectLocked;
+            return locks.Any(x => repositoryPath == x.Path && (!isLockedByCurrentUser || x.Owner.Name == loggedInUser));
         }
 
         private static ITask CreateUnlockObjectTask(Object selected, bool force)
