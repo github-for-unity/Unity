@@ -103,22 +103,23 @@ namespace GitHub.Unity
             var username = String.Empty;
             if (Repository != null)
             {
-                Connection[] connections;
+                Connection connection;
                 if (!string.IsNullOrEmpty(Repository.CloneUrl))
                 {
-                    var host = Repository.CloneUrl.ToRepositoryUri()
+                    var host = Repository.CloneUrl
+                                         .ToRepositoryUri()
                                          .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
 
-                    connections = Platform.Keychain.Connections.OrderByDescending(x => x.Host == host).ToArray();
+                    connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host == host);
                 }
                 else
                 {
-                    connections = Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom).ToArray();
+                    connection = Platform.Keychain.Connections.FirstOrDefault(HostAddress.IsGitHubDotCom);
                 }
 
-                if (connections.Any())
+                if (connection != null)
                 {
-                    username = connections.First().Username;
+                    username = connection.Username;
                 }
             }
 

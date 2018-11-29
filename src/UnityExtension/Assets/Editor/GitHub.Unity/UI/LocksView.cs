@@ -596,28 +596,30 @@ namespace GitHub.Unity
 
             if (keychainHasUpdate || currentRemoteHasUpdate)
             {
-                Connection[] connections;
-                if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
+                var username = String.Empty;
+                if (Repository != null)
                 {
-                    var host = Repository.CloneUrl
-                                         .ToRepositoryUri()
-                                         .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+                    Connection connection;
+                    if (!string.IsNullOrEmpty(Repository.CloneUrl))
+                    {
+                        var host = Repository.CloneUrl
+                                             .ToRepositoryUri()
+                                             .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
 
-                    connections = Platform.Keychain.Connections.OrderByDescending(x => x.Host == host).ToArray();
-                }
-                else
-                {
-                    connections = Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom).ToArray();
+                        connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host == host);
+                    }
+                    else
+                    {
+                        connection = Platform.Keychain.Connections.FirstOrDefault(HostAddress.IsGitHubDotCom);
+                    }
+
+                    if (connection != null)
+                    {
+                        username = connection.Username;
+                    }
                 }
 
-                if (connections.Any())
-                {
-                    currentUsername = connections.First().Username;
-                }
-                else
-                {
-                    currentUsername = "";
-                }
+                currentUsername = username;
 
                 keychainHasUpdate = false;
                 currentRemoteHasUpdate = false;
