@@ -288,12 +288,12 @@ namespace GitHub.Unity
                 ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
                 : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
 
-            GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
+            GitClient.SetConfig("mergetool.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
                 Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
                 return true;
             }).RunSynchronously();
 
-            GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local).Catch(e => {
+            GitClient.SetConfig("mergetool.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local).Catch(e => {
                 Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
                 return true;
             }).RunSynchronously();
