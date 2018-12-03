@@ -82,6 +82,7 @@
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
     <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
+    <Compile Include="Git\Tasks\GitConfigUnSetTask.cs" />
     <Compile Include="Git\Tasks\GitCountObjectsTask.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />

@@ -61,6 +61,15 @@ namespace GitHub.Unity
         ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null);
 
         /// <summary>
+        /// Executes `git config --unset` to remove a configuration value.
+        /// </summary>
+        /// <param name="key">The configuration key to remove</param>
+        /// <param name="configSource">The config source (unspecified, local,user,global) to use</param>
+        /// <param name="processor">A custom output processor instance</param>
+        /// <returns>String output of git command</returns>
+        ITask<string> UnSetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null);
+
+        /// <summary>
         /// Executes two `git config get` commands to get the git user and email.
         /// </summary>
         /// <returns><see cref="GitUser"/> output</returns>
@@ -364,6 +373,13 @@ namespace GitHub.Unity
         public ITask<string> SetConfig(string key, string value, GitConfigSource configSource, IOutputProcessor<string> processor = null)
         {
             return new GitConfigSetTask(key, value, configSource, cancellationToken, processor)
+                .Configure(processManager);
+        }
+
+        ///<inheritdoc/>
+        public ITask<string> UnSetConfig(string key, GitConfigSource configSource, IOutputProcessor<string> processor = null)
+        {
+            return new GitConfigUnSetTask(key, configSource, cancellationToken, processor)
                 .Configure(processManager);
         }
 
