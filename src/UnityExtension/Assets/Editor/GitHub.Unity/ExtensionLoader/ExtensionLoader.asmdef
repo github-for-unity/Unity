@@ -1,6 +1,6 @@
 {
     "name": "ExtensionLoader",
-    "references": [],
+    "references": ["../../build/GitHub.UnityShim.dll"],
     "includePlatforms": [
         "Editor"
     ],

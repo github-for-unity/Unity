@@ -9,6 +9,7 @@ commander
     .option('-d, --description <description>')
     .option('-o, --organization <organization>')
     .option('-p, --private')
+    .option('-h, --host <host>')
     .parse(process.argv);
 
 if(!commander.repository)
@@ -23,7 +24,7 @@ if (commander.private) {
 }
     
 try {
-    var apiWrapper = new ApiWrapper();
+    var apiWrapper = new ApiWrapper(commander.host);
 
     apiWrapper.publish(commander.repository, commander.description, private, commander.organization,
         function (error, result) {

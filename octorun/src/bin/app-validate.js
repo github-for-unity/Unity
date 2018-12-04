@@ -5,10 +5,11 @@ var output = require('../output');
 
 commander
     .version(package.version)
+    .option('-h, --host <host>')
     .parse(process.argv);
 
 try {
-    var apiWrapper = new ApiWrapper();
+    var apiWrapper = new ApiWrapper(commander.host);
 
     apiWrapper.verifyUser(function (error, result) {
         if (error) {

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,8 +15,6 @@ namespace GitHub.Unity
             PublishView,
             AuthenticationView,
         }
-
-        [NonSerialized] private IApiClient client;
 
         [SerializeField] private PopupViewType activeViewType;
         [SerializeField] private AuthenticationView authenticationView;
@@ -114,17 +114,35 @@ namespace GitHub.Unity
             OnClose = null;
 
             var viewNeedsAuthentication = popupViewType == PopupViewType.PublishView;
+
             if (viewNeedsAuthentication)
             {
-                Client.GetCurrentUser(user =>
+                var userHasAuthentication = false;
+                foreach (var keychainConnection in Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom))
+                {
+                    var apiClient = new ApiClient(Platform.Keychain, Platform.ProcessManager, TaskManager,
+                        Environment, keychainConnection.Host);
+
+                    try
+                    {
+                        apiClient.EnsureValidCredentials();
+                        userHasAuthentication = true;
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Trace(ex, "Exception validating host {0}", keychainConnection.Host);
+                    }
+                }
+
+                if (userHasAuthentication)
                 {
                     OpenInternal(popupViewType, onClose);
                     shouldCloseOnFinish = true;
-
-                },
-                exception =>
+                }
+                else
                 {
-                    authenticationView.Initialize(exception);
+                    authenticationView.Initialize(null);
                     OpenInternal(PopupViewType.AuthenticationView, completedAuthentication =>
                     {
                         if (completedAuthentication)
@@ -132,8 +150,9 @@ namespace GitHub.Unity
                             Open(popupViewType, onClose);
                         }
                     });
+
                     shouldCloseOnFinish = false;
-                });
+                }
             }
             else
             {
@@ -166,21 +185,6 @@ namespace GitHub.Unity
 
             // this triggers a repaint
             Repaint();
-        }
-
-        public IApiClient Client
-        {
-            get
-            {
-                if (client == null)
-                {
-                    var repository = Environment.Repository;
-                    UriString host = repository != null ? repository.CloneUrl : null;
-                    client = new ApiClient(host, Platform.Keychain, Manager.ProcessManager, TaskManager, Environment);
-                }
-
-                return client;
-            }
         }
 
         private Subview ActiveView

@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityTests", "src\UnityExte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtensionLoader", "src\UnityExtension\Assets\Editor\GitHub.Unity\ExtensionLoader\ExtensionLoader.csproj", "{6B0EAB30-511A-44C1-87FE-D9AB7E34D115}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityShim", "src\UnityShim\UnityShim.csproj", "{F94F8AE1-C171-4A83-89E8-6557CA91A188}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -161,6 +163,14 @@ Global
 		{6B0EAB30-511A-44C1-87FE-D9AB7E34D115}.dev|Any CPU.Build.0 = dev|Any CPU
 		{6B0EAB30-511A-44C1-87FE-D9AB7E34D115}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B0EAB30-511A-44C1-87FE-D9AB7E34D115}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.DebugNoUnity|Any CPU.ActiveCfg = Debug|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.DebugNoUnity|Any CPU.Build.0 = Debug|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.dev|Any CPU.ActiveCfg = dev|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.dev|Any CPU.Build.0 = dev|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F94F8AE1-C171-4A83-89E8-6557CA91A188}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
