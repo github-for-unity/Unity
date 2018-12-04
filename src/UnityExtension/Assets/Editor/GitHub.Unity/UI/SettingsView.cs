@@ -34,6 +34,7 @@ namespace GitHub.Unity
         [SerializeField] private string newRepositoryRemoteUrl;
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
+        [SerializeField] private bool hasGitignoreFile;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
         [SerializeField] private int webTimeout;
@@ -173,6 +174,8 @@ namespace GitHub.Unity
                     newRepositoryRemoteUrl = repositoryRemoteUrl = currentRemote.Value.Url;
                 }
             }
+
+            hasGitignoreFile = System.IO.File.Exists(System.IO.Directory.GetParent(Application.dataPath) + "/.gitignore");
         }
 
         private void OnRepositorySettingsGUI()
@@ -207,6 +210,23 @@ namespace GitHub.Unity
                 EditorGUI.EndDisabledGroup();
             }
             EditorGUI.EndDisabledGroup();
+
+            if (!hasGitignoreFile)
+            {
+                GUIStyle missingGitignoreStyle = new GUIStyle(EditorStyles.label);
+                missingGitignoreStyle.normal.textColor = Color.red;
+                GUILayout.Label(".gitignore file is missing", missingGitignoreStyle);
+
+                EditorGUI.BeginDisabledGroup(IsBusy);
+                {
+                    if (GUILayout.Button("Generate", GUILayout.ExpandWidth(false)))
+                    {
+                        NPath path = new NPath(System.IO.Directory.GetParent(Application.dataPath).FullName);
+                        Manager.GenerateGitignore(path);
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+            }
         }
 
         private void OnPrivacyGui()

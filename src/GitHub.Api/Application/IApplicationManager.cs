@@ -20,6 +20,7 @@ namespace GitHub.Unity
         bool IsBusy { get; }
         void Run();
         void InitializeRepository();
+        void GenerateGitignore(NPath path);
         event Action<IProgress> OnProgress;
         void SetupGit(GitInstaller.GitInstallationState state);
         void RestartRepository();

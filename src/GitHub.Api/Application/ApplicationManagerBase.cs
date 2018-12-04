@@ -251,7 +251,7 @@ namespace GitHub.Unity
                     GitClient.LfsInstall().RunSynchronously();
                     progress.UpdateProgress(30, 100, "Initializing...");
 
-                    AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", targetPath, Environment);
+                    GenerateGitignore(targetPath);
                     AssemblyResources.ToFile(ResourceType.Generic, ".gitattributes", targetPath, Environment);
                     assetsGitignore.CreateFile();
                     GitClient.Add(filesForInitialCommit).RunSynchronously();
@@ -278,6 +278,11 @@ namespace GitHub.Unity
                 isBusy = false;
             });
             thread.Start();
+        }
+
+        public void GenerateGitignore(NPath path)
+        {
+            AssemblyResources.ToFile(ResourceType.Generic, ".gitignore", path, Environment);
         }
 
         private void ConfigureMergeSettings()
