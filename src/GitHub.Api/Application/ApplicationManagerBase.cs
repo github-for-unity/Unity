@@ -190,7 +190,7 @@ namespace GitHub.Unity
             {
                 if (Environment.RepositoryPath.IsInitialized)
                 {
-                    ConfigureMergeSettings();
+                    UpdateMergeSettings();
 
                     GitClient.LfsInstall()
                         .Catch(e =>
@@ -280,23 +280,56 @@ namespace GitHub.Unity
             thread.Start();
         }
 
-        private void ConfigureMergeSettings()
+        private void ConfigureMergeSettings(string keyName = null)
         {
             var unityYamlMergeExec =
                 Environment.UnityApplicationContents.Combine("Tools", "UnityYAMLMerge" + Environment.ExecutableExtension);
-            var yamlMergeCommand = Environment.IsWindows
-                ? $@"'{unityYamlMergeExec}' merge -p ""$BASE"" ""$REMOTE"" ""$LOCAL"" ""$MERGED"""
-                : $@"'{unityYamlMergeExec}' merge -p '$BASE' '$REMOTE' '$LOCAL' '$MERGED'";
 
-            GitClient.SetConfig("merge.unityyamlmerge.cmd", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
-                Logger.Error(e, "Error setting merge.unityyamlmerge.cmd");
+            var yamlMergeCommand = $"'{unityYamlMergeExec}' merge -h -p --force %O %B %A %A";
+
+            keyName = keyName ?? "unityyamlmerge";
+
+            GitClient.SetConfig($"merge.{keyName}.name", "Unity SmartMerge (UnityYamlMerge)", GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error setting merge." + keyName + ".name");
                 return true;
             }).RunSynchronously();
 
-            GitClient.SetConfig("merge.unityyamlmerge.trustExitCode", "false", GitConfigSource.Local).Catch(e => {
-                Logger.Error(e, "Error setting merge.unityyamlmerge.trustExitCode");
+            GitClient.SetConfig($"merge.{keyName}.driver", yamlMergeCommand, GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error setting merge." + keyName + ".driver");
                 return true;
             }).RunSynchronously();
+
+            GitClient.SetConfig($"merge.{keyName}.recursive", "binary", GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error setting merge." + keyName + ".recursive");
+                return true;
+            }).RunSynchronously();
+        }
+
+        private void UpdateMergeSettings()
+        {
+            var gitAttributesPath = Environment.RepositoryPath.Combine(".gitattributes");
+            if (gitAttributesPath.FileExists())
+            {
+                var readAllText = gitAttributesPath.ReadAllText();
+                var containsLegacyUnityYamlMergeError = readAllText.Contains("unityamlmerge");
+
+                if (containsLegacyUnityYamlMergeError)
+                {
+                    ConfigureMergeSettings("unityamlmerge");
+                }
+            }
+
+            GitClient.UnSetConfig("merge.unityyamlmerge.cmd", GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error removing merge.unityyamlmerge.cmd");
+                return true;
+            }).RunSynchronously();
+
+            GitClient.UnSetConfig("merge.unityyamlmerge.trustExitCode", GitConfigSource.Local).Catch(e => {
+                Logger.Error(e, "Error removing merge.unityyamlmerge.trustExitCode");
+                return true;
+            }).RunSynchronously();
+
+            ConfigureMergeSettings();
         }
 
         public void RestartRepository()
