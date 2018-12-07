@@ -383,13 +383,14 @@ namespace GitHub.Unity
     {
         [NonSerialized] private bool isBusy;
 
+        [SerializeField] private bool currentRemoteHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
-        [SerializeField] private bool currentUserHasUpdate;
+        [SerializeField] private bool keychainHasUpdate;
         [SerializeField] private LocksControl locksControl;
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastUserChangedEvent;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
         [SerializeField] private string currentUsername;
@@ -407,6 +408,7 @@ namespace GitHub.Unity
 
             AttachHandlers(Repository);
             ValidateCachedData(Repository);
+            KeychainConnectionsChanged();
         }
 
         public override void OnDisable()
@@ -523,9 +525,10 @@ namespace GitHub.Unity
                 return;
             }
 
+            Platform.Keychain.ConnectionsChanged += KeychainConnectionsChanged;
+            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
             repository.LocksChanged += RepositoryOnLocksChanged;
-            repository.LocksChanged += RepositoryOnStatusEntriesChanged;
-            User.Changed += UserOnChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -535,9 +538,20 @@ namespace GitHub.Unity
                 return;
             }
 
+            Platform.Keychain.ConnectionsChanged -= KeychainConnectionsChanged;
+            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
             repository.LocksChanged -= RepositoryOnLocksChanged;
-            repository.LocksChanged -= RepositoryOnStatusEntriesChanged;
-            User.Changed -= UserOnChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+        }
+
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                currentRemoteHasUpdate = true;
+                Redraw();
+            }
         }
 
         private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -560,21 +574,17 @@ namespace GitHub.Unity
             }
         }
 
-        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void KeychainConnectionsChanged()
         {
-            if (!lastUserChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastUserChangedEvent = cacheUpdateEvent;
-                currentUserHasUpdate = true;
-                Redraw();
-            }
+            keychainHasUpdate = true;
+            Redraw();
         }
 
         private void ValidateCachedData(IRepository repository)
         {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
-            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastUserChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -584,15 +594,35 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (currentUserHasUpdate)
+            if (keychainHasUpdate || currentRemoteHasUpdate)
             {
-                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                var keychainConnection = Platform.Keychain.Connections.FirstOrDefault();
-                if (keychainConnection != null)
-                    currentUsername = keychainConnection.Username;
-                else
-                    currentUsername = "";
-                currentUserHasUpdate = false;
+                var username = String.Empty;
+                if (Repository != null)
+                {
+                    Connection connection;
+                    if (!string.IsNullOrEmpty(Repository.CloneUrl))
+                    {
+                        var host = Repository.CloneUrl
+                                             .ToRepositoryUri()
+                                             .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+
+                        connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host == host);
+                    }
+                    else
+                    {
+                        connection = Platform.Keychain.Connections.FirstOrDefault(HostAddress.IsGitHubDotCom);
+                    }
+
+                    if (connection != null)
+                    {
+                        username = connection.Username;
+                    }
+                }
+
+                currentUsername = username;
+
+                keychainHasUpdate = false;
+                currentRemoteHasUpdate = false;
             }
 
             if (currentLocksHasUpdate)

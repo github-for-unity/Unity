@@ -18,7 +18,7 @@ namespace GitHub.Unity
         private static List<GitLock> locks = new List<GitLock>();
         private static List<string> guids = new List<string>();
         private static List<string> guidsLocks = new List<string>();
-        private static string loggedInUser;
+        private static string currentUsername;
 
         private static IApplicationManager manager;
         private static bool isBusy = false;
@@ -26,6 +26,7 @@ namespace GitHub.Unity
         private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
+        private static CacheUpdateEvent lastCurrentRemoteChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
         private static IPlatform Platform { get { return manager != null ? manager.Platform : null; } }
         private static bool IsInitialized { get { return Repository != null; } }
@@ -37,13 +38,14 @@ namespace GitHub.Unity
 
             manager = theManager;
 
-            Platform.Keychain.ConnectionsChanged += KeychainMayHaveChanged;
-            KeychainMayHaveChanged();
+            Platform.Keychain.ConnectionsChanged += UpdateCurrentUsername;
+            UpdateCurrentUsername();
 
             if (IsInitialized)
             {
                 Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 Repository.LocksChanged += RepositoryOnLocksChanged;
+                Repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
                 ValidateCachedData();
             }
         }
@@ -88,9 +90,40 @@ namespace GitHub.Unity
             }
         }
 
-        private static void KeychainMayHaveChanged()
+        private static void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
         {
-            loggedInUser = Platform.Keychain.Connections.Select(x => x.Username).FirstOrDefault();
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+            }
+        }
+
+        private static void UpdateCurrentUsername()
+        {
+            var username = String.Empty;
+            if (Repository != null)
+            {
+                Connection connection;
+                if (!string.IsNullOrEmpty(Repository.CloneUrl))
+                {
+                    var host = Repository.CloneUrl
+                                         .ToRepositoryUri()
+                                         .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+
+                    connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host == host);
+                }
+                else
+                {
+                    connection = Platform.Keychain.Connections.FirstOrDefault(HostAddress.IsGitHubDotCom);
+                }
+
+                if (connection != null)
+                {
+                    username = connection.Username;
+                }
+            }
+
+            currentUsername = username;
         }
 
         [MenuItem(AssetsMenuRequestLock, true, 10000)]
@@ -202,7 +235,7 @@ namespace GitHub.Unity
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            return locks.Any(x => repositoryPath == x.Path && (!isLockedByCurrentUser || x.Owner.Name == loggedInUser));
+            return locks.Any(x => repositoryPath == x.Path && (!isLockedByCurrentUser || x.Owner.Name == currentUsername));
         }
 
         private static ITask CreateUnlockObjectTask(Object selected, bool force)
