@@ -55,8 +55,14 @@ namespace GitHub.Unity
             }
 
             state = VerifyZipFiles(state);
+            // on developer builds, prefer local zips over downloading
+#if DEVELOPER_BUILD
+            state = GrabZipFromResourcesIfNeeded(state);
+            state = GetZipsIfNeeded(state);
+#else
             state = GetZipsIfNeeded(state);
             state = GrabZipFromResourcesIfNeeded(state);
+#endif
             state = ExtractGit(state);
 
             // if installing from zip failed (internet down maybe?), try to find a usable system git
@@ -106,7 +112,7 @@ namespace GitHub.Unity
                 var gitPath = new FindExecTask("git", cancellationToken)
                     .Configure(processManager, dontSetupGit: true)
                     .Catch(e => true)
-                    .RunWithReturn(true);
+                    .RunSynchronously();
                 state.GitExecutablePath = gitPath;
                 state = ValidateGitVersion(state);
                 if (state.GitIsValid)
@@ -122,7 +128,7 @@ namespace GitHub.Unity
                 var gitLfsPath = new FindExecTask("git-lfs", cancellationToken)
                     .Configure(processManager, dontSetupGit: true)
                     .Catch(e => true)
-                    .RunWithReturn(true);
+                    .RunSynchronously();
                 state.GitLfsExecutablePath = gitLfsPath;
                 state = ValidateGitLfsVersion(state);
                 if (state.GitLfsIsValid)
@@ -159,7 +165,7 @@ namespace GitHub.Unity
             var version = new GitVersionTask(cancellationToken)
                 .Configure(processManager, state.GitExecutablePath, dontSetupGit: true)
                 .Catch(e => true)
-                .RunWithReturn(true);
+                .RunSynchronously();
             state.GitIsValid = version >= Constants.MinimumGitVersion;
             state.GitVersion = version;
             return state;
@@ -175,7 +181,7 @@ namespace GitHub.Unity
             var version = new ProcessTask<TheVersion>(cancellationToken, "version", new LfsVersionOutputProcessor())
                     .Configure(processManager, state.GitLfsExecutablePath, dontSetupGit: true)
                     .Catch(e => true)
-                    .RunWithReturn(true);
+                    .RunSynchronously();
             state.GitLfsIsValid = version >= Constants.MinimumGitLfsVersion;
             state.GitLfsVersion = version;
             return state;
@@ -244,7 +250,7 @@ namespace GitHub.Unity
             if (state.GitZipExists && state.GitLfsZipExists)
                 return state;
 
-            var downloader = new Downloader();
+            var downloader = new Downloader(environment.FileSystem);
             downloader.Catch(e =>
                 {
                     LogHelper.Trace(e, "Failed to download");
@@ -255,7 +261,7 @@ namespace GitHub.Unity
                 downloader.QueueDownload(state.GitPackage.Uri, installDetails.ZipPath);
             if (!state.GitLfsZipExists && !state.GitLfsIsValid && state.GitLfsPackage != null)
                 downloader.QueueDownload(state.GitLfsPackage.Uri, installDetails.ZipPath);
-            downloader.RunWithReturn(true);
+            downloader.RunSynchronously();
 
             state.GitZipExists = installDetails.GitZipPath.FileExists();
             state.GitLfsZipExists = installDetails.GitLfsZipPath.FileExists();
@@ -295,15 +301,16 @@ namespace GitHub.Unity
                         return true;
                     });
                 unzipTask.Progress(p => Progress.UpdateProgress(40 + (long)(20 * p.Percentage), 100, unzipTask.Message));
-                var path = unzipTask.RunWithReturn(true);
+                unzipTask.RunSynchronously();
                 var target = state.GitInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path;
-                    target.DeleteIfExists();
-                    target.EnsureParentDirectoryExists();
-                    source.Move(target);
+                    Logger.Trace("Moving Git source:{0} target:{1}", gitExtractPath.ToString(), target.ToString());
+
+                    CopyHelper.Copy(gitExtractPath, target);
+
                     state.GitIsValid = true;
+
                     state.IsCustomGitPath = state.GitExecutablePath != installDetails.GitExecutablePath;
                 }
             }
@@ -320,14 +327,14 @@ namespace GitHub.Unity
                         return true;
                     });
                 unzipTask.Progress(p => Progress.UpdateProgress(60 + (long)(20 * p.Percentage), 100, unzipTask.Message));
-                var path = unzipTask.RunWithReturn(true);
+                unzipTask.RunSynchronously();
                 var target = state.GitLfsInstallationPath;
                 if (unzipTask.Successful)
                 {
-                    var source = path;
-                    target.DeleteIfExists();
-                    target.EnsureParentDirectoryExists();
-                    source.Move(target);
+                    Logger.Trace("Moving GitLFS source:{0} target:{1}", gitLfsExtractPath.ToString(), target.ToString());
+
+                    CopyHelper.Copy(gitLfsExtractPath, target);
+
                     state.GitLfsIsValid = true;
                 }
             }

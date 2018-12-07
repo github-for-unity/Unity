@@ -1,7 +1,7 @@
 using GitHub.Logging;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -9,11 +9,11 @@ namespace GitHub.Unity
     {
         private static ILogging Logger { get; } = LogHelper.GetLogger<GitCredentialManager>();
 
-        private ICredential credential;
         private string credHelper = null;
 
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
+        private readonly Dictionary<string, ICredential> credentials = new Dictionary<string, ICredential>();
 
         public GitCredentialManager(IProcessManager processManager,
             ITaskManager taskManager)
@@ -24,44 +24,43 @@ namespace GitHub.Unity
 
         public bool HasCredentials()
         {
-            return credential != null;
+            return credentials != null && credentials.Any();
         }
 
-        public ICredential CachedCredentials { get { return credential; } }
-
-        public async Task Delete(UriString host)
+        public void Delete(UriString host)
         {
-            if (!await LoadCredentialHelper())
+            if (!LoadCredentialHelper())
                 return;
 
-            await RunCredentialHelper(
+            RunCredentialHelper(
                 "erase",
                 new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                }).StartAwait();
-            credential = null;
+                }).RunSynchronously();
+            credentials.Remove(host);
         }
 
-        public async Task<ICredential> Load(UriString host)
+        public ICredential Load(UriString host)
         {
-            if (credential == null)
+            ICredential credential;
+            if (!credentials.TryGetValue(host, out credential))
             {
-                if (!await LoadCredentialHelper())
+                if (!LoadCredentialHelper())
                     return null;
 
                 string kvpCreds = null;
 
-                kvpCreds = await RunCredentialHelper(
+                kvpCreds = RunCredentialHelper(
                     "get",
                     new string[] {
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
-                    }).StartAwait();
+                    }).RunSynchronously();
 
                 if (String.IsNullOrEmpty(kvpCreds))
                 {
-                    Logger.Error("No credentials are stored");
+                    // we didn't find credentials, stop here
                     return null;
                 }
 
@@ -88,41 +87,43 @@ namespace GitHub.Unity
                 }
 
                 credential = new Credential(host, user, password);
+                credentials.Add(host, credential);
             }
+
             return credential;
         }
 
-        public async Task Save(ICredential cred)
+        public void Save(ICredential cred)
         {
-            this.credential = cred;
+            this.credentials.Add(cred.Host, cred);
 
-            if (!await LoadCredentialHelper())
+            if (!LoadCredentialHelper())
                 return;
 
             var data = new List<string>
             {
-                String.Format("protocol={0}", credential.Host.Protocol),
-                String.Format("host={0}", credential.Host.Host),
-                String.Format("username={0}", credential.Username),
-                String.Format("password={0}", credential.Token)
+                String.Format("protocol={0}", cred.Host.Protocol),
+                String.Format("host={0}", cred.Host.Host),
+                String.Format("username={0}", cred.Username),
+                String.Format("password={0}", cred.Token)
             };
 
             var task = RunCredentialHelper("store", data.ToArray());
-            await task.StartAwait();
+            task.RunSynchronously();
             if (!task.Successful)
             {
                 Logger.Error("Failed to save credentials");
             }
         }
 
-        private async Task<bool> LoadCredentialHelper()
+        private bool LoadCredentialHelper()
         {
             if (credHelper != null)
                 return true;
 
-            credHelper = await new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
+            credHelper = new GitConfigGetTask("credential.helper", GitConfigSource.NonSpecified, taskManager.Token)
                 .Configure(processManager)
-                .StartAwait();
+                .RunSynchronously();
 
             //Logger.Trace("Loaded Credential Helper: {0}", credHelper);
 

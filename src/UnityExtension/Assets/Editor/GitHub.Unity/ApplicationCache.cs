@@ -38,7 +38,7 @@ namespace GitHub.Unity
                 if (!firstRunAtValue.HasValue)
                 {
                     DateTimeOffset dt;
-                    if (!DateTimeOffset.TryParseExact(firstRunAtString, Constants.Iso8601Formats,
+                    if (!DateTimeOffset.TryParseExact(firstRunAtString.ToEmptyIfNull(), Constants.Iso8601Formats,
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
                     {
                         dt = DateTimeOffset.Now;
@@ -213,12 +213,14 @@ namespace GitHub.Unity
 
         private void Invalidate()
         {
-            if (!isInvalidating)
-            {
-                isInvalidating = true;
-                LastUpdatedAt = DateTimeOffset.MinValue;
-                CacheInvalidated.SafeInvoke(CacheType);
-            }
+            isInvalidating = true;
+            LastUpdatedAt = DateTimeOffset.MinValue;
+            CacheInvalidated.SafeInvoke(CacheType);
+        }
+
+        public void ResetInvalidation()
+        {
+            isInvalidating = false;
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
@@ -261,7 +263,7 @@ namespace GitHub.Unity
                 if (!lastUpdatedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         lastUpdatedAtValue = result;
                     }
@@ -287,7 +289,7 @@ namespace GitHub.Unity
                 if (!initializedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(InitializedAtString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         initializedAtValue = result;
                     }
@@ -447,6 +449,7 @@ namespace GitHub.Unity
         [SerializeField] private GitBranch currentGitBranch;
         [SerializeField] private ConfigBranch currentConfigBranch;
         [SerializeField] private ConfigRemote currentConfigRemote;
+        [SerializeField] private string currentHead;
 
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
@@ -462,21 +465,27 @@ namespace GitHub.Unity
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
+            if (forcedInvalidation || !Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
             {
                 currentGitBranch = data.CurrentGitBranch ?? GitBranch.Default;
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
+            if (forcedInvalidation || !Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
             {
                 currentConfigRemote = data.CurrentConfigRemote ?? ConfigRemote.Default;
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
+            if (forcedInvalidation || !Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
             {
                 currentConfigBranch = data.CurrentConfigBranch ?? ConfigBranch.Default;
+                isUpdated = true;
+            }
+
+            if (forcedInvalidation || !String.Equals(currentHead, data.CurrentHead))
+            {
+                currentHead = data.CurrentHead;
                 isUpdated = true;
             }
 
@@ -516,6 +525,15 @@ namespace GitHub.Unity
             {
                 ValidateData();
                 return currentConfigBranch.Equals(ConfigBranch.Default) ? (ConfigBranch?)null : currentConfigBranch;
+            }
+        }
+
+        public string CurrentHead
+        {
+            get
+            {
+                ValidateData();
+                return currentHead;
             }
         }
 
@@ -583,7 +601,15 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                if (forcedInvalidation || !log.SequenceEqual(value))
+                if (value == null)
+                {
+                    if (forcedInvalidation || log.Count > 0)
+                    {
+                        log.Clear();
+                        isUpdated = true;
+                    }
+                }
+                else if (forcedInvalidation || !log.SequenceEqual(value))
                 {
                     log = value;
                     isUpdated = true;
@@ -672,7 +698,15 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                if (forcedInvalidation || !entries.SequenceEqual(value))
+                if (value == null)
+                {
+                    if (forcedInvalidation || entries.Count > 0)
+                    {
+                        entries.Clear();
+                        isUpdated = true;
+                    }
+                }
+                else if (forcedInvalidation || !entries.SequenceEqual(value))
                 {
                     entries = value;
                     isUpdated = true;
@@ -705,7 +739,15 @@ namespace GitHub.Unity
                 var now = DateTimeOffset.Now;
                 var isUpdated = false;
 
-                if (forcedInvalidation || !gitLocks.SequenceEqual(value))
+                if (value == null)
+                {
+                    if (forcedInvalidation || gitLocks.Count > 0)
+                    {
+                        gitLocks.Clear();
+                        isUpdated = true;
+                    }
+                }
+                else if (forcedInvalidation || !gitLocks.SequenceEqual(value))
                 {
                     gitLocks = value;
                     isUpdated = true;

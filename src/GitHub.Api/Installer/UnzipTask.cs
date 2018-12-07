@@ -26,25 +26,17 @@ namespace GitHub.Unity
             return base.RunWithReturn(success);
         }
 
-        public override NPath RunWithReturn(bool success)
+        protected override NPath RunWithReturn(bool success)
         {
             var ret = BaseRun(success);
-
-            RaiseOnStart();
-
             try
             {
                 ret = RunUnzip(success);
             }
             catch (Exception ex)
             {
-                Errors = ex.Message;
                 if (!RaiseFaultHandlers(ex))
-                    throw;
-            }
-            finally
-            {
-                RaiseOnEnd(ret);
+                    throw exception;
             }
             return ret;
         }

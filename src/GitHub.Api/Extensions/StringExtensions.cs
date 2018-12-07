@@ -40,6 +40,11 @@ namespace GitHub.Unity
             return String.IsNullOrEmpty(s) ? null : s;
         }
 
+        public static string ToEmptyIfNull(this string s)
+        {
+            return String.IsNullOrEmpty(s) ? String.Empty : s;
+        }
+
         public static bool StartsWith(this string s, char c)
         {
             if (String.IsNullOrEmpty(s)) return false;

@@ -8,15 +8,14 @@ namespace GitHub.Unity
         UriString Host { get; }
         string Username { get; }
         string Token { get; }
-        void UpdateToken(string token, string username);
+        void Update(string token, string username);
     }
 
     public interface ICredentialManager
     {
-        Task<ICredential> Load(UriString host);
-        Task Save(ICredential cred);
-        Task Delete(UriString host);
+        ICredential Load(UriString host);
+        void Save(ICredential cred);
+        void Delete(UriString host);
         bool HasCredentials();
-        ICredential CachedCredentials { get; }
     }
 }

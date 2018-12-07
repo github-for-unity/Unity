@@ -40,10 +40,6 @@
       <HintPath>$(SolutionDir)packages\FluentAssertions.2.2.0.0\lib\net35\FluentAssertions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=2.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)lib\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
     <Reference Include="NCrunch.Framework, Version=3.3.0.6, Culture=neutral, PublicKeyToken=01d101bf6f3e0aea, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\NCrunch.Framework.3.3.0.6\lib\NCrunch.Framework.dll</HintPath>
       <Private>True</Private>
@@ -77,7 +73,7 @@
     <Compile Include="Git\GitClientTests.cs" />
     <Compile Include="IntegrationTestEnvironment.cs" />
     <Compile Include="Installer\GitInstallerTests.cs" />
-    <Compile Include="Metrics\MetricsTests.cs" />
+    <Compile Condition="$(Buildtype) == 'Internal'" Include="Metrics\MetricsTests.cs" />
     <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="Process\ProcessManagerIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -94,6 +90,10 @@
     <ProjectReference Include="$(SolutionDir)src\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommandLine\CommandLine.csproj">
+      <Project>{08b87d2a-8cf1-4211-b7aa-5209f00f72f8}</Project>
+      <Name>CommandLine</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtils\TestUtils.csproj">
       <Project>{66a1d219-f61d-4ae4-9bd7-aaeb97276fff}</Project>

@@ -9,18 +9,20 @@ namespace GitHub.Unity
     {
         public static GitLock Default = new GitLock();
 
-        public int id;
+        public string id;
         public string path;
         public GitUser owner;
         [NotSerialized] public string lockedAtString;
+        private string LockedAtString { get { return lockedAtString != null ? lockedAtString : String.Empty; } }
         public DateTimeOffset locked_at
         {
             get
             {
                 DateTimeOffset dt;
-                if (!DateTimeOffset.TryParseExact(lockedAtString, Constants.Iso8601Formats,
+                if (!DateTimeOffset.TryParseExact(LockedAtString.ToEmptyIfNull(), Constants.Iso8601Formats,
                         CultureInfo.InvariantCulture, Constants.DateTimeStyle, out dt))
                 {
+                    locked_at = DateTimeOffset.MinValue;
                     return DateTimeOffset.MinValue;
                 }
                 return dt;
@@ -30,15 +32,15 @@ namespace GitHub.Unity
                 lockedAtString = value.ToUniversalTime().ToString(Constants.Iso8601FormatZ, CultureInfo.InvariantCulture);
             }
         }
-        [NotSerialized] public int ID => id;
-        [NotSerialized] public NPath Path => path.ToNPath();
+        [NotSerialized] public string ID => id ?? String.Empty;
+        [NotSerialized] public NPath Path => path?.ToNPath() ?? NPath.Default;
         [NotSerialized] public GitUser Owner => owner;
         [NotSerialized] public DateTimeOffset LockedAt => locked_at;
 
-        public GitLock(int id, NPath path, GitUser owner, DateTimeOffset locked_at)
+        public GitLock(string id, NPath path, GitUser owner, DateTimeOffset locked_at)
         {
             this.id = id;
-            this.path = path;
+            this.path = path.IsInitialized ? path.ToString() : null;
             this.owner = owner;
             this.lockedAtString = locked_at.ToUniversalTime().ToString(Constants.Iso8601FormatZ, CultureInfo.InvariantCulture);
         }
@@ -58,7 +60,7 @@ namespace GitHub.Unity
         public override int GetHashCode()
         {
             int hash = 17;
-            hash = hash * 23 + id.GetHashCode();
+            hash = hash * 23 + ID.GetHashCode();
             hash = hash * 23 + Path.GetHashCode();
             hash = hash * 23 + owner.GetHashCode();
             hash = hash * 23 + locked_at.GetHashCode();
@@ -67,7 +69,7 @@ namespace GitHub.Unity
 
         public static bool operator ==(GitLock lhs, GitLock rhs)
         {
-            return lhs.id == rhs.id && lhs.Path == rhs.Path && lhs.owner == rhs.owner && lhs.locked_at == rhs.locked_at;
+            return lhs.ID == rhs.ID && lhs.Path == rhs.Path && lhs.owner == rhs.owner && lhs.locked_at == rhs.locked_at;
         }
 
         public static bool operator !=(GitLock lhs, GitLock rhs)
@@ -76,7 +78,7 @@ namespace GitHub.Unity
         }
         public override string ToString()
         {
-            return $"{{id:{id}, path:{Path}, owner:{{{owner}}}, locked_at:'{locked_at}'}}";
+            return $"{{ID:{ID}, path:{Path}, owner:{{{owner}}}, locked_at:'{locked_at}'}}";
         }
     }
 }

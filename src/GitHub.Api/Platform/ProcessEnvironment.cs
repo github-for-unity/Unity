@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace GitHub.Unity
 {
-    class ProcessEnvironment : IProcessEnvironment
+    public class ProcessEnvironment : IProcessEnvironment
     {
         protected IEnvironment Environment { get; private set; }
         protected ILogging Logger { get; private set; }
@@ -108,6 +108,7 @@ namespace GitHub.Unity
             var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
+            psi.EnvironmentVariables["DISPLAY"] = "0";
         }
     }
 }

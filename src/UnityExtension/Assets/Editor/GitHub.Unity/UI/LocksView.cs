@@ -51,12 +51,15 @@ namespace GitHub.Unity
         [NonSerialized] private GitLockEntry rightClickNextRenderEntry;
         [NonSerialized] private int controlId;
         [NonSerialized] private UnityEngine.Object lastActivatedObject;
+        [NonSerialized] private Dictionary<string, bool> visibleItems = new Dictionary<string, bool>();
 
         [SerializeField] private Vector2 scroll;
         [SerializeField] private List<GitLockEntry> gitLockEntries = new List<GitLockEntry>();
         [SerializeField] public GitLockEntryDictionary assets = new GitLockEntryDictionary();
         [SerializeField] public GitStatusDictionary gitStatusDictionary = new GitStatusDictionary();
         [SerializeField] private GitLockEntry selectedEntry;
+        [SerializeField] public NPath projectPath;
+
         public bool IsEmpty { get { return gitLockEntries.Count == 0; } }
 
         public GitLockEntry SelectedEntry
@@ -69,8 +72,8 @@ namespace GitHub.Unity
             {
                 selectedEntry = value;
 
-                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default
-                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath))
+                var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default && projectPath.IsInitialized
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(projectPath))
                     : null;
 
                 lastActivatedObject = activeObject;
@@ -104,15 +107,19 @@ namespace GitHub.Unity
                 var endDisplay = scroll.y + containingRect.height;
 
                 var rect = new Rect(containingRect.x, containingRect.y, containingRect.width, 0);
-
                 for (var index = 0; index < gitLockEntries.Count; index++)
                 {
                     var entry = gitLockEntries[index];
 
                     var entryRect = new Rect(rect.x, rect.y, rect.width, Styles.LocksEntryHeight);
 
-                    var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
-                    if (shouldRenderEntry)
+                    if (Event.current.type == EventType.Layout)
+                    {
+                        var shouldRenderEntry = !(entryRect.y > endDisplay || entryRect.yMax < startDisplay);
+                        visibleItems[entry.GitLock.ID] = shouldRenderEntry;
+                    }
+
+                    if (visibleItems.ContainsKey(entry.GitLock.ID) && visibleItems[entry.GitLock.ID])
                     {
                         entryRect = RenderEntry(entryRect, entry);
                     }
@@ -215,7 +222,7 @@ namespace GitHub.Unity
             for (int i = 0; i < gitStatusEntries.Count; i++)
                 statusEntries.Add(gitStatusEntries[i].Path.ToNPath().ToString(SlashMode.Forward), i);
             var selectedLockId = SelectedEntry != null && SelectedEntry.GitLock != GitLock.Default
-                ? (int?) SelectedEntry.GitLock.ID 
+                ? SelectedEntry.GitLock.ID
                 : null;
 
             var scrollValue = scroll.y;
@@ -223,6 +230,7 @@ namespace GitHub.Unity
             var scrollIndex = (int)(scrollValue / Styles.LocksEntryHeight);
 
             assets.Clear();
+            visibleItems.Clear();
 
             gitLockEntries = locks.Select(gitLock =>
             {
@@ -235,13 +243,14 @@ namespace GitHub.Unity
 
                 var gitLockEntry = new GitLockEntry(gitLock, gitFileStatus);
                 LoadIcon(gitLockEntry, true);
-                var path = gitLock.Path.MakeAbsolute().RelativeTo(EntryPoint.Environment.UnityProjectPath);
+                var path = gitLock.Path.MakeAbsolute().RelativeTo(projectPath);
                 var assetGuid = AssetDatabase.AssetPathToGUID(path);
                 if (!string.IsNullOrEmpty(assetGuid))
                 {
                     assets.Add(assetGuid, gitLockEntry);
                 }
 
+                visibleItems.Add(gitLockEntry.GitLock.ID, false);
                 return gitLockEntry;
             }).ToList();
 
@@ -249,7 +258,7 @@ namespace GitHub.Unity
             for (var index = 0; index < gitLockEntries.Count; index++)
             {
                 var gitLockEntry = gitLockEntries[index];
-                if (selectedLockId.HasValue && selectedLockId.Value == gitLockEntry.GitLock.ID)
+                if (selectedLockId == gitLockEntry.GitLock.ID)
                 {
                     selectedEntry = gitLockEntry;
                     selectionPresent = true;
@@ -372,17 +381,19 @@ namespace GitHub.Unity
     [Serializable]
     class LocksView : Subview
     {
+        [NonSerialized] private bool isBusy;
+
+        [SerializeField] private bool currentRemoteHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
-        [SerializeField] private bool currentUserHasUpdate;
+        [SerializeField] private bool keychainHasUpdate;
         [SerializeField] private LocksControl locksControl;
+        [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private CacheUpdateEvent lastLocksChangedEvent;
         [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastUserChangedEvent;
         [SerializeField] private List<GitLock> lockedFiles = new List<GitLock>();
         [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
         [SerializeField] private string currentUsername;
-        [SerializeField] private bool isBusy;
         [SerializeField] private GUIContent unlockFileMenuContent = new GUIContent(Localization.UnlockFileMenuItem);
         [SerializeField] private GUIContent forceUnlockFileMenuContent = new GUIContent(Localization.ForceUnlockFileMenuItem);
 
@@ -397,6 +408,7 @@ namespace GitHub.Unity
 
             AttachHandlers(Repository);
             ValidateCachedData(Repository);
+            KeychainConnectionsChanged();
         }
 
         public override void OnDisable()
@@ -408,8 +420,8 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             base.Refresh();
-            Repository.Refresh(CacheType.GitStatus);
-            Repository.Refresh(CacheType.GitLocks);
+            Refresh(CacheType.GitStatus);
+            Refresh(CacheType.GitLocks);
         }
 
         public override void OnDataUpdate()
@@ -463,7 +475,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {
@@ -489,7 +501,7 @@ namespace GitHub.Unity
                 {
                     if (success)
                     {
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock, null);
+                        Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
                     }
                     else
                     {
@@ -513,9 +525,10 @@ namespace GitHub.Unity
                 return;
             }
 
+            Platform.Keychain.ConnectionsChanged += KeychainConnectionsChanged;
+            repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
             repository.LocksChanged += RepositoryOnLocksChanged;
-            repository.LocksChanged += RepositoryOnStatusEntriesChanged;
-            User.Changed += UserOnChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -525,9 +538,20 @@ namespace GitHub.Unity
                 return;
             }
 
+            Platform.Keychain.ConnectionsChanged -= KeychainConnectionsChanged;
+            repository.CurrentRemoteChanged -= RepositoryOnCurrentRemoteChanged;
             repository.LocksChanged -= RepositoryOnLocksChanged;
-            repository.LocksChanged -= RepositoryOnStatusEntriesChanged;
-            User.Changed -= UserOnChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+        }
+
+        private void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+                currentRemoteHasUpdate = true;
+                Redraw();
+            }
         }
 
         private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -550,21 +574,17 @@ namespace GitHub.Unity
             }
         }
 
-        private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
+        private void KeychainConnectionsChanged()
         {
-            if (!lastUserChangedEvent.Equals(cacheUpdateEvent))
-            {
-                lastUserChangedEvent = cacheUpdateEvent;
-                currentUserHasUpdate = true;
-                Redraw();
-            }
+            keychainHasUpdate = true;
+            Redraw();
         }
 
         private void ValidateCachedData(IRepository repository)
         {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
-            User.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, lastUserChangedEvent);
         }
 
         private void MaybeUpdateData()
@@ -574,15 +594,35 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (currentUserHasUpdate)
+            if (keychainHasUpdate || currentRemoteHasUpdate)
             {
-                //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-                var keychainConnection = Platform.Keychain.Connections.FirstOrDefault();
-                if (keychainConnection != null)
-                    currentUsername = keychainConnection.Username;
-                else
-                    currentUsername = "";
-                currentUserHasUpdate = false;
+                var username = String.Empty;
+                if (Repository != null)
+                {
+                    Connection connection;
+                    if (!string.IsNullOrEmpty(Repository.CloneUrl))
+                    {
+                        var host = Repository.CloneUrl
+                                             .ToRepositoryUri()
+                                             .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+
+                        connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host == host);
+                    }
+                    else
+                    {
+                        connection = Platform.Keychain.Connections.FirstOrDefault(HostAddress.IsGitHubDotCom);
+                    }
+
+                    if (connection != null)
+                    {
+                        username = connection.Username;
+                    }
+                }
+
+                currentUsername = username;
+
+                keychainHasUpdate = false;
+                currentRemoteHasUpdate = false;
             }
 
             if (currentLocksHasUpdate)
@@ -610,6 +650,7 @@ namespace GitHub.Unity
                 locksControl = new LocksControl();
             }
 
+            locksControl.projectPath = Environment.UnityProjectPath;
             locksControl.Load(lockedFiles, gitStatusEntries);
         }
         public override void OnSelectionChange()

@@ -188,6 +188,12 @@ namespace GitHub.Unity
         {
             var cache = cacheContainer.GetCache(cacheType);
             cache.InvalidateData();
+
+            // take the opportunity to possibly refresh the locks cache, if it has timed out
+            if (cacheType != CacheType.GitLocks)
+            {
+                cacheContainer.GetCache(CacheType.GitLocks).ValidateData();
+            }
         }
 
         private void CacheHasBeenInvalidated(CacheType cacheType)
@@ -202,20 +208,22 @@ namespace GitHub.Unity
             switch (cacheType)
             {
                 case CacheType.Branches:
-                    repositoryManager?.UpdateBranches().Start();
+                    repositoryManager?.UpdateBranches().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
                     break;
 
                 case CacheType.GitLog:
-                    repositoryManager?.UpdateGitLog().Start();
+                    repositoryManager?.UpdateGitLog().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
                     break;
 
                 case CacheType.GitAheadBehind:
-                    repositoryManager?.UpdateGitAheadBehindStatus().Start();
+                    repositoryManager?.UpdateGitAheadBehindStatus().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
                     break;
 
                 case CacheType.GitLocks:
                     if (CurrentRemote != null)
-                        repositoryManager?.UpdateLocks().Start();
+                    {
+                        repositoryManager?.UpdateLocks().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
+                    }
                     break;
 
                 case CacheType.GitUser:
@@ -223,11 +231,11 @@ namespace GitHub.Unity
                     break;
 
                 case CacheType.RepositoryInfo:
-                    repositoryManager?.UpdateRepositoryInfo().Start();
+                    repositoryManager?.UpdateRepositoryInfo().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
                     break;
 
                 case CacheType.GitStatus:
-                    repositoryManager?.UpdateGitStatus().Start();
+                    repositoryManager?.UpdateGitStatus().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
                     break;
 
                 default:
@@ -235,19 +243,29 @@ namespace GitHub.Unity
             }
         }
 
-        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote)
+        private bool InvalidationFailed(Exception ex, CacheType cacheType)
+        {
+            Logger.Warning(ex, "Error invalidating {0}", cacheType);
+            var managedCache = cacheContainer.GetCache(cacheType);
+            managedCache.ResetInvalidation();
+            return false;
+        }
+
+
+        private void RepositoryManagerOnCurrentBranchUpdated(ConfigBranch? branch, ConfigRemote? remote, string head)
         {
             taskManager.RunInUI(() =>
             {
                 var data = new RepositoryInfoCacheData();
                 data.CurrentConfigBranch = branch;
-                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value.name, branch.Value) : null;
+                data.CurrentGitBranch = branch.HasValue ? (GitBranch?)GetLocalGitBranch(branch.Value) : null;
                 data.CurrentConfigRemote = remote;
                 data.CurrentGitRemote = remote.HasValue ? (GitRemote?)GetGitRemote(remote.Value) : null;
+                data.CurrentHead = head;
                 name = null;
                 cloneUrl = null;
                 cacheContainer.RepositoryInfoCache.UpdateData(data);
-               
+
                 // force refresh of the Name and CloneUrl propertys
                 var n = Name;
             });
@@ -296,16 +314,15 @@ namespace GitHub.Unity
         private void RepositoryManagerOnLocalBranchesUpdated(Dictionary<string, ConfigBranch> localConfigBranchDictionary)
         {
             taskManager.RunInUI(() => {
-                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(CurrentBranchName, x)).ToArray();
+                var gitLocalBranches = localConfigBranchDictionary.Values.Select(x => GetLocalGitBranch(x)).ToArray();
                 cacheContainer.BranchCache.SetLocals(localConfigBranchDictionary, gitLocalBranches);
             });
         }
 
-        private static GitBranch GetLocalGitBranch(string currentBranchName, ConfigBranch x)
+        private static GitBranch GetLocalGitBranch(ConfigBranch x)
         {
             var branchName = x.Name;
-            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : "[None]";
-            var isActive = branchName == currentBranchName;
+            var trackingName = x.IsTracking ? x.Remote.Value.Name + "/" + branchName : null;
             return new GitBranch(branchName, trackingName);
         }
 
@@ -344,6 +361,7 @@ namespace GitHub.Unity
         public GitRemote? CurrentRemote => cacheContainer.RepositoryInfoCache.CurrentGitRemote;
         public List<GitLogEntry> CurrentLog => cacheContainer.GitLogCache.Log;
         public List<GitLock> CurrentLocks => cacheContainer.GitLocksCache.GitLocks;
+        public string CurrentHead => cacheContainer.RepositoryInfoCache.CurrentHead;
 
         public UriString CloneUrl
         {
@@ -416,9 +434,12 @@ namespace GitHub.Unity
 
         public User(ICacheContainer cacheContainer)
         {
-            this.cacheContainer = cacheContainer;
-            cacheContainer.CacheInvalidated += (type) => { if (type == CacheType.GitUser) GitUserCacheOnCacheInvalidated(); };
-            cacheContainer.CacheUpdated += (type, dt) => { if (type == CacheType.GitUser) CacheHasBeenUpdated(dt); };
+            if (cacheContainer != null)
+            {
+                this.cacheContainer = cacheContainer;
+                cacheContainer.CacheInvalidated += (type) => { if (type == CacheType.GitUser) GitUserCacheOnCacheInvalidated(); };
+                cacheContainer.CacheUpdated += (type, dt) => { if (type == CacheType.GitUser) CacheHasBeenUpdated(dt); };
+            }
         }
 
         public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(CacheType.GitUser, cacheUpdateEvent);
@@ -475,6 +496,7 @@ namespace GitHub.Unity
             }
 
             gitClient.GetConfigUserAndEmail()
+                     .Catch(InvalidationFailed)
                      .ThenInUI((success, value) =>
                      {
                          if (success)
@@ -484,7 +506,15 @@ namespace GitHub.Unity
                          }
                      }).Start();
         }
-        
+
+        private bool InvalidationFailed(Exception ex)
+        {
+            Logger.Warning(ex, "Error invalidating user cache");
+            var managedCache = cacheContainer.GetCache(CacheType.GitUser);
+            managedCache.ResetInvalidation();
+            return false;
+        }
+
         public string Name
         {
             get { return cacheContainer.GitUserCache.Name; }

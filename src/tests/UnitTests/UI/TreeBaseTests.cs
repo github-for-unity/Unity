@@ -113,14 +113,13 @@ namespace UnitTests
             TestTreeListener.AddCheckedNode(node);
         }
 
-        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData, bool isContainer)
+        protected override TestTreeNode CreateTreeNode(string path, string label, int level, bool isFolder, bool isActive, bool isHidden, bool isCollapsed, bool isChecked, TestTreeData? treeData)
         {
             if (traceLogging)
             {
                 Logger.Trace(
-                    "CreateTreeNode(path: {0}, label: {1}, level: {2}, isFolder: {3}, " +
-                    "isActive: {4}, isHidden: {5}, isCollapsed: {6}, isChecked: {7}, treeData: {8})", path, label,
-                    level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData?.ToString() ?? "[NULL]");
+                    "CreateTreeNode(path: {0}, label: {1}, level: {2}, isFolder: {3}, isActive: {4}, isHidden: {5}, isCollapsed: {6}, isChecked: {7}, treeData: {8})",
+                    path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked, treeData?.ToString() ?? "[NULL]");
             }
 
             TestTreeListener.CreateTreeNode(path, label, level, isFolder, isActive, isHidden, isCollapsed, isChecked,
@@ -184,6 +183,11 @@ namespace UnitTests
                 }
                 TestTreeListener.SelectedNode = value;
             }
+        }
+
+        public new void ToggleNodeChecked(int idx, TestTreeNode node)
+        {
+            base.ToggleNodeChecked(idx, node);
         }
 
         protected override List<TestTreeNode> Nodes
@@ -606,6 +610,210 @@ namespace UnitTests
                     TreeData = testTreeData[1]
                 }
             });
+        }
+
+        [Test]
+        public void ShouldCheckParentOfMetaFile()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(true);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+            testTreeListener.PromoteMetaFiles.Returns(true);
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity"
+                },
+                new TestTreeData {
+                    Path = "Folder\\Default Scene.unity.meta"
+                }
+            };
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder",
+                    Label = "Folder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity",
+                    Label = "Default Scene.unity",
+                    Level = 2,
+                    TreeData = testTreeData[0],
+                    IsContainer = true
+                },
+                new TestTreeNode {
+                    Path = "Folder\\Default Scene.unity.meta",
+                    Label = "Default Scene.unity.meta",
+                    Level = 3,
+                    TreeData = testTreeData[1]
+                }
+            });
+
+            var sceneNode = testTree.CreatedTreeNodes[2];
+            var sceneMetaNode = testTree.CreatedTreeNodes[3];
+
+            Assert.AreEqual(CheckState.Empty, sceneNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, sceneMetaNode.CheckState);
+
+            testTree.ToggleNodeChecked(3, sceneMetaNode);
+
+            Assert.AreEqual(CheckState.Checked, sceneNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, sceneMetaNode.CheckState);
+
+            testTreeListener.Received(2).AddCheckedNode(Arg.Any<TestTreeNode>());
+        }
+
+        [Test]
+        public void ShouldRippleChecksCorrectly()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(true);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+            testTreeListener.PromoteMetaFiles.Returns(true);
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "Root\\Parent\\A.txt"
+                },
+                new TestTreeData {
+                    Path = "Root\\Parent\\B.txt"
+                },
+                new TestTreeData {
+                    Path = "Root\\Parent\\C.txt"
+                }
+            };
+
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Root",
+                    Label = "Root",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Root\\Parent",
+                    Label = "Parent",
+                    Level = 2,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "Root\\Parent\\A.txt",
+                    Label = "A.txt",
+                    Level = 3,
+                    TreeData = testTreeData[0],
+                },
+                new TestTreeNode {
+                    Path = "Root\\Parent\\B.txt",
+                    Label = "B.txt",
+                    Level = 3,
+                    TreeData = testTreeData[1],
+                },
+                new TestTreeNode {
+                    Path = "Root\\Parent\\C.txt",
+                    Label = "C.txt",
+                    Level = 3,
+                    TreeData = testTreeData[2],
+                }
+            });
+
+            var rootNode = testTree.CreatedTreeNodes[1];
+            var parentNode = testTree.CreatedTreeNodes[2];
+            var aNode = testTree.CreatedTreeNodes[3];
+            var bNode = testTree.CreatedTreeNodes[4];
+            var cNode = testTree.CreatedTreeNodes[5];
+
+            // Initial state, everything unchecked
+
+            Assert.AreEqual(CheckState.Empty, rootNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, parentNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, aNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, bNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, cNode.CheckState);
+
+            testTree.ToggleNodeChecked(1, rootNode);
+
+            // Checked the root node, everything checked
+
+            Assert.AreEqual(CheckState.Checked, rootNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, parentNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, aNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, bNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, cNode.CheckState);
+
+            testTreeListener.Received(3).AddCheckedNode(Arg.Any<TestTreeNode>());
+            testTreeListener.ClearReceivedCalls();
+
+            // Unchecked c.txt, c.txt unchecked, parents mixed
+
+            testTree.ToggleNodeChecked(5, cNode);
+
+            Assert.AreEqual(CheckState.Mixed, rootNode.CheckState);
+            Assert.AreEqual(CheckState.Mixed, parentNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, aNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, bNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, cNode.CheckState);
+
+            testTreeListener.Received(1).RemoveCheckedNode(Arg.Any<TestTreeNode>());
+            testTreeListener.ClearReceivedCalls();
+
+            testTree.ToggleNodeChecked(5, cNode);
+
+            // Checked c.txt, everything checked
+
+            Assert.AreEqual(CheckState.Checked, rootNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, parentNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, aNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, bNode.CheckState);
+            Assert.AreEqual(CheckState.Checked, cNode.CheckState);
+
+            testTreeListener.Received(1).AddCheckedNode(Arg.Any<TestTreeNode>());
+            testTreeListener.ClearReceivedCalls();
+
+            // Unchecked a.txt b.txt and c.txt, everything checked
+
+            testTree.ToggleNodeChecked(3, aNode);
+            testTree.ToggleNodeChecked(4, bNode);
+            testTree.ToggleNodeChecked(5, cNode);
+
+            Assert.AreEqual(CheckState.Empty, rootNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, parentNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, aNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, bNode.CheckState);
+            Assert.AreEqual(CheckState.Empty, cNode.CheckState);
+
+            testTreeListener.Received(3).RemoveCheckedNode(Arg.Any<TestTreeNode>());
+            testTreeListener.ClearReceivedCalls();
         }
 
         [Test]

@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B389ADAF-62CC-486E-85B4-2D8B078DF76B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GitHub.Unity</RootNamespace>
+    <AssemblyName>GitHub.Api.45</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <LangVersion>6</LangVersion>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <OutputPath>..\UnityExtension\Assets\Editor\build\</OutputPath>
+  </PropertyGroup>
+  <Import Project="..\..\common\properties.props" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;$(BuildDefs);NET_4_6</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;$(BuildDefs);NET_4_6</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <BuildConfig>Release</BuildConfig>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'dev|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs);NET_4_6</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    <CodeAnalysisRuleSet>..\..\common\codeanalysis-debug.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BuildConfig Condition=" '$(BuildConfig)' == '' ">Debug</BuildConfig>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Posix">
+      <HintPath>$(SolutionDir)lib\Mono.Posix.dll</HintPath>
+    </Reference>
+    <Reference Include="sfw.net">
+      <HintPath>$(SolutionDir)\lib\sfw\sfw.net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Threading" />
+    <Reference Include="System.Web" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application\ApplicationInfo.cs" />
+    <Compile Include="Application\LoginResult.cs" />
+    <Compile Include="Application\ApplicationConfiguration.cs" />
+    <Compile Include="Application\Organization.cs" />
+    <Compile Include="Authentication\OAuthCallbackManager.cs" />
+    <Compile Include="Cache\CacheContainer.cs" />
+    <Compile Include="Cache\CacheInterfaces.cs" />
+    <Compile Include="Cache\CachingClasses.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
+    <Compile Include="Git\GitAheadBehindStatus.cs" />
+    <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
+    <Compile Include="Git\Tasks\GitConfigUnSetTask.cs" />
+    <Compile Include="Git\Tasks\GitCountObjectsTask.cs" />
+    <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
+    <Compile Include="Git\Tasks\GitVersionTask.cs" />
+    <Compile Include="Git\TreeData.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\AssemblyResources.cs" />
+    <Compile Include="Authentication\IKeychain.cs" />
+    <Compile Include="Authentication\Keychain.cs" />
+    <Compile Include="Authentication\LoginManager.cs" />
+    <Compile Include="Authentication\ILoginManager.cs" />
+    <Compile Include="Application\ApplicationManagerBase.cs" />
+    <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Helpers\Validation.cs" />
+    <Compile Include="Installer\CopyHelper.cs" />
+    <Compile Include="Installer\GitInstaller.cs" />
+    <Compile Include="Installer\OctorunInstaller.cs" />
+    <Compile Include="Installer\UnzipTask.cs" />
+    <Compile Include="IO\FileSystem.cs" />
+    <Compile Include="Managers\Downloader.cs" />
+    <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\GitCountObjectsProcessor.cs" />
+    <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LinuxDiskUsageOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\VersionOutputProcessor.cs" />
+    <Compile Include="Helpers\TaskHelpers.cs" />
+    <Compile Include="OutputProcessors\WindowsDiskUsageOutputProcessor.cs" />
+    <Compile Include="Platform\DefaultEnvironment.cs" />
+    <Compile Include="Extensions\EnvironmentExtensions.cs" />
+    <Compile Include="Extensions\FileEventExtensions.cs" />
+    <Compile Include="Events\RepositoryWatcher.cs" />
+    <Compile Include="Extensions\FileSystemExtensions.cs" />
+    <Compile Include="Extensions\StreamExtensions.cs" />
+    <Compile Include="Git\GitFileStatus.cs" />
+    <Compile Include="Git\GitLock.cs" />
+    <Compile Include="Git\GitObjectFactory.cs" />
+    <Compile Include="Git\GitStatusEntry.cs" />
+    <Compile Include="Git\IGitObjectFactory.cs" />
+    <Compile Include="Git\Tasks\GitRevertTask.cs" />
+    <Compile Include="Application\IApplicationManager.cs" />
+    <Compile Include="Platform\LinuxDiskUsageTask.cs" />
+    <Compile Include="Platform\WindowsDiskUsageTask.cs" />
+    <Compile Include="Primitives\Package.cs" />
+    <Compile Include="Primitives\TheVersion.cs" />
+    <Compile Include="SharpZipLib\Checksums\Adler32.cs" />
+    <Compile Include="SharpZipLib\Checksums\CRC32.cs" />
+    <Compile Include="SharpZipLib\Checksums\IChecksum.cs" />
+    <Compile Include="SharpZipLib\Checksums\StrangeCRC.cs" />
+    <Compile Include="SharpZipLib\Core\FileSystemScanner.cs" />
+    <Compile Include="SharpZipLib\Core\INameTransform.cs" />
+    <Compile Include="SharpZipLib\Core\IScanFilter.cs" />
+    <Compile Include="SharpZipLib\Core\NameFilter.cs" />
+    <Compile Include="SharpZipLib\Core\PathFilter.cs" />
+    <Compile Include="SharpZipLib\Core\StreamUtils.cs" />
+    <Compile Include="SharpZipLib\Core\WindowsPathUtils.cs" />
+    <Compile Include="SharpZipLib\Encryption\PkzipClassic.cs" />
+    <Compile Include="SharpZipLib\Encryption\ZipAESStream.cs" />
+    <Compile Include="SharpZipLib\Encryption\ZipAESTransform.cs" />
+    <Compile Include="SharpZipLib\SharpZipBaseException.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\Deflater.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\DeflaterConstants.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\DeflaterEngine.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\DeflaterHuffman.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\DeflaterPending.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\Inflater.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\InflaterDynHeader.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\InflaterHuffmanTree.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\PendingBuffer.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\Streams\DeflaterOutputStream.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\Streams\InflaterInputStream.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\Streams\OutputWindow.cs" />
+    <Compile Include="SharpZipLib\Zip\Compression\Streams\StreamManipulator.cs" />
+    <Compile Include="SharpZipLib\Zip\FastZip.cs" />
+    <Compile Include="SharpZipLib\Zip\IEntryFactory.cs" />
+    <Compile Include="SharpZipLib\Zip\WindowsNameTransform.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipConstants.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipEntry.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipEntryFactory.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipException.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipExtraData.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipFile.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipHelperStream.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipInputStream.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipNameTransform.cs" />
+    <Compile Include="SharpZipLib\Zip\ZipOutputStream.cs" />
+    <Compile Include="Tasks\ActionTask.cs" />
+    <Compile Include="Tasks\BaseOutputProcessor.cs" />
+    <Compile Include="Tasks\ConcurrentExclusiveInterleave.cs" />
+    <Compile Include="Tasks\ConfigOutputProcessor.cs" />
+    <Compile Include="Tasks\DownloadTask.cs" />
+    <Compile Include="Tasks\ITaskManager.cs" />
+    <Compile Include="Tasks\OctorunTask.cs" />
+    <Compile Include="Tasks\ProcessTask.cs" />
+    <Compile Include="Tasks\TaskBase.cs" />
+    <Compile Include="Tasks\TaskCanceledExceptions.cs" />
+    <Compile Include="Tasks\TaskExtensions.cs" />
+    <Compile Include="Tasks\TaskManager.cs" />
+    <Compile Include="Platform\FindExecTask.cs" />
+    <Compile Include="Helpers\Progress.cs" />
+    <Compile Include="Metrics\IMetricsService.cs" />
+    <Compile Include="Metrics\IUsageTracker.cs" />
+    <Compile Include="Metrics\UsageModel.cs" />
+    <Compile Include="Metrics\UsageTracker.cs" />
+    <Compile Include="Git\Tasks\GitLfsInstallTask.cs" />
+    <Compile Include="Git\Tasks\GitRemoteChangeTask.cs" />
+    <Compile Include="Git\Tasks\GitRemoveFromIndexTask.cs" />
+    <Compile Include="IO\Utils.cs" />
+    <Compile Include="Threading\IMainThreadSynchronizationContext.cs" />
+    <Compile Include="Installer\IZipHelper.cs" />
+    <Compile Include="Installer\ZipHelper.cs" />
+    <Compile Include="Extensions\AsyncExtensions.cs" />
+    <Compile Include="Platform\Settings.cs" />
+    <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LocksOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
+    <Compile Include="OutputProcessors\ProcessManager.cs" />
+    <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
+    <Compile Include="Git\GitConfig.cs" />
+    <Compile Include="OutputProcessors\LineProcessor.cs" />
+    <Compile Include="Git\GitRemote.cs" />
+    <Compile Include="OutputProcessors\IProcessManager.cs" />
+    <Compile Include="IO\NiceIO.cs" />
+    <Compile Include="OutputProcessors\RemoteListOutputProcessor.cs" />
+    <Compile Include="Git\IRepository.cs" />
+    <Compile Include="Platform\ISettings.cs" />
+    <Compile Include="Localization.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Localization.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Platform\ProcessEnvironment.cs" />
+    <Compile Include="Platform\IProcessEnvironment.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Git\Repository.cs" />
+    <Compile Include="Git\RepositoryManager.cs" />
+    <Compile Include="Git\GitClient.cs" />
+    <Compile Include="Helpers\SimpleJson.cs" />
+    <Compile Include="Git\FailureSeverity.cs" />
+    <Compile Include="Git\Tasks\GitAddTask.cs" />
+    <Compile Include="Git\GitBranch.cs" />
+    <Compile Include="Git\Tasks\GitBranchCreateTask.cs" />
+    <Compile Include="Git\Tasks\GitBranchDeleteTask.cs" />
+    <Compile Include="Git\Tasks\GitCommitTask.cs" />
+    <Compile Include="Git\Tasks\GitConfigGetTask.cs" />
+    <Compile Include="Git\Tasks\GitConfigListTask.cs" />
+    <Compile Include="Git\Tasks\GitConfigSetTask.cs" />
+    <Compile Include="Git\GitConfigSource.cs" />
+    <Compile Include="Git\Tasks\GitFetchTask.cs" />
+    <Compile Include="Git\Tasks\GitInitTask.cs" />
+    <Compile Include="Git\Tasks\GitListBranchesTask.cs" />
+    <Compile Include="Git\Tasks\GitListLocksTask.cs" />
+    <Compile Include="Git\Tasks\GitLockTask.cs" />
+    <Compile Include="Git\GitLogEntry.cs" />
+    <Compile Include="Git\Tasks\GitLogTask.cs" />
+    <Compile Include="Git\Tasks\GitPullTask.cs" />
+    <Compile Include="Git\Tasks\GitPushTask.cs" />
+    <Compile Include="Git\Tasks\GitRemoteAddTask.cs" />
+    <Compile Include="Git\Tasks\GitRemoteBranchDeleteTask.cs" />
+    <Compile Include="Git\Tasks\GitRemoteListTask.cs" />
+    <Compile Include="Git\Tasks\GitRemoteRemoveTask.cs" />
+    <Compile Include="Git\GitStatus.cs" />
+    <Compile Include="Git\Tasks\GitStatusTask.cs" />
+    <Compile Include="Git\Tasks\GitSwitchBranchesTask.cs" />
+    <Compile Include="Git\Tasks\GitUnlockTask.cs" />
+    <Compile Include="Threading\IAwaitable.cs" />
+    <Compile Include="Threading\IAwaiter.cs" />
+    <Compile Include="Threading\ThreadingHelper.cs" />
+    <Compile Include="Application\IApiClient.cs" />
+    <Compile Include="Application\ApiClient.cs" />
+    <Compile Include="Authentication\AuthenticationResult.cs" />
+    <Compile Include="Authentication\AuthenticationResultExtensions.cs" />
+    <Compile Include="Authentication\Credential.cs" />
+    <Compile Include="Extensions\ExceptionExtensions.cs" />
+    <Compile Include="Helpers\Guard.cs" />
+    <Compile Include="Authentication\ICredentialManager.cs" />
+    <Compile Include="Platform\IEnvironment.cs" />
+    <Compile Include="Primitives\HostAddress.cs" />
+    <Compile Include="Primitives\StringEquivalent.cs" />
+    <Compile Include="Primitives\UriString.cs" />
+    <Compile Include="Authentication\KeychainAdapter.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\UriExtensions.cs" />
+    <Compile Include="Platform\Platform.cs" />
+    <Compile Include="Git\GitCredentialManager.cs" />
+    <Compile Include="UI\TreeBase.cs" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="$(Buildtype) == 'Internal'">
+      <ItemGroup>
+        <Compile Include="$(SolutionDir)\script\src\MetricsService.cs">
+          <Link>Metrics\MetricsService.cs</Link>
+        </Compile>
+        <Compile Include="$(SolutionDir)\script\src\ApplicationInfo_Local.cs">
+          <Link>Properties\ApplicationInfo_Local.cs</Link>
+        </Compile>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <None Include="$(SolutionDir)\common\ApplicationInfo_Local.cs-example" Condition="!Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+          <Link>Properties\ApplicationInfo_Local.cs-example</Link>
+        </None>
+        <Compile Include="$(SolutionDir)\common\ApplicationInfo_Local.cs" Condition="Exists('$(SolutionDir)\common\ApplicationInfo_Local.cs')">
+          <Link>Properties\ApplicationInfo_Local.cs</Link>
+        </Compile>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <ProjectReference Include="..\GitHub.Logging\GitHub.Logging.csproj">
+      <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
+      <Name>GitHub.Logging</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PlatformResources\mac\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\windows\gitconfig" />
+    <EmbeddedResource Include="PlatformResources\linux\gitconfig" />
+    <EmbeddedResource Include="Resources\.gitattributes" />
+    <EmbeddedResource Include="Resources\.gitignore" />
+    <EmbeddedResource Include="PlatformResources\linux\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\mac\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\windows\git-lfs.json" />
+    <EmbeddedResource Include="PlatformResources\windows\git.json" />
+    <EmbeddedResource Include="Resources\octorun.zip" />
+    <EmbeddedResource Include="Resources\octorun.zip.md5" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Localization.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  -->
+  <Import Project="..\..\common\build.targets" />
+</Project>

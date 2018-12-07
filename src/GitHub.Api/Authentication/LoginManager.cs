@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Text;
 using GitHub.Logging;
 
 namespace GitHub.Unity
@@ -23,8 +23,7 @@ namespace GitHub.Unity
         private readonly IKeychain keychain;
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
-        private readonly NPath? nodeJsExecutablePath;
-        private readonly NPath? octorunScript;
+        private readonly IEnvironment environment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginManager"/> class.
@@ -35,20 +34,44 @@ namespace GitHub.Unity
         /// <param name="nodeJsExecutablePath"></param>
         /// <param name="octorunScript"></param>
         public LoginManager(
-            IKeychain keychain, IProcessManager processManager = null, ITaskManager taskManager = null,
-            NPath? nodeJsExecutablePath = null, NPath? octorunScript = null)
+            IKeychain keychain, IProcessManager processManager, ITaskManager taskManager,
+            IEnvironment environment)
         {
             Guard.ArgumentNotNull(keychain, nameof(keychain));
 
             this.keychain = keychain;
             this.processManager = processManager;
             this.taskManager = taskManager;
-            this.nodeJsExecutablePath = nodeJsExecutablePath;
-            this.octorunScript = octorunScript;
+            this.environment = environment;
+        }
+
+        public bool LoginWithToken(UriString host, string token)
+        {
+            Guard.ArgumentNotNull(host, nameof(host));
+            Guard.ArgumentNotNullOrWhiteSpace(token, nameof(token));
+
+            var keychainAdapter = keychain.Connect(host);
+            keychainAdapter.Set(new Credential(host, "[token]", token));
+
+            try
+            {
+                var username = RetrieveUsername(token, host);
+                keychainAdapter.Update(token, username);
+                keychain.SaveToSystem(host);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger.Warning(e, "Login Exception");
+
+                keychain.Clear(host, false);
+                return false;
+            }
         }
 
         /// <inheritdoc/>
-        public async Task<LoginResultData> Login(
+        public LoginResultData Login(
             UriString host,
             string username,
             string password)
@@ -59,12 +82,12 @@ namespace GitHub.Unity
 
             // Start by saving the username and password, these will be used by the `IGitHubClient`
             // until an authorization token has been created and acquired:
-            keychain.Connect(host);
-            keychain.SetCredentials(new Credential(host, username, password));
+            var keychainAdapter = keychain.Connect(host);
+            keychainAdapter.Set(new Credential(host, username, password));
 
             try
             {
-                var loginResultData = await TryLogin(host, username, password);
+                var loginResultData = TryLogin(host, username, password);
                 if (loginResultData.Code == LoginResultCodes.Success || loginResultData.Code == LoginResultCodes.CodeRequired)
                 {
                     if (string.IsNullOrEmpty(loginResultData.Token))
@@ -72,16 +95,13 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    if (loginResultData.Code == LoginResultCodes.Success)
-                    {
-                        username = await RetrieveUsername(loginResultData, username);
-                    }
-
-                    keychain.SetToken(host, loginResultData.Token, username);
+                    keychainAdapter.Update(loginResultData.Token, username);
 
                     if (loginResultData.Code == LoginResultCodes.Success)
                     {
-                        await keychain.Save(host);
+                        username = RetrieveUsername(loginResultData.Token, host);
+                        keychainAdapter.Update(loginResultData.Token, username);
+                        keychain.SaveToSystem(host);
                     }
 
                     return loginResultData;
@@ -93,20 +113,23 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login Exception");
 
-                await keychain.Clear(host, false);
+                keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
         }
 
-        public async Task<LoginResultData> ContinueLogin(LoginResultData loginResultData, string twofacode)
+        public LoginResultData ContinueLogin(LoginResultData loginResultData, string twofacode)
         {
             var host = loginResultData.Host;
             var keychainAdapter = keychain.Connect(host);
+            if (keychainAdapter.Credential == null) {
+                return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
+            }
             var username = keychainAdapter.Credential.Username;
             var password = keychainAdapter.Credential.Token;
             try
             {
-                loginResultData = await TryLogin(host, username, password, twofacode);
+                loginResultData = TryLogin(host, username, password, twofacode);
 
                 if (loginResultData.Code == LoginResultCodes.Success)
                 {
@@ -115,9 +138,10 @@ namespace GitHub.Unity
                         throw new InvalidOperationException("Returned token is null or empty");
                     }
 
-                    username = await RetrieveUsername(loginResultData, username);
-                    keychain.SetToken(host, loginResultData.Token, username);
-                    await keychain.Save(host);
+                    keychainAdapter.Update(loginResultData.Token, username);
+                    username = RetrieveUsername(loginResultData.Token, host);
+                    keychainAdapter.Update(loginResultData.Token, username);
+                    keychain.SaveToSystem(host);
 
                     return loginResultData;
                 }
@@ -128,7 +152,7 @@ namespace GitHub.Unity
             {
                 logger.Warning(e, "Login Exception");
 
-                await keychain.Clear(host, false);
+                keychain.Clear(host, false);
                 return new LoginResultData(LoginResultCodes.Failed, Localization.LoginFailed, host);
             }
         }
@@ -137,33 +161,33 @@ namespace GitHub.Unity
         public ITask Logout(UriString hostAddress)
         {
             Guard.ArgumentNotNull(hostAddress, nameof(hostAddress));
-
-            return new ActionTask(keychain.Clear(hostAddress, true)) { Message = "Signing out" }.Start();
+            return taskManager.Run(() => keychain.Clear(hostAddress, true), "Signing out");
         }
 
-        private async Task<LoginResultData> TryLogin(
+        private LoginResultData TryLogin(
             UriString host,
             string username,
             string password,
             string code = null
         )
         {
-            if (!nodeJsExecutablePath.HasValue)
-            {
-                throw new InvalidOperationException("nodeJsExecutablePath must be set");
-            }
-
-            if (!octorunScript.HasValue)
-            {
-                throw new InvalidOperationException("octorunScript must be set");
-            }
-
             var hasTwoFactorCode = code != null;
 
-            var arguments = hasTwoFactorCode ? "login --twoFactor" : "login";
-            var loginTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value,
-                arguments, ApplicationInfo.ClientId, ApplicationInfo.ClientSecret);
-            loginTask.Configure(processManager, workingDirectory: octorunScript.Value.Parent.Parent, withInput: true);
+            var command = new StringBuilder("login");
+
+            if (hasTwoFactorCode)
+            {
+                command.Append(" --twoFactor");
+            }
+
+            if (!HostAddress.IsGitHubDotCom(host))
+            {
+                command.Append(" -h ");
+                command.Append(host.Host);
+            }
+
+            var loginTask = new OctorunTask(taskManager.Token, environment, command.ToString());
+            loginTask.Configure(processManager, withInput: true);
             loginTask.OnStartProcess += proc =>
             {
                 proc.StandardInput.WriteLine(username);
@@ -175,7 +199,7 @@ namespace GitHub.Unity
                 proc.StandardInput.Close();
             };
 
-            var ret = await loginTask.StartAwait();
+            var ret = loginTask.RunSynchronously();
 
             if (ret.IsSuccess)
             {
@@ -193,17 +217,13 @@ namespace GitHub.Unity
             return new LoginResultData(LoginResultCodes.Failed, ret.GetApiErrorMessage() ?? "Failed.", host);
         }
 
-        private async Task<string> RetrieveUsername(LoginResultData loginResultData, string username)
+        private string RetrieveUsername(string token, UriString host)
         {
-            if (!username.Contains("@"))
-            {
-                return username;
-            }
+            var command = HostAddress.IsGitHubDotCom(host) ? "validate" : "validate -h " + host.Host;
+            var octorunTask = new OctorunTask(taskManager.Token, environment, command, token)
+                .Configure(processManager);
 
-            var octorunTask = new OctorunTask(taskManager.Token, nodeJsExecutablePath.Value, octorunScript.Value, "validate",
-                user: username, userToken: loginResultData.Token).Configure(processManager);
-
-            var validateResult = await octorunTask.StartAsAsync();
+            var validateResult = octorunTask.RunSynchronously();
             if (!validateResult.IsSuccess)
             {
                 throw new InvalidOperationException("Authentication validation failed");

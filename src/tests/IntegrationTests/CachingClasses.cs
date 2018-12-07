@@ -109,6 +109,7 @@ namespace IntegrationTests
         private DateTimeOffset? initializedAtValue;
 
         private bool isInvalidating;
+        protected bool forcedInvalidation;
 
         public event Action<CacheType> CacheInvalidated;
         public event Action<CacheType, DateTimeOffset> CacheUpdated;
@@ -134,13 +135,20 @@ namespace IntegrationTests
 
         public void InvalidateData()
         {
-            if (!isInvalidating)
-            {
-                Logger.Trace("Invalidate");
-                isInvalidating = true;
-                LastUpdatedAt = DateTimeOffset.MinValue;
-                CacheInvalidated.SafeInvoke(CacheType);
-            }
+            forcedInvalidation = true;
+            Invalidate();
+        }
+
+        private void Invalidate()
+        {
+            isInvalidating = true;
+            LastUpdatedAt = DateTimeOffset.MinValue;
+            CacheInvalidated.SafeInvoke(CacheType);
+        }
+
+        public void ResetInvalidation()
+        {
+            isInvalidating = false;
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
@@ -184,7 +192,7 @@ namespace IntegrationTests
                 if (!lastUpdatedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(LastUpdatedAtString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         lastUpdatedAtValue = result;
                     }
@@ -210,7 +218,7 @@ namespace IntegrationTests
                 if (!initializedAtValue.HasValue)
                 {
                     DateTimeOffset result;
-                    if (DateTimeOffset.TryParseExact(InitializedAtString, Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                    if (DateTimeOffset.TryParseExact(InitializedAtString.ToEmptyIfNull(), Constants.Iso8601Formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                     {
                         initializedAtValue = result;
                     }
@@ -363,6 +371,7 @@ namespace IntegrationTests
         private GitBranch currentGitBranch;
         private ConfigBranch currentConfigBranch;
         private ConfigRemote currentConfigRemote;
+        private string currentHead;
 
         public RepositoryInfoCache() : base(CacheType.RepositoryInfo)
         { }
@@ -393,6 +402,12 @@ namespace IntegrationTests
             if (!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
             {
                 currentConfigBranch = data.CurrentConfigBranch ?? ConfigBranch.Default;
+                isUpdated = true;
+            }
+
+            if (currentHead != data.CurrentHead)
+            {
+                currentHead =  data.CurrentHead;
                 isUpdated = true;
             }
 
@@ -432,6 +447,15 @@ namespace IntegrationTests
             {
                 ValidateData();
                 return currentConfigBranch.Equals(ConfigBranch.Default) ? (ConfigBranch?)null : currentConfigBranch;
+            }
+        }
+
+        public string CurrentHead
+        {
+            get
+            {
+                ValidateData();
+                return currentHead;
             }
         }
 

@@ -13,6 +13,7 @@ namespace IntegrationTests
     class ProcessManagerIntegrationTests : BaseGitEnvironmentTest
     {
         [Test]
+        [Category("DoNotRunOnAppVeyor")]
         public async Task BranchListTest()
         {
             InitializePlatformAndEnvironment(TestRepoMasterCleanUnsynchronized);
@@ -23,7 +24,7 @@ namespace IntegrationTests
                 .StartAsAsync();
 
             gitBranches.Should().BeEquivalentTo(
-                new GitBranch("master", "origin/master: behind 1"),
+                new GitBranch("master", "origin/master"),
                 new GitBranch("feature/document", "origin/feature/document"));
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GitHub.Unity
@@ -9,6 +10,8 @@ namespace GitHub.Unity
         void OnDisable();
         void Refresh();
         void Redraw();
+        void Refresh(CacheType type);
+        void ReceivedEvent(CacheType type);
         void DoneRefreshing();
         Rect Position { get; }
 
@@ -21,6 +24,7 @@ namespace GitHub.Unity
         bool IsBusy { get; }
         bool IsRefreshing { get; }
         bool HasFocus { get; }
+        Dictionary<CacheType, int> RefreshEvents { get; }
     }
 
     interface IUIEmpty

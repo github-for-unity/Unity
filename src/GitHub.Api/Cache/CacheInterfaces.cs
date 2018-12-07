@@ -40,6 +40,7 @@ namespace GitHub.Unity
 
         bool ValidateData();
         void InvalidateData();
+        void ResetInvalidation();
 
         DateTimeOffset LastUpdatedAt { get; }
         CacheType CacheType { get; }
@@ -91,7 +92,7 @@ namespace GitHub.Unity
         ILocalConfigBranchDictionary LocalConfigBranches { get; }
         IRemoteConfigBranchDictionary RemoteConfigBranches { get; }
         IConfigRemoteDictionary ConfigRemotes { get; }
-        
+
         void SetRemotes(Dictionary<string, ConfigRemote> remoteConfigs, Dictionary<string, Dictionary<string, ConfigBranch>> configBranches, GitRemote[] gitRemotes, GitBranch[] gitBranches);
         void SetLocals(Dictionary<string, ConfigBranch> configBranches, GitBranch[] gitBranches);
     }
@@ -102,6 +103,7 @@ namespace GitHub.Unity
         GitBranch? CurrentGitBranch { get; }
         ConfigRemote? CurrentConfigRemote { get; }
         ConfigBranch? CurrentConfigBranch { get; }
+        string CurrentHead { get; }
     }
 
     public interface IRepositoryInfoCache : IManagedCache, IRepositoryInfoCacheData, ICanUpdate<IRepositoryInfoCacheData>

@@ -319,7 +319,7 @@ namespace GitHub.Unity
                             {
                                 if (success)
                                 {
-                                    TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCreateBranch, null);
+                                    UsageTracker.IncrementBranchesViewButtonCreateBranch();
                                     Redraw();
                                 }
                                 else
@@ -489,7 +489,7 @@ namespace GitHub.Unity
                         {
                             if (success)
                             {
-                                TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutRemoteBranch, null);
+                                UsageTracker.IncrementBranchesViewButtonCheckoutRemoteBranch();
                                 Redraw();
                             }
                             else
@@ -512,8 +512,9 @@ namespace GitHub.Unity
                     {
                         if (success)
                         {
-                            TaskManager.Run(UsageTracker.IncrementBranchesViewButtonCheckoutLocalBranch, null);
+                            UsageTracker.IncrementBranchesViewButtonCheckoutLocalBranch();
                             Redraw();
+                            AssetDatabase.Refresh();
                         }
                         else
                         {
@@ -530,7 +531,7 @@ namespace GitHub.Unity
             if (EditorUtility.DisplayDialog(DeleteBranchTitle, dialogMessage, DeleteBranchButton, CancelButtonLabel))
             {
                 Repository.DeleteBranch(branch, true)
-                    .Then(UsageTracker.IncrementBranchesViewButtonDeleteBranch)
+                    .Finally(s => { if (s) UsageTracker.IncrementBranchesViewButtonDeleteBranch(); } )
                     .Start();
             }
         }

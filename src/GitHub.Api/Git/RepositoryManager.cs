@@ -9,7 +9,7 @@ namespace GitHub.Unity
     public interface IRepositoryManager : IDisposable
     {
         event Action<bool> IsBusyChanged;
-        event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
+        event Action<ConfigBranch?, ConfigRemote?, string> CurrentBranchUpdated;
         event Action<GitStatus> GitStatusUpdated;
         event Action<List<GitLock>> GitLocksUpdated;
         event Action<List<GitLogEntry>> GitLogUpdated;
@@ -60,6 +60,8 @@ namespace GitHub.Unity
         NPath DotGitIndex { get; }
         NPath DotGitHead { get; }
         NPath DotGitConfig { get; }
+        NPath WorktreeDotGitPath { get; }
+        bool IsWorktree { get; }
     }
 
     class RepositoryPathConfiguration : IRepositoryPathConfiguration
@@ -67,8 +69,10 @@ namespace GitHub.Unity
         public RepositoryPathConfiguration(NPath repositoryPath)
         {
             RepositoryPath = repositoryPath;
+            WorktreeDotGitPath = NPath.Default;
 
             DotGitPath = repositoryPath.Combine(".git");
+            NPath commonPath;
             if (DotGitPath.FileExists())
             {
                 DotGitPath =
@@ -76,17 +80,37 @@ namespace GitHub.Unity
                               .Where(x => x.StartsWith("gitdir:"))
                               .Select(x => x.Substring(7).Trim().ToNPath())
                               .First();
+                if (DotGitPath.Combine("commondir").FileExists())
+                {
+                    commonPath = DotGitPath.Combine("commondir").ReadAllLines()
+                        .Select(x => x.Trim().ToNPath())
+                        .First();
+                    commonPath = DotGitPath.Combine(commonPath);
+
+                    IsWorktree = true;
+                    WorktreeDotGitPath = commonPath;
+                }
+                else
+                {
+                    commonPath = DotGitPath;
+                }
+            }
+            else
+            {
+                commonPath = DotGitPath;
             }
 
-            BranchesPath = DotGitPath.Combine("refs", "heads");
-            RemotesPath = DotGitPath.Combine("refs", "remotes");
+            BranchesPath = commonPath.Combine("refs", "heads");
+            RemotesPath = commonPath.Combine("refs", "remotes");
             DotGitIndex = DotGitPath.Combine("index");
             DotGitHead = DotGitPath.Combine("HEAD");
-            DotGitConfig = DotGitPath.Combine("config");
+            DotGitConfig = commonPath.Combine("config");
             DotGitCommitEditMsg = DotGitPath.Combine("COMMIT_EDITMSG");
         }
 
+        public bool IsWorktree { get; }
         public NPath RepositoryPath { get; }
+        public NPath WorktreeDotGitPath { get; }
         public NPath DotGitPath { get; }
         public NPath BranchesPath { get; }
         public NPath RemotesPath { get; }
@@ -106,7 +130,7 @@ namespace GitHub.Unity
 
         private bool isBusy;
 
-        public event Action<ConfigBranch?, ConfigRemote?> CurrentBranchUpdated;
+        public event Action<ConfigBranch?, ConfigRemote?, string> CurrentBranchUpdated;
         public event Action<bool> IsBusyChanged;
         public event Action<GitStatus> GitStatusUpdated;
         public event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
@@ -195,6 +219,11 @@ namespace GitHub.Unity
         public ITask Fetch(string remote)
         {
             var task = GitClient.Fetch(remote);
+            task.OnEnd += (_, __, success, ___) =>
+            {
+                if (success)
+                    UpdateGitAheadBehindStatus().Start();
+            };
             return HookupHandlers(task, false);
         }
 
@@ -207,6 +236,11 @@ namespace GitHub.Unity
         public ITask Push(string remote, string branch)
         {
             var task = GitClient.Push(remote, branch);
+            task.OnEnd += (_, __, success, ___) =>
+            {
+                if (success)
+                    UpdateGitAheadBehindStatus().Start();
+            };
             return HookupHandlers(task, false);
         }
 
@@ -394,9 +428,10 @@ namespace GitHub.Unity
                 ConfigBranch? branch;
                 ConfigRemote? remote;
                 GetCurrentBranchAndRemote(out branch, out remote);
-                CurrentBranchUpdated?.Invoke(branch, remote);
+                var currentHead = GitClient.GetHead().RunSynchronously();
+                CurrentBranchUpdated?.Invoke(branch, remote, currentHead);
             })
-            { Message = "Updating repository info..." };;
+            { Message = "Updating repository info..." };
             return HookupHandlers(task, false);
         }
 
@@ -460,7 +495,7 @@ namespace GitHub.Unity
                 }
             };
 
-            task.Finally(success =>
+            task.OnEnd += (_, __, ___) =>
             {
                 if (filesystemChangesExpected)
                 {
@@ -473,6 +508,21 @@ namespace GitHub.Unity
                     //Logger.Trace("Ended Operation - Clearing Busy Flag");
                     IsBusy = false;
                 }
+            };
+            task.Catch(_ =>
+            {
+                if (filesystemChangesExpected)
+                {
+                    //Logger.Trace("Ended Operation - Enable Watcher");
+                    watcher.Start();
+                }
+
+                if (isExclusive)
+                {
+                    //Logger.Trace("Ended Operation - Clearing Busy Flag");
+                    IsBusy = false;
+                }
+
             });
             return task;
         }

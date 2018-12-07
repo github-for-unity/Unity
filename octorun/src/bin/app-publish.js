@@ -1,7 +1,6 @@
 var commander = require("commander");
 var package = require('../../package.json')
 var ApiWrapper = require('../api')
-var endOfLine = require('os').EOL;
 var output = require('../output');
 
 commander
@@ -10,6 +9,7 @@ commander
     .option('-d, --description <description>')
     .option('-o, --organization <organization>')
     .option('-p, --private')
+    .option('-h, --host <host>')
     .parse(process.argv);
 
 if(!commander.repository)
@@ -24,7 +24,7 @@ if (commander.private) {
 }
     
 try {
-    var apiWrapper = new ApiWrapper();
+    var apiWrapper = new ApiWrapper(commander.host);
 
     apiWrapper.publish(commander.repository, commander.description, private, commander.organization,
         function (error, result) {

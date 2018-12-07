@@ -173,9 +173,9 @@ namespace GitHub.Unity
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
-                        new FuncTask<GitInstaller.GitInstallationState>(Manager.CancellationToken, () =>
+                        new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                             {
-                                var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken);
+                                var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
                                 return gitInstaller.FindSystemGit(new GitInstaller.GitInstallationState());
                             })
                             { Message = "Locating git..." }
@@ -226,7 +226,7 @@ namespace GitHub.Unity
             {
                 new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                     {
-                        var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, Manager.CancellationToken);
+                        var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
                         var state = new GitInstaller.GitInstallationState();
                         state = gitInstaller.SetDefaultPaths(state);
                         // on non-windows we only bundle git-lfs

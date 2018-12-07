@@ -6,7 +6,6 @@ namespace GitHub.Unity
 {
     public interface IApplicationManager : IDisposable
     {
-        CancellationToken CancellationToken { get; }
         IEnvironment Environment { get; }
         IPlatform Platform { get; }
         IProcessEnvironment GitEnvironment { get; }
@@ -17,6 +16,7 @@ namespace GitHub.Unity
         ITaskManager TaskManager { get; }
         IGitClient GitClient { get; }
         IUsageTracker UsageTracker { get; }
+        IOAuthCallbackManager OAuthCallbackManager { get; }
         bool IsBusy { get; }
         void Run();
         void InitializeRepository();

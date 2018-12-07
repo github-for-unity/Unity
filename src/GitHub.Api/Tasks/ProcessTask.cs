@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
@@ -39,6 +38,7 @@ namespace GitHub.Unity
     {
         void Configure(Process existingProcess);
         void Configure(ProcessStartInfo psi);
+        void Stop();
         event Action<string> OnErrorData;
         StreamWriter StandardInput { get; }
         int ProcessId { get; }
@@ -90,7 +90,9 @@ namespace GitHub.Unity
 
         public void Run()
         {
+            DateTimeOffset lastOutput = DateTimeOffset.UtcNow;
             Exception thrownException = null;
+            var gotOutput = new AutoResetEvent(false);
             if (Process.StartInfo.RedirectStandardError)
             {
                 Process.ErrorDataReceived += (s, e) =>
@@ -100,59 +102,67 @@ namespace GitHub.Unity
                     //    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
                     //}
 
-                    string encodedData = null;
+                    lastOutput = DateTimeOffset.UtcNow;
+                    gotOutput.Set();
                     if (e.Data != null)
                     {
-                        encodedData = Encoding.UTF8.GetString(Encoding.Default.GetBytes(e.Data));
-                        errors.Add(encodedData);
+                        var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
+                        errors.Add(line.TrimEnd('\r', '\n'));
+                        Logger.Trace(line);
                     }
+                };
+            }
+
+            if (Process.StartInfo.RedirectStandardOutput)
+            {
+                Process.OutputDataReceived += (s, e) =>
+                {
+                    lastOutput = DateTimeOffset.UtcNow;
+                    gotOutput.Set();
+                    if (e.Data != null)
+                    {
+                        var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
+                        outputProcessor.LineReceived(line.TrimEnd('\r','\n'));
+                    }
+                    else
+                        outputProcessor.LineReceived(null);
                 };
             }
 
             try
             {
-                Logger.Trace($"Running '{Process.StartInfo.FileName} {taskName}'");
+                Logger.Trace($"Running '{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'");
 
+                token.ThrowIfCancellationRequested();
                 Process.Start();
 
                 if (Process.StartInfo.RedirectStandardInput)
                     Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
                 if (Process.StartInfo.RedirectStandardError)
                     Process.BeginErrorReadLine();
+                if (Process.StartInfo.RedirectStandardOutput)
+                    Process.BeginOutputReadLine();
 
                 onStart?.Invoke();
 
-                if (Process.StartInfo.RedirectStandardOutput)
-                {
-                    var outputStream = Process.StandardOutput;
-                    var line = outputStream.ReadLine();
-                    while (line != null)
-                    {
-                        outputProcessor.LineReceived(line);
-
-                        if (token.IsCancellationRequested)
-                        {
-                            if (!Process.HasExited)
-                                Process.Kill();
-                            Process.Close();
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        line = outputStream.ReadLine();
-                    }
-                    outputProcessor.LineReceived(null);
-                }
-
                 if (Process.StartInfo.CreateNoWindow)
                 {
-                    while (!WaitForExit(500))
+                    bool done = false;
+                    while (!done)
                     {
-                        if (token.IsCancellationRequested)
+                        var exited = WaitForExit(500);
+                        if (exited)
                         {
-                            Process.Kill();
-                            Process.Close();
+                            // process is done and we haven't seen output, we're done
+                            done = !gotOutput.WaitOne(100);
                         }
-                        token.ThrowIfCancellationRequested();
+                        else if (token.IsCancellationRequested || (taskName.Contains("git lfs") && lastOutput.AddMilliseconds(ApplicationConfiguration.DefaultGitTimeout) < DateTimeOffset.UtcNow))
+                        // if we're exiting or we haven't had output for a while
+                        {
+                            Stop(true);
+                            token.ThrowIfCancellationRequested();
+                            throw new ProcessException(-2, "Process timed out");
+                        }
                     }
 
                     if (Process.ExitCode != 0 && errors.Count > 0)
@@ -187,6 +197,43 @@ namespace GitHub.Unity
             if (thrownException != null || errors.Count > 0)
                 onError?.Invoke(thrownException, string.Join(Environment.NewLine, errors.ToArray()));
             onEnd?.Invoke();
+        }
+
+        public void Stop(bool dontWait = false)
+        {
+            try
+            {
+                if (Process.StartInfo.RedirectStandardError)
+                    Process.CancelErrorRead();
+                if (Process.StartInfo.RedirectStandardOutput)
+                    Process.CancelOutputRead();
+                if (!Process.HasExited && Process.StartInfo.RedirectStandardInput)
+                    Input.WriteLine("\x3");
+            }
+            catch
+            {}
+
+            try
+            {
+
+                if (!Process.HasExited)
+                {
+                    Process.Kill();
+                }
+
+                if (!dontWait)
+                {
+                    bool waitSucceeded = Process.WaitForExit(500);
+                    if (waitSucceeded)
+                    {
+                        Process.Close();
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.Trace(ex);
+            }
         }
 
         private bool WaitForExit(int milliseconds)
@@ -278,10 +325,9 @@ namespace GitHub.Unity
             Name = ProcessArguments;
         }
 
-        protected override void RaiseOnStart()
+        public void Stop()
         {
-            base.RaiseOnStart();
-            OnStartProcess?.Invoke(this);
+            wrapper?.Stop();
         }
 
         protected override void RaiseOnEnd()
@@ -294,12 +340,12 @@ namespace GitHub.Unity
         {
         }
 
-        public override T RunWithReturn(bool success)
+        protected override T RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
             wrapper = new ProcessWrapper(Name, Process, outputProcessor,
-                RaiseOnStart,
+                () => OnStartProcess?.Invoke(this),
                 () =>
                 {
                     try
@@ -321,15 +367,8 @@ namespace GitHub.Unity
                             thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
                     }
 
-                    try
-                    {
-                        if (thrownException != null && !RaiseFaultHandlers(thrownException))
-                            throw thrownException;
-                    }
-                    finally
-                    {
-                        RaiseOnEnd(result);
-                    }
+                    if (thrownException != null && !RaiseFaultHandlers(thrownException))
+                        throw thrownException;
                 },
                 (ex, error) =>
                 {
@@ -409,10 +448,9 @@ namespace GitHub.Unity
             ProcessName = psi.FileName;
         }
 
-        protected override void RaiseOnStart()
+        public void Stop()
         {
-            base.RaiseOnStart();
-            OnStartProcess?.Invoke(this);
+            wrapper?.Stop();
         }
 
         protected override void RaiseOnEnd()
@@ -430,12 +468,12 @@ namespace GitHub.Unity
             outputProcessor.OnEntry += x => RaiseOnData(x);
         }
 
-        public override List<T> RunWithReturn(bool success)
+        protected override List<T> RunWithReturn(bool success)
         {
             var result = base.RunWithReturn(success);
 
             wrapper = new ProcessWrapper(Name, Process, outputProcessor,
-                RaiseOnStart,
+                () => OnStartProcess?.Invoke(this),
                 () =>
                 {
                     try
@@ -456,15 +494,8 @@ namespace GitHub.Unity
                             thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
                     }
 
-                    try
-                    {
-                        if (thrownException != null && !RaiseFaultHandlers(thrownException))
-                            throw thrownException;
-                    }
-                    finally
-                    {
-                        RaiseOnEnd(result);
-                    }
+                    if (thrownException != null && !RaiseFaultHandlers(thrownException))
+                        throw thrownException;
                 },
                 (ex, error) =>
                 {
@@ -492,7 +523,7 @@ namespace GitHub.Unity
 
     class FirstNonNullLineProcessTask : ProcessTask<string>
     {
-        private readonly NPath fullPathToExecutable;
+        private readonly NPath? fullPathToExecutable;
         private readonly string arguments;
 
         public FirstNonNullLineProcessTask(CancellationToken token, NPath fullPathToExecutable, string arguments)
@@ -502,7 +533,13 @@ namespace GitHub.Unity
             this.arguments = arguments;
         }
 
-        public override string ProcessName => fullPathToExecutable.FileName;
+        public FirstNonNullLineProcessTask(CancellationToken token, string arguments)
+            : base(token, new FirstNonNullLineOutputProcessor())
+        {
+            this.arguments = arguments;
+        }
+
+        public override string ProcessName => fullPathToExecutable?.FileName;
         public override string ProcessArguments => arguments;
     }
 

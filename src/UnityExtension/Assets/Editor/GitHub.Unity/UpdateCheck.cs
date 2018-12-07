@@ -48,7 +48,7 @@ namespace GitHub.Unity
         }
     }
 
-    public class UpdateCheckWindow :  EditorWindow
+    class UpdateCheckWindow : BaseWindow
     {
         public const string UpdateFeedUrl =
 #if DEBUG
@@ -58,9 +58,9 @@ namespace GitHub.Unity
 #endif
         ;
 
-        public static void CheckForUpdates()
+        public static void CheckForUpdates(IApplicationManager manager)
         {
-            var download = new DownloadTask(TaskManager.Instance.Token, EntryPoint.Environment.FileSystem, UpdateFeedUrl, EntryPoint.Environment.UserCachePath)
+            var download = new DownloadTask(manager.TaskManager.Token, manager.Environment.FileSystem, UpdateFeedUrl, manager.Environment.UserCachePath)
                 .Catch(ex =>
                 {
                     LogHelper.Warning(@"Error downloading update check:{0} ""{1}""", UpdateFeedUrl, ex.GetExceptionMessageShort());
@@ -76,7 +76,7 @@ namespace GitHub.Unity
                         TheVersion current = TheVersion.Parse(ApplicationInfo.Version);
                         TheVersion newVersion = package.Version;
 
-                        var versionToSkip = EntryPoint.ApplicationManager.UserSettings.Get<TheVersion>(Constants.SkipVersionKey);
+                        var versionToSkip = manager.UserSettings.Get<TheVersion>(Constants.SkipVersionKey);
                         if (versionToSkip == newVersion)
                         {
                             LogHelper.Info("Skipping GitHub for Unity update v" + newVersion);
@@ -89,9 +89,9 @@ namespace GitHub.Unity
                             return;
                         }
 
-                        TaskManager.Instance.RunInUI(() =>
+                        manager.TaskManager.RunInUI(() =>
                         {
-                            NotifyOfNewUpdate(current, package);
+                            NotifyOfNewUpdate(manager, current, package);
                         });
                     }
                     catch(Exception ex)
@@ -103,10 +103,10 @@ namespace GitHub.Unity
             download.Start();
         }
 
-        private static void NotifyOfNewUpdate(TheVersion currentVersion, Package package)
+        private static void NotifyOfNewUpdate(IApplicationManager manager, TheVersion currentVersion, Package package)
         {
             var window = GetWindowWithRect<UpdateCheckWindow>(new Rect(100, 100, 580, 400), true, windowTitle);
-            window.Initialize(currentVersion, package);
+            window.Initialize(manager, currentVersion, package);
             window.Show();
         }
 
@@ -131,21 +131,23 @@ namespace GitHub.Unity
         [SerializeField] private bool hasReleaseNotesUrl;
         [SerializeField] private bool hasMessage;
 
-        private void Initialize(TheVersion current, Package newPackage)
+        private void Initialize(IApplicationManager manager, TheVersion current, Package newPackage)
         {
             package = new GUIPackage(newPackage);
             currentVersion = current.ToString();
-            if (guiLogo != null)
-            {
-                guiLogo = null;
-                Repaint();
-            }
+            var requiresRedraw = guiLogo != null;
+            guiLogo = null;
+            this.InitializeWindow(manager, requiresRedraw);
         }
 
-        private void OnGUI()
+        public override void OnDataUpdate()
         {
+            base.OnDataUpdate();
             LoadContents();
+        }
 
+        public override void OnUI()
+        {
             GUILayout.BeginVertical();
 
             GUILayout.Space(10);
@@ -196,7 +198,7 @@ namespace GitHub.Unity
             {
                 var settings = EntryPoint.ApplicationManager.UserSettings;
                 settings.Set<TheVersion>(Constants.SkipVersionKey, package.Package.Version);
-                this.Close();
+                Close();
             }
 
             EditorGUILayout.EndHorizontal();
@@ -228,5 +230,6 @@ namespace GitHub.Unity
                 guiPackageReleaseNotes = new GUIContent(package.Package.ReleaseNotes);
         }
 
+        public override bool IsBusy { get { return false; } }
     }
 }

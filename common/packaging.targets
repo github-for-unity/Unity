@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <!-- After the build is done, we copy all the artifacts into two locations:
-   ..\github-unity-test\GitHubExtensionProject - an empty unity project for testing
-   unity\PackageProject - the project we use for packaging
+         1) ..\github-unity-test\GitHubExtensionProject - an empty unity project for testing
+         2) unity\PackageProject - the project we use for packaging
+      and then we copy the meta files from the unity\PackageProject to github-unity-test
   -->
   <Target Name="AfterBuild">
 
@@ -22,16 +23,16 @@
     <Copy
       SourceFiles="@(ToCopy)"
       DestinationFiles="@(ToCopy->'$(PublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
-      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml')) and !$([System.String]::Copy('%(Extension)').Contains('pdb')) and !$([System.String]::Copy('%(Extension)').Contains('dll.mdb'))" />
+      Condition="!$([System.String]::Copy('%(Filename)').Contains('deleteme')) and !$([System.String]::Copy('%(Extension)').Contains('xml'))" />
 
     <CreateItem Include="$(PublishTo)\**\*.*">
-      <Output TaskParameter="Include" ItemName="ToMoreCopy" />
+      <Output TaskParameter="Include" ItemName="PackageFilesToCopy" />
     </CreateItem>
 
-    <!-- Copy all the DLLs to the ..\github-unity-test folder, creating an empty Unity project with the extension ready for testing -->
+    <!-- Copy all the DLLs  and meta files to the ..\github-unity-test folder, creating an empty Unity project with the extension ready for testing -->
     <Copy
-      SourceFiles="@(ToMoreCopy)"
-      DestinationFiles="@(ToMoreCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
+      SourceFiles="@(PackageFilesToCopy)"
+      DestinationFiles="@(PackageFilesToCopy->'$(ExternalPublishTo)\%(RecursiveDir)%(Filename)%(Extension)')"
       Retries="0"
       ContinueOnError="WarnAndContinue" />
 

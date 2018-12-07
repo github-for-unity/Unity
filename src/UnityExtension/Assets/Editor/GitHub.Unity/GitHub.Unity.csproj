@@ -19,18 +19,18 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>4</LangVersion>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>4</LangVersion>
@@ -43,7 +43,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;DEVELOPER_BUILD</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEVELOPER_BUILD;$(BuildDefs)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>4</LangVersion>
@@ -58,10 +58,6 @@
       <HintPath>$(SolutionDir)\packages\TaskParallelLibrary.1.0.3333.0\lib\Net35\System.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="UnityEditor">
       <HintPath>$(UnityDir)Managed\UnityEditor.dll</HintPath>
       <Private>False</Private>
@@ -81,6 +77,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Logging\UnityLogAdapter.cs" />
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="UI\GitHubAuthenticationView.cs" />
+    <Compile Include="UI\GitHubEnterpriseAuthenticationView.cs" />
     <Compile Include="UpdateCheck.cs" />
     <Compile Include="Misc\Installer.cs" />
     <Compile Include="UI\BaseWindow.cs" />
@@ -108,9 +106,6 @@
     <Compile Include="UI\Subview.cs" />
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
-  <Choose>
-    <When Condition="$(Buildtype) == 'Internal'" />
-  </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GitHub.Api\GitHub.Api.csproj">
       <Project>{b389adaf-62cc-486e-85b4-2d8b078df763}</Project>
@@ -119,6 +114,10 @@
     <ProjectReference Include="..\..\..\..\GitHub.Logging\GitHub.Logging.csproj">
       <Project>{bb6a8eda-15d8-471b-a6ed-ee551e0b3ba0}</Project>
       <Name>GitHub.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\UnityShim\UnityShim.csproj">
+      <Project>{F94F8AE1-C171-4A83-89E8-6557CA91A188}</Project>
+      <Name>UnityShim</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

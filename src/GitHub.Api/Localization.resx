@@ -198,9 +198,6 @@
   <data name="PullConfirmYes" xml:space="preserve">
     <value>Pull</value>
   </data>
-  <data name="PullConfirmCancel" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
   <data name="PushConfirmTitle" xml:space="preserve">
     <value>Push Changes?</value>
   </data>
@@ -209,9 +206,6 @@
   </data>
   <data name="PushConfirmYes" xml:space="preserve">
     <value>Push</value>
-  </data>
-  <data name="PushConfirmCancel" xml:space="preserve">
-    <value>Cancel</value>
   </data>
   <data name="SummaryLabel" xml:space="preserve">
     <value>Commit summary</value>
@@ -262,10 +256,10 @@
     <value>GitHub</value>
   </data>
   <data name="Ok" xml:space="preserve">
-    <value>ok</value>
+    <value>OK</value>
   </data>
   <data name="Cancel" xml:space="preserve">
-    <value>cancel</value>
+    <value>Cancel</value>
   </data>
   <data name="PullActionTitle" xml:space="preserve">
     <value>Pull</value>
@@ -425,5 +419,14 @@
   </data>
   <data name="MessageRefreshing" xml:space="preserve">
     <value>Refreshing</value>
+  </data>
+  <data name="DiscardConfirmDescription" xml:space="preserve">
+    <value>Are you sure you want to discard these changes?</value>
+  </data>
+  <data name="DiscardConfirmTitle" xml:space="preserve">
+    <value>Discard Changes?</value>
+  </data>
+  <data name="DiscardConfirmYes" xml:space="preserve">
+    <value>Discard</value>
   </data>
 </root>

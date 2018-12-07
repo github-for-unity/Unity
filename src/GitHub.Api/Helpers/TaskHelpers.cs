@@ -8,14 +8,18 @@ namespace GitHub.Unity
     {
         public static Task<T> GetCompletedTask<T>(T result)
         {
+#if NET_4_6
+            return Task.FromResult(result);
+#else
             return TaskEx.FromResult(result);
+#endif
         }
 
         public static Task<T> ToTask<T>(this Exception exception)
         {
-          TaskCompletionSource<T> completionSource = new TaskCompletionSource<T>();
-          completionSource.TrySetException(exception);
-          return completionSource.Task;
+            TaskCompletionSource<T> completionSource = new TaskCompletionSource<T>();
+            completionSource.TrySetException(exception);
+            return completionSource.Task;
         }
     }
 

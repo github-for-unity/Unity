@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace GitHub.Logging
 {
-    static class ExceptionExtensions
+    public static class ExceptionExtensions
     {
         public static string GetExceptionMessage(this Exception ex)
         {

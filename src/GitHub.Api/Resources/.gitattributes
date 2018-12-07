@@ -1,10 +1,10 @@
 * text=auto
 
 # Unity files
-*.meta -text -merge=unityamlmerge
-*.unity -text -merge=unityamlmerge
-*.asset -text -merge=unityamlmerge
-*.prefab -text -merge=unityamlmerge
+*.meta -text merge=unityyamlmerge diff
+*.unity -text merge=unityyamlmerge diff
+*.asset -text merge=unityyamlmerge diff
+*.prefab -text merge=unityyamlmerge diff
 
 # Image formats
 *.psd filter=lfs diff=lfs merge=lfs -text
@@ -17,6 +17,7 @@
 *.iff filter=lfs diff=lfs merge=lfs -text
 *.pict filter=lfs diff=lfs merge=lfs -text
 *.dds filter=lfs diff=lfs merge=lfs -text
+*.xcf filter=lfs diff=lfs merge=lfs -text
 
 # Audio formats
 *.mp3 filter=lfs diff=lfs merge=lfs -text

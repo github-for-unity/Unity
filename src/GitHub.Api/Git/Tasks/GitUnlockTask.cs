@@ -15,7 +15,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
 
             Name = TaskName;
-            var stringBuilder = new StringBuilder("lfs unlock ");
+            var stringBuilder = new StringBuilder("unlock ");
 
             if (force)
             {

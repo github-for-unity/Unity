@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEditor;
@@ -10,263 +11,156 @@ namespace GitHub.Unity
     {
         private static readonly Vector2 viewSize = new Vector2(290, 290);
 
-        private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
-        private const string NeedAuthenticationMessage = "We need you to authenticate first";
         private const string WindowTitle = "Authenticate";
-        private const string UsernameLabel = "Username";
-        private const string PasswordLabel = "Password";
-        private const string TwofaLabel = "2FA Code";
-        private const string LoginButton = "Sign in";
-        private const string BackButton = "Back";
-        private const string AuthTitle = "Sign in to GitHub";
-        private const string TwofaTitle = "Two-Factor Authentication";
-        private const string TwofaDescription = "Open the two-factor authentication app on your device to view your 2FA code and verify your identity.";
-        private const string TwofaButton = "Verify";
 
-        [SerializeField] private Vector2 scroll;
-        [SerializeField] private string username = string.Empty;
-        [SerializeField] private string two2fa = string.Empty;
-        [SerializeField] private string message;
-        [SerializeField] private string errorMessage;
-        [SerializeField] private bool need2fa;
+        [SerializeField] private SubTab changeTab = SubTab.GitHub;
+        [SerializeField] private SubTab activeTab = SubTab.GitHub;
 
-        [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool enterPressed;
-        [NonSerialized] private string password = string.Empty;
-        [NonSerialized] private AuthenticationService authenticationService;
-
+        [SerializeField] private GitHubAuthenticationView gitHubAuthenticationView;
+        [SerializeField] private GitHubEnterpriseAuthenticationView gitHubEnterpriseAuthenticationView;
+        [SerializeField] private bool hasGitHubDotComConnection;
+        [SerializeField] private bool hasGitHubEnterpriseConnection;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            need2fa = isBusy = false;
-            message = errorMessage = null;
             Title = WindowTitle;
             Size = viewSize;
+
+            gitHubAuthenticationView = gitHubAuthenticationView ?? new GitHubAuthenticationView();
+            gitHubEnterpriseAuthenticationView = gitHubEnterpriseAuthenticationView ?? new GitHubEnterpriseAuthenticationView();
+
+            try
+            {
+                OAuthCallbackManager.Start();
+            }
+            catch (Exception ex)
+            {
+                Logger.Trace(ex, "Error Starting OAuthCallbackManager");
+            }
+
+            gitHubAuthenticationView.InitializeView(this);
+            gitHubEnterpriseAuthenticationView.InitializeView(this);
+
+            hasGitHubDotComConnection = Platform.Keychain.Connections.Any(HostAddress.IsGitHubDotCom);
+            hasGitHubEnterpriseConnection = Platform.Keychain.Connections.Any(connection => !HostAddress.IsGitHubDotCom(connection));
+
+            if (hasGitHubDotComConnection)
+            {
+                changeTab = SubTab.GitHubEnterprise;
+                UpdateActiveTab();
+            }
         }
 
         public void Initialize(Exception exception)
         {
-            var usernameMismatchException = exception as TokenUsernameMismatchException;
-            if (usernameMismatchException != null)
-            {
-                message = CredentialsNeedRefreshMessage;
-                username = usernameMismatchException.CachedUsername;
-            }
-
-            var keychainEmptyException = exception as KeychainEmptyException;
-            if (keychainEmptyException != null)
-            {
-                message = NeedAuthenticationMessage;
-            }
-
-            if (usernameMismatchException == null && keychainEmptyException == null)
-            {
-                message = exception.Message;
-            }
+            
         }
 
         public override void OnGUI()
         {
-            HandleEnterPressed();
-
-            EditorGUIUtility.labelWidth = 90f;
-
-            scroll = GUILayout.BeginScrollView(scroll);
-            {
-                GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
-                {
-                  GUILayout.Label(AuthTitle, Styles.HeaderRepoLabelStyle);
-                }
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginVertical();
-                {
-                    if (!need2fa)
-                    {
-                        OnGUILogin();
-                    }
-                    else
-                    {
-                        OnGUI2FA();
-                    }
-                }
-
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndScrollView();
+            DoToolbarGUI();
+            ActiveView.OnGUI();
         }
         
-        private void HandleEnterPressed()
+        public override bool IsBusy
         {
-            if (Event.current.type != EventType.KeyDown)
-                return;
-
-            enterPressed = Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter;
-            if (enterPressed)
-                Event.current.Use();
+            get { return (gitHubAuthenticationView != null && gitHubAuthenticationView.IsBusy) || (gitHubEnterpriseAuthenticationView != null && gitHubEnterpriseAuthenticationView.IsBusy); }
         }
 
-        private void OnGUILogin()
+        public override void OnDataUpdate()
         {
-            EditorGUI.BeginDisabledGroup(isBusy);
+            base.OnDataUpdate();
+            MaybeUpdateData();
+        }
+
+        public override void Finish(bool result)
+        {
+            OAuthCallbackManager.Stop();
+            base.Finish(result);
+        }
+
+        private void MaybeUpdateData()
+        {
+        }
+
+        private static SubTab TabButton(SubTab tab, string title, SubTab currentTab)
+        {
+            return GUILayout.Toggle(currentTab == tab, title, EditorStyles.toolbarButton) ? tab : currentTab;
+        }
+
+        private enum SubTab
+        {
+            None,
+            GitHub,
+            GitHubEnterprise
+        }
+
+        private void DoToolbarGUI()
+        {
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                ShowMessage();
-
-                EditorGUILayout.Space();
-
-                GUILayout.BeginHorizontal();
+                EditorGUI.BeginChangeCheck();
                 {
-                    username = EditorGUILayout.TextField(UsernameLabel ,username, Styles.TextFieldStyle);
-                }
-                GUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-
-                GUILayout.BeginHorizontal();
-                {
-                    password = EditorGUILayout.PasswordField(PasswordLabel, password, Styles.TextFieldStyle);
-                }
-                GUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-
-                ShowErrorMessage();
-
-                GUILayout.Space(Styles.BaseSpacing + 3);
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(LoginButton) || (!isBusy && enterPressed))
+                    EditorGUI.BeginDisabledGroup(hasGitHubDotComConnection || IsBusy);
                     {
-                        GUI.FocusControl(null);
-                        isBusy = true;
-                        AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
+                        changeTab = TabButton(SubTab.GitHub, "GitHub", changeTab);
                     }
-                }
-                GUILayout.EndHorizontal();
-            }
-            EditorGUI.EndDisabledGroup();
-        }
+                    EditorGUI.EndDisabledGroup();
 
-        private void OnGUI2FA()
-        {
-            GUILayout.BeginVertical();
-            {
-                GUILayout.Label(TwofaTitle, EditorStyles.boldLabel);
-                GUILayout.Label(TwofaDescription, EditorStyles.wordWrappedLabel);
-
-                EditorGUI.BeginDisabledGroup(isBusy);
-                {
-                    EditorGUILayout.Space();
-                    two2fa = EditorGUILayout.TextField(TwofaLabel, two2fa, Styles.TextFieldStyle);
-                    EditorGUILayout.Space();
-                    ShowErrorMessage();
-
-                    GUILayout.BeginHorizontal();
+                    EditorGUI.BeginDisabledGroup(hasGitHubEnterpriseConnection || IsBusy);
                     {
-                        GUILayout.FlexibleSpace();
-                        if (GUILayout.Button(BackButton))
-                        {
-                            GUI.FocusControl(null);
-                            Clear();
-                        }
-
-                        if (GUILayout.Button(TwofaButton) || (!isBusy && enterPressed))
-                        {
-                            GUI.FocusControl(null);
-                            isBusy = true;
-                            AuthenticationService.LoginWith2fa(two2fa);
-                        }
+                        changeTab = TabButton(SubTab.GitHubEnterprise, "GitHub Enterprise", changeTab);
                     }
-                    GUILayout.EndHorizontal();
-
-                    EditorGUILayout.Space();
+                    EditorGUI.EndDisabledGroup();
                 }
-                EditorGUI.EndDisabledGroup();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateActiveTab();
+                }
+
+                GUILayout.FlexibleSpace();
             }
-            GUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
         }
 
-        private void DoRequire2fa(string msg)
+        private void UpdateActiveTab()
         {
-            need2fa = true;
-            errorMessage = msg;
-            isBusy = false;
-            Redraw();
-        }
-
-        private void Clear()
-        {
-            need2fa = false;
-            errorMessage = null;
-            isBusy = false;
-            Redraw();
-        }
-
-        private void DoResult(bool success, string msg)
-        {
-            isBusy = false;
-            if (success)
+            if (changeTab != activeTab)
             {
-                TaskManager.Run(UsageTracker.IncrementAuthenticationViewButtonAuthentication, null);
-
-                Clear();
-                Finish(true);
-            }
-            else
-            {
-                errorMessage = msg;
-                Redraw();
+                var fromView = ActiveView;
+                activeTab = changeTab;
+                var toView = ActiveView;
+                SwitchView(fromView, toView);
             }
         }
-
-        private void ShowMessage()
+        private void SwitchView(Subview fromView, Subview toView)
         {
-            if (message != null)
-            {
-                EditorGUILayout.HelpBox(message, MessageType.Warning);
-            }
+            GUI.FocusControl(null);
+
+            if (fromView != null)
+                fromView.OnDisable();
+            toView.OnEnable();
+
+            // this triggers a repaint
+            Parent.Redraw();
         }
 
-        private void ShowErrorMessage()
-        {
-            if (errorMessage != null)
-            {
-                EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
-            }
-        }
-
-        private AuthenticationService AuthenticationService
+        private Subview ActiveView
         {
             get
             {
-                if (authenticationService == null)
+                switch (activeTab)
                 {
-                    UriString host;
-                    if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
-                    {
-                        host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                            .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-                    }
-                    else
-                    {
-                        host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-                    }
-
-                    AuthenticationService = new AuthenticationService(host, Platform.Keychain, Environment.NodeJsExecutablePath, Environment.OctorunScriptPath);
+                    case SubTab.GitHub:
+                        return gitHubAuthenticationView;
+                    case SubTab.GitHubEnterprise:
+                        return gitHubEnterpriseAuthenticationView;
+                    default:
+                        throw new NotImplementedException();
                 }
-                return authenticationService;
             }
-            set
-            {
-                authenticationService = value;
-            }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

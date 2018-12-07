@@ -22,6 +22,7 @@ namespace GitHub.Unity
         public string UnityVersion { get; set; }
         public string Lang { get; set; }
         public string CurrentLang { get; set; }
+        public string GitHubUser { get; set; }
     }
 
     public class Measures
@@ -42,6 +43,8 @@ namespace GitHub.Unity
         public int UnityProjectViewContextLfsUnlock { get; set; }
         public int PublishViewButtonPublish { get; set; }
         public int ApplicationMenuMenuItemCommandLine { get; set; }
+        public int GitRepoSize { get; set; }
+        public int LfsDiskUsage { get; set; }
     }
 
     class UsageModel
@@ -85,18 +88,18 @@ namespace GitHub.Unity
 
         public List<Usage> SelectReports(DateTime beforeDate)
         {
-            return Reports.Where(usage => usage.Dimensions.Date.Date != beforeDate.Date).ToList();
+            return Reports.Where(usage => usage.Dimensions.Date.Date < beforeDate.Date).ToList();
         }
 
         public void RemoveReports(DateTime beforeDate)
         {
-            Reports.RemoveAll(usage => usage.Dimensions.Date.Date != beforeDate.Date);
+            Reports.RemoveAll(usage => usage.Dimensions.Date.Date < beforeDate.Date);
         }
     }
 
     class UsageStore
     {
-        public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset LastSubmissionDate { get; set; } = DateTimeOffset.Now;
         public UsageModel Model { get; set; } = new UsageModel();
 
         public Measures GetCurrentMeasures(string appVersion, string unityVersion, string instanceId)

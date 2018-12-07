@@ -1,239 +1,336 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using Timer = System.Threading.Timer;
 using GitHub.Logging;
 
 namespace GitHub.Unity
 {
-    class UsageTracker : IUsageTracker
+    class UsageTrackerSync : IUsageTracker
     {
+
+#if DEVELOPER_BUILD
+        protected internal const int MetrisReportTimeout = 30;
+#else
+        protected internal const int MetrisReportTimeout = 3 * 60;
+#endif
+
         private static ILogging Logger { get; } = LogHelper.GetLogger<UsageTracker>();
+
+        private static object _lock = new object();
 
         private readonly ISettings userSettings;
         private readonly IUsageLoader usageLoader;
-        private readonly IMetricsService metricsService;
         private readonly string userId;
         private readonly string appVersion;
         private readonly string unityVersion;
         private readonly string instanceId;
         private Timer timer;
 
-        public UsageTracker(IMetricsService metricsService, ISettings userSettings,
-            IEnvironment environment, string userId, string unityVersion, string instanceId)
-                : this(metricsService, userSettings, 
-                      new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
-                      userId, unityVersion, instanceId)
-        {
-        }
+        public IMetricsService MetricsService { get; set; }
 
-        public UsageTracker(IMetricsService metricsService, ISettings userSettings,
-            IUsageLoader usageLoader,
-            string userId, string unityVersion, string instanceId)
+        public UsageTrackerSync(ISettings userSettings, IUsageLoader usageLoader,
+            string unityVersion, string instanceId)
         {
             this.userSettings = userSettings;
             this.usageLoader = usageLoader;
-            this.metricsService = metricsService;
-            this.userId = userId;
             this.appVersion = ApplicationInfo.Version;
             this.unityVersion = unityVersion;
             this.instanceId = instanceId;
 
+            if (userSettings.Exists(Constants.GuidKey))
+            {
+                userId = userSettings.Get(Constants.GuidKey);
+            }
+
+            if (String.IsNullOrEmpty(userId))
+            {
+                userId = Guid.NewGuid().ToString();
+                userSettings.Set(Constants.GuidKey, userId);
+            }
+
             Logger.Trace("userId:{0} instanceId:{1}", userId, instanceId);
             if (Enabled)
-                RunTimer(3*60);
+                RunTimer(MetrisReportTimeout);
         }
 
         private void RunTimer(int seconds)
         {
-            timer = new Timer(async _ =>
+            timer = new System.Threading.Timer(_ =>
             {
                 try
                 {
                     timer.Dispose();
-                    await SendUsage();
+                    SendUsage();
                 }
-                catch {}
+                catch { }
             }, null, seconds * 1000, Timeout.Infinite);
         }
 
-        private async Task SendUsage()
+        private void SendUsage()
         {
-            var usageStore = usageLoader.Load(userId);
-
-            if (metricsService == null)
+            if (MetricsService == null)
             {
-                Logger.Warning("No service, not sending usage");
+                Logger.Warning("Metrics disabled: no service");
                 return;
             }
 
-            if (usageStore.LastUpdated.Date != DateTimeOffset.UtcNow.Date)
+            if (!Enabled)
             {
-                var currentTimeOffset = DateTimeOffset.UtcNow;
-                var beforeDate = currentTimeOffset.Date;
+                Logger.Trace("Metrics disabled");
+                return;
+            }
 
-                var success = false;
-                var extractReports = usageStore.Model.SelectReports(beforeDate);
-                if (!extractReports.Any())
-                {
-                    Logger.Trace("No items to send");
-                }
-                else
-                {
-                    if (!Enabled)
-                    {
-                        Logger.Trace("Metrics disabled");
-                        return;
-                    }
+            UsageStore usageStore = null;
+            lock (_lock)
+            {
+                usageStore = usageLoader.Load(userId);
+            }
 
-                    try
-                    {
-                        await metricsService.PostUsage(extractReports);
-                        success = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warning(@"Error Sending Usage Exception Type:""{0}"" Message:""{1}""", ex.GetType().ToString(), ex.GetExceptionMessageShort());
-                    }
-                }
+            var currentTimeOffset = DateTimeOffset.UtcNow;
+            if (usageStore.LastSubmissionDate.Date == currentTimeOffset.Date)
+            {
+                Logger.Trace("Already sent today");
+                return;
+            }
 
-                if (success)
-                {
-                    usageStore.Model.RemoveReports(beforeDate);
-                    usageStore.LastUpdated = currentTimeOffset;
-                    usageLoader.Save(usageStore);
-                }
+            var extractReports = usageStore.Model.SelectReports(currentTimeOffset.Date);
+            if (!extractReports.Any())
+            {
+                Logger.Trace("No items to send");
+                return;
+            }
+
+            var username = GetUsername();
+            if (!String.IsNullOrEmpty(username)) {
+                extractReports.ForEach(x => x.Dimensions.GitHubUser = username);
+            }
+
+            try
+            {
+                MetricsService.PostUsage(extractReports);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning(@"Error sending usage:""{0}"" Message:""{1}""", ex.GetType(), ex.GetExceptionMessageShort());
+                return;
+            }
+
+            // if we're here, success!
+            lock (_lock)
+            {
+                usageStore = usageLoader.Load(userId);
+                usageStore.LastSubmissionDate = currentTimeOffset;
+                usageStore.Model.RemoveReports(currentTimeOffset.Date);
+                usageLoader.Save(usageStore);
+            }
+
+            // update the repo size for the current report, while we're at it
+            CaptureRepoSize();
+        }
+
+        protected virtual void CaptureRepoSize()
+        {}
+
+        public virtual void IncrementNumberOfStartups()
+        {
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .NumberOfStartups++;
+                usageLoader.Save(usage);
             }
         }
 
-        public void IncrementNumberOfStartups()
+        public virtual void IncrementProjectsInitialized()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .NumberOfStartups++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .ProjectsInitialized++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementProjectsInitialized()
+        public virtual void IncrementChangesViewButtonCommit()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .ProjectsInitialized++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .ChangesViewButtonCommit++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementChangesViewButtonCommit()
+        public virtual void IncrementHistoryViewToolbarFetch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .ChangesViewButtonCommit++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .HistoryViewToolbarFetch++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementHistoryViewToolbarFetch()
+        public virtual void IncrementHistoryViewToolbarPush()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarFetch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .HistoryViewToolbarPush++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementHistoryViewToolbarPush()
+        public virtual void IncrementHistoryViewToolbarPull()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarPush++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .HistoryViewToolbarPull++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementHistoryViewToolbarPull()
+        public virtual void IncrementBranchesViewButtonCreateBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .HistoryViewToolbarPull++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonCreateBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementBranchesViewButtonCreateBranch()
+        public virtual void IncrementBranchesViewButtonDeleteBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonCreateBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonDeleteBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementBranchesViewButtonDeleteBranch()
+        public virtual void IncrementBranchesViewButtonCheckoutLocalBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonDeleteBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonCheckoutLocalBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementBranchesViewButtonCheckoutLocalBranch()
+        public virtual void IncrementBranchesViewButtonCheckoutRemoteBranch()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonCheckoutLocalBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .BranchesViewButtonCheckoutRemoteBranch++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementBranchesViewButtonCheckoutRemoteBranch()
+        public virtual void IncrementSettingsViewButtonLfsUnlock()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .BranchesViewButtonCheckoutRemoteBranch++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .SettingsViewButtonLfsUnlock++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementSettingsViewButtonLfsUnlock()
+        public virtual void IncrementAuthenticationViewButtonAuthentication()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .SettingsViewButtonLfsUnlock++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .AuthenticationViewButtonAuthentication++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementAuthenticationViewButtonAuthentication()
+        public virtual void IncrementUnityProjectViewContextLfsLock()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .AuthenticationViewButtonAuthentication++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .UnityProjectViewContextLfsLock++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementUnityProjectViewContextLfsLock()
+        public virtual void IncrementUnityProjectViewContextLfsUnlock()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .UnityProjectViewContextLfsLock++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                    .UnityProjectViewContextLfsUnlock++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementUnityProjectViewContextLfsUnlock()
+        public virtual void IncrementPublishViewButtonPublish()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                .UnityProjectViewContextLfsUnlock++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                     .PublishViewButtonPublish++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementPublishViewButtonPublish()
+        public virtual void IncrementApplicationMenuMenuItemCommandLine()
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                 .PublishViewButtonPublish++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
+                     .ApplicationMenuMenuItemCommandLine++;
+                usageLoader.Save(usage);
+            }
         }
 
-        public void IncrementApplicationMenuMenuItemCommandLine()
+        public virtual void UpdateRepoSize(int kilobytes)
         {
-            var usage = usageLoader.Load(userId);
-            usage.GetCurrentMeasures(appVersion, unityVersion, instanceId)
-                 .ApplicationMenuMenuItemCommandLine++;
-            usageLoader.Save(usage);
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId).GitRepoSize = kilobytes;
+                usageLoader.Save(usage);
+            }
+        }
+
+        public virtual void UpdateLfsDiskUsage(int kilobytes)
+        {
+            lock (_lock)
+            {
+                var usage = usageLoader.Load(userId);
+                usage.GetCurrentMeasures(appVersion, unityVersion, instanceId).LfsDiskUsage = kilobytes;
+                usageLoader.Save(usage);
+            }
+        }
+
+        protected virtual string GetUsername()
+        {
+            return "";
         }
 
         public bool Enabled
@@ -258,6 +355,84 @@ namespace GitHub.Unity
                 }
             }
         }
+    }
+
+    class UsageTracker : UsageTrackerSync
+    {
+        public UsageTracker(ITaskManager taskManager, IGitClient gitClient, IProcessManager processManager,
+            ISettings userSettings,
+            IEnvironment environment,
+            IKeychain keychain,
+            string instanceId)
+            : base(userSettings,
+                   new UsageLoader(environment.UserCachePath.Combine(Constants.UsageFile)),
+                   environment.UnityVersion, instanceId)
+        {
+            TaskManager = taskManager;
+            Environment = environment;
+            GitClient = gitClient;
+            ProcessManager = processManager;
+            Keychain = keychain;
+        }
+
+        protected override void CaptureRepoSize()
+        {
+            try
+            {
+                var gitSize = GitClient.CountObjects()
+                    .Catch(_ => true)
+                    .RunSynchronously();
+                base.UpdateRepoSize(gitSize);
+
+                var gitLfsDataPath = Environment.RepositoryPath.Combine(".git", "lfs");
+                if (gitLfsDataPath.Exists())
+                {
+                    var lfsSize = new LinuxDiskUsageTask(gitLfsDataPath, TaskManager.Token)
+                        .Configure(ProcessManager)
+                        .Catch(_ => true)
+                        .RunSynchronously();
+                    base.UpdateLfsDiskUsage(lfsSize);
+                }
+            }
+            catch {}
+        }
+
+        protected override string GetUsername()
+        {
+            string username = "";
+            try {
+                var apiClient = new ApiClient(Keychain, ProcessManager, TaskManager, Environment);
+                var user = apiClient.GetCurrentUser();
+                username = user.Login;
+            } catch {
+            }
+            return username;
+        }
+
+        public override void IncrementApplicationMenuMenuItemCommandLine() => TaskManager.Run(base.IncrementApplicationMenuMenuItemCommandLine);
+        public override void IncrementAuthenticationViewButtonAuthentication() => TaskManager.Run(base.IncrementAuthenticationViewButtonAuthentication);
+        public override void IncrementBranchesViewButtonCheckoutLocalBranch() => TaskManager.Run(base.IncrementBranchesViewButtonCheckoutLocalBranch);
+        public override void IncrementBranchesViewButtonCheckoutRemoteBranch() => TaskManager.Run(base.IncrementBranchesViewButtonCheckoutRemoteBranch);
+        public override void IncrementBranchesViewButtonCreateBranch() => TaskManager.Run(base.IncrementBranchesViewButtonCreateBranch);
+        public override void IncrementBranchesViewButtonDeleteBranch() => TaskManager.Run(base.IncrementBranchesViewButtonDeleteBranch);
+        public override void IncrementChangesViewButtonCommit() => TaskManager.Run(base.IncrementChangesViewButtonCommit);
+        public override void IncrementHistoryViewToolbarFetch() => TaskManager.Run(base.IncrementHistoryViewToolbarFetch);
+        public override void IncrementHistoryViewToolbarPull() => TaskManager.Run(base.IncrementHistoryViewToolbarPull);
+        public override void IncrementHistoryViewToolbarPush() => TaskManager.Run(base.IncrementHistoryViewToolbarPush);
+        public override void IncrementNumberOfStartups() => TaskManager.Run(base.IncrementNumberOfStartups);
+        public override void IncrementProjectsInitialized() => TaskManager.Run(base.IncrementProjectsInitialized);
+        public override void IncrementPublishViewButtonPublish() => TaskManager.Run(base.IncrementPublishViewButtonPublish);
+        public override void IncrementSettingsViewButtonLfsUnlock() => TaskManager.Run(base.IncrementSettingsViewButtonLfsUnlock);
+        public override void IncrementUnityProjectViewContextLfsLock() => TaskManager.Run(base.IncrementUnityProjectViewContextLfsLock);
+        public override void IncrementUnityProjectViewContextLfsUnlock() => TaskManager.Run(base.IncrementUnityProjectViewContextLfsUnlock);
+        public override void UpdateLfsDiskUsage(int kilobytes) => TaskManager.Run(() => base.UpdateLfsDiskUsage(kilobytes));
+        public override void UpdateRepoSize(int kilobytes) => TaskManager.Run(() => base.UpdateRepoSize(kilobytes));
+
+        protected ITaskManager TaskManager { get; }
+        protected IEnvironment Environment { get; }
+        protected IGitClient GitClient { get; }
+        public IProcessManager ProcessManager { get; }
+        protected IKeychain Keychain { get; }
     }
 
     interface IUsageLoader
@@ -293,7 +468,7 @@ namespace GitHub.Unity
                     {
                         path.DeleteIfExists();
                     }
-                    catch {}
+                    catch { }
                 }
             }
 

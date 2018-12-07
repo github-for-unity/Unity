@@ -16,6 +16,7 @@ namespace GitHub.Unity
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress repositoryProgress;
         [NonSerialized] private IProgress appManagerProgress;
+        [NonSerialized] private bool firstOnGUI = true;
 
         [SerializeField] private double progressMessageClearTime = -1;
         [SerializeField] private double notificationClearTime = -1;
@@ -40,6 +41,7 @@ namespace GitHub.Unity
         [SerializeField] private int statusAhead;
         [SerializeField] private int statusBehind;
         [SerializeField] private bool hasItemsToCommit;
+        [SerializeField] private bool isTrackingRemoteBranch;
         [SerializeField] private GUIContent currentBranchContent;
         [SerializeField] private GUIContent currentRemoteUrlContent;
         [SerializeField] private CacheUpdateEvent lastCurrentBranchAndRemoteChangedEvent;
@@ -54,6 +56,8 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryProgressMessage;
         [SerializeField] private float appManagerProgressValue;
         [SerializeField] private string appManagerProgressMessage;
+        [SerializeField] private Connection[] connections;
+        [SerializeField] private string primaryConnectionUsername;
 
         [MenuItem(Menu_Window_GitHub)]
         public static void Window_GitHub()
@@ -65,7 +69,7 @@ namespace GitHub.Unity
         public static void GitHub_CommandLine()
         {
             EntryPoint.ApplicationManager.ProcessManager.RunCommandLineWindow(NPath.CurrentDirectory);
-            EntryPoint.ApplicationManager.TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine, null);
+            EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine();
         }
 
 #if DEBUG
@@ -109,8 +113,6 @@ namespace GitHub.Unity
             SettingsView.InitializeView(this);
             LocksView.InitializeView(this);
             InitProjectView.InitializeView(this);
-
-            titleContent = new GUIContent(Title, Styles.SmallLogo);
 
             if (!HasRepository)
             {
@@ -194,6 +196,7 @@ namespace GitHub.Unity
             base.Refresh();
             if (ActiveView != null)
                 ActiveView.Refresh();
+            Refresh(CacheType.GitLocks);
             Redraw();
         }
 
@@ -210,6 +213,50 @@ namespace GitHub.Unity
 
         private void MaybeUpdateData()
         {
+            if (firstOnGUI)
+            {
+                titleContent = new GUIContent(Title, Styles.SmallLogo);
+            }
+            firstOnGUI = false;
+
+            if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
+            {
+                var host = Repository.CloneUrl
+                                     .ToRepositoryUri()
+                                     .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+
+                connections = Platform.Keychain.Connections.OrderByDescending(x => x.Host == host).ToArray();
+            }
+            else
+            {
+                connections = Platform.Keychain.Connections.OrderByDescending(HostAddress.IsGitHubDotCom).ToArray();
+            }
+
+            var connectionCount = connections.Length;
+            if (connectionCount > 1)
+            {
+                var connection = connections.First();
+                var isGitHubDotCom = HostAddress.IsGitHubDotCom(connection);
+
+                if (isGitHubDotCom)
+                {
+                    primaryConnectionUsername = "GitHub: " + connection.Username;
+                }
+                else
+                {
+                    primaryConnectionUsername = connection.Host + ": " + connection.Username;
+                }
+            }
+            else if(connectionCount == 1)
+            {
+                primaryConnectionUsername = connections.First().Username;
+            }
+            else
+            {
+                primaryConnectionUsername = null;
+            }
+
+
             if (repositoryProgressHasUpdate)
             {
                 if (repositoryProgress != null)
@@ -275,7 +322,17 @@ namespace GitHub.Unity
                     currentBranchAndRemoteHasUpdate = false;
 
                     var repositoryCurrentBranch = Repository.CurrentBranch;
-                    var updatedRepoBranch = repositoryCurrentBranch.HasValue ? repositoryCurrentBranch.Value.Name : null;
+                    string updatedRepoBranch;
+                    if (repositoryCurrentBranch.HasValue)
+                    {
+                        updatedRepoBranch = repositoryCurrentBranch.Value.Name;
+                        isTrackingRemoteBranch = !string.IsNullOrEmpty(repositoryCurrentBranch.Value.Tracking);
+                    }
+                    else
+                    {
+                        updatedRepoBranch = null;
+                        isTrackingRemoteBranch = false;
+                    }
 
                     var repositoryCurrentRemote = Repository.CurrentRemote;
                     if (repositoryCurrentRemote.HasValue)
@@ -290,7 +347,7 @@ namespace GitHub.Unity
 
                     if (currentRemoteName != updatedRepoRemote)
                     {
-                        currentRemoteName = updatedRepoBranch;
+                        currentRemoteName = updatedRepoRemote;
                         shouldUpdateContentFields = true;
                     }
 
@@ -309,6 +366,8 @@ namespace GitHub.Unity
             }
             else
             {
+                isTrackingRemoteBranch = false;
+
                 if (currentRemoteName != null)
                 {
                     currentRemoteName = null;
@@ -351,6 +410,7 @@ namespace GitHub.Unity
             repository.TrackingStatusChanged += RepositoryOnTrackingStatusChanged;
             repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
             repository.OnProgress += UpdateProgress;
+            Platform.Keychain.ConnectionsChanged += ConnectionsChanged;
         }
 
         private void DetachHandlers(IRepository repository)
@@ -362,6 +422,7 @@ namespace GitHub.Unity
             repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
             repository.OnProgress -= UpdateProgress;
             Manager.OnProgress -= ApplicationManagerOnProgress;
+            Platform.Keychain.ConnectionsChanged -= ConnectionsChanged;
         }
 
         private void RepositoryOnCurrentBranchAndRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -415,9 +476,16 @@ namespace GitHub.Unity
 
         private void ApplicationManagerOnProgress(IProgress progress)
         {
-            Debug.LogFormat("ApplicationManagerOnProgress {0} {1}", progress.Percentage, progress.Message);
             appManagerProgress = progress;
             appManagerProgressHasUpdate = true;
+        }
+
+        private void ConnectionsChanged()
+        {
+            if (!ThreadingHelper.InUIThread)
+                TaskManager.RunInUI(Redraw);
+            else
+                Redraw();
         }
 
         public override void OnUI()
@@ -542,6 +610,24 @@ namespace GitHub.Unity
                 }
 
                 GUILayout.FlexibleSpace();
+
+                if (!HasRepository)
+                {
+                    GUILayout.FlexibleSpace();
+
+                    if (!connections.Any())
+                    {
+                        if (GUILayout.Button("Sign in", EditorStyles.toolbarButton))
+                            SignIn(null);
+                    }
+                    else
+                    {
+                        if (GUILayout.Button(primaryConnectionUsername, EditorStyles.toolbarDropDown))
+                        {
+                            DoAccountDropdown();
+                        }
+                    }
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -569,7 +655,7 @@ namespace GitHub.Unity
                             EditorUtility.DisplayDialog(Localization.PullConfirmTitle,
                                 String.Format(Localization.PullConfirmDescription, currentRemoteName),
                                 Localization.PullConfirmYes,
-                                Localization.PullConfirmCancel)
+                                Localization.Cancel)
                         )
                         {
                             Pull();
@@ -578,7 +664,7 @@ namespace GitHub.Unity
                     EditorGUI.EndDisabledGroup();
 
                     // Push button
-                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || statusAhead == 0);
+                    EditorGUI.BeginDisabledGroup(currentRemoteName == null || isTrackingRemoteBranch && statusAhead == 0);
                     {
                         var pushButtonText = statusAhead > 0 ? new GUIContent(String.Format(Localization.PushButtonCount, statusAhead)) : pushButtonContent;
                         var pushClicked = GUILayout.Button(pushButtonText, Styles.ToolbarButtonStyle);
@@ -587,7 +673,7 @@ namespace GitHub.Unity
                             EditorUtility.DisplayDialog(Localization.PushConfirmTitle,
                                 String.Format(Localization.PushConfirmDescription, currentRemoteName),
                                 Localization.PushConfirmYes,
-                                Localization.PushConfirmCancel)
+                                Localization.Cancel)
                         )
                         {
                             Push();
@@ -611,8 +697,19 @@ namespace GitHub.Unity
 
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(Localization.AccountButton, EditorStyles.toolbarDropDown))
-                    DoAccountDropdown();
+                if (!connections.Any())
+                {
+                    if (GUILayout.Button("Sign in", EditorStyles.toolbarButton))
+                        SignIn(null);
+                }
+                else
+                {
+                    var connection = connections.First();
+                    if (GUILayout.Button(connection.Username, EditorStyles.toolbarDropDown))
+                    {
+                        DoAccountDropdown();
+                    }
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -683,11 +780,13 @@ namespace GitHub.Unity
                         if (success)
                         {
                             SetProgressMessage(Localization.MessagePulled, 100);
-                            TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPull, null);
+                            Manager.UsageTracker.IncrementHistoryViewToolbarPull();
 
                             EditorUtility.DisplayDialog(Localization.PullActionTitle,
                                 String.Format(Localization.PullSuccessDescription, currentRemoteName),
                             Localization.Ok);
+
+                            AssetDatabase.Refresh();
                         }
                         else
                         {
@@ -711,7 +810,7 @@ namespace GitHub.Unity
                     if (success)
                     {
                         SetProgressMessage(Localization.MessagePushed, 100);
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarPush, null);
+                        Manager.UsageTracker.IncrementHistoryViewToolbarPush();
 
                         EditorUtility.DisplayDialog(Localization.PushActionTitle,
                             String.Format(Localization.PushSuccessDescription, currentRemoteName),
@@ -738,7 +837,7 @@ namespace GitHub.Unity
                     if (success)
                     {
                         SetProgressMessage(Localization.MessageFetched, 100);
-                        TaskManager.Run(EntryPoint.ApplicationManager.UsageTracker.IncrementHistoryViewToolbarFetch, null);
+                        Manager.UsageTracker.IncrementHistoryViewToolbarFetch();
                     }
                     else
                     {
@@ -771,23 +870,44 @@ namespace GitHub.Unity
             toView.OnDataUpdate();
 
             // this triggers a repaint
-            Repaint();
+            Redraw();
         }
 
         private void DoAccountDropdown()
         {
             GenericMenu accountMenu = new GenericMenu();
 
-            if (!Platform.Keychain.HasKeys)
+            if (connections.Length == 1)
             {
-                accountMenu.AddItem(new GUIContent("Sign in"), false, SignIn, "sign in");
+                var connection = connections.First();
+                accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, connection);
+                accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, connection);
+                accountMenu.AddSeparator("");
+                accountMenu.AddItem(new GUIContent("Sign In"), false, SignIn, "sign in");
             }
             else
             {
-                accountMenu.AddItem(new GUIContent("Go to Profile"), false, GoToProfile, "profile");
-                accountMenu.AddSeparator("");
-                accountMenu.AddItem(new GUIContent("Sign out"), false, SignOut, "sign out");
+                for (var index = 0; index < connections.Length; index++)
+                {
+                    var connection = connections[index];
+                    var isGitHubDotCom = HostAddress.IsGitHubDotCom(connection);
+
+                    string rootPath;
+                    if (isGitHubDotCom)
+                    {
+                        rootPath = "GitHub/";
+                    }
+                    else
+                    {
+                        var uriString = connection.Host.ToUriString();
+                        rootPath =  uriString.Host + "/";
+                    }
+
+                    accountMenu.AddItem(new GUIContent(rootPath + "Go to Profile"), false, GoToProfile, connection);
+                    accountMenu.AddItem(new GUIContent(rootPath + "Sign out"), false, SignOut, connection);
+                }
             }
+
             accountMenu.ShowAsContext();
         }
 
@@ -798,27 +918,16 @@ namespace GitHub.Unity
 
         private void GoToProfile(object obj)
         {
-            //TODO: ONE_USER_LOGIN This assumes only ever one user can login
-            var keychainConnection = Platform.Keychain.Connections.First();
-            var uriString = new UriString(keychainConnection.Host).Combine(keychainConnection.Username);
+            var connection = (Connection) obj;
+            var uriString = new UriString(connection.Host).Combine(connection.Username);
             Application.OpenURL(uriString);
         }
 
         private void SignOut(object obj)
         {
-            UriString host;
-            if (Repository != null && Repository.CloneUrl != null && Repository.CloneUrl.IsValidUri)
-            {
-                host = new UriString(Repository.CloneUrl.ToRepositoryUri()
-                                               .GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-            }
-            else
-            {
-                host = UriString.ToUriString(HostAddress.GitHubDotComHostAddress.WebUri);
-            }
-
-            var apiClient = new ApiClient(host, Platform.Keychain, null, null, NPath.Default, NPath.Default);
-            apiClient.Logout(host);
+            var connection = (Connection)obj;
+            var loginManager = new LoginManager(Platform.Keychain, Manager.ProcessManager, Manager.TaskManager, Environment);
+            loginManager.Logout(connection.Host).FinallyInUI((s, e) => Redraw());
         }
 
         public new void ShowNotification(GUIContent content)

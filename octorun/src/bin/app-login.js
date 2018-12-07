@@ -1,12 +1,12 @@
 var commander = require("commander");
 var package = require('../../package.json');
 var authentication = require('../authentication');
-var endOfLine = require('os').EOL;
 var output = require('../output');
 
 commander
     .version(package.version)
     .option('-t, --twoFactor')
+    .option('-h, --host <host>')
     .parse(process.argv);
 
 var handleAuthentication = function (username, password, twoFactor) {
@@ -19,7 +19,7 @@ var handleAuthentication = function (username, password, twoFactor) {
         }
     }, function (error) {
         output.error(error);
-    }, twoFactor);
+    }, twoFactor, commander.host);
 }
 
 var encoding = 'utf-8';

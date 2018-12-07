@@ -89,9 +89,9 @@ namespace GitHub.Unity
 
                 expectedRepositoryPath = repositoryPath != null ? repositoryPath.Value : UnityProjectPath;
 
-                if (!expectedRepositoryPath.DirectoryExists(".git"))
+                if (!expectedRepositoryPath.Exists(".git"))
                 {
-                    NPath reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.DirectoryExists(".git"));
+                    NPath reporoot = UnityProjectPath.RecursiveParents.FirstOrDefault(d => d.Exists(".git"));
                     if (reporoot.IsInitialized)
                         expectedRepositoryPath = reporoot;
                 }
@@ -102,7 +102,7 @@ namespace GitHub.Unity
             }
 
             FileSystem.SetCurrentDirectory(expectedRepositoryPath);
-            if (expectedRepositoryPath.DirectoryExists(".git"))
+            if (expectedRepositoryPath.Exists(".git"))
             {
                 RepositoryPath = expectedRepositoryPath;
                 Repository = new Repository(RepositoryPath, CacheContainer);
