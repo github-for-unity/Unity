@@ -38,6 +38,38 @@ namespace UnitTests
         }
 
         [Test]
+        public void ShouldParseUnmergedStates()
+        {
+            var output = new[]
+            {
+                "## master",
+                "DD something1.txt",
+                "AU something2.txt",
+                "UD something3.txt",
+                "UA something4.txt",
+                "DU something5.txt",
+                "AA something6.txt",
+                "UU something7.txt",
+                null
+            };
+
+            AssertProcessOutput(output, new GitStatus
+            {
+                LocalBranch = "master",
+                Entries = new List<GitStatusEntry>
+                {
+                    new GitStatusEntry("something1.txt", TestRootPath + @"\something1.txt", null, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something2.txt", TestRootPath + @"\something2.txt", null, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something3.txt", TestRootPath + @"\something3.txt", null, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something4.txt", TestRootPath + @"\something4.txt", null, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something5.txt", TestRootPath + @"\something5.txt", null, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something6.txt", TestRootPath + @"\something6.txt", null, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something7.txt", TestRootPath + @"\something7.txt", null, GitFileStatus.Unmerged),
+                }
+            });
+        }
+
+        [Test]
         public void ShouldParseDirtyWorkingTreeTrackedAhead1Behind1()
         {
             var output = new[]

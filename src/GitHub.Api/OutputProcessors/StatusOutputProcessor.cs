@@ -120,13 +120,11 @@ namespace GitHub.Unity
                     }
                     else
                     {
+                        var secondPosition = false;
                         if (proc.IsAtWhitespace)
                         {
                             proc.SkipWhitespace();
-                        }
-                        else
-                        {
-                            staged = true;
+                            secondPosition = true;
                         }
 
                         if (proc.Matches('M'))
@@ -137,15 +135,34 @@ namespace GitHub.Unity
 
                             path = proc.ReadToEnd().Trim('"');
                             status = GitFileStatus.Modified;
+                            staged = !secondPosition;
                         }
                         else if (proc.Matches('D'))
                         {
-                            //D  deploy.cmd
                             proc.MoveNext();
+
+                            if (proc.Matches('D') || proc.Matches('U'))
+                            {
+                                //DD  deploy.cmd - unmerged, both deleted
+                                //DU  deploy.cmd - unmerged, deleted by us
+
+                                status = GitFileStatus.Unmerged;
+                            }
+                            else if(proc.IsAtWhitespace)
+                            {
+                                //D  deploy.cmd
+                                status = GitFileStatus.Deleted;
+                                staged = !secondPosition;
+                            }
+                            else
+                            {
+                                HandleUnexpected(line);
+                                return;
+                            }
+
                             proc.SkipWhitespace();
 
                             path = proc.ReadToEnd().Trim('"');
-                            status = GitFileStatus.Deleted;
                         }
                         else if (proc.Matches('R'))
                         {
@@ -163,19 +180,59 @@ namespace GitHub.Unity
                             originalPath = files[0];
                             path = files[1];
                             status = GitFileStatus.Renamed;
+                            staged = !secondPosition;
                         }
                         else if (proc.Matches('A'))
                         {
-                            //A  something added.txt
                             proc.MoveNext();
+                            if (proc.Matches('A') || proc.Matches('U'))
+                            {
+                                //AA  deploy.cmd - unmerged, both added
+                                //AU  deploy.cmd - unmerged, added by us
+
+                                status = GitFileStatus.Unmerged;
+                            }
+                            else if (proc.IsAtWhitespace)
+                            {
+                                //A  something added.txt
+                                status = GitFileStatus.Added;
+                                staged = !secondPosition;
+                            }
+                            else
+                            {
+                                HandleUnexpected(line);
+                                return;
+                            }
+
                             proc.SkipWhitespace();
 
                             path = proc.ReadToEnd().Trim('"');
-                            status = GitFileStatus.Added;
+                        }
+                        else if (proc.Matches('U'))
+                        {
+                            proc.MoveNext();
+                            if (proc.Matches('D') || proc.Matches('A') || proc.Matches('U'))
+                            {
+                                //UD  deploy.cmd - unmerged, deleted by them
+                                //UA  deploy.cmd - unmerged, added by them
+                                //UU  deploy.cmd - unmerged, both modified
+
+                                status = GitFileStatus.Unmerged;
+                            }
+                            else
+                            {
+                                HandleUnexpected(line);
+                                return;
+                            }
+
+                            proc.SkipWhitespace();
+
+                            path = proc.ReadToEnd().Trim('"');
                         }
                         else
                         {
                             HandleUnexpected(line);
+                            return;
                         }
                     }
 
