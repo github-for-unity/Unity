@@ -1,6 +1,7 @@
 using GitHub.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GitHub.Unity
 {
@@ -8,11 +9,11 @@ namespace GitHub.Unity
     {
         private static ILogging Logger { get; } = LogHelper.GetLogger<GitCredentialManager>();
 
-        private ICredential credential;
         private string credHelper = null;
 
         private readonly IProcessManager processManager;
         private readonly ITaskManager taskManager;
+        private readonly Dictionary<string, ICredential> credentials = new Dictionary<string, ICredential>();
 
         public GitCredentialManager(IProcessManager processManager,
             ITaskManager taskManager)
@@ -23,10 +24,8 @@ namespace GitHub.Unity
 
         public bool HasCredentials()
         {
-            return credential != null;
+            return credentials != null && credentials.Any();
         }
-
-        public ICredential CachedCredentials { get { return credential; } }
 
         public void Delete(UriString host)
         {
@@ -39,12 +38,13 @@ namespace GitHub.Unity
                         String.Format("protocol={0}", host.Protocol),
                         String.Format("host={0}", host.Host)
                 }).RunSynchronously();
-            credential = null;
+            credentials.Remove(host);
         }
 
         public ICredential Load(UriString host)
         {
-            if (credential == null)
+            ICredential credential;
+            if (!credentials.TryGetValue(host, out credential))
             {
                 if (!LoadCredentialHelper())
                     return null;
@@ -87,23 +87,25 @@ namespace GitHub.Unity
                 }
 
                 credential = new Credential(host, user, password);
+                credentials.Add(host, credential);
             }
+
             return credential;
         }
 
         public void Save(ICredential cred)
         {
-            this.credential = cred;
+            this.credentials.Add(cred.Host, cred);
 
             if (!LoadCredentialHelper())
                 return;
 
             var data = new List<string>
             {
-                String.Format("protocol={0}", credential.Host.Protocol),
-                String.Format("host={0}", credential.Host.Host),
-                String.Format("username={0}", credential.Username),
-                String.Format("password={0}", credential.Token)
+                String.Format("protocol={0}", cred.Host.Protocol),
+                String.Format("host={0}", cred.Host.Host),
+                String.Format("username={0}", cred.Username),
+                String.Format("password={0}", cred.Token)
             };
 
             var task = RunCredentialHelper("store", data.ToArray());

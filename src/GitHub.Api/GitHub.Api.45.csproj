@@ -66,12 +66,14 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Threading" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application\ApplicationInfo.cs" />
     <Compile Include="Application\LoginResult.cs" />
     <Compile Include="Application\ApplicationConfiguration.cs" />
     <Compile Include="Application\Organization.cs" />
+    <Compile Include="Authentication\OAuthCallbackManager.cs" />
     <Compile Include="Cache\CacheContainer.cs" />
     <Compile Include="Cache\CacheInterfaces.cs" />
     <Compile Include="Cache\CachingClasses.cs" />
@@ -80,6 +82,7 @@
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
     <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
+    <Compile Include="Git\Tasks\GitConfigUnSetTask.cs" />
     <Compile Include="Git\Tasks\GitCountObjectsTask.cs" />
     <Compile Include="Git\Tasks\GitLfsVersionTask.cs" />
     <Compile Include="Git\Tasks\GitVersionTask.cs" />

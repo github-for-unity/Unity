@@ -213,12 +213,14 @@ namespace GitHub.Unity
 
         private void Invalidate()
         {
-            if (!isInvalidating)
-            {
-                isInvalidating = true;
-                LastUpdatedAt = DateTimeOffset.MinValue;
-                CacheInvalidated.SafeInvoke(CacheType);
-            }
+            isInvalidating = true;
+            LastUpdatedAt = DateTimeOffset.MinValue;
+            CacheInvalidated.SafeInvoke(CacheType);
+        }
+
+        public void ResetInvalidation()
+        {
+            isInvalidating = false;
         }
 
         protected void SaveData(DateTimeOffset now, bool isChanged)
@@ -463,25 +465,25 @@ namespace GitHub.Unity
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
+            if (forcedInvalidation || !Nullable.Equals(currentGitBranch, data.CurrentGitBranch))
             {
                 currentGitBranch = data.CurrentGitBranch ?? GitBranch.Default;
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
+            if (forcedInvalidation || !Nullable.Equals(currentConfigRemote, data.CurrentConfigRemote))
             {
                 currentConfigRemote = data.CurrentConfigRemote ?? ConfigRemote.Default;
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
+            if (forcedInvalidation || !Nullable.Equals(currentConfigBranch, data.CurrentConfigBranch))
             {
                 currentConfigBranch = data.CurrentConfigBranch ?? ConfigBranch.Default;
                 isUpdated = true;
             }
 
-            if (forcedInvalidation ||!String.Equals(currentHead, data.CurrentHead))
+            if (forcedInvalidation || !String.Equals(currentHead, data.CurrentHead))
             {
                 currentHead = data.CurrentHead;
                 isUpdated = true;

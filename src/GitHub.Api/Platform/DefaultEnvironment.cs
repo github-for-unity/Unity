@@ -33,7 +33,7 @@ namespace GitHub.Unity
             else
             {
                 localAppData = GetSpecialFolder(Environment.SpecialFolder.LocalApplicationData).ToNPath();
-                commonAppData = "/usr/local/share/".ToNPath();
+                commonAppData = GetSpecialFolder(Environment.SpecialFolder.ApplicationData).ToNPath();
             }
 
             UserCachePath = localAppData.Combine(ApplicationInfo.ApplicationName);
