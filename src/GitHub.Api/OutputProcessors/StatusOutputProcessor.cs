@@ -151,6 +151,7 @@ namespace GitHub.Unity
                             else if(proc.IsAtWhitespace)
                             {
                                 //D  deploy.cmd
+                                // D deploy.cmd
                                 status = GitFileStatus.Deleted;
                                 staged = !secondPosition;
                             }
@@ -167,6 +168,7 @@ namespace GitHub.Unity
                         else if (proc.Matches('R'))
                         {
                             //R  README.md -> README2.md
+                            // R README.md -> README2.md
                             proc.MoveNext();
                             proc.SkipWhitespace();
 
@@ -195,6 +197,7 @@ namespace GitHub.Unity
                             else if (proc.IsAtWhitespace)
                             {
                                 //A  something added.txt
+                                // A something added.txt
                                 status = GitFileStatus.Added;
                                 staged = !secondPosition;
                             }
