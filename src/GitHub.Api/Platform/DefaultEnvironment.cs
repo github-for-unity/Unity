@@ -83,7 +83,7 @@ namespace GitHub.Unity
             Guard.NotNull(this, FileSystem, nameof(FileSystem));
 
             NPath expectedRepositoryPath;
-            if (!RepositoryPath.IsInitialized)
+            if (!RepositoryPath.IsInitialized || (repositoryPath != null && RepositoryPath != repositoryPath.Value))
             {
                 Guard.NotNull(this, UnityProjectPath, nameof(UnityProjectPath));
 
