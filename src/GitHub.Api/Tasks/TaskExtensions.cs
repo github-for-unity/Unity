@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    static class TaskExtensions
+    public static class TaskExtensions
     {
         public static async Task StartAwait(this ITask source, Action<Exception> handler = null)
         {

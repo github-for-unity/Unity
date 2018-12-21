@@ -547,7 +547,7 @@ namespace GitHub.Unity
         public virtual string Message { get; set; }
     }
 
-    abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
+    public abstract class TaskBase<TResult> : TaskBase, ITask<TResult>
     {
         private event Action<bool, TResult> finallyHandler;
 
@@ -723,7 +723,7 @@ namespace GitHub.Unity
         public TResult Result { get { return result; } }
     }
 
-    abstract class TaskBase<T, TResult> : TaskBase<TResult>
+    public abstract class TaskBase<T, TResult> : TaskBase<TResult>
     {
         private readonly Func<T> getPreviousResult;
 
@@ -770,7 +770,7 @@ namespace GitHub.Unity
         public T PreviousResult { get; set; } = default(T);
     }
 
-    abstract class DataTaskBase<TData, TResult> : TaskBase<TResult>, ITask<TData, TResult>
+    public abstract class DataTaskBase<TData, TResult> : TaskBase<TResult>, ITask<TData, TResult>
     {
         public DataTaskBase(CancellationToken token)
             : base(token)
@@ -783,7 +783,7 @@ namespace GitHub.Unity
         }
     }
 
-    abstract class DataTaskBase<T, TData, TResult> : TaskBase<T, TResult>, ITask<TData, TResult>
+    public abstract class DataTaskBase<T, TData, TResult> : TaskBase<T, TResult>, ITask<TData, TResult>
     {
         public DataTaskBase(CancellationToken token)
             : base(token)
