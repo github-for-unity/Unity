@@ -90,7 +90,7 @@ namespace UnitTests
                     "Author Person", "author@example.com",
                     "Author Person", "author@example.com",
                     "Rename RepositoryModelBase to RepositoryModel",
-                    "This is a line on the description",
+                    Environment.NewLine + "This is a line on the description",
                     commitTime,
                     commitTime,
                     new List<GitStatusEntry>
