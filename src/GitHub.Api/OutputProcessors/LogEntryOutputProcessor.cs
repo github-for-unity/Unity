@@ -143,7 +143,6 @@ namespace GitHub.Unity
                         }
 
                         summary = line;
-                        descriptionLines.Add(line);
                         phase++;
                         // there's no description so skip it
                         if (oneliner)
