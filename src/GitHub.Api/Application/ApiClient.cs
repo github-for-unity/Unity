@@ -262,7 +262,7 @@ namespace GitHub.Unity
             Guard.ArgumentNotNull(result, "result");
 
             new FuncTask<bool>(taskManager.Token,
-                    () => loginManager.LoginWithToken(UriString.ToUriString(HostAddress.WebUri), token))
+                    () => loginManager.LoginWithToken(HostAddress.WebUri.Host, token))
                 .FinallyInUI((success, ex, res) =>
                 {
                     if (!success)

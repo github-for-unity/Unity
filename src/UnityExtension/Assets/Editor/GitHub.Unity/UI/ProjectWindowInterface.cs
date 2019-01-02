@@ -18,6 +18,7 @@ namespace GitHub.Unity
         private static List<GitLock> locks = new List<GitLock>();
         private static List<string> guids = new List<string>();
         private static List<string> guidsLocks = new List<string>();
+        private static string currentUsername;
 
         private static IApplicationManager manager;
         private static bool isBusy = false;
@@ -25,7 +26,9 @@ namespace GitHub.Unity
         private static ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger<ProjectWindowInterface>(); } }
         private static CacheUpdateEvent lastRepositoryStatusChangedEvent;
         private static CacheUpdateEvent lastLocksChangedEvent;
+        private static CacheUpdateEvent lastCurrentRemoteChangedEvent;
         private static IRepository Repository { get { return manager != null ? manager.Environment.Repository : null; } }
+        private static IPlatform Platform { get { return manager != null ? manager.Platform : null; } }
         private static bool IsInitialized { get { return Repository != null; } }
 
         public static void Initialize(IApplicationManager theManager)
@@ -35,10 +38,14 @@ namespace GitHub.Unity
 
             manager = theManager;
 
+            Platform.Keychain.ConnectionsChanged += UpdateCurrentUsername;
+            UpdateCurrentUsername();
+
             if (IsInitialized)
             {
                 Repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
                 Repository.LocksChanged += RepositoryOnLocksChanged;
+                Repository.CurrentRemoteChanged += RepositoryOnCurrentRemoteChanged;
                 ValidateCachedData();
             }
         }
@@ -83,6 +90,42 @@ namespace GitHub.Unity
             }
         }
 
+        private static void RepositoryOnCurrentRemoteChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentRemoteChangedEvent.Equals(cacheUpdateEvent))
+            {
+                lastCurrentRemoteChangedEvent = cacheUpdateEvent;
+            }
+        }
+
+        private static void UpdateCurrentUsername()
+        {
+            var username = String.Empty;
+            if (Repository != null)
+            {
+                Connection connection;
+                if (!string.IsNullOrEmpty(Repository.CloneUrl))
+                {
+                    var host = Repository.CloneUrl
+                                         .ToRepositoryUri()
+                                         .GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+
+                    connection = Platform.Keychain.Connections.FirstOrDefault(x => x.Host == host);
+                }
+                else
+                {
+                    connection = Platform.Keychain.Connections.FirstOrDefault(HostAddress.IsGitHubDotCom);
+                }
+
+                if (connection != null)
+                {
+                    username = connection.Username;
+                }
+            }
+
+            currentUsername = username;
+        }
+
         [MenuItem(AssetsMenuRequestLock, true, 10000)]
         private static bool ContextMenu_CanLock()
         {
@@ -104,7 +147,7 @@ namespace GitHub.Unity
                 return false;
             if (isBusy)
                 return false;
-            return Selection.objects.Any(IsObjectLocked);
+            return Selection.objects.Any(f => IsObjectLocked(f , true));
         }
 
         [MenuItem(AssetsMenuReleaseLockForced, true, 10002)]
@@ -181,13 +224,18 @@ namespace GitHub.Unity
 
         private static bool IsObjectLocked(Object selected)
         {
+            return IsObjectLocked(selected, false);
+        }
+
+        private static bool IsObjectLocked(Object selected, bool isLockedByCurrentUser)
+        {
             if (selected == null)
                 return false;
 
             NPath assetPath = AssetDatabase.GetAssetPath(selected.GetInstanceID()).ToNPath();
             NPath repositoryPath = manager.Environment.GetRepositoryPath(assetPath);
 
-            return locks.Any(x => repositoryPath == x.Path);
+            return locks.Any(x => repositoryPath == x.Path && (!isLockedByCurrentUser || x.Owner.Name == currentUsername));
         }
 
         private static ITask CreateUnlockObjectTask(Object selected, bool force)
