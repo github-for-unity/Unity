@@ -48,8 +48,8 @@ namespace GitHub.Unity
                 arguments += " \"" + file.ToNPath().ToString(SlashMode.Forward) + "\"";
             }
 
-            Message = "Checking out files at  rev " + changeset.Substring(0, 7); 
-        }        
+            Message = "Checking out files at rev " + changeset.Substring(0, 7); 
+        }
 
         public override string ProcessArguments { get { return arguments; } }
         public override TaskAffinity Affinity { get { return TaskAffinity.Exclusive; } }
