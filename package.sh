@@ -58,7 +58,7 @@ rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.pdb
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.pdb.meta
 rm -f unity/PackageProject/Assets/Plugins/GitHub/Editor/*.xml
 
-Version=`sed -En 's,.*Version = "(.*)".*,\1,p' common/SolutionInfo.cs`
+Version=`sed -En 's,.*GitHubForUnityVersion = "(.*)".*,\1,p' common/SolutionInfo.cs`
 commitcount=`git rev-list  --count HEAD`
 commit=`git log -n1 --pretty=format:%h`
 Version="${Version}.${commitcount}-${commit}"

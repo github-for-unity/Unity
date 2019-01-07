@@ -31,9 +31,10 @@ using System.Runtime.InteropServices;
 namespace System
 {
     internal static class AssemblyVersionInformation {
-        // this is for the AssemblyVersion and AssemblyVersion attributes, which can't handle alphanumerics
-        internal const string VersionForAssembly = "1.2.0";
-        // Actual real version
-        internal const string Version = "1.2.0";
+        private const string GitHubForUnityVersion = "1.2.1";
+        internal const string VersionForAssembly = GitHubForUnityVersion;
+
+        // If this is an alpha, beta or other pre-release, mark it as such as shown below
+        internal const string Version = GitHubForUnityVersion; // GitHubForUnityVersion + "-beta1"
     }
 }
