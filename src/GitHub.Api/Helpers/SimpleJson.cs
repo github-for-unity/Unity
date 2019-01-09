@@ -2214,7 +2214,7 @@ namespace GitHub.Unity
             return propertyName.Substring(0, i).ToLowerInvariant() + propertyName.Substring(i);
         }
 
-        class JsonSerializationStrategy : PocoJsonSerializerStrategy
+        public class JsonSerializationStrategy : PocoJsonSerializerStrategy
         {
             private bool toLowerCase = false;
             private bool onlyPublic = true;
