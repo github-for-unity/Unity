@@ -215,7 +215,7 @@ namespace GitHub.Unity
         /// <param name="files">The files to check out</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
-        ITask<string> CheckoutVersion(string changeset, IEnumerable<string> files, IOutputProcessor<string> processor = null);
+        ITask<string> CheckoutVersion(string changeset, IList<string> files, IOutputProcessor<string> processor = null);
 
         /// <summary>
         /// Executes at least one `git reset HEAD` command to remove files from the git index.
@@ -593,7 +593,7 @@ namespace GitHub.Unity
         }
 
         ///<inheritdoc/>
-        public ITask<string> CheckoutVersion(string changeset, IEnumerable<string> files, IOutputProcessor<string> processor = null)
+        public ITask<string> CheckoutVersion(string changeset, IList<string> files, IOutputProcessor<string> processor = null)
         {
             return new GitCheckoutTask(changeset, files, cancellationToken, processor)
                 .Configure(processManager);
