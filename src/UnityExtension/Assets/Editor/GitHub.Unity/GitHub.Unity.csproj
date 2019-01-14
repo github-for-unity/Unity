@@ -77,6 +77,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Logging\UnityLogAdapter.cs" />
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="UI\ContextMenu.cs" />
+    <Compile Include="UI\FileHistoryWindow.cs" />
     <Compile Include="UI\GitHubAuthenticationView.cs" />
     <Compile Include="UI\GitHubEnterpriseAuthenticationView.cs" />
     <Compile Include="UpdateCheck.cs" />

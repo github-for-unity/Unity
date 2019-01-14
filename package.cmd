@@ -47,7 +47,7 @@ if not exist "%Unity%" (
 	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.pdb.meta
 	del /Q unity\PackageProject\Assets\Plugins\GitHub\Editor\*.xml
 	
-	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string Version" common\SolutionInfo.cs`) do call :Package %%G
+	for /f tokens^=^2^ usebackq^ delims^=^" %%G in (`find "const string GitHubForUnityVersion" common\SolutionInfo.cs`) do call :Package %%G
 	
 	goto End
 	

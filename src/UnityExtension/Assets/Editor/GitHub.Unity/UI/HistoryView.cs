@@ -320,7 +320,7 @@ namespace GitHub.Unity
 
         [SerializeField] private int statusAhead;
 
-        [SerializeField] private ChangesTree treeChanges = new ChangesTree { IsSelectable = false, DisplayRootNode = false };
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
         
         [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
         [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
@@ -435,11 +435,13 @@ namespace GitHub.Unity
                             treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
                             treeRect = treeChanges.Render(treeControlRect, detailsScroll,
-                                node => { },
-                                node => {
-                                },
-                                node => {
-                                });
+                                singleClick: node => { },
+                                doubleClick: node => { },
+                                rightClick: node => {
+                                    var menu = CreateChangesTreeContextMenu(node);
+                                    menu.ShowAsContext();
+                                }
+                            );
 
                             if (treeChanges.RequiresRepaint)
                                 Redraw();
@@ -587,6 +589,15 @@ namespace GitHub.Unity
             treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
+        }
+
+        private GenericMenu CreateChangesTreeContextMenu(ChangesTreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+
+            genericMenu.AddItem(new GUIContent("Show History"), false, () => { });
+
+            return genericMenu;
         }
     }
 }
