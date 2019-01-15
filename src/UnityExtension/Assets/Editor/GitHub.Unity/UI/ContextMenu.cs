@@ -17,7 +17,7 @@ namespace GitHub.Unity
                 foreach(var guid in Selection.assetGUIDs)
                 {
                     var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    FileHistoryWindow.OpenWindow(assetPath);
+                    FileHistoryWindow.OpenWindow(EntryPoint.ApplicationManager, assetPath);
                     windowsOpened++;
                     if (windowsOpened >= maxWindowsToOpen)
                     {

@@ -472,14 +472,14 @@ namespace GitHub.Unity
             }
         }
 
-        public static GUIStyle HistoryLockStyle
+        public static GUIStyle LockButtonStyle
         {
             get
             {
                 if (historyLockStyle == null)
                 {
                     historyLockStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
-                    historyLockStyle.name = "HistoryLockStyle";
+                    historyLockStyle.name = "LockStyle";
                 }
                 historyLockStyle.margin = new RectOffset(3, 3, 2, 2);
                 return historyLockStyle;

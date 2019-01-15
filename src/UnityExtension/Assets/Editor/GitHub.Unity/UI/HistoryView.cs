@@ -302,163 +302,59 @@ namespace GitHub.Unity
         }
     }
 
-    [Serializable]
-    class HistoryView : Subview
+    abstract class HistoryBase : Subview
     {
-        private const string CommitDetailsTitle = "Commit details";
-        private const string ClearSelectionButton = "×";
+        protected const string CommitDetailsTitle = "Commit details";
+        protected const string ClearSelectionButton = "×";
 
-        [SerializeField] private bool currentLogHasUpdate;
-        [SerializeField] private bool currentTrackingStatusHasUpdate;
+        protected abstract HistoryControl HistoryControl { get; set; }
+        protected abstract GitLogEntry SelectedEntry { get; set; }
+        protected abstract ChangesTree TreeChanges { get; set; }
+        protected abstract Vector2 DetailsScroll { get; set; }
 
-        [SerializeField] private HistoryControl historyControl;
-        [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
-
-        [SerializeField] private Vector2 detailsScroll;
-
-        [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
-
-        [SerializeField] private int statusAhead;
-
-        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
-        
-        [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
-        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
-
-        public override void OnEnable()
+        protected void BuildHistoryControl(int loadAhead, List<GitLogEntry> gitLogEntries)
         {
-            base.OnEnable();
-
-            if (treeChanges != null)
+            if (HistoryControl == null)
             {
-                treeChanges.ViewHasFocus = HasFocus;
-                treeChanges.UpdateIcons(Styles.FolderIcon);
+                HistoryControl = new HistoryControl();
             }
 
-            AttachHandlers(Repository);
-            ValidateCachedData(Repository);
-        }
-
-        public override void OnDisable()
-        {
-            base.OnDisable();
-            DetachHandlers(Repository);
-        }
-
-        public override void Refresh()
-        {
-            base.Refresh();
-            Refresh(CacheType.GitLog);
-            Refresh(CacheType.GitAheadBehind);
-        }
-
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            MaybeUpdateData();
-        }
-
-        public override void OnFocusChanged()
-        {
-            base.OnFocusChanged();
-            var hasFocus = HasFocus;
-            if (treeChanges.ViewHasFocus != hasFocus)
+            HistoryControl.Load(loadAhead, gitLogEntries);
+            if (!SelectedEntry.Equals(GitLogEntry.Default) 
+                && SelectedEntry.CommitID != HistoryControl.SelectedGitLogEntry.CommitID)
             {
-                treeChanges.ViewHasFocus = hasFocus;
-                Redraw();
+                SelectedEntry = GitLogEntry.Default;
             }
         }
 
-        public override void OnGUI()
+        protected void BuildTree()
         {
-            var rect = GUILayoutUtility.GetLastRect();
-            if (historyControl != null)
+            TreeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+            TreeChanges.Load(SelectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
+            Redraw();
+        }
+
+        protected void RevertCommit()
+        {
+            var dialogTitle = "Revert commit";
+            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", SelectedEntry.Summary);
+
+            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
             {
-                var historyControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
-
-                var requiresRepaint = historyControl.Render(historyControlRect,  
-                    entry => {
-                        selectedEntry = entry;
-                        BuildTree();
-                    },
-                    entry => { }, entry => {
-                        GenericMenu menu = new GenericMenu();
-                        menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
-                        menu.ShowAsContext();
-                    });
-
-                if (requiresRepaint)
-                    Redraw();
-            }
-
-            DoProgressGUI();
-
-            if (!selectedEntry.Equals(GitLogEntry.Default))
-            {
-                // Top bar for scrolling to selection or clearing it
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                {
-                    if (GUILayout.Button(CommitDetailsTitle, Styles.ToolbarButtonStyle))
-                    {
-                        historyControl.ScrollTo(historyControl.SelectedIndex);
-                    }
-                    if (GUILayout.Button(ClearSelectionButton, Styles.ToolbarButtonStyle, GUILayout.ExpandWidth(false)))
-                    {
-                        selectedEntry = GitLogEntry.Default;
-                        historyControl.SelectedIndex = -1;
-                    }
-                }
-                GUILayout.EndHorizontal();
-
-                // Log entry details - including changeset tree (if any changes are found)
-                detailsScroll = GUILayout.BeginScrollView(detailsScroll, GUILayout.Height(250));
-                {
-                    HistoryDetailsEntry(selectedEntry);
-
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-                    GUILayout.Label("Files changed", EditorStyles.boldLabel);
-                    GUILayout.Space(-5);
-
-                    rect = GUILayoutUtility.GetLastRect();
-                    GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
-                    GUILayout.BeginVertical();
-                    {
-                        var borderLeft = Styles.Label.margin.left;
-                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
-                        var treeRect = new Rect(0f, 0f, 0f, 0f);
-                        if (treeChanges != null)
+                Repository
+                    .Revert(SelectedEntry.CommitID)
+                    .FinallyInUI((success, e) => {
+                        if (!success)
                         {
-                            treeChanges.FolderStyle = Styles.Foldout;
-                            treeChanges.TreeNodeStyle = Styles.TreeNode;
-                            treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
-                            treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
-                            treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
-
-                            treeRect = treeChanges.Render(treeControlRect, detailsScroll,
-                                singleClick: node => { },
-                                doubleClick: node => { },
-                                rightClick: node => {
-                                    var menu = CreateChangesTreeContextMenu(node);
-                                    menu.ShowAsContext();
-                                }
-                            );
-
-                            if (treeChanges.RequiresRepaint)
-                                Redraw();
+                            EditorUtility.DisplayDialog(dialogTitle,
+                                "Error reverting commit: " + e.Message, Localization.Cancel);
                         }
-
-                        GUILayout.Space(treeRect.y - treeControlRect.y);
-                    }
-                    GUILayout.EndVertical();
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-                }
-                GUILayout.EndScrollView();
+                    })
+                    .Start();
             }
         }
 
-        private void HistoryDetailsEntry(GitLogEntry entry)
+        protected void HistoryDetailsEntry(GitLogEntry entry)
         {
             GUILayout.BeginVertical(Styles.HeaderBoxStyle);
             GUILayout.Label(entry.Summary, Styles.HistoryDetailsTitleStyle);
@@ -475,24 +371,170 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
-        private void RevertCommit()
+        protected GenericMenu CreateChangesTreeContextMenu(ChangesTreeNode node)
         {
-            var dialogTitle = "Revert commit";
-            var dialogBody = string.Format(@"Are you sure you want to revert the following commit:""{0}""", selectedEntry.Summary);
+            var genericMenu = new GenericMenu();
 
-            if (EditorUtility.DisplayDialog(dialogTitle, dialogBody, "Revert", "Cancel"))
+            genericMenu.AddItem(new GUIContent("Show History"), false, () => { });
+
+            return genericMenu;
+        }
+
+        public override void OnGUI()
+        {
+            var rect = GUILayoutUtility.GetLastRect();
+            if (HistoryControl != null)
             {
-                Repository
-                    .Revert(selectedEntry.CommitID)
-                    .FinallyInUI((success, e) => {
-                        if (!success)
-                        {
-                            EditorUtility.DisplayDialog(dialogTitle,
-                                "Error reverting commit: " + e.Message, Localization.Cancel);
-                        }
-                    })
-                    .Start();
+                var historyControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
+
+                var requiresRepaint = HistoryControl.Render(historyControlRect,
+                    entry => {
+                        SelectedEntry = entry;
+                        BuildTree();
+                    },
+                    entry => { }, entry => {
+                        GenericMenu menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
+                        menu.ShowAsContext();
+                    });
+
+                if (requiresRepaint)
+                    Redraw();
             }
+
+            DoProgressGUI();
+
+            if (!SelectedEntry.Equals(GitLogEntry.Default))
+            {
+                // Top bar for scrolling to selection or clearing it
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                {
+                    if (GUILayout.Button(CommitDetailsTitle, Styles.ToolbarButtonStyle))
+                    {
+                        HistoryControl.ScrollTo(HistoryControl.SelectedIndex);
+                    }
+                    if (GUILayout.Button(ClearSelectionButton, Styles.ToolbarButtonStyle, GUILayout.ExpandWidth(false)))
+                    {
+                        SelectedEntry = GitLogEntry.Default;
+                        HistoryControl.SelectedIndex = -1;
+                    }
+                }
+                GUILayout.EndHorizontal();
+
+                // Log entry details - including changeset tree (if any changes are found)
+                DetailsScroll = GUILayout.BeginScrollView(DetailsScroll, GUILayout.Height(250));
+                {
+                    HistoryDetailsEntry(SelectedEntry);
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                    GUILayout.Label("Files changed", EditorStyles.boldLabel);
+                    GUILayout.Space(-5);
+
+                    rect = GUILayoutUtility.GetLastRect();
+                    GUILayout.BeginHorizontal(Styles.HistoryFileTreeBoxStyle);
+                    GUILayout.BeginVertical();
+                    {
+                        var borderLeft = Styles.Label.margin.left;
+                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var treeRect = new Rect(0f, 0f, 0f, 0f);
+                        if (TreeChanges != null)
+                        {
+                            TreeChanges.FolderStyle = Styles.Foldout;
+                            TreeChanges.TreeNodeStyle = Styles.TreeNode;
+                            TreeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                            TreeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                            TreeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+
+                            treeRect = TreeChanges.Render(treeControlRect, DetailsScroll,
+                                singleClick: node => { },
+                                doubleClick: node => { },
+                                rightClick: node => {
+                                    var menu = CreateChangesTreeContextMenu(node);
+                                    menu.ShowAsContext();
+                                }
+                            );
+
+                            if (TreeChanges.RequiresRepaint)
+                                Redraw();
+                        }
+
+                        GUILayout.Space(treeRect.y - treeControlRect.y);
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                }
+                GUILayout.EndScrollView();
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (TreeChanges != null)
+            {
+                TreeChanges.ViewHasFocus = HasFocus;
+                TreeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
+            AttachHandlers(Repository);
+            ValidateCachedData(Repository);
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            DetachHandlers(Repository);
+        }
+
+        public override void OnDataUpdate()
+        {
+            base.OnDataUpdate();
+            MaybeUpdateData();
+        }
+
+        public override void OnFocusChanged()
+        {
+            base.OnFocusChanged();
+            var hasFocus = HasFocus;
+            if (TreeChanges.ViewHasFocus != hasFocus)
+            {
+                TreeChanges.ViewHasFocus = hasFocus;
+                Redraw();
+            }
+        }
+
+        protected abstract void AttachHandlers(IRepository repository);
+        protected abstract void DetachHandlers(IRepository repository);
+        protected abstract void ValidateCachedData(IRepository repository);
+        protected abstract void MaybeUpdateData();
+    }
+
+    [Serializable]
+    class HistoryView : HistoryBase
+    {
+        [SerializeField] private bool currentLogHasUpdate;
+        [SerializeField] private bool currentTrackingStatusHasUpdate;
+
+        [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
+
+        [SerializeField] private int statusAhead;
+
+        [SerializeField] private CacheUpdateEvent lastLogChangedEvent;
+        [SerializeField] private CacheUpdateEvent lastTrackingStatusChangedEvent;
+
+        [SerializeField] private HistoryControl historyControl;
+        [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
+        [SerializeField] private Vector2 detailsScroll;
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            Refresh(CacheType.GitLog);
+            Refresh(CacheType.GitAheadBehind);
         }
 
         private void RepositoryOnTrackingStatusChanged(CacheUpdateEvent cacheUpdateEvent)
@@ -517,7 +559,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void AttachHandlers(IRepository repository)
+        protected override void AttachHandlers(IRepository repository)
         {
             if (repository == null)
             {
@@ -528,7 +570,7 @@ namespace GitHub.Unity
             repository.LogChanged += RepositoryOnLogChanged;
         }
 
-        private void DetachHandlers(IRepository repository)
+        protected override void DetachHandlers(IRepository repository)
         {
             if (repository == null)
             {
@@ -539,13 +581,13 @@ namespace GitHub.Unity
             repository.LogChanged -= RepositoryOnLogChanged;
         }
 
-        private void ValidateCachedData(IRepository repository)
+        protected override void ValidateCachedData(IRepository repository)
         {
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLog, lastLogChangedEvent);
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastTrackingStatusChangedEvent);
         }
 
-        private void MaybeUpdateData()
+        protected override void MaybeUpdateData()
         {
             if (Repository == null)
             {
@@ -565,39 +607,116 @@ namespace GitHub.Unity
 
                 logEntries = Repository.CurrentLog;
 
-                BuildHistoryControl();
+                BuildHistoryControl(statusAhead, logEntries);
             }
         }
 
-        private void BuildHistoryControl()
+        protected override HistoryControl HistoryControl
         {
-            if (historyControl == null)
+            get { return historyControl; }
+            set { historyControl = value; }
+        }
+
+        protected override GitLogEntry SelectedEntry
+        {
+            get { return selectedEntry; }
+            set { selectedEntry = value; }
+        }
+
+        protected override ChangesTree TreeChanges
+        {
+            get { return treeChanges; }
+            set { treeChanges = value; }
+        }
+
+        protected override Vector2 DetailsScroll
+        {
+            get { return detailsScroll; }
+            set { detailsScroll = value; }
+        }
+    }
+
+    [Serializable]
+    class FileHistoryView : HistoryBase
+    {
+        [SerializeField] private bool currentLogHasUpdate;
+        [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
+
+        [SerializeField] private HistoryControl historyControl;
+        [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
+        [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
+        [SerializeField] private Vector2 detailsScroll;
+        [SerializeField] private string filePath;
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            Refresh(CacheType.GitLog);
+            Refresh(CacheType.GitAheadBehind);
+        }
+
+        protected override void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
             {
-                historyControl = new HistoryControl();
+                return;
             }
+        }
 
-            historyControl.Load(statusAhead, logEntries);
-            if (!selectedEntry.Equals(GitLogEntry.Default) 
-                && selectedEntry.CommitID != historyControl.SelectedGitLogEntry.CommitID)
+        protected override void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
             {
-                selectedEntry = GitLogEntry.Default;
+                return;
             }
         }
 
-        private void BuildTree()
+        protected override void ValidateCachedData(IRepository repository)
         {
-            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
-            treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
-            Redraw();
         }
 
-        private GenericMenu CreateChangesTreeContextMenu(ChangesTreeNode node)
+        protected override void MaybeUpdateData()
         {
-            var genericMenu = new GenericMenu();
+            if (Repository == null)
+            {
+                return;
+            }
 
-            genericMenu.AddItem(new GUIContent("Show History"), false, () => { });
+            if (currentLogHasUpdate)
+            {
+                currentLogHasUpdate = false;
 
-            return genericMenu;
+                BuildHistoryControl(0, new List<GitLogEntry>());
+            }
+        }
+
+        protected override HistoryControl HistoryControl
+        {
+            get { return historyControl; }
+            set { historyControl = value; }
+        }
+
+        protected override GitLogEntry SelectedEntry
+        {
+            get { return selectedEntry; }
+            set { selectedEntry = value; }
+        }
+
+        protected override ChangesTree TreeChanges
+        {
+            get { return treeChanges; }
+            set { treeChanges = value; }
+        }
+
+        protected override Vector2 DetailsScroll
+        {
+            get { return detailsScroll; }
+            set { detailsScroll = value; }
+        }
+
+        public void SetPath(string filePath)
+        {
+            this.filePath = filePath;
         }
     }
 }
