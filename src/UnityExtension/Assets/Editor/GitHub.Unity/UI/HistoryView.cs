@@ -327,7 +327,7 @@ namespace GitHub.Unity
             }
         }
 
-        protected void BuildTree()
+        protected void BuildTreeChanges()
         {
             TreeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
             TreeChanges.Load(SelectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
@@ -371,16 +371,8 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
-        protected GenericMenu CreateChangesTreeContextMenu(ChangesTreeNode node)
-        {
-            var genericMenu = new GenericMenu();
-
-            genericMenu.AddItem(new GUIContent("Show History"), false, () => { });
-
-            return genericMenu;
-        }
-
-        public override void OnGUI()
+        protected void DoHistoryGui(Action<GitLogEntry> historyControlRightClick = null,
+            Action<ChangesTreeNode> changesTreeRightClick = null)
         {
             var rect = GUILayoutUtility.GetLastRect();
             if (HistoryControl != null)
@@ -388,15 +380,14 @@ namespace GitHub.Unity
                 var historyControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
 
                 var requiresRepaint = HistoryControl.Render(historyControlRect,
-                    entry => {
+                    singleClick: entry => {
                         SelectedEntry = entry;
-                        BuildTree();
+                        BuildTreeChanges();
                     },
-                    entry => { }, entry => {
-                        GenericMenu menu = new GenericMenu();
-                        menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
-                        menu.ShowAsContext();
-                    });
+                    doubleClick: entry => {
+
+                    },
+                    rightClick: historyControlRightClick);
 
                 if (requiresRepaint)
                     Redraw();
@@ -413,6 +404,7 @@ namespace GitHub.Unity
                     {
                         HistoryControl.ScrollTo(HistoryControl.SelectedIndex);
                     }
+
                     if (GUILayout.Button(ClearSelectionButton, Styles.ToolbarButtonStyle, GUILayout.ExpandWidth(false)))
                     {
                         SelectedEntry = GitLogEntry.Default;
@@ -435,7 +427,8 @@ namespace GitHub.Unity
                     GUILayout.BeginVertical();
                     {
                         var borderLeft = Styles.Label.margin.left;
-                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
+                        var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2,
+                            Position.height - rect.height + Styles.CommitAreaPadding);
                         var treeRect = new Rect(0f, 0f, 0f, 0f);
                         if (TreeChanges != null)
                         {
@@ -448,11 +441,7 @@ namespace GitHub.Unity
                             treeRect = TreeChanges.Render(treeControlRect, DetailsScroll,
                                 singleClick: node => { },
                                 doubleClick: node => { },
-                                rightClick: node => {
-                                    var menu = CreateChangesTreeContextMenu(node);
-                                    menu.ShowAsContext();
-                                }
-                            );
+                                rightClick: changesTreeRightClick);
 
                             if (TreeChanges.RequiresRepaint)
                                 Redraw();
@@ -611,6 +600,18 @@ namespace GitHub.Unity
             }
         }
 
+        public override void OnGUI()
+        {
+            DoHistoryGui(entry => {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
+                menu.ShowAsContext();
+            }, node => {
+                var menu = CreateChangesTreeContextMenu(node);
+                menu.ShowAsContext();
+            });
+        }
+
         protected override HistoryControl HistoryControl
         {
             get { return historyControl; }
@@ -633,6 +634,15 @@ namespace GitHub.Unity
         {
             get { return detailsScroll; }
             set { detailsScroll = value; }
+        }
+
+        private GenericMenu CreateChangesTreeContextMenu(ChangesTreeNode node)
+        {
+            var genericMenu = new GenericMenu();
+
+            genericMenu.AddItem(new GUIContent("Show History"), false, () => { });
+
+            return genericMenu;
         }
     }
 
@@ -688,6 +698,11 @@ namespace GitHub.Unity
 
                 BuildHistoryControl(0, new List<GitLogEntry>());
             }
+        }
+
+        public override void OnGUI()
+        {
+            DoHistoryGui();
         }
 
         protected override HistoryControl HistoryControl
