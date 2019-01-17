@@ -9,6 +9,7 @@ namespace GitHub.Unity
         RepositoryInfo,
         Branches,
         GitLog,
+        GitFileLog,
         GitAheadBehind,
         GitStatus,
         GitLocks,
@@ -22,6 +23,7 @@ namespace GitHub.Unity
 
         IBranchCache BranchCache { get; }
         IGitLogCache GitLogCache { get; }
+        IGitFileLogCache GitFileLogCache { get; }
         IGitAheadBehindCache GitTrackingStatusCache { get; }
         IGitStatusCache GitStatusEntriesCache { get; }
         IGitLocksCache GitLocksCache { get; }
@@ -113,6 +115,11 @@ namespace GitHub.Unity
     public interface IGitLogCache : IManagedCache
     {
         List<GitLogEntry> Log { get; set; }
+    }
+
+    public interface IGitFileLogCache : IManagedCache
+    {
+        GitFileLog FileLog { get; set; }
     }
 
     public interface ICanUpdate<T>

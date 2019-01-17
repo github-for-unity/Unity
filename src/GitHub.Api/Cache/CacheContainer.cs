@@ -90,6 +90,7 @@ namespace GitHub.Unity
 
         public IBranchCache BranchCache { get { return (IBranchCache)caches[CacheType.Branches].Value; } }
         public IGitLogCache GitLogCache { get { return (IGitLogCache)caches[CacheType.GitLog].Value; } }
+        public IGitFileLogCache GitFileLogCache { get { return (IGitFileLogCache)caches[CacheType.GitFileLog].Value; } }
         public IGitAheadBehindCache GitTrackingStatusCache { get { return (IGitAheadBehindCache)caches[CacheType.GitAheadBehind].Value; } }
         public IGitStatusCache GitStatusEntriesCache { get { return (IGitStatusCache)caches[CacheType.GitStatus].Value; } }
         public IGitLocksCache GitLocksCache { get { return (IGitLocksCache)caches[CacheType.GitLocks].Value; } }

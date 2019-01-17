@@ -371,10 +371,9 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
-        protected void DoHistoryGui(Action<GitLogEntry> historyControlRightClick = null,
+        protected void DoHistoryGui(Rect rect, Action<GitLogEntry> historyControlRightClick = null,
             Action<ChangesTreeNode> changesTreeRightClick = null)
         {
-            var rect = GUILayoutUtility.GetLastRect();
             if (HistoryControl != null)
             {
                 var historyControlRect = new Rect(0f, 0f, Position.width, Position.height - rect.height);
@@ -602,7 +601,8 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            DoHistoryGui(entry => {
+            var lastRect = GUILayoutUtility.GetLastRect();
+            DoHistoryGui(lastRect, entry => {
                 GenericMenu menu = new GenericMenu();
                 menu.AddItem(new GUIContent("Revert"), false, RevertCommit);
                 menu.ShowAsContext();
@@ -649,14 +649,16 @@ namespace GitHub.Unity
     [Serializable]
     class FileHistoryView : HistoryBase
     {
-        [SerializeField] private bool currentLogHasUpdate;
-        [SerializeField] private List<GitLogEntry> logEntries = new List<GitLogEntry>();
+        [SerializeField] private bool currentFileLogHasUpdate;
+
+        [SerializeField] private GitFileLog gitFileLog;
 
         [SerializeField] private HistoryControl historyControl;
         [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private string filePath;
+
+        [SerializeField] private CacheUpdateEvent lastFileLogChangedEvent;
 
         public override void Refresh()
         {
@@ -665,12 +667,25 @@ namespace GitHub.Unity
             Refresh(CacheType.GitAheadBehind);
         }
 
+        private void RepositoryOnFileLogChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastFileLogChangedEvent.Equals(cacheUpdateEvent))
+            {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
+                lastFileLogChangedEvent = cacheUpdateEvent;
+                currentFileLogHasUpdate = true;
+                Redraw();
+            }
+        }
+
         protected override void AttachHandlers(IRepository repository)
         {
             if (repository == null)
             {
                 return;
             }
+
+            repository.FileLogChanged += RepositoryOnFileLogChanged;
         }
 
         protected override void DetachHandlers(IRepository repository)
@@ -679,10 +694,13 @@ namespace GitHub.Unity
             {
                 return;
             }
+
+            repository.FileLogChanged -= RepositoryOnFileLogChanged;
         }
 
         protected override void ValidateCachedData(IRepository repository)
         {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitFileLog, lastFileLogChangedEvent);
         }
 
         protected override void MaybeUpdateData()
@@ -692,17 +710,19 @@ namespace GitHub.Unity
                 return;
             }
 
-            if (currentLogHasUpdate)
+            if (currentFileLogHasUpdate)
             {
-                currentLogHasUpdate = false;
+                currentFileLogHasUpdate = false;
 
-                BuildHistoryControl(0, new List<GitLogEntry>());
+                gitFileLog = Repository.CurrentFileLog;
+
+                BuildHistoryControl(0, gitFileLog.LogEntries);
             }
         }
 
         public override void OnGUI()
         {
-            DoHistoryGui();
+            DoHistoryGui(Rect.zero);
         }
 
         protected override HistoryControl HistoryControl
@@ -727,11 +747,6 @@ namespace GitHub.Unity
         {
             get { return detailsScroll; }
             set { detailsScroll = value; }
-        }
-
-        public void SetPath(string filePath)
-        {
-            this.filePath = filePath;
         }
     }
 }

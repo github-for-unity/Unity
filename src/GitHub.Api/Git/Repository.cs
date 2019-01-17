@@ -25,8 +25,10 @@ namespace GitHub.Unity
         private HashSet<CacheType> cacheInvalidationRequests = new HashSet<CacheType>();
         private Dictionary<CacheType, Action<CacheUpdateEvent>> cacheUpdateEvents;
         private ProgressReporter progressReporter = new ProgressReporter();
+        private NPath lastFileLog = NPath.Default;
 
         public event Action<CacheUpdateEvent> LogChanged;
+        public event Action<CacheUpdateEvent> FileLogChanged;
         public event Action<CacheUpdateEvent> TrackingStatusChanged;
         public event Action<CacheUpdateEvent> StatusEntriesChanged;
         public event Action<CacheUpdateEvent> CurrentBranchChanged;
@@ -63,6 +65,7 @@ namespace GitHub.Unity
                 { CacheType.GitAheadBehind, c => TrackingStatusChanged?.Invoke(c) },
                 { CacheType.GitLocks, c => LocksChanged?.Invoke(c) },
                 { CacheType.GitLog, c => LogChanged?.Invoke(c) },
+                { CacheType.GitFileLog, c => FileLogChanged?.Invoke(c) },
                 { CacheType.GitStatus, c => StatusEntriesChanged?.Invoke(c) },
                 { CacheType.GitUser, cacheUpdateEvent => { } },
                 { CacheType.RepositoryInfo, cacheUpdateEvent => {
@@ -91,6 +94,7 @@ namespace GitHub.Unity
             this.repositoryManager.GitStatusUpdated += RepositoryManagerOnGitStatusUpdated;
             this.repositoryManager.GitAheadBehindStatusUpdated += RepositoryManagerOnGitAheadBehindStatusUpdated;
             this.repositoryManager.GitLogUpdated += RepositoryManagerOnGitLogUpdated;
+            this.repositoryManager.GitFileLogUpdated += RepositoryManagerOnGitFileLogUpdated;
             this.repositoryManager.GitLocksUpdated += RepositoryManagerOnGitLocksUpdated;
             this.repositoryManager.LocalBranchesUpdated += RepositoryManagerOnLocalBranchesUpdated;
             this.repositoryManager.RemoteBranchesUpdated += RepositoryManagerOnRemoteBranchesUpdated;
@@ -143,6 +147,11 @@ namespace GitHub.Unity
         public ITask DeleteBranch(string branch, bool force) => repositoryManager.DeleteBranch(branch, force);
         public ITask CreateBranch(string branch, string baseBranch) => repositoryManager.CreateBranch(branch, baseBranch);
         public ITask SwitchBranch(string branch) => repositoryManager.SwitchBranch(branch);
+        public ITask UpdateFileLog(NPath path)
+        {
+            lastFileLog = path;
+            return repositoryManager.UpdateFileLog(path);
+        }
 
         public void CheckAndRaiseEventsIfCacheNewer(CacheType cacheType, CacheUpdateEvent cacheUpdateEvent) => cacheContainer.CheckAndRaiseEventsIfCacheNewer(cacheType, cacheUpdateEvent);
 
@@ -213,6 +222,10 @@ namespace GitHub.Unity
 
                 case CacheType.GitLog:
                     repositoryManager?.UpdateGitLog().Catch(ex => InvalidationFailed(ex, cacheType)).Start();
+                    break;
+
+                case CacheType.GitFileLog:
+                    repositoryManager?.UpdateFileLog(lastFileLog).Catch(ex => InvalidationFailed(ex, cacheType)).Start();
                     break;
 
                 case CacheType.GitAheadBehind:
@@ -295,6 +308,11 @@ namespace GitHub.Unity
             taskManager.RunInUI(() => cacheContainer.GitLogCache.Log = gitLogEntries);
         }
 
+        private void RepositoryManagerOnGitFileLogUpdated(GitFileLog gitFileLog)
+        {
+            taskManager.RunInUI(() => cacheContainer.GitFileLogCache.FileLog = gitFileLog);
+        }
+
         private void RepositoryManagerOnGitLocksUpdated(List<GitLock> gitLocks)
         {
             taskManager.RunInUI(() => cacheContainer.GitLocksCache.GitLocks = gitLocks);
@@ -360,6 +378,7 @@ namespace GitHub.Unity
         public string CurrentBranchName => CurrentConfigBranch?.Name;
         public GitRemote? CurrentRemote => cacheContainer.RepositoryInfoCache.CurrentGitRemote;
         public List<GitLogEntry> CurrentLog => cacheContainer.GitLogCache.Log;
+        public GitFileLog CurrentFileLog => cacheContainer.GitFileLogCache.FileLog;
         public List<GitLock> CurrentLocks => cacheContainer.GitLocksCache.GitLocks;
         public string CurrentHead => cacheContainer.RepositoryInfoCache.CurrentHead;
 

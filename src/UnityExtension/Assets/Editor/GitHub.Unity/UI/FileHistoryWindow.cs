@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -6,29 +7,39 @@ namespace GitHub.Unity
 {
     public class FileHistoryWindow : BaseWindow
     {
+        [MenuItem("Assets/Git/History", false)]
+        private static void GitFileHistory()
+        {
+            if (Selection.assetGUIDs != null)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs.First())
+                                             .ToNPath();
+
+                var windowType = typeof(Window);
+                var fileHistoryWindow = GetWindow<FileHistoryWindow>(windowType);
+                fileHistoryWindow.InitializeWindow(EntryPoint.ApplicationManager);
+                fileHistoryWindow.Open(assetPath);
+                fileHistoryWindow.Show();
+            }
+        }
+
+        [MenuItem("Assets/Git/History", true)]
+        private static bool GitFileHistoryValidation()
+        {
+            return Selection.assetGUIDs != null && Selection.assetGUIDs.Length > 0;
+        }
+
         private const string Title = "File History";
 
         [NonSerialized] private bool firstOnGUI = true;
 
         [SerializeField] private bool locked;
-        [SerializeField] private string assetPath;
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
 
-        public static FileHistoryWindow OpenWindow(IApplicationManager applicationManager, string assetPath)
+        public void Open(NPath path)
         {
-            var fileHistoryWindow = CreateInstance<FileHistoryWindow>();
-            fileHistoryWindow.InitializeWindow(applicationManager);
-
-            fileHistoryWindow.Open(assetPath);
-            fileHistoryWindow.Show();
-
-            return fileHistoryWindow;
-        }
-
-        public void Open(string path)
-        {
-            assetPath = path;
-            fileHistoryView.SetPath(path);
+            Repository.UpdateFileLog(path)
+                      .Start();
         }
 
         public override void Initialize(IApplicationManager applicationManager)
@@ -110,7 +121,11 @@ namespace GitHub.Unity
         {
             base.OnUI();
 
-            fileHistoryView.OnGUI();
+            GUILayout.BeginVertical(Styles.HeaderStyle);
+            {
+                fileHistoryView.OnGUI();
+            }
+            GUILayout.EndVertical();
         }
 
         private void MaybeUpdateData()

@@ -61,8 +61,10 @@ namespace GitHub.Unity
         List<GitLogEntry> CurrentLog { get; }
         bool IsBusy { get; }
         string CurrentHead { get; }
+        GitFileLog CurrentFileLog { get; }
 
         event Action<CacheUpdateEvent> LogChanged;
+        event Action<CacheUpdateEvent> FileLogChanged;
         event Action<CacheUpdateEvent> TrackingStatusChanged;
         event Action<CacheUpdateEvent> StatusEntriesChanged;
         event Action<CacheUpdateEvent> CurrentBranchChanged;
@@ -80,5 +82,6 @@ namespace GitHub.Unity
         ITask SwitchBranch(string branch);
         void Refresh(CacheType cacheType);
         event Action<IProgress> OnProgress;
+        ITask UpdateFileLog(NPath path);
     }
 }

@@ -147,6 +147,7 @@ namespace GitHub.Unity
                     cacheContainer.SetCacheInitializer(CacheType.GitAheadBehind, () => GitAheadBehindCache.Instance);
                     cacheContainer.SetCacheInitializer(CacheType.GitLocks, () => GitLocksCache.Instance);
                     cacheContainer.SetCacheInitializer(CacheType.GitLog, () => GitLogCache.Instance);
+                    cacheContainer.SetCacheInitializer(CacheType.GitFileLog, () => GitFileLogCache.Instance);
                     cacheContainer.SetCacheInitializer(CacheType.GitStatus, () => GitStatusCache.Instance);
                     cacheContainer.SetCacheInitializer(CacheType.GitUser, () => GitUserCache.Instance);
                     cacheContainer.SetCacheInitializer(CacheType.RepositoryInfo, () => RepositoryInfoCache.Instance);
@@ -612,6 +613,46 @@ namespace GitHub.Unity
                 else if (forcedInvalidation || !log.SequenceEqual(value))
                 {
                     log = value;
+                    isUpdated = true;
+                }
+
+                SaveData(now, isUpdated);
+            }
+        }
+
+        public override TimeSpan DataTimeout { get { return TimeSpan.FromMinutes(1); } }
+    }
+
+    [Location("cache/gitfilelog.yaml", LocationAttribute.Location.LibraryFolder)]
+    sealed class GitFileLogCache : ManagedCacheBase<GitFileLogCache>, IGitFileLogCache
+    {
+        [SerializeField] private GitFileLog fileLog = GitFileLog.Default;
+
+        public GitFileLogCache() : base(CacheType.GitFileLog)
+        { }
+
+        public GitFileLog FileLog
+        {
+            get
+            {
+                ValidateData();
+                return fileLog;
+            }
+            set
+            {
+                var now = DateTimeOffset.Now;
+                var isUpdated = false;
+
+                var shouldUpdate = forcedInvalidation;
+
+                if (!shouldUpdate)
+                {
+                    shouldUpdate = true;
+                }
+
+                if (shouldUpdate)
+                {
+                    fileLog = value;
                     isUpdated = true;
                 }
 

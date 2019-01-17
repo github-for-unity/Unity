@@ -360,6 +360,11 @@ namespace GitHub.Unity
         ///<inheritdoc/>
         public ITask<List<GitLogEntry>> LogFile(NPath file, BaseOutputListProcessor<GitLogEntry> processor = null)
         {
+            if (file == NPath.Default)
+            {
+                return new FuncTask<List<GitLogEntry>>(cancellationToken, () => new List<GitLogEntry>(0));
+            }
+
             return new GitLogTask(file, new GitObjectFactory(environment), cancellationToken, processor)
                 .Configure(processManager)
                 .Catch(exception => exception is ProcessException &&
