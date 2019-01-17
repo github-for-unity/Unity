@@ -12,13 +12,14 @@ namespace GitHub.Unity
         {
             if (Selection.assetGUIDs != null)
             {
-                var assetPath = AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs.First())
-                                             .ToNPath();
+                var assetPath =
+                    AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs.First())
+                                 .ToNPath();
 
                 var windowType = typeof(Window);
                 var fileHistoryWindow = GetWindow<FileHistoryWindow>(windowType);
                 fileHistoryWindow.InitializeWindow(EntryPoint.ApplicationManager);
-                fileHistoryWindow.Open(assetPath);
+                fileHistoryWindow.SetSelectedPath(assetPath);
                 fileHistoryWindow.Show();
             }
         }
@@ -32,13 +33,31 @@ namespace GitHub.Unity
         private const string Title = "File History";
 
         [NonSerialized] private bool firstOnGUI = true;
+        [NonSerialized] private Texture selectedIcon;
 
-        [SerializeField] private bool locked;
+        [SerializeField] private bool locked = true;
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
+        [SerializeField] private NPath selectedAssetPath;
 
-        public void Open(NPath path)
+        public void SetSelectedPath(NPath path)
         {
-            Repository.UpdateFileLog(path)
+            selectedAssetPath = path;
+
+            Texture nodeIcon = null;
+
+            if (selectedAssetPath != NPath.Default)
+            {
+                nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedAssetPath.ToString());
+            }
+
+            if (nodeIcon != null)
+            {
+                nodeIcon.hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            selectedIcon = nodeIcon;
+
+            Repository.UpdateFileLog(selectedAssetPath)
                       .Start();
         }
 
@@ -78,12 +97,6 @@ namespace GitHub.Unity
                 fileHistoryView.OnDataUpdate();
         }
 
-        public override void OnFocusChanged()
-        {
-            if (fileHistoryView != null)
-                fileHistoryView.OnFocusChanged();
-        }
-
         public override void OnRepositoryChanged(IRepository oldRepository)
         {
             base.OnRepositoryChanged(oldRepository);
@@ -106,6 +119,20 @@ namespace GitHub.Unity
             base.OnSelectionChange();
             if (fileHistoryView != null)
                 fileHistoryView.OnSelectionChange();
+
+            if (!locked)
+            {
+                var assetGuid = Selection.assetGUIDs.FirstOrDefault();
+
+                selectedAssetPath = NPath.Default;
+                if (assetGuid != null)
+                {
+                    selectedAssetPath = AssetDatabase.GUIDToAssetPath(assetGuid)
+                                             .ToNPath();
+                }
+
+                SetSelectedPath(selectedAssetPath);
+            }
         }
 
         public override void Refresh()
@@ -113,7 +140,7 @@ namespace GitHub.Unity
             base.Refresh();
             if (fileHistoryView != null)
                 fileHistoryView.Refresh();
-            Refresh(CacheType.GitLocks);
+            Refresh(CacheType.GitFileLog);
             Redraw();
         }
 
@@ -123,6 +150,8 @@ namespace GitHub.Unity
 
             GUILayout.BeginVertical(Styles.HeaderStyle);
             {
+                DoHeaderGUI();
+
                 fileHistoryView.OnGUI();
             }
             GUILayout.EndVertical();
@@ -159,6 +188,26 @@ namespace GitHub.Unity
                 return;
 
             this.OnSelectionChange();
+        }
+
+        private void DoHeaderGUI()
+        {
+            GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
+            {
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Space(3);
+
+                    var iconWidth = 32;
+                    var iconHeight = 32;
+
+                    GUILayout.Label(selectedIcon, GUILayout.Height(iconWidth), GUILayout.Width(iconHeight));
+
+                    GUILayout.Label(selectedAssetPath, Styles.Label);
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
         }
     }
 }
