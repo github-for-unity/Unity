@@ -35,7 +35,7 @@ namespace GitHub.Unity
         [NonSerialized] private bool firstOnGUI = true;
         [NonSerialized] private Texture selectedIcon;
 
-        [SerializeField] private bool locked = true;
+        [SerializeField] private bool locked;
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
         [SerializeField] private NPath selectedAssetPath;
 
