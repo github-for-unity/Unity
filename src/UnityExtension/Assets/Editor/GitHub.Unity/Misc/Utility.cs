@@ -37,15 +37,13 @@ namespace GitHub.Unity
             Texture2D texture2D = null;
 
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GitHub.Unity.IconsAndLogos." + filename);
-            if (stream != null)
+            if (stream == null)
             {
-                texture2D = stream.ToTexture2D();
+                stream = new MemoryStream(Application.dataPath.ToNPath().Combine("Editor/GitHub.Unity/IconsAndLogos/", filename).ReadAllBytes());
             }
-            else
-            {
-                var iconPath = "Assets/Editor/GitHub.Unity/IconsAndLogos/" + filename;
-                texture2D = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
-            }
+
+            texture2D = stream.ToTexture2D();
+            stream.Dispose();
 
             if (texture2D != null)
             {
