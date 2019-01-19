@@ -15,7 +15,14 @@ namespace GitHub.Unity
         [NonSerialized] private bool busy;
         [SerializeField] private HistoryControl historyControl;
         [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
-        [SerializeField] private ChangesTree treeChanges = new ChangesTree { IsSelectable = false, DisplayRootNode = false };
+        [NonSerialized] private ChangesTree treeChanges;
+
+
+        private const string ConfirmCheckoutTitle = "Discard Changes?";
+        private const string ConfirmCheckoutMessage = "There are modifications to file '{0}'; checking out a historical version will permanently overwite those changes.  Continue?";
+        private const string ConfirmCheckoutOK = "Overwrite";
+        private const string ConfirmCheckoutCancel = "Cancel";
+
 
         public static FileHistoryWindow OpenWindow(string assetPath)
         {
@@ -31,6 +38,14 @@ namespace GitHub.Unity
 
         public override bool IsBusy { get { return this.busy; } }
 
+        private NPath FullFilePath
+        {
+            get
+            {
+                return Application.dataPath.ToNPath().Parent.Combine(assetPath.ToNPath());
+            }
+        }
+
         public void Open(string assetPath)
         {
             this.assetPath = assetPath;
@@ -40,9 +55,8 @@ namespace GitHub.Unity
 
         public void RefreshLog()
         {
-            var path =  Application.dataPath.ToNPath().Parent.Combine(assetPath.ToNPath());
             this.busy = true;
-            this.GitClient.LogFile(path).ThenInUI((success, logEntries) => {
+            this.GitClient.LogFile(this.FullFilePath).ThenInUI((success, logEntries) => {
                 this.history = logEntries;
                 this.BuildHistoryControl();
                 this.Repaint();
@@ -50,10 +64,11 @@ namespace GitHub.Unity
             }).Start();
         }
 
+
         private void CheckoutVersion(string commitID)
         {
             this.busy = true;
-            this.GitClient.CheckoutVersion(commitID, new string[]{assetPath}).ThenInUI((success, result) => {
+            this.GitClient.CheckoutVersion(commitID, new string[]{FullFilePath}).ThenInUI((success, result) => {
                 AssetDatabase.Refresh();
                 this.busy = false;
             }).Start();
@@ -61,9 +76,31 @@ namespace GitHub.Unity
 
         private void Checkout()
         {
-            // TODO:  This is a destructive, irreversible operation; we should prompt user if
-            // there are any changes to the file
-            this.CheckoutVersion(this.selectedEntry.CommitID);
+            GitClient.Status()
+                .ThenInUI((success, status) =>
+                {
+                    if (success)
+                    {
+                        bool promptUser = false;
+
+                        foreach (var entry in status.Entries)
+                        {
+                            if (entry.FullPath == this.FullFilePath) {
+                                // local changes; prompt user before we checkout.
+                                promptUser = true;
+                            }
+                        }
+
+                        if (!promptUser || EditorUtility.DisplayDialog(ConfirmCheckoutTitle, string.Format(ConfirmCheckoutMessage, this.assetPath), ConfirmCheckoutOK, ConfirmCheckoutCancel)) {
+                            this.CheckoutVersion(this.selectedEntry.CommitID);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Error retrieving current repo status");
+                    }
+                })
+                .Start();
         }
 
         public override void OnUI()
@@ -72,6 +109,7 @@ namespace GitHub.Unity
             //   - should handle case where the file is outside of the repository (handle exceptional cases)
             //   - should display a spinner while history is still loading...
             base.OnUI();
+
             GUILayout.BeginHorizontal(Styles.HeaderStyle);
             {
                 GUILayout.Label("GIT File History for: ", Styles.BoldLabel);
@@ -133,8 +171,10 @@ namespace GitHub.Unity
             historyControl.Load(0, this.history);
         }
 
+
         private const string CommitDetailsTitle = "Commit details";
         private const string ClearSelectionButton = "×";
+
 
         private void DrawDetails()
         {
@@ -171,25 +211,27 @@ namespace GitHub.Unity
                         var borderLeft = Styles.Label.margin.left;
                         var treeControlRect = new Rect(rect.x + borderLeft, rect.y, Position.width - borderLeft * 2, Position.height - rect.height + Styles.CommitAreaPadding);
                         var treeRect = new Rect(0f, 0f, 0f, 0f);
-                        if (treeChanges != null)
-                        {
-                            treeChanges.FolderStyle = Styles.Foldout;
-                            treeChanges.TreeNodeStyle = Styles.TreeNode;
-                            treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
-                            treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
-                            treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
 
-                            treeRect = treeChanges.Render(treeControlRect, detailsScroll,
-                                node => {
-                                },
-                                node => {
-                                },
-                                node => {
-                                });
-
-                            if (treeChanges.RequiresRepaint)
-                                Redraw();
+                        if (treeChanges == null) { // Can be null in the case of domain reloads
+                            BuildTree(); 
                         }
+
+                        treeChanges.FolderStyle = Styles.Foldout;
+                        treeChanges.TreeNodeStyle = Styles.TreeNode;
+                        treeChanges.ActiveTreeNodeStyle = Styles.ActiveTreeNode;
+                        treeChanges.FocusedTreeNodeStyle = Styles.FocusedTreeNode;
+                        treeChanges.FocusedActiveTreeNodeStyle = Styles.FocusedActiveTreeNode;
+
+                        treeRect = treeChanges.Render(treeControlRect, detailsScroll,
+                            node => {
+                            },
+                            node => {
+                            },
+                            node => {
+                            });
+
+                        if (treeChanges.RequiresRepaint)
+                            Redraw();
 
                         GUILayout.Space(treeRect.y - treeControlRect.y);
                     }
@@ -221,7 +263,11 @@ namespace GitHub.Unity
 
         private void BuildTree()
         {
-            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+            treeChanges = new ChangesTree { 
+                IsSelectable = false, 
+                DisplayRootNode = false,
+                PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString(),
+                };
             treeChanges.Load(selectedEntry.changes.Select(entry => new GitStatusEntryTreeData(entry)));
             Redraw();
         }
