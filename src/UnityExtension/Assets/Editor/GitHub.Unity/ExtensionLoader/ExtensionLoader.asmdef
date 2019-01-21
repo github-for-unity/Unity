@@ -1,8 +1,15 @@
 {
     "name": "ExtensionLoader",
-    "references": ["../../build/GitHub.UnityShim.dll"],
+    "references": [],
+    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "GitHub.UnityShim.dll"
+    ],
+    "autoReferenced": true
 }
