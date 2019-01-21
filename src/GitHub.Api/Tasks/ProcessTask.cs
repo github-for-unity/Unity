@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -61,6 +62,15 @@ namespace GitHub.Unity
 
     class ProcessWrapper
     {
+        private readonly HashSet<string> traceEnvKeys = new HashSet<string> {
+            "TMP", "TEMP",
+            "APPDATA", "LOCALAPPDATA", "PROGRAMDATA",
+            "TERM", "PLINK_PROTOCOL", "DISPLAY",
+            "GITLFSLOCKSENABLED", "GITHUB_UNITY_DISABLE",
+            "GIT_EXEC_PATH", "PATH", "GHU_FULLPATH", "GHU_WORKINGDIR",
+            "HTTP_PROXY", "HTTPS_PROXY"
+        };
+
         private readonly string taskName;
         private readonly IOutputProcessor outputProcessor;
         private readonly Action onStart;
@@ -108,7 +118,6 @@ namespace GitHub.Unity
                     {
                         var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
                         errors.Add(line.TrimEnd('\r', '\n'));
-                        Logger.Trace(line);
                     }
                 };
             }
@@ -167,17 +176,21 @@ namespace GitHub.Unity
 
                     if (Process.ExitCode != 0 && errors.Count > 0)
                     {
-                        thrownException = new ProcessException(Process.ExitCode, string.Join(Environment.NewLine, errors.ToArray()));
+                        throw new ProcessException(Process.ExitCode, string.Join(Environment.NewLine, errors.ToArray()));
                     }
                 }
             }
             catch (Exception ex)
             {
                 var errorCode = -42;
-                if (ex is Win32Exception)
-                    errorCode = ((Win32Exception)ex).NativeErrorCode;
+                var win32Exception = ex as Win32Exception;
+                if (win32Exception != null)
+                    errorCode = win32Exception.NativeErrorCode;
+                var processException = ex as ProcessException;
+                if (processException != null)
+                    errorCode = processException.ErrorCode;
 
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 sb.AppendLine($"Error code {errorCode}");
                 sb.AppendLine(ex.Message);
                 if (Process.StartInfo.Arguments.Contains("-credential"))
@@ -188,10 +201,12 @@ namespace GitHub.Unity
                     sb.AppendLine("The system cannot find the file specified.");
                 foreach (string env in Process.StartInfo.EnvironmentVariables.Keys)
                 {
-                    sb.AppendFormat("{0}:{1}", env, Process.StartInfo.EnvironmentVariables[env]);
+                    if (!traceEnvKeys.Contains(env.ToUpperInvariant())) continue;
+                    sb.AppendFormat($"{env}:{Process.StartInfo.EnvironmentVariables[env]}");
                     sb.AppendLine();
                 }
-                thrownException = new ProcessException(errorCode, sb.ToString(), ex);
+
+                thrownException = new ProcessException(errorCode, sb.ToString(),  ex);
             }
 
             if (thrownException != null || errors.Count > 0)
@@ -348,25 +363,14 @@ namespace GitHub.Unity
                 () => OnStartProcess?.Invoke(this),
                 () =>
                 {
-                    try
-                    {
-                        if (outputProcessor != null)
-                            result = outputProcessor.Result;
+                    if (outputProcessor != null)
+                        result = outputProcessor.Result;
 
-                        if (typeof(T) == typeof(string) && result == null && !Process.StartInfo.CreateNoWindow)
-                            result = (T)(object)"Process running";
+                    if (typeof(T) == typeof(string) && result == null && !Process.StartInfo.CreateNoWindow)
+                        result = (T)(object)"Process running";
 
-                        if (!String.IsNullOrEmpty(Errors))
-                            OnErrorData?.Invoke(Errors);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (thrownException == null)
-                            thrownException = new ProcessException(ex.Message, ex);
-                        else
-                            thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
-                    }
-
+                    if (!String.IsNullOrEmpty(Errors))
+                        OnErrorData?.Invoke(Errors);
                     if (thrownException != null && !RaiseFaultHandlers(thrownException))
                         throw thrownException;
                 },
@@ -388,9 +392,9 @@ namespace GitHub.Unity
         }
 
         public Process Process { get; set; }
-        public int ProcessId { get { return Process.Id; } }
-        public override bool Successful { get { return base.Successful && Process.ExitCode == 0; } }
-        public StreamWriter StandardInput { get { return wrapper?.Input; } }
+        public int ProcessId => Process.Id;
+        public override bool Successful => base.Successful && Process.ExitCode == 0;
+        public StreamWriter StandardInput => wrapper?.Input;
         public virtual string ProcessName { get; protected set; }
         public virtual string ProcessArguments { get; }
     }

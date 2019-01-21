@@ -87,8 +87,7 @@ namespace GitHub.Logging
         public void Trace(Exception ex, string message)
         {
             if (!LogHelper.TracingEnabled) return;
-
-            Trace(String.Concat(message, Environment.NewLine, ex.GetExceptionMessage()));
+            Trace(String.IsNullOrEmpty(message) ? ex.GetExceptionMessage() : String.Concat(message, Environment.NewLine, ex.GetExceptionMessage()));
         }
 
         public void Trace(Exception ex)
