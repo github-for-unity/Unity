@@ -27,11 +27,11 @@ namespace GitHub.Unity
 
         protected ProcessException() : base()
         { }
-        public ProcessException(int errorCode, string message) : base(String.Format("Error code:{0} {1}", errorCode, message))
+        public ProcessException(int errorCode, string message) : base(message)
         {
             ErrorCode = errorCode;
         }
-        public ProcessException(int errorCode, string message, Exception innerException) : base(String.Format("Error code:{0} {1}", errorCode, message), innerException)
+        public ProcessException(int errorCode, string message, Exception innerException) : base(message, innerException)
         {
             ErrorCode = errorCode;
         }
