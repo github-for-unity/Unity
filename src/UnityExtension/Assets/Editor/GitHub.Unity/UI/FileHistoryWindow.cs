@@ -37,34 +37,35 @@ namespace GitHub.Unity
 
         [SerializeField] private bool locked;
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
-        [SerializeField] private NPath selectedAssetPath;
+        [SerializeField] private UnityEngine.Object selectedObject;
+        [SerializeField] private NPath selectedObjectPath;
 
         public void SetSelectedPath(NPath path)
         {
-            selectedAssetPath = path;
+            selectedObjectPath = path;
+            selectedObject = null;
 
             Texture nodeIcon = null;
 
-            if (selectedAssetPath != NPath.Default)
+            if (selectedObjectPath != NPath.Default)
             {
-                if (selectedAssetPath.DirectoryExists())
+                selectedObject = AssetDatabase.LoadMainAssetAtPath(path.ToString());
+
+                if (selectedObjectPath.DirectoryExists())
                 {
                     nodeIcon = Styles.FolderIcon;
                 }
                 else
                 {
-                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedAssetPath.ToString());
+                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectPath.ToString());
                 }
-            }
 
-            if (nodeIcon != null)
-            {
                 nodeIcon.hideFlags = HideFlags.HideAndDontSave;
             }
 
             selectedIcon = nodeIcon;
 
-            Repository.UpdateFileLog(selectedAssetPath)
+            Repository.UpdateFileLog(selectedObjectPath)
                       .Start();
         }
 
@@ -129,16 +130,15 @@ namespace GitHub.Unity
 
             if (!locked)
             {
-                var assetGuid = Selection.assetGUIDs.FirstOrDefault();
-
-                selectedAssetPath = NPath.Default;
-                if (assetGuid != null)
+                selectedObject = Selection.activeObject;
+                selectedObjectPath = NPath.Default;
+                if (selectedObject != null)
                 {
-                    selectedAssetPath = AssetDatabase.GUIDToAssetPath(assetGuid)
+                    selectedObjectPath = AssetDatabase.GetAssetPath(selectedObject)
                                              .ToNPath();
                 }
 
-                SetSelectedPath(selectedAssetPath);
+                SetSelectedPath(selectedObjectPath);
             }
         }
 
@@ -155,13 +155,16 @@ namespace GitHub.Unity
         {
             base.OnUI();
 
-            GUILayout.BeginVertical(Styles.HeaderStyle);
+            if (selectedObject != null)
             {
-                DoHeaderGUI();
+                GUILayout.BeginVertical(Styles.HeaderStyle);
+                {
+                    DoHeaderGUI();
 
-                fileHistoryView.OnGUI();
+                    fileHistoryView.OnGUI();
+                }
+                GUILayout.EndVertical();
             }
-            GUILayout.EndVertical();
         }
 
         private void MaybeUpdateData()
@@ -201,16 +204,23 @@ namespace GitHub.Unity
         {
             GUILayout.BeginHorizontal(Styles.HeaderBoxStyle);
             {
+                var iconWidth = 32;
+                var iconHeight = 32;
+
+                GUILayout.Label(selectedIcon, GUILayout.Height(iconWidth), GUILayout.Width(iconHeight));
+
+                GUILayout.Label(selectedObjectPath, Styles.FileHistoryLogTitleStyle);
+
+                GUILayout.FlexibleSpace();
+
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Space(3);
+                    GUILayout.Space(16);
 
-                    var iconWidth = 32;
-                    var iconHeight = 32;
-
-                    GUILayout.Label(selectedIcon, GUILayout.Height(iconWidth), GUILayout.Width(iconHeight));
-
-                    GUILayout.Label(selectedAssetPath, Styles.Label);
+                    if (GUILayout.Button("Show in Project"))
+                    {
+                        EditorGUIUtility.PingObject(selectedObject);
+                    }
                 }
                 GUILayout.EndVertical();
             }
