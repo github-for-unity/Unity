@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -312,7 +313,8 @@ namespace GitHub.Unity
         {
             PopNewlines();
 
-            var description = string.Join(Environment.NewLine, descriptionLines.ToArray());
+            var filteredDescriptionLines = (descriptionLines.Any() && string.IsNullOrEmpty(descriptionLines.First()) ? descriptionLines.Skip(1) : descriptionLines).ToArray();
+            var description = string.Join(Environment.NewLine, filteredDescriptionLines);
 
             if (time.HasValue)
             {
