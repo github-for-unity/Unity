@@ -47,7 +47,14 @@ namespace GitHub.Unity
 
             if (selectedAssetPath != NPath.Default)
             {
-                nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedAssetPath.ToString());
+                if (selectedAssetPath.DirectoryExists())
+                {
+                    nodeIcon = Styles.FolderIcon;
+                }
+                else
+                {
+                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedAssetPath.ToString());
+                }
             }
 
             if (nodeIcon != null)
