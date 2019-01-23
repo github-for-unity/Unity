@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GitHub.Unity
 {
-    class TaskQueue : TPLTask
+    public class TaskQueue : TPLTask
     {
         private TaskCompletionSource<bool> aggregateTask = new TaskCompletionSource<bool>();
         private readonly List<ITask> queuedTasks = new List<ITask>();
@@ -85,7 +85,7 @@ namespace GitHub.Unity
         }
     }
 
-    class TaskQueue<TTaskResult, TResult> : TPLTask<List<TResult>>
+    public class TaskQueue<TTaskResult, TResult> : TPLTask<List<TResult>>
     {
         private TaskCompletionSource<List<TResult>> aggregateTask = new TaskCompletionSource<List<TResult>>();
         private readonly List<ITask<TTaskResult>> queuedTasks = new List<ITask<TTaskResult>>();
@@ -190,7 +190,7 @@ namespace GitHub.Unity
         }
     }
 
-    class TPLTask : TaskBase
+    public class TPLTask : TaskBase
     {
         private Task task;
 
@@ -235,7 +235,7 @@ namespace GitHub.Unity
         }
     }
 
-    class TPLTask<T> : TaskBase<T>
+    public class TPLTask<T> : TaskBase<T>
     {
         private Task<T> task;
 
@@ -280,7 +280,7 @@ namespace GitHub.Unity
         }
     }
 
-    class ActionTask : TaskBase
+    public class ActionTask : TaskBase
     {
         protected Action<bool> Callback { get; }
         protected Action<bool, Exception> CallbackWithException { get; }
@@ -329,7 +329,7 @@ namespace GitHub.Unity
         }
     }
 
-    class ActionTask<T> : TaskBase
+    public class ActionTask<T> : TaskBase
     {
         private readonly Func<T> getPreviousResult;
 
@@ -415,7 +415,7 @@ namespace GitHub.Unity
         public T PreviousResult { get; set; } = default(T);
     }
 
-    class FuncTask<T> : TaskBase<T>
+    public class FuncTask<T> : TaskBase<T>
     {
         protected Func<bool, T> Callback { get; }
         protected Func<bool, Exception, T> CallbackWithException { get; }
@@ -468,7 +468,7 @@ namespace GitHub.Unity
         }
     }
 
-    class FuncTask<T, TResult> : TaskBase<T, TResult>
+    public class FuncTask<T, TResult> : TaskBase<T, TResult>
     {
         protected Func<bool, T, TResult> Callback { get; }
         protected Func<bool, Exception, T, TResult> CallbackWithException { get; }
@@ -513,7 +513,7 @@ namespace GitHub.Unity
         }
     }
 
-    class FuncListTask<T> : DataTaskBase<T, List<T>>
+    public class FuncListTask<T> : DataTaskBase<T, List<T>>
     {
         protected Func<bool, List<T>> Callback { get; }
         protected Func<bool, FuncListTask<T>, List<T>> CallbackWithSelf { get; }
@@ -573,7 +573,7 @@ namespace GitHub.Unity
         }
     }
 
-    class FuncListTask<T, TData, TResult> : DataTaskBase<T, TData, List<TResult>>
+    public class FuncListTask<T, TData, TResult> : DataTaskBase<T, TData, List<TResult>>
     {
         protected Func<bool, T, List<TResult>> Callback { get; }
         protected Func<bool, Exception, T, List<TResult>> CallbackWithException { get; }

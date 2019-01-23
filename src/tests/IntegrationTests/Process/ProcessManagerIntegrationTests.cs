@@ -46,8 +46,9 @@ namespace IntegrationTests
                 new GitLogEntry("018997938335742f8be694240a7c2b352ec0835f", 
                     "Author Person", "author@example.com", "Author Person", 
                     "author@example.com", 
-                    "Moving project files where they should be kept", 
-                    "Moving project files where they should be kept", firstCommitTime, 
+                    "Moving project files where they should be kept",
+                    "",
+                    firstCommitTime,
                     firstCommitTime, new List<GitStatusEntry>
                     {
                         new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
@@ -59,7 +60,8 @@ namespace IntegrationTests
                     "Author Person", "author@example.com", "Author Person",
                     "author@example.com",
                     "Initial Commit",
-                    "Initial Commit", secondCommitTime,
+                    "",
+                    secondCommitTime,
                     secondCommitTime, new List<GitStatusEntry>
                     {
                         new GitStatusEntry("TestDocument.txt".ToNPath(),
@@ -87,7 +89,8 @@ namespace IntegrationTests
                     "Author Person", "author@example.com", "Author Person",
                     "author@example.com",
                     "Я люблю github",
-                    "Я люблю github", commitTime,
+                    "",
+                    commitTime,
                     commitTime, new List<GitStatusEntry>
                     {
                         new GitStatusEntry(@"Assets\A new file.txt".ToNPath(),
