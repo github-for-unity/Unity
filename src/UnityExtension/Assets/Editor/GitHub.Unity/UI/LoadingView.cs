@@ -16,7 +16,7 @@ namespace GitHub.Unity
             Size = MinViewSize;
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             GUILayout.BeginVertical();
             {

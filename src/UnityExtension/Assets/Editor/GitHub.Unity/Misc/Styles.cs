@@ -220,6 +220,36 @@ namespace GitHub.Unity
             }
         }
 
+        private static GUIStyle toggle;
+        public static GUIStyle Toggle
+        {
+            get
+            {
+                if (toggle == null)
+                {
+                    toggle = new GUIStyle(GUI.skin.toggle);
+                    toggle.name = "CustomToggle";
+                    toggle.wordWrap = true;
+                }
+                return toggle;
+            }
+        }
+
+        private static GUIStyle toggleNoWrap;
+        public static GUIStyle ToggleNoWrap
+        {
+            get
+            {
+                if (toggleNoWrap == null)
+                {
+                    toggleNoWrap = new GUIStyle(GUI.skin.toggle);
+                    toggleNoWrap.name = "CustomToggleNoWrap";
+                    toggleNoWrap.wordWrap = false;
+                }
+                return toggleNoWrap;
+            }
+        }
+
         public static GUIStyle LabelNoWrap
         {
             get
@@ -1134,6 +1164,20 @@ namespace GitHub.Unity
                 }
 
                 return lockMetaDataStyle;
+            }
+        }
+
+        private static GUIStyle horizontalLine;
+        public static GUIStyle HorizontalLine {
+            get {
+                if (horizontalLine == null)
+                {
+                    horizontalLine = new GUIStyle(GUI.skin.box);
+                    horizontalLine.border.top = horizontalLine.border.bottom = 1;
+                    horizontalLine.margin.top = horizontalLine.margin.bottom = 0;
+                    horizontalLine.padding.top = horizontalLine.padding.bottom = 0;
+                }
+                return horizontalLine;
             }
         }
     }

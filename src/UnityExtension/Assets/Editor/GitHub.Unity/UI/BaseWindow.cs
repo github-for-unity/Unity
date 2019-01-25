@@ -1,5 +1,6 @@
 using GitHub.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -7,17 +8,20 @@ using UnityEngine;
 
 namespace GitHub.Unity
 {
-    abstract class BaseWindow :  EditorWindow, IView
+    public abstract class BaseWindow :  EditorWindow, IView
     {
         [NonSerialized] private bool initialized = false;
         [NonSerialized] private IUser cachedUser;
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] protected bool inLayout;
+        [NonSerialized] private bool firstOnGUI = true;
+        [NonSerialized] private bool doneRefreshing;
+        [NonSerialized] private object lck = new object();
 
-        public BaseWindow()
+        protected BaseWindow()
         {
-            RefreshEvents = new Dictionary<CacheType, int>();
+            RefreshEvents = new HashSet<CacheType>();
         }
 
         public virtual void Initialize(IApplicationManager applicationManager)
@@ -41,8 +45,25 @@ namespace GitHub.Unity
             Repaint();
         }
 
+        /// <summary>
+        /// This will call Repaint()/Redraw() and set IsRefreshing = true
+        /// </summary>
         public virtual void Refresh()
         {
+            InternalRefresh();
+            if (Repository == null) return;
+            lock(lck)
+            {
+                foreach (var type in RefreshEvents)
+                    Repository.Refresh(type);
+            }
+        }
+
+        private void InternalRefresh()
+        {
+            IsRefreshing = true;
+            doneRefreshing = true;
+            Redraw();
         }
 
         public virtual void Finish(bool result)
@@ -66,13 +87,15 @@ namespace GitHub.Unity
         public virtual void Update()
         {}
 
-        public virtual void OnDataUpdate()
+        public virtual void OnDataUpdate(bool first)
         {}
 
         public virtual void OnRepositoryChanged(IRepository oldRepository)
         {}
 
-        // OnGUI calls this everytime, so override it to render as you would OnGUI
+        /// <summary>
+        /// OnUI is called everytime OnGUI is called, so override it to render as you would OnGUI
+        /// </summary>
         public virtual void OnUI() {}
 
         // This is Unity's magic method
@@ -80,6 +103,11 @@ namespace GitHub.Unity
         {
             if (Event.current.type == EventType.Layout)
             {
+                if (IsRefreshing)
+                {
+                    IsBusy = true;
+                }
+
                 if (cachedRepository != Environment.Repository || initializeWasCalled)
                 {
                     initializeWasCalled = false;
@@ -87,7 +115,8 @@ namespace GitHub.Unity
                     cachedRepository = Environment.Repository;
                 }
                 inLayout = true;
-                OnDataUpdate();
+                OnDataUpdate(firstOnGUI);
+                firstOnGUI = false;
             }
 
             OnUI();
@@ -95,6 +124,12 @@ namespace GitHub.Unity
             if (Event.current.type == EventType.Repaint)
             {
                 inLayout = false;
+                if (doneRefreshing)
+                {
+                    doneRefreshing = false;
+                    IsBusy = false;
+                    DoneRefreshing();
+                }
             }
         }
 
@@ -121,43 +156,55 @@ namespace GitHub.Unity
 
         public virtual void DoneRefreshing()
         {
+            doneRefreshing = false;
             IsRefreshing = false;
         }
 
         public void Refresh(CacheType type)
         {
-            if (Repository == null)
-                return;
-
             IsRefreshing = true;
-            if (!RefreshEvents.ContainsKey(type))
-                RefreshEvents.Add(type, 0);
-            RefreshEvents[type]++;
-            Repository.Refresh(type);
+            if (Repository == null)
+            {
+                InternalRefresh();
+                return;
+            }
+
+            doneRefreshing = false;
+            lock(lck)
+            {
+                if (!RefreshEvents.Contains(type))
+                    RefreshEvents.Add(type);
+            }
         }
 
         public void ReceivedEvent(CacheType type)
         {
-            if (!RefreshEvents.ContainsKey(type))
-                RefreshEvents.Add(type, 0);
-            var val = RefreshEvents[type] - 1;
-            RefreshEvents[type] = val > -1 ? val : 0;
-            if (IsRefreshing && !RefreshEvents.Values.Any(x => x > 0))
+            int count = 0;
+            lock(lck)
             {
-                DoneRefreshing();
+                if (RefreshEvents.Contains(type))
+                {
+                    RefreshEvents.Remove(type);
+                }
+                count = RefreshEvents.Count;
+            }
+
+            if (IsRefreshing && count == 0)
+            {
+                InternalRefresh();
             }
         }
 
-        public virtual void DoEmptyGUI()
+        public virtual void DoEmptyUI()
         {}
-        public virtual void DoProgressGUI()
+        public virtual void DoProgressUI()
         {}
         public virtual void UpdateProgress(IProgress progress)
         {}
 
         public Rect Position { get { return position; } }
         public IApplicationManager Manager { get; private set; }
-        public abstract bool IsBusy { get; }
+        public virtual bool IsBusy { get; set; }
         public bool IsRefreshing { get; private set; }
         public bool HasFocus { get; private set; }
         public IRepository Repository { get { return inLayout ? cachedRepository : Environment.Repository; } }
@@ -169,7 +216,7 @@ namespace GitHub.Unity
         protected IGitClient GitClient { get { return Manager.GitClient; } }
         protected IEnvironment Environment { get { return Manager.Environment; } }
         protected IPlatform Platform { get { return Manager.Platform; } }
-        public Dictionary<CacheType, int> RefreshEvents { get; set; }
+        public HashSet<CacheType> RefreshEvents { get; set; }
         private ILogging logger;
         protected ILogging Logger
         {

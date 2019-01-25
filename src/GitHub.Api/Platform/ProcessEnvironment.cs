@@ -19,6 +19,11 @@ namespace GitHub.Unity
         public void Configure(ProcessStartInfo psi, NPath workingDirectory, bool dontSetupGit = false)
         {
             psi.WorkingDirectory = workingDirectory;
+            if (Environment.UserSettings.Get<bool>(Constants.DisableSetEnvironmentKey))
+            {
+                // don't do anything beyond setting the working directory;
+                return;
+            }
             psi.EnvironmentVariables["HOME"] = NPath.HomeDirectory;
             psi.EnvironmentVariables["TMP"] = psi.EnvironmentVariables["TEMP"] = NPath.SystemTemp;
 
@@ -109,6 +114,11 @@ namespace GitHub.Unity
             if (!String.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
             psi.EnvironmentVariables["DISPLAY"] = "0";
+            if (!Environment.UserSettings.Get<bool>(Constants.EnableGitAuthPromptsKey))
+                psi.EnvironmentVariables["GIT_TERMINAL_PROMPT"] = "0";
+
+            if (Environment.UserSettings.Get<bool>(Constants.DisableGCMKey))
+                psi.EnvironmentVariables["GCM_INTERACTIVE"] = "NEVER";
         }
     }
 }

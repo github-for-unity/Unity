@@ -381,8 +381,6 @@ namespace GitHub.Unity
     [Serializable]
     class LocksView : Subview
     {
-        [NonSerialized] private bool isBusy;
-
         [SerializeField] private bool currentRemoteHasUpdate;
         [SerializeField] private bool currentStatusEntriesHasUpdate;
         [SerializeField] private bool currentLocksHasUpdate;
@@ -424,13 +422,13 @@ namespace GitHub.Unity
             Refresh(CacheType.GitLocks);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             var rect = GUILayoutUtility.GetLastRect();
 
@@ -459,16 +457,16 @@ namespace GitHub.Unity
             }
             else
             {
-                DoEmptyGUI();
+                DoEmptyUI();
             }
 
             EditorGUI.EndDisabledGroup();
-            DoProgressGUI();
+            DoProgressUI();
         }
 
         private void UnlockSelectedEntry()
         {
-            isBusy = true;
+            IsBusy = true;
             Repository
                 .ReleaseLock(locksControl.SelectedEntry.GitLock.Path, false)
                 .FinallyInUI((success, ex) =>
@@ -476,6 +474,7 @@ namespace GitHub.Unity
                     if (success)
                     {
                         Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
+                        Refresh();
                     }
                     else
                     {
@@ -486,15 +485,13 @@ namespace GitHub.Unity
                             error,
                             Localization.Ok);
                     }
-
-                    isBusy = false;
                 })
                 .Start();
         }
 
         private void ForceUnlockSelectedEntry()
         {
-            isBusy = true;
+            IsBusy = true;
             Repository
                 .ReleaseLock(locksControl.SelectedEntry.GitLock.Path, true)
                 .FinallyInUI((success, ex) =>
@@ -502,6 +499,7 @@ namespace GitHub.Unity
                     if (success)
                     {
                         Manager.UsageTracker.IncrementUnityProjectViewContextLfsUnlock();
+                        Refresh();
                     }
                     else
                     {
@@ -512,8 +510,6 @@ namespace GitHub.Unity
                             error,
                             Localization.Ok);
                     }
-
-                    isBusy = false;
                 })
                 .Start();
         }
@@ -587,7 +583,7 @@ namespace GitHub.Unity
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
         }
 
-        private void MaybeUpdateData()
+        private void MaybeUpdateData(bool first)
         {
             if (Repository == null)
             {
@@ -660,11 +656,6 @@ namespace GitHub.Unity
             {
                 Redraw();
             }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy || base.IsBusy; }
         }
     }
 }

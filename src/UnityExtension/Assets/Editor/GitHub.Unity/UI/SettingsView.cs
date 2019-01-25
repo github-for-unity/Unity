@@ -22,12 +22,15 @@ namespace GitHub.Unity
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
+        private const string DisableGCMLabel = "Don't let GCM (Git Credential Manager for Windows) prompt for credentials.";
+
+        private const string EnableGitAuthPromptsLabel = "Let git prompt for credentials on the command line. This might hang git operations.";
+        private const string DisableSetEnvironmentLabel = "Don't customize the environment when spawning processes.";
 
         [NonSerialized] private bool currentRemoteHasUpdate;
-        [NonSerialized] private bool isBusy;
         [NonSerialized] private bool metricsHasChanged;
 
-        [SerializeField] private GitPathView gitPathView = new GitPathView();
+        [SerializeField] private GitPathView gitPathView;
         [SerializeField] private bool hasRemote;
         [SerializeField] private CacheUpdateEvent lastCurrentRemoteChangedEvent;
         [SerializeField] private bool metricsEnabled;
@@ -35,13 +38,20 @@ namespace GitHub.Unity
         [SerializeField] private string repositoryRemoteName;
         [SerializeField] private string repositoryRemoteUrl;
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private UserSettingsView userSettingsView = new UserSettingsView();
+        [SerializeField] private UserSettingsView userSettingsView;
         [SerializeField] private int webTimeout;
         [SerializeField] private int gitTimeout;
+        [SerializeField] private bool traceLogging;
+        [SerializeField] private bool disableGCM;
+        [SerializeField] private bool enableGitAuthPrompts;
+        [SerializeField] private bool disableSetEnvironment;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
+            gitPathView = gitPathView ?? new GitPathView();
+            userSettingsView = userSettingsView ?? new UserSettingsView();
+
             gitPathView.InitializeView(this);
             userSettingsView.InitializeView(this);
         }
@@ -57,8 +67,6 @@ namespace GitHub.Unity
             {
                 ValidateCachedData(Repository);
             }
-
-            metricsHasChanged = true;
         }
 
         public override void OnDisable()
@@ -69,13 +77,13 @@ namespace GitHub.Unity
             DetachHandlers(Repository);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            userSettingsView.OnDataUpdate();
-            gitPathView.OnDataUpdate();
+            base.OnDataUpdate(first);
+            userSettingsView.OnDataUpdate(first);
+            gitPathView.OnDataUpdate(first);
 
-            MaybeUpdateData();
+            MaybeUpdateData(first);
         }
 
         public override void Refresh()
@@ -86,29 +94,48 @@ namespace GitHub.Unity
             Refresh(CacheType.RepositoryInfo);
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
+            var fieldWidth = EditorGUIUtility.fieldWidth;
+            var labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.fieldWidth = 0.0f;
+            EditorGUIUtility.labelWidth = 0.0f;
+
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                userSettingsView.OnGUI();
+                userSettingsView.OnUI();
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
                 if (Repository != null)
                 {
-                    OnRepositorySettingsGUI();
-                    GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                    OnRepositorySettingsUI();
                 }
 
-                gitPathView.OnGUI();
-                OnPrivacyGui();
-                OnGeneralSettingsGui();
-                OnLoggingSettingsGui();
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                GUILayout.Box(GUIContent.none, Styles.HorizontalLine, GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                gitPathView.OnUI();
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                GUILayout.Box(GUIContent.none, Styles.HorizontalLine, GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                OnPrivacyUI();
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                GUILayout.Box(GUIContent.none, Styles.HorizontalLine, GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                OnGeneralSettingsUI();
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                GUILayout.Box(GUIContent.none, Styles.HorizontalLine, GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+                OnExperimentalSettingsUI();
             }
 
             GUILayout.EndScrollView();
 
-            DoProgressGUI();
+            EditorGUIUtility.fieldWidth = fieldWidth;
+            EditorGUIUtility.labelWidth = labelWidth;
+
+            DoProgressUI();
         }
 
         private void AttachHandlers(IRepository repository)
@@ -146,13 +173,20 @@ namespace GitHub.Unity
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentRemoteChangedEvent);
         }
 
-        private void MaybeUpdateData()
+        private void MaybeUpdateData(bool first)
         {
-            if (metricsHasChanged)
+            if (first || metricsHasChanged)
             {
                 metricsEnabled = Manager.UsageTracker != null ? Manager.UsageTracker.Enabled : false;
                 metricsHasChanged = false;
             }
+
+            traceLogging = LogHelper.TracingEnabled;
+            webTimeout = ApplicationConfiguration.WebTimeout;
+            gitTimeout = ApplicationConfiguration.GitTimeout;
+            disableGCM = Manager.UserSettings.Get(Constants.DisableGCMKey, false);
+            enableGitAuthPrompts = Manager.UserSettings.Get(Constants.EnableGitAuthPromptsKey, false);
+            disableSetEnvironment = Manager.UserSettings.Get(Constants.DisableSetEnvironmentKey, false);
 
             if (Repository == null)
                 return;
@@ -175,7 +209,7 @@ namespace GitHub.Unity
             }
         }
 
-        private void OnRepositorySettingsGUI()
+        private void OnRepositorySettingsUI()
         {
             GUILayout.Label(GitRepositoryTitle, EditorStyles.boldLabel);
 
@@ -189,13 +223,9 @@ namespace GitHub.Unity
                     {
                         try
                         {
-                            isBusy = true;
+                            IsBusy = true;
                             Repository.SetupRemote(repositoryRemoteName, newRepositoryRemoteUrl)
-                                .FinallyInUI((_, __) =>
-                                {
-                                    isBusy = false;
-                                    Redraw();
-                                })
+                                .FinallyInUI((_, __) => { Refresh(); })
                                 .Start();
                         }
                         catch (Exception ex)
@@ -209,13 +239,13 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        private void OnPrivacyGui()
+        private void OnPrivacyUI()
         {
             GUILayout.Label(PrivacyTitle, EditorStyles.boldLabel);
 
             EditorGUI.BeginChangeCheck();
             {
-                metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel);
+                metricsEnabled = GUILayout.Toggle(metricsEnabled, MetricsOptInLabel, Styles.ToggleNoWrap);
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -225,28 +255,10 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        private void OnLoggingSettingsGui()
-        {
-            GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
-
-            var traceLogging = LogHelper.TracingEnabled;
-
-            EditorGUI.BeginChangeCheck();
-            {
-                traceLogging = GUILayout.Toggle(traceLogging, EnableTraceLoggingLabel);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                LogHelper.TracingEnabled = traceLogging;
-                Manager.UserSettings.Set(Constants.TraceLoggingKey, traceLogging);
-            }
-        }
-
-        private void OnGeneralSettingsGui()
+        private void OnGeneralSettingsUI()
         {
             GUILayout.Label(GeneralSettingsTitle, EditorStyles.boldLabel);
 
-            webTimeout = ApplicationConfiguration.WebTimeout;
             EditorGUI.BeginChangeCheck();
             {
                 webTimeout = EditorGUILayout.IntField(WebTimeoutLabel, webTimeout);
@@ -257,7 +269,6 @@ namespace GitHub.Unity
                 Manager.UserSettings.Set(Constants.WebTimeoutKey, webTimeout);
             }
 
-            gitTimeout = ApplicationConfiguration.GitTimeout;
             EditorGUI.BeginChangeCheck();
             {
                 gitTimeout = EditorGUILayout.IntField(GitTimeoutLabel, gitTimeout);
@@ -269,9 +280,34 @@ namespace GitHub.Unity
             }
         }
 
-        public override bool IsBusy
+        private void OnExperimentalSettingsUI()
         {
-            get { return isBusy || userSettingsView.IsBusy || gitPathView.IsBusy; }
+            GUILayout.Label(DebugSettingsTitle, EditorStyles.boldLabel);
+
+            if (DoBoolSettingUI(ref traceLogging, EnableTraceLoggingLabel, Constants.TraceLoggingKey))
+            {
+                LogHelper.TracingEnabled = traceLogging;
+            }
+
+            DoBoolSettingUI(ref disableGCM, DisableGCMLabel, Constants.DisableGCMKey);
+            DoBoolSettingUI(ref enableGitAuthPrompts, EnableGitAuthPromptsLabel, Constants.EnableGitAuthPromptsKey);
+            DoBoolSettingUI(ref disableSetEnvironment, DisableSetEnvironmentLabel, Constants.DisableSetEnvironmentKey);
         }
+
+        private bool DoBoolSettingUI(ref bool value, string label, string key)
+        {
+            EditorGUI.BeginChangeCheck();
+            {
+                value = GUILayout.Toggle(value, label, Styles.Toggle);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Manager.UserSettings.Set(key, value);
+                return true;
+            }
+            return false;
+        }
+
+        public override bool IsBusy { get; set; }
     }
 }

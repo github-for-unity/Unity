@@ -11,21 +11,18 @@ namespace GitHub.Unity
     {
         private static readonly Vector2 viewSize = new Vector2(290, 290);
 
-        private const string WindowTitle = "Authenticate";
-
-        [SerializeField] private SubTab changeTab = SubTab.GitHub;
-        [SerializeField] private SubTab activeTab = SubTab.GitHub;
+        [SerializeField] private SubTab changeTab;
+        [SerializeField] private SubTab activeTab;
 
         [SerializeField] private GitHubAuthenticationView gitHubAuthenticationView;
         [SerializeField] private GitHubEnterpriseAuthenticationView gitHubEnterpriseAuthenticationView;
         [SerializeField] private bool hasGitHubDotComConnection;
         [SerializeField] private bool hasGitHubEnterpriseConnection;
+        [NonSerialized] private bool firstForThisView = true;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            Title = WindowTitle;
-            Size = viewSize;
 
             gitHubAuthenticationView = gitHubAuthenticationView ?? new GitHubAuthenticationView();
             gitHubEnterpriseAuthenticationView = gitHubEnterpriseAuthenticationView ?? new GitHubEnterpriseAuthenticationView();
@@ -44,44 +41,55 @@ namespace GitHub.Unity
 
             hasGitHubDotComConnection = Platform.Keychain.Connections.Any(HostAddress.IsGitHubDotCom);
             hasGitHubEnterpriseConnection = Platform.Keychain.Connections.Any(connection => !HostAddress.IsGitHubDotCom(connection));
-
-            if (hasGitHubDotComConnection)
-            {
-                changeTab = SubTab.GitHubEnterprise;
-                UpdateActiveTab();
-            }
         }
 
         public void Initialize(Exception exception)
+        {}
+
+        public override void OnEnable()
         {
-            
+            base.OnEnable();
+            activeTab = hasGitHubDotComConnection ? SubTab.GitHubEnterprise : SubTab.GitHub;
+            ActiveView.OnEnable();
         }
 
-        public override void OnGUI()
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            ActiveView.OnDisable();
+        }
+
+        public override void OnDataUpdate(bool first)
+        {
+            base.OnDataUpdate(first);
+            ActiveView.OnDataUpdate(first || firstForThisView);
+
+            Title = ActiveView.Title;
+            Size = ActiveView.Size;
+        }
+
+        public override void Refresh()
+        {
+            ActiveView.Refresh();
+            base.Refresh();
+        }
+
+        public override void OnSelectionChange()
+        {
+            base.OnSelectionChange();
+            ActiveView.OnSelectionChange();
+        }
+
+        public override void OnUI()
         {
             DoToolbarGUI();
-            ActiveView.OnGUI();
+            ActiveView.OnUI();
         }
         
-        public override bool IsBusy
-        {
-            get { return (gitHubAuthenticationView != null && gitHubAuthenticationView.IsBusy) || (gitHubEnterpriseAuthenticationView != null && gitHubEnterpriseAuthenticationView.IsBusy); }
-        }
-
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            MaybeUpdateData();
-        }
-
         public override void Finish(bool result)
         {
             OAuthCallbackManager.Stop();
             base.Finish(result);
-        }
-
-        private void MaybeUpdateData()
-        {
         }
 
         private static SubTab TabButton(SubTab tab, string title, SubTab currentTab)
@@ -91,7 +99,6 @@ namespace GitHub.Unity
 
         private enum SubTab
         {
-            None,
             GitHub,
             GitHubEnterprise
         }
@@ -135,6 +142,7 @@ namespace GitHub.Unity
                 SwitchView(fromView, toView);
             }
         }
+
         private void SwitchView(Subview fromView, Subview toView)
         {
             GUI.FocusControl(null);
@@ -162,5 +170,6 @@ namespace GitHub.Unity
                 }
             }
         }
+        public override bool IsBusy { get; set; }
     }
 }

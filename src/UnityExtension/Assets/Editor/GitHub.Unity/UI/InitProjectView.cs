@@ -39,7 +39,7 @@ namespace GitHub.Unity
             DetachHandlers();
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {
@@ -85,10 +85,10 @@ namespace GitHub.Unity
             GUILayout.EndVertical();
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
         private void AttachHandlers()
@@ -111,7 +111,7 @@ namespace GitHub.Unity
             User.Changed -= UserOnChanged;
         }
 
-        private void MaybeUpdateData()
+        private void MaybeUpdateData(bool first)
         {
             if (userHasChanges)
             {

@@ -140,10 +140,10 @@ namespace GitHub.Unity
             this.InitializeWindow(manager, requiresRedraw);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            LoadContents();
+            base.OnDataUpdate(first);
+            LoadContents(first);
         }
 
         public override void OnUI()
@@ -211,13 +211,13 @@ namespace GitHub.Unity
             EditorGUILayout.EndVertical();
         }
 
-        private void LoadContents()
+        private void LoadContents(bool first)
         {
-            if (guiLogo != null)
-                return;
+            if (!first) return;
 
             guiLogo = new GUIContent(Styles.BigLogo);
-            guiNewUpdate = new GUIContent(String.Format(newUpdateMessage, currentVersion, package.Package.Version.ToString()));
+            guiNewUpdate = new GUIContent(String.Format(newUpdateMessage, currentVersion,
+                package.Package.Version.ToString()));
             guiSkipThisVersion = new GUIContent(skipThisVersionMessage);
             guiDownloadNewVersion = new GUIContent(downloadNewVersionMessage);
             guiBrowseReleaseNotes = new GUIContent(browseReleaseNotes);

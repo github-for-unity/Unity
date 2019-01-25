@@ -165,8 +165,10 @@ namespace GitHub.Unity
                             // process is done and we haven't seen output, we're done
                             done = !gotOutput.WaitOne(100);
                         }
-                        else if (token.IsCancellationRequested || (taskName.Contains("git lfs") && lastOutput.AddMilliseconds(ApplicationConfiguration.DefaultGitTimeout) < DateTimeOffset.UtcNow))
-                        // if we're exiting or we haven't had output for a while
+                        else if (token.IsCancellationRequested || (taskName.Contains("git lfs") &&
+                                lastOutput.AddMilliseconds(ApplicationConfiguration.DefaultGitTimeout) <
+                                DateTimeOffset.UtcNow))
+                            // if we're exiting or we haven't had output for a while
                         {
                             Stop(true);
                             token.ThrowIfCancellationRequested();
@@ -199,14 +201,12 @@ namespace GitHub.Unity
                     sb.AppendLine($"'{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'");
                 if (errorCode == 2)
                     sb.AppendLine("The system cannot find the file specified.");
-                foreach (string env in Process.StartInfo.EnvironmentVariables.Keys)
-                {
-                    if (!traceEnvKeys.Contains(env.ToUpperInvariant())) continue;
-                    sb.AppendFormat($"{env}:{Process.StartInfo.EnvironmentVariables[env]}");
-                    sb.AppendLine();
-                }
 
-                thrownException = new ProcessException(errorCode, sb.ToString(),  ex);
+                thrownException = new ProcessException(errorCode, sb.ToString(), ex) {
+                    EnvironmentVariables = Process.StartInfo.EnvironmentVariables.Keys.Cast<string>()
+                                                  .Where(x => traceEnvKeys.Contains(x)).Select(x =>
+                                                      $"{x}={Process.StartInfo.EnvironmentVariables[x]}").ToArray()
+                };
             }
 
             if (thrownException != null || errors.Count > 0)

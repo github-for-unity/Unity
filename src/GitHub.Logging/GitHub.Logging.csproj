@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\ExceptionExtensions.cs" />
+    <Compile Include="Extensions\ProcessExceptions.cs" />
     <Compile Include="FileLogAdapter.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="ILogging.cs" />

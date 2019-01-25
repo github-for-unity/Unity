@@ -1,3 +1,4 @@
+using System;
 using GitHub.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +9,6 @@ namespace GitHub.Unity
     abstract class Subview : IView
     {
         private const string NullParentError = "Subview parent is null";
-
-        public Subview()
-        {
-        }
 
         public virtual void InitializeView(IView parent)
         {
@@ -25,10 +22,10 @@ namespace GitHub.Unity
         public virtual void OnDisable()
         {}
 
-        public virtual void OnDataUpdate()
+        public virtual void OnDataUpdate(bool first)
         {}
 
-        public virtual void OnGUI()
+        public virtual void OnUI()
         {}
 
         public virtual void OnSelectionChange()
@@ -50,14 +47,14 @@ namespace GitHub.Unity
             Parent.Finish(result);
         }
 
-        public void DoEmptyGUI()
+        public void DoEmptyUI()
         {
-            Parent.DoEmptyGUI();
+            Parent.DoEmptyUI();
         }
 
-        public void DoProgressGUI()
+        public void DoProgressUI()
         {
-            Parent.DoProgressGUI();
+            Parent.DoProgressUI();
         }
 
         public void UpdateProgress(IProgress progress)
@@ -97,13 +94,14 @@ namespace GitHub.Unity
         public bool HasFocus { get { return Parent != null && Parent.HasFocus; } }
         public virtual bool IsBusy
         {
-            get { return (Manager != null && Manager.IsBusy) || (Repository != null && Repository.IsBusy); }
+            get { return Parent.IsBusy; }
+            set { Parent.IsBusy = value; }
         }
 
         public Rect Position { get { return Parent.Position; } }
         public string Title { get; protected set; }
         public Vector2 Size { get; protected set; }
-        public Dictionary<CacheType, int> RefreshEvents { get { return Parent.RefreshEvents; } }
+        public HashSet<CacheType> RefreshEvents { get { return Parent.RefreshEvents; } }
         public bool IsRefreshing { get { return Parent.IsRefreshing; } }
 
         private ILogging logger;

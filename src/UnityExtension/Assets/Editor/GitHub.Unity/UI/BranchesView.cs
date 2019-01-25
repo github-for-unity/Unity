@@ -39,9 +39,9 @@ namespace GitHub.Unity
         [NonSerialized] private int listID = -1;
         [NonSerialized] private BranchesMode targetMode;
 
-        [SerializeField] private BranchesTree treeLocals = new BranchesTree { Title = LocalTitle };
-        [SerializeField] private BranchesTree treeRemotes = new BranchesTree { Title = RemoteTitle, IsRemote = true };
-        [SerializeField] private BranchesMode mode = BranchesMode.Default;
+        [SerializeField] private BranchesTree treeLocals;
+        [SerializeField] private BranchesTree treeRemotes;
+        [SerializeField] private BranchesMode mode;
         [SerializeField] private string newBranchName;
         [SerializeField] private Vector2 scroll;
         [SerializeField] private bool disableDelete;
@@ -55,7 +55,6 @@ namespace GitHub.Unity
 
         [SerializeField] private GitBranch currentBranch = GitBranch.Default;
         [SerializeField] private GitRemote currentRemote = GitRemote.Default;
-
         [SerializeField] private List<GitBranch> localBranches;
         [SerializeField] private List<GitBranch> remoteBranches;
 
@@ -68,20 +67,6 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-
-            var hasFocus = HasFocus;
-            if (treeLocals != null)
-            {
-                treeLocals.ViewHasFocus = hasFocus;
-                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-            }
-
-            if (treeRemotes != null)
-            {
-                treeRemotes.ViewHasFocus = hasFocus;
-                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
-            }
-
             AttachHandlers(Repository);
             ValidateCachedData(Repository);
         }
@@ -99,10 +84,10 @@ namespace GitHub.Unity
             Refresh(CacheType.RepositoryInfo);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
         public override void OnSelectionChange()
@@ -114,8 +99,8 @@ namespace GitHub.Unity
         public override void OnFocusChanged()
         {
             base.OnFocusChanged();
-            if(treeLocals.ViewHasFocus != HasFocus || treeRemotes.ViewHasFocus != HasFocus)
-            { 
+            if (treeLocals.ViewHasFocus != HasFocus || treeRemotes.ViewHasFocus != HasFocus)
+            {
                 treeLocals.ViewHasFocus = HasFocus;
                 treeRemotes.ViewHasFocus = HasFocus;
                 Redraw();
@@ -145,39 +130,6 @@ namespace GitHub.Unity
             }
         }
 
-        private void MaybeUpdateData()
-        {
-            if (currentBranchAndRemoteChangeHasUpdate)
-            {
-                currentBranch = Repository.CurrentBranch ?? GitBranch.Default;
-                currentRemote = Repository.CurrentRemote ?? GitRemote.Default;
-            }
-
-            if (localAndRemoteBranchListHasUpdate)
-            {
-
-                localBranches = Repository.LocalBranches.ToList();
-                remoteBranches = Repository.RemoteBranches.ToList();
-
-            }
-
-            if (currentBranchAndRemoteChangeHasUpdate || localAndRemoteBranchListHasUpdate)
-            {
-                currentBranchAndRemoteChangeHasUpdate = false;
-                localAndRemoteBranchListHasUpdate = false;
-
-                BuildTree();
-            }
-
-            disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
-            disableCreate = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.Level == 0;
-        }
-
-        public override void OnGUI()
-        {
-            Render();
-        }
-
         private void AttachHandlers(IRepository repository)
         {
             repository.LocalAndRemoteBranchListChanged += RepositoryOnLocalAndRemoteBranchListChanged;
@@ -196,7 +148,7 @@ namespace GitHub.Unity
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChange);
         }
 
-        private void Render()
+        public override void OnUI()
         {
             listID = GUIUtility.GetControlID(FocusType.Keyboard);
             GUILayout.BeginHorizontal();
@@ -221,7 +173,46 @@ namespace GitHub.Unity
                     Redraw();
                 }
             }
-            DoProgressGUI();
+            DoProgressUI();
+        }
+
+        private void MaybeUpdateData(bool first)
+        {
+            if (treeLocals == null) treeLocals = new BranchesTree { Title = LocalTitle };
+            if (treeRemotes == null) treeRemotes = new BranchesTree { Title = RemoteTitle, IsRemote = true };
+
+            treeLocals.ViewHasFocus = HasFocus;
+            treeRemotes.ViewHasFocus = HasFocus;
+
+            if (first)
+            {
+                treeLocals.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+                treeRemotes.UpdateIcons(Styles.ActiveBranchIcon, Styles.BranchIcon, Styles.FolderIcon, Styles.GlobeIcon);
+            }
+
+            if (currentBranchAndRemoteChangeHasUpdate)
+            {
+                currentBranch = Repository.CurrentBranch ?? GitBranch.Default;
+                currentRemote = Repository.CurrentRemote ?? GitRemote.Default;
+            }
+
+            if (localAndRemoteBranchListHasUpdate)
+            {
+
+                localBranches = Repository.LocalBranches.ToList();
+                remoteBranches = Repository.RemoteBranches.ToList();
+            }
+
+            if (currentBranchAndRemoteChangeHasUpdate || localAndRemoteBranchListHasUpdate)
+            {
+                currentBranchAndRemoteChangeHasUpdate = false;
+                localAndRemoteBranchListHasUpdate = false;
+
+                BuildTree();
+            }
+
+            disableDelete = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.IsActive;
+            disableCreate = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.Level == 0;
         }
 
         private void BuildTree()

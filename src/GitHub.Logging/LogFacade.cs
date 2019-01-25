@@ -59,7 +59,7 @@ namespace GitHub.Logging
         public void Debug(Exception ex, string message)
         {
 #if DEBUG
-            Debug(String.Concat(message, Environment.NewLine, ex.GetExceptionMessage()));
+            Debug(String.Concat(message, Environment.NewLine, ex.GetExceptionMessage(true)));
 #endif
         }
 
@@ -87,7 +87,7 @@ namespace GitHub.Logging
         public void Trace(Exception ex, string message)
         {
             if (!LogHelper.TracingEnabled) return;
-            Trace(String.IsNullOrEmpty(message) ? ex.GetExceptionMessage() : String.Concat(message, Environment.NewLine, ex.GetExceptionMessage()));
+            Trace(String.IsNullOrEmpty(message) ? ex.GetExceptionMessage(true) : String.Concat(message, Environment.NewLine, ex.GetExceptionMessage(true)));
         }
 
         public void Trace(Exception ex)

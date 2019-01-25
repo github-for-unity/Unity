@@ -12,7 +12,7 @@ namespace GitHub.Unity
 
         private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
         private const string NeedAuthenticationMessage = "We need you to authenticate first";
-        private const string WindowTitle = "Authenticate";
+        private const string WindowTitle = "Authenticate to GitHub Enterprise";
         private const string ServerAddressLabel = "Server Address";
         private const string TokenLabel = "Token";
         private const string UsernameLabel = "Username";
@@ -26,31 +26,28 @@ namespace GitHub.Unity
         private const string TwofaButton = "Verify";
 
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private string serverAddress = string.Empty;
-        [SerializeField] private string username = string.Empty;
-        [SerializeField] private string two2fa = string.Empty;
+
+        [SerializeField] private string serverAddress;
+        [SerializeField] private string username;
+        [SerializeField] private string two2fa;
         [SerializeField] private string message;
         [SerializeField] private string errorMessage;
         [SerializeField] private bool need2fa;
         [SerializeField] private bool hasServerMeta;
         [SerializeField] private bool verifiablePasswordAuthentication;
 
-        [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool enterPressed;
-        [NonSerialized] private string password = string.Empty;
-        [NonSerialized] private string token = string.Empty;
-        [NonSerialized] private AuthenticationService authenticationService;
         [NonSerialized] private string oAuthState;
         [NonSerialized] private string oAuthOpenUrl;
+        [NonSerialized] private bool enterPressed;
+        [NonSerialized] private string password;
+        [NonSerialized] private string token;
+
+        [NonSerialized] private bool isBusy;
+        [NonSerialized] private AuthenticationService authenticationService;
 
         public override void InitializeView(IView parent)
         {
             base.InitializeView(parent);
-            need2fa = isBusy = false;
-            message = errorMessage = null;
-            Title = WindowTitle;
-            Size = viewSize;
-
             OAuthCallbackManager.OnCallback += OnOAuthCallback;
         }
 
@@ -75,10 +72,24 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnGUI()
+        public override void OnDataUpdate(bool first)
+        {
+            base.OnDataUpdate(first);
+            if (first || IsRefreshing)
+            {
+                enterPressed = need2fa = isBusy = hasServerMeta = false;
+                message = errorMessage = oAuthOpenUrl = oAuthState = null;
+                password = token = serverAddress = username = two2fa = String.Empty;
+                Title = WindowTitle;
+                Size = viewSize;
+            }
+        }
+
+        public override void OnUI()
         {
             HandleEnterPressed();
 
+            var labelWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 90f;
 
             scroll = GUILayout.BeginScrollView(scroll);
@@ -93,7 +104,7 @@ namespace GitHub.Unity
                 {
                     if (!hasServerMeta)
                     {
-                        OnGUIHost();
+                        OnHostUI();
                     }
                     else
                     {
@@ -113,12 +124,14 @@ namespace GitHub.Unity
                         {
                             if (verifiablePasswordAuthentication)
                             {
-                                OnGUIUserPasswordLogin();
+                                OnUserPasswordLoginUI();
                             }
                             else
                             {
-                                OnGUITokenLogin();
+                                OnTokenLoginUI();
                             }
+
+                            OnLoginUI();
 
                             if (OAuthCallbackManager.IsRunning)
                             {
@@ -137,7 +150,7 @@ namespace GitHub.Unity
                         }
                         else
                         {
-                            OnGUI2FA();
+                            On2FAUI();
                         }
                     }
                 }
@@ -145,19 +158,11 @@ namespace GitHub.Unity
                 GUILayout.EndVertical();
             }
             GUILayout.EndScrollView();
+
+            EditorGUIUtility.labelWidth = labelWidth;
         }
         
-        private void HandleEnterPressed()
-        {
-            if (Event.current.type != EventType.KeyDown)
-                return;
-
-            enterPressed = Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter;
-            if (enterPressed)
-                Event.current.Use();
-        }
-
-        private void OnGUIHost()
+        private void OnHostUI()
         {
             EditorGUI.BeginDisabledGroup(isBusy);
             {
@@ -183,9 +188,7 @@ namespace GitHub.Unity
                         errorMessage = null;
                         isBusy = true;
 
-                        GetAuthenticationService(serverAddress)
-                            .GetServerMeta(DoServerMetaResult, DoServerMetaError);
-
+                        GetAuthenticationService(serverAddress).GetServerMeta(DoServerMetaResult, DoServerMetaError);
                         Redraw();
                     }
                 }
@@ -194,7 +197,7 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        private void OnGUIUserPasswordLogin()
+        private void OnUserPasswordLoginUI()
         {
             EditorGUI.BeginDisabledGroup(isBusy);
             {
@@ -215,41 +218,11 @@ namespace GitHub.Unity
                     password = EditorGUILayout.PasswordField(PasswordLabel, password, Styles.TextFieldStyle);
                 }
                 GUILayout.EndHorizontal();
-
-                ShowErrorMessage();
-
-                GUILayout.Space(Styles.BaseSpacing + 3);
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("Back"))
-                    {
-                        GUI.FocusControl(null);
-                        BackToGetServerMeta();
-                    }
-
-                    if (GUILayout.Button(LoginButton) || (!isBusy && enterPressed))
-                    {
-                        GUI.FocusControl(null);
-                        isBusy = true;
-                        GetAuthenticationService(serverAddress)
-                            .Login(username, password, DoRequire2fa, DoResult);
-                    }
-                }
-                GUILayout.EndHorizontal();
             }
             EditorGUI.EndDisabledGroup();
         }
 
-        private void BackToGetServerMeta()
-        {
-            hasServerMeta = false;
-            oAuthOpenUrl = null;
-            oAuthState = null;
-            Redraw();
-        }
-
-        private void OnGUITokenLogin()
+        private void OnTokenLoginUI()
         {
             EditorGUI.BeginDisabledGroup(isBusy);
             {
@@ -263,6 +236,14 @@ namespace GitHub.Unity
                 }
                 GUILayout.EndHorizontal();
 
+            }
+            EditorGUI.EndDisabledGroup();
+        }
+
+        private void OnLoginUI()
+        {
+            EditorGUI.BeginDisabledGroup(isBusy);
+            {
                 ShowErrorMessage();
 
                 GUILayout.Space(Styles.BaseSpacing + 3);
@@ -279,8 +260,14 @@ namespace GitHub.Unity
                     {
                         GUI.FocusControl(null);
                         isBusy = true;
-                        GetAuthenticationService(serverAddress)
-                            .LoginWithToken(token, DoTokenResult);
+                        if (verifiablePasswordAuthentication)
+                        {
+                            GetAuthenticationService(serverAddress).Login(username, password, DoRequire2fa, DoResult);
+                        }
+                        else
+                        {
+                            GetAuthenticationService(serverAddress).LoginWithToken(token, DoTokenResult);
+                        }
                     }
                 }
                 GUILayout.EndHorizontal();
@@ -288,7 +275,7 @@ namespace GitHub.Unity
             EditorGUI.EndDisabledGroup();
         }
 
-        private void OnGUI2FA()
+        private void On2FAUI()
         {
             GUILayout.BeginVertical();
             {
@@ -315,8 +302,7 @@ namespace GitHub.Unity
                         {
                             GUI.FocusControl(null);
                             isBusy = true;
-                            GetAuthenticationService(serverAddress)
-                                .LoginWith2fa(two2fa);
+                            GetAuthenticationService(serverAddress).LoginWith2fa(two2fa);
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -326,6 +312,24 @@ namespace GitHub.Unity
                 EditorGUI.EndDisabledGroup();
             }
             GUILayout.EndVertical();
+        }
+
+        private void HandleEnterPressed()
+        {
+            if (Event.current.type != EventType.KeyDown)
+                return;
+
+            enterPressed = Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter;
+            if (enterPressed)
+                Event.current.Use();
+        }
+
+        private void BackToGetServerMeta()
+        {
+            hasServerMeta = false;
+            oAuthOpenUrl = null;
+            oAuthState = null;
+            Redraw();
         }
 
         private void OnOAuthCallback(string state, string code)
