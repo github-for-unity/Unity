@@ -349,6 +349,7 @@ namespace GitHub.Unity
                             EditorUtility.DisplayDialog(dialogTitle,
                                 "Error reverting commit: " + e.Message, Localization.Cancel);
                         }
+                        AssetDatabase.Refresh();
                     })
                     .Start();
             }
