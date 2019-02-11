@@ -789,9 +789,9 @@ namespace GitHub.Unity
 
                     if (!promptUser || EditorUtility.DisplayDialog(ConfirmCheckoutTitle, string.Format(ConfirmCheckoutMessage, this.fullPath), ConfirmCheckoutOK, ConfirmCheckoutCancel))
                     {
-                        GitClient.CheckoutVersion(entry.commitID, new string[] { this.fullPath }).ThenInUI((checkoutSuccess, result) => {
-                            AssetDatabase.Refresh();
-                        }).Start();
+                        Repository.CheckoutVersion(entry.commitID, new string[] { fullPath })
+                                  .ThenInUI(AssetDatabase.Refresh)
+                                  .Start();
                     }
                 }
                 else

@@ -38,6 +38,7 @@ namespace GitHub.Unity
         ITask LockFile(NPath file);
         ITask UnlockFile(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] gitStatusEntries);
+        ITask CheckoutVersion(string changeset, IList<string> files);
         ITask UpdateGitLog();
         ITask UpdateGitStatus();
         ITask UpdateGitAheadBehindStatus();
@@ -343,6 +344,13 @@ namespace GitHub.Unity
                 { Message = "Discarding changes..." };
 
             return HookupHandlers(task, true);
+        }
+
+        public ITask CheckoutVersion(string changeset, IList<string> files)
+        {
+            var task = GitClient.CheckoutVersion(changeset, files)
+                                .Then(() => DataNeedsRefreshing?.Invoke(CacheType.GitStatus));
+            return HookupHandlers(task, false);
         }
 
         public ITask UpdateGitLog()

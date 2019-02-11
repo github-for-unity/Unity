@@ -142,6 +142,7 @@ namespace GitHub.Unity
         public ITask RequestLock(NPath file) => repositoryManager.LockFile(file);
         public ITask ReleaseLock(NPath file, bool force) => repositoryManager.UnlockFile(file, force);
         public ITask DiscardChanges(GitStatusEntry[] gitStatusEntry) => repositoryManager.DiscardChanges(gitStatusEntry);
+        public ITask CheckoutVersion(string changeset, IList<string> files) => repositoryManager.CheckoutVersion(changeset, files);
         public ITask RemoteAdd(string remote, string url) => repositoryManager.RemoteAdd(remote, url);
         public ITask RemoteRemove(string remote) => repositoryManager.RemoteRemove(remote);
         public ITask DeleteBranch(string branch, bool force) => repositoryManager.DeleteBranch(branch, force);
