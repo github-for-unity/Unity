@@ -12,7 +12,7 @@ namespace GitHub.Unity
 
         private const string CredentialsNeedRefreshMessage = "We've detected that your stored credentials are out of sync with your current user. This can happen if you have signed in to git outside of Unity. Sign in again to refresh your credentials.";
         private const string NeedAuthenticationMessage = "We need you to authenticate first";
-        private const string WindowTitle = "Authenticate";
+        private const string WindowTitle = "Authenticate to GitHub";
         private const string UsernameLabel = "Username";
         private const string PasswordLabel = "Password";
         private const string TwofaLabel = "2FA Code";
@@ -24,32 +24,26 @@ namespace GitHub.Unity
         private const string TwofaButton = "Verify";
 
         [SerializeField] private Vector2 scroll;
-        [SerializeField] private string username = string.Empty;
-        [SerializeField] private string two2fa = string.Empty;
+
+        [SerializeField] private string username;
+        [SerializeField] private string two2fa;
         [SerializeField] private string message;
         [SerializeField] private string errorMessage;
         [SerializeField] private bool need2fa;
 
-        [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool enterPressed;
-        [NonSerialized] private string password = string.Empty;
         [NonSerialized] private AuthenticationService authenticationService;
+
+        [NonSerialized] private bool enterPressed;
+        [NonSerialized] private string password;
         [NonSerialized] private string oAuthState;
         [NonSerialized] private string oAuthOpenUrl;
 
         public override void InitializeView(IView parent)
         {
-            Logger.Trace("InitializeView");
-
             base.InitializeView(parent);
-            need2fa = isBusy = false;
-            message = errorMessage = null;
-            Title = WindowTitle;
-            Size = viewSize;
 
             oAuthState = Guid.NewGuid().ToString();
             oAuthOpenUrl = AuthenticationService.GetLoginUrl(oAuthState).ToString();
-
             OAuthCallbackManager.OnCallback += OnOAuthCallback;
         }
 
@@ -74,7 +68,21 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnGUI()
+        public override void OnDataUpdate(bool first)
+        {
+            base.OnDataUpdate(first);
+
+            if (first || IsRefreshing)
+            {
+                enterPressed = need2fa = IsBusy = false;
+                message = errorMessage = oAuthOpenUrl = oAuthState = null;
+                password = username = two2fa = String.Empty;
+                Title = WindowTitle;
+                Size = viewSize;
+            }
+        }
+
+        public override void OnUI()
         {
             HandleEnterPressed();
 
@@ -117,7 +125,7 @@ namespace GitHub.Unity
 
         private void OnGUILogin()
         {
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 ShowMessage();
 
@@ -145,10 +153,10 @@ namespace GitHub.Unity
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(LoginButton) || (!isBusy && enterPressed))
+                    if (GUILayout.Button(LoginButton) || (!IsBusy && enterPressed))
                     {
                         GUI.FocusControl(null);
-                        isBusy = true;
+                        IsBusy = true;
                         AuthenticationService.Login(username, password, DoRequire2fa, DoResult);
                     }
                 }
@@ -179,7 +187,7 @@ namespace GitHub.Unity
                 GUILayout.Label(TwofaTitle, EditorStyles.boldLabel);
                 GUILayout.Label(TwofaDescription, EditorStyles.wordWrappedLabel);
 
-                EditorGUI.BeginDisabledGroup(isBusy);
+                EditorGUI.BeginDisabledGroup(IsBusy);
                 {
                     EditorGUILayout.Space();
                     two2fa = EditorGUILayout.TextField(TwofaLabel, two2fa, Styles.TextFieldStyle);
@@ -195,10 +203,10 @@ namespace GitHub.Unity
                             Clear();
                         }
 
-                        if (GUILayout.Button(TwofaButton) || (!isBusy && enterPressed))
+                        if (GUILayout.Button(TwofaButton) || (!IsBusy && enterPressed))
                         {
                             GUI.FocusControl(null);
-                            isBusy = true;
+                            IsBusy = true;
                             AuthenticationService.LoginWith2fa(two2fa);
                         }
                     }
@@ -215,7 +223,7 @@ namespace GitHub.Unity
         {
             if (state.Equals(oAuthState))
             {
-                isBusy = true;
+                IsBusy = true;
                 authenticationService.LoginWithOAuthCode(code, (b, s) => TaskManager.RunInUI(() => DoOAuthCodeResult(b, s)));
             }
         }
@@ -224,7 +232,7 @@ namespace GitHub.Unity
         {
             need2fa = true;
             errorMessage = msg;
-            isBusy = false;
+            IsBusy = false;
             Redraw();
         }
 
@@ -232,13 +240,13 @@ namespace GitHub.Unity
         {
             need2fa = false;
             errorMessage = null;
-            isBusy = false;
+            IsBusy = false;
             Redraw();
         }
 
         private void DoResult(bool success, string msg)
         {
-            isBusy = false;
+            IsBusy = false;
             if (success)
             {
                 UsageTracker.IncrementAuthenticationViewButtonAuthentication();
@@ -255,7 +263,7 @@ namespace GitHub.Unity
 
         private void DoOAuthCodeResult(bool success, string msg)
         {
-            isBusy = false;
+            IsBusy = false;
             if (success)
             {
                 UsageTracker.IncrementAuthenticationViewButtonAuthentication();
@@ -300,11 +308,6 @@ namespace GitHub.Unity
             {
                 authenticationService = value;
             }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

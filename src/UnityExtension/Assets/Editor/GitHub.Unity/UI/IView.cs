@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,20 +22,20 @@ namespace GitHub.Unity
         IUser User { get; }
         bool HasUser { get; }
         IApplicationManager Manager { get; }
-        bool IsBusy { get; }
+        bool IsBusy { get; set; }
         bool IsRefreshing { get; }
         bool HasFocus { get; }
-        Dictionary<CacheType, int> RefreshEvents { get; }
+        HashSet<CacheType> RefreshEvents { get; }
     }
 
     interface IUIEmpty
     {
-        void DoEmptyGUI();
+        void DoEmptyUI();
     }
 
     interface IUIProgress
     {
-        void DoProgressGUI();
+        void DoProgressUI();
         void UpdateProgress(IProgress progress);
     }
 }

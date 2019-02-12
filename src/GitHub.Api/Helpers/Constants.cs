@@ -4,6 +4,7 @@ namespace GitHub.Unity
 {
     static class Constants
     {
+        // settings keys
         public const string GuidKey = "Guid";
         public const string MetricsKey = "MetricsEnabled";
         public const string UsageFile = "metrics.json";
@@ -11,6 +12,12 @@ namespace GitHub.Unity
         public const string TraceLoggingKey = "EnableTraceLogging";
         public const string WebTimeoutKey = "WebTimeout";
         public const string GitTimeoutKey = "GitTimeout";
+        public const string SkipVersionKey = "SkipVersion";
+        public const string GitInstallationState = "GitInstallationState";
+        public const string DisableGCMKey = "DisableGCM"; // don't let GCM prompt for credentials
+        public const string EnableGitAuthPromptsKey = "EnableGitAuthPrompts"; // let git prompt for credentials on the command line (might hang processes)
+        public const string DisableSetEnvironmentKey = "DisableSetEnvironment"; // don't set environment variables when spawning processes
+
         public const string Iso8601Format = @"yyyy-MM-dd\THH\:mm\:ss.fffzzz";
         public const string Iso8601FormatZ = @"yyyy-MM-dd\THH\:mm\:ss\Z";
         public static readonly string[] Iso8601Formats = {
@@ -32,8 +39,6 @@ namespace GitHub.Unity
             @"yyyy-MM-dd\THH\:mm\:ss.f\Z",
         };
         public const DateTimeStyles DateTimeStyle = DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal;
-        public const string SkipVersionKey = "SkipVersion";
-        public const string GitInstallationState = "GitInstallationState";
 
         public static readonly TheVersion MinimumGitVersion = TheVersion.Parse("2.0");
         public static readonly TheVersion MinimumGitLfsVersion = TheVersion.Parse("2.0");

@@ -31,46 +31,32 @@ namespace GitHub.Unity
         [SerializeField] private bool resetToSystem;
         [SerializeField] private bool changingManually;
 
-        [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool refresh;
         [NonSerialized] private GitInstaller.GitInstallationState installationState;
         [NonSerialized] private GitInstaller.GitInstallDetails installDetails;
 
-        public override void InitializeView(IView parent)
+        public override void OnDataUpdate(bool first)
         {
-            base.InitializeView(parent);
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
-        public override void OnEnable()
+        private void MaybeUpdateData(bool first)
         {
-            base.OnEnable();
-            refresh = true;
-        }
-
-        public override void OnDataUpdate()
-        {
-            base.OnDataUpdate();
-            MaybeUpdateData();
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (refresh)
+            if (first || IsRefreshing)
             {
                 installationState = Environment.GitInstallationState;
                 gitPath = installationState.GitExecutablePath;
                 gitLfsPath = installationState.GitLfsExecutablePath;
                 installDetails = new GitInstaller.GitInstallDetails(Environment.UserCachePath, Environment.IsWindows);
-                refresh = false;
             }
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);
 
-            EditorGUI.BeginDisabledGroup(IsBusy || Parent.IsBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 GUILayout.BeginVertical();
                 {
@@ -141,7 +127,7 @@ namespace GitHub.Unity
                         if (GUILayout.Button(GitPathSaveButton, GUILayout.ExpandWidth(false)))
                         {
                             GUI.FocusControl(null);
-                            isBusy = true;
+                            IsBusy = true;
                             ValidateAndSetGitInstallPath();
                         }
                     }
@@ -172,7 +158,7 @@ namespace GitHub.Unity
                     if (GUILayout.Button(FindSystemGitButton, GUILayout.ExpandWidth(false)))
                     {
                         GUI.FocusControl(null);
-                        isBusy = true;
+                        IsBusy = true;
                         new FuncTask<GitInstaller.GitInstallationState>(TaskManager.Token, () =>
                             {
                                 var gitInstaller = new GitInstaller(Environment, Manager.ProcessManager, TaskManager.Token);
@@ -191,12 +177,13 @@ namespace GitHub.Unity
                                     {
                                         gitLfsPath = state.GitLfsExecutablePath;
                                     }
+                                    Refresh();
                                 }
                                 else
                                 {
                                     Logger.Error(ex);
+                                    IsBusy = false;
                                 }
-                                isBusy = false;
                                 resetToBundled = false;
                                 resetToSystem = ViewHasChanges;
                                 changingManually = false;
@@ -250,12 +237,12 @@ namespace GitHub.Unity
                         {
                             Logger.Error(exception, ErrorInstallingInternalGit);
                             errorMessage = ErrorValidatingGitPath;
+                            IsBusy = false;
                         }
                         else
                         {
-                            refresh = true;
+                            Refresh();
                         }
-                        isBusy = false;
                         resetToBundled = false;
                         resetToSystem = false;
                         changingManually = false;
@@ -329,6 +316,7 @@ namespace GitHub.Unity
                             }
 
                             errorMessage = errorMessageStringBuilder.ToString();
+                            IsBusy = false;
                         }
                         else
                         {
@@ -336,9 +324,8 @@ namespace GitHub.Unity
                                 state.GitVersion,
                                 state.GitLfsVersion);
                            
-                            refresh = true;
+                            Refresh();
                         }
-                        isBusy = false;
                         resetToBundled = false;
                         resetToSystem = false;
                         changingManually = false;
@@ -354,11 +341,6 @@ namespace GitHub.Unity
             {
                 return gitPath != installationState.GitExecutablePath || gitLfsPath != installationState.GitLfsExecutablePath;
             }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

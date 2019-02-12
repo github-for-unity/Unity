@@ -23,7 +23,6 @@ namespace GitHub.Unity
         [SerializeField] private bool currentLocksHasUpdate;
 
         [NonSerialized] private GUIContent discardGuiContent;
-        [NonSerialized] private bool isBusy;
 
         [SerializeField] private string commitBody = "";
         [SerializeField] private string commitMessage = "";
@@ -44,13 +43,6 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-
-            if (treeChanges != null)
-            {
-                treeChanges.ViewHasFocus = HasFocus;
-                treeChanges.UpdateIcons(Styles.FolderIcon);
-            }
-
             AttachHandlers(Repository);
             ValidateCachedData(Repository);
         }
@@ -69,30 +61,30 @@ namespace GitHub.Unity
             Refresh(CacheType.GitLocks);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             DoButtonBarGUI();
             if (gitStatusEntries.Count == 0)
             {
                 GUILayout.BeginVertical(Styles.CommitFileAreaStyle);
-                DoEmptyGUI();
+                DoEmptyUI();
                 GUILayout.EndVertical();
             }
             else
             {
-                EditorGUI.BeginDisabledGroup(isBusy);
+                EditorGUI.BeginDisabledGroup(IsBusy);
                 DoChangesTreeGUI();
                 EditorGUI.EndDisabledGroup();
             }
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
 
-            DoProgressGUI();
+            DoProgressUI();
 
             // Do the commit details area
             DoCommitGUI();
@@ -117,6 +109,117 @@ namespace GitHub.Unity
                 treeChanges.ViewHasFocus = hasFocus;
                 Redraw();
             }
+        }
+
+        private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
+            {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
+                lastStatusEntriesChangedEvent = cacheUpdateEvent;
+                currentStatusEntriesHasUpdate = true;
+                Redraw();
+            }
+        }
+
+        private void RepositoryOnCurrentBranchChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
+            {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
+                lastCurrentBranchChangedEvent = cacheUpdateEvent;
+                currentBranchHasUpdate = true;
+                Redraw();
+            }
+        }
+
+        private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
+            {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
+                lastLocksChangedEvent = cacheUpdateEvent;
+                currentLocksHasUpdate = true;
+                Redraw();
+            }
+        }
+
+        private void AttachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
+            repository.LocksChanged += RepositoryOnLocksChanged;
+        }
+
+        private void DetachHandlers(IRepository repository)
+        {
+            if (repository == null)
+            {
+                return;
+            }
+
+            repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
+            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
+            repository.LocksChanged -= RepositoryOnLocksChanged;
+        }
+
+        private void ValidateCachedData(IRepository repository)
+        {
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
+            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
+        }
+
+        private void MaybeUpdateData(bool first)
+        {
+            if (treeChanges == null) treeChanges = new ChangesTree { DisplayRootNode = false, IsCheckable = true, IsUsingGlobalSelection = true };
+            if (first)
+            {
+                treeChanges.ViewHasFocus = HasFocus;
+                treeChanges.UpdateIcons(Styles.FolderIcon);
+            }
+
+            if (currentBranchHasUpdate)
+            {
+                currentBranchHasUpdate = false;
+                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
+            }
+
+            if (currentLocksHasUpdate)
+            {
+                gitLocks = new HashSet<NPath>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
+            }
+
+            if (currentStatusEntriesHasUpdate)
+            {
+                gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
+
+                changedFilesText = gitStatusEntries.Count == 0
+                    ? NoChangedFilesLabel
+                    : gitStatusEntries.Count == 1
+                        ? OneChangedFileLabel
+                        : String.Format(ChangedFilesLabel, gitStatusEntries.Count);
+            }
+
+            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
+            {
+                currentStatusEntriesHasUpdate = false;
+                currentLocksHasUpdate = false;
+
+                BuildTree();
+            }
+        }
+
+        private void BuildTree()
+        {
+            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
+            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path.ToNPath()))));
+            Redraw();
         }
 
         private void DoChangesTreeGUI()
@@ -308,110 +411,6 @@ namespace GitHub.Unity
                    });
         }
 
-        private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
-            {
-                ReceivedEvent(cacheUpdateEvent.cacheType);
-                lastStatusEntriesChangedEvent = cacheUpdateEvent;
-                currentStatusEntriesHasUpdate = true;
-                Redraw();
-            }
-        }
-
-        private void RepositoryOnCurrentBranchChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastCurrentBranchChangedEvent.Equals(cacheUpdateEvent))
-            {
-                ReceivedEvent(cacheUpdateEvent.cacheType);
-                lastCurrentBranchChangedEvent = cacheUpdateEvent;
-                currentBranchHasUpdate = true;
-                Redraw();
-            }
-        }
-
-        private void RepositoryOnLocksChanged(CacheUpdateEvent cacheUpdateEvent)
-        {
-            if (!lastLocksChangedEvent.Equals(cacheUpdateEvent))
-            {
-                ReceivedEvent(cacheUpdateEvent.cacheType);
-                lastLocksChangedEvent = cacheUpdateEvent;
-                currentLocksHasUpdate = true;
-                Redraw();
-            }
-        }
-
-        private void AttachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
-                return;
-            }
-
-            repository.CurrentBranchChanged += RepositoryOnCurrentBranchChanged;
-            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
-            repository.LocksChanged += RepositoryOnLocksChanged;
-        }
-
-        private void DetachHandlers(IRepository repository)
-        {
-            if (repository == null)
-            {
-                return;
-            }
-
-            repository.CurrentBranchChanged -= RepositoryOnCurrentBranchChanged;
-            repository.StatusEntriesChanged -= RepositoryOnStatusEntriesChanged;
-            repository.LocksChanged -= RepositoryOnLocksChanged;
-        }
-
-        private void ValidateCachedData(IRepository repository)
-        {
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitStatus, lastStatusEntriesChangedEvent);
-            repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitLocks, lastLocksChangedEvent);
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (currentBranchHasUpdate)
-            {
-                currentBranchHasUpdate = false;
-                currentBranch = string.Format("[{0}]", Repository.CurrentBranchName);
-            }
-
-            if (currentLocksHasUpdate)
-            {
-                gitLocks = new HashSet<NPath>(Repository.CurrentLocks.Select(gitLock => gitLock.Path));
-            }
-
-            if (currentStatusEntriesHasUpdate)
-            {
-                gitStatusEntries = Repository.CurrentChanges.Where(x => x.Status != GitFileStatus.Ignored).ToList();
-
-                changedFilesText = gitStatusEntries.Count == 0
-                    ? NoChangedFilesLabel
-                    : gitStatusEntries.Count == 1
-                        ? OneChangedFileLabel
-                        : String.Format(ChangedFilesLabel, gitStatusEntries.Count);
-            }
-
-            if (currentStatusEntriesHasUpdate || currentLocksHasUpdate)
-            {
-                currentStatusEntriesHasUpdate = false;
-                currentLocksHasUpdate = false;
-
-                BuildTree();
-            }
-        }
-
-        private void BuildTree()
-        {
-            treeChanges.PathSeparator = Environment.FileSystem.DirectorySeparatorChar.ToString();
-            treeChanges.Load(gitStatusEntries.Select(entry => new GitStatusEntryTreeData(entry, gitLocks.Contains(entry.Path.ToNPath()))));
-            Redraw();
-        }
-
         private void DoCommitGUI()
         {
             GUILayout.BeginHorizontal();
@@ -475,7 +474,7 @@ namespace GitHub.Unity
 
         private void Commit()
         {
-            isBusy = true;
+            IsBusy = true;
             var files = treeChanges.GetCheckedFiles().ToList();
             ITask addTask;
 
@@ -498,13 +497,8 @@ namespace GitHub.Unity
                             commitMessage = "";
                             commitBody = "";
                         }
-                        isBusy = false;
+                        Refresh();
                     }).Start();
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy || base.IsBusy; }
         }
     }
 }

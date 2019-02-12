@@ -19,15 +19,7 @@ namespace GitHub.Unity
         [SerializeField] private bool needsSaving;
         [SerializeField] private CacheUpdateEvent lastCheckUserChangedEvent;
 
-        [NonSerialized] private bool isBusy;
-        [NonSerialized] private bool userHasChanges;
         [NonSerialized] private bool gitExecutableIsSet;
-
-        public override void InitializeView(IView parent)
-        {
-            base.InitializeView(parent);
-            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
-        }
 
         public override void Refresh()
         {
@@ -35,13 +27,25 @@ namespace GitHub.Unity
             Refresh(CacheType.GitUser);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
-        public override void OnGUI()
+        private void MaybeUpdateData(bool first)
+        {
+            gitExecutableIsSet = Environment.GitExecutablePath.IsInitialized;
+
+            if (first || IsRefreshing)
+            {
+                gitName = newGitName = User.Name;
+                gitEmail = newGitEmail = User.Email;
+                needsSaving = false;
+            }
+        }
+
+        public override void OnUI()
         {
             GUILayout.Label(GitConfigTitle, EditorStyles.boldLabel);
 
@@ -64,7 +68,7 @@ namespace GitHub.Unity
                     if (GUILayout.Button(GitConfigUserSave, GUILayout.ExpandWidth(false)))
                     {
                         GUI.FocusControl(null);
-                        isBusy = true;
+                        IsBusy = true;
 
                         User.SetNameAndEmail(newGitName, newGitEmail);
                     }
@@ -96,30 +100,12 @@ namespace GitHub.Unity
         private void UserOnChanged(CacheUpdateEvent cacheUpdateEvent)
         {
             lastCheckUserChangedEvent = cacheUpdateEvent;
-            userHasChanges = true;
-            isBusy = false;
-            Redraw();
+            Refresh();
         }
 
         private void DetachHandlers()
         {
             User.Changed -= UserOnChanged;
-        }
-
-        private void MaybeUpdateData()
-        {
-            if (userHasChanges)
-            {
-                userHasChanges = false;
-                gitName = newGitName = User.Name;
-                gitEmail = newGitEmail = User.Email;
-                needsSaving = false;
-            }
-        }
-
-        public override bool IsBusy
-        {
-            get { return isBusy; }
         }
     }
 }

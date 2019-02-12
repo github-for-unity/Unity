@@ -352,10 +352,10 @@ namespace GitHub.Unity
             Refresh(CacheType.GitAheadBehind);
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
         public override void OnFocusChanged()
@@ -369,7 +369,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             var rect = GUILayoutUtility.GetLastRect();
             if (historyControl != null)
@@ -391,7 +391,7 @@ namespace GitHub.Unity
                     Redraw();
             }
 
-            DoProgressGUI();
+            DoProgressUI();
 
             if (!selectedEntry.Equals(GitLogEntry.Default))
             {
@@ -543,7 +543,7 @@ namespace GitHub.Unity
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.GitAheadBehind, lastTrackingStatusChangedEvent);
         }
 
-        private void MaybeUpdateData()
+        private void MaybeUpdateData(bool first)
         {
             if (Repository == null)
             {

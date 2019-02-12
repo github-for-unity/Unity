@@ -557,7 +557,7 @@ namespace GitHub.Unity
         [SerializeField] public bool isCheckable = false;
         [SerializeField] private List<TreeNode> nodes = new List<TreeNode>();
         [SerializeField] private TreeNode selectedNode = null;
-        [NonSerialized] private bool viewFocus;
+        [SerializeField] private bool viewFocus;
 
         public override string Title
         {

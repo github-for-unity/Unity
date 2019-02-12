@@ -21,6 +21,7 @@ namespace GitHub.Unity
         [SerializeField] private LoadingView loadingView;
         [SerializeField] private PublishView publishView;
         [SerializeField] private bool shouldCloseOnFinish;
+        [NonSerialized] private bool firstForThisView = true;
 
         public event Action<bool> OnClose;
 
@@ -44,14 +45,11 @@ namespace GitHub.Unity
             publishView.InitializeView(this);
             authenticationView.InitializeView(this);
             loadingView.InitializeView(this);
-
-            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
-            minSize = maxSize = ActiveView.Size;
             ActiveView.OnEnable();
         }
 
@@ -61,24 +59,26 @@ namespace GitHub.Unity
             ActiveView.OnDisable();
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            if (titleContent.image == null)
+            base.OnDataUpdate(first);
+            ActiveView.OnDataUpdate(first);
+            if (first || firstForThisView)
                 titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
-            ActiveView.OnDataUpdate();
+            minSize = maxSize = ActiveView.Size;
+            firstForThisView = false;
         }
 
         public override void OnUI()
         {
             base.OnUI();
-            ActiveView.OnGUI();
+            ActiveView.OnUI();
         }
 
         public override void Refresh()
         {
-            base.Refresh();
             ActiveView.Refresh();
+            base.Refresh();
         }
 
         public override void OnSelectionChange()
@@ -181,7 +181,7 @@ namespace GitHub.Unity
             if (fromView != null)
                 fromView.OnDisable();
             toView.OnEnable();
-            titleContent = new GUIContent(ActiveView.Title, Styles.SmallLogo);
+            firstForThisView = true;
 
             // this triggers a repaint
             Repaint();

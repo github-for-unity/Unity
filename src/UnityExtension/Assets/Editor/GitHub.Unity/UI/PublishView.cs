@@ -35,7 +35,6 @@ namespace GitHub.Unity
 
         [NonSerialized] private Dictionary<string, IApiClient> clients = new Dictionary<string, IApiClient>();
         [NonSerialized] private IApiClient selectedClient;
-        [NonSerialized] private bool isBusy;
         [NonSerialized] private string error;
         [NonSerialized] private bool connectionsNeedLoading;
         [NonSerialized] private bool ownersNeedLoading;
@@ -43,17 +42,17 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
-            ownersNeedLoading = publishOwners == null && !isBusy;
-            connectionsNeedLoading = connections == null && !isBusy;
+            ownersNeedLoading = publishOwners == null && !IsBusy;
+            connectionsNeedLoading = connections == null && !IsBusy;
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
         }
 
-        private void MaybeUpdateData()
+        private void MaybeUpdateData(bool first)
         {
             if (connectionsNeedLoading)
             {
@@ -96,7 +95,7 @@ namespace GitHub.Unity
 
         private void LoadOwners()
         {
-            isBusy = true;
+            IsBusy = true;
 
             selectedClient.GetOrganizations(orgs =>
             {
@@ -106,27 +105,22 @@ namespace GitHub.Unity
                     .ToArray();
 
                 owners = new[] { OwnersDefaultText, connections[selectedConnection].Username }.Union(publishOwners).ToArray();
-
-                isBusy = false;
-
-                Redraw();
+                Refresh();
             },
             exception =>
             {
-                isBusy = false;
-
                 var keychainEmptyException = exception as KeychainEmptyException;
                 if (keychainEmptyException != null)
                 {
                     PopupWindow.OpenWindow(PopupWindow.PopupViewType.AuthenticationView);
                     return;
                 }
-
                 Logger.Error(exception, "Unhandled Exception");
+                IsBusy = false;
             });
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
             {
@@ -134,7 +128,7 @@ namespace GitHub.Unity
             }
             GUILayout.EndHorizontal();
 
-            EditorGUI.BeginDisabledGroup(isBusy);
+            EditorGUI.BeginDisabledGroup(IsBusy);
             {
                 if (connections.Length > 1)
                 {
@@ -166,7 +160,7 @@ namespace GitHub.Unity
                     if (GUILayout.Button(PublishViewCreateButton))
                     {
                         GUI.FocusControl(null);
-                        isBusy = true;
+                        IsBusy = true;
 
                         var organization = owners[selectedOwner] == connections[selectedConnection].Username ? null : owners[selectedOwner];
 
@@ -179,7 +173,7 @@ namespace GitHub.Unity
                             {
                                 Logger.Error(ex, "Repository Create Error Type:{0}", ex.GetType().ToString());
                                 error = GetPublishErrorMessage(ex);
-                                isBusy = false;
+                                IsBusy = false;
                                 return;
                             }
 
@@ -188,7 +182,7 @@ namespace GitHub.Unity
                             if (repository == null)
                             {
                                 Logger.Warning("Returned Repository is null");
-                                isBusy = false;
+                                IsBusy = false;
                                 return;
                             }
                             Repository.RemoteAdd("origin", repository.CloneUrl)
@@ -221,14 +215,11 @@ namespace GitHub.Unity
             return ex.Message;
         }
 
-        public override bool IsBusy
-        {
-            get { return isBusy; }
-        }
-
         private bool IsFormValid
         {
-            get { return !string.IsNullOrEmpty(repoName) && !isBusy && selectedOwner != 0; }
+            get { return !string.IsNullOrEmpty(repoName) && !IsBusy && selectedOwner != 0; }
         }
+
+        public override bool IsBusy { get; set; }
     }
 }

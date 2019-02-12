@@ -16,7 +16,7 @@ namespace GitHub.Unity
         [NonSerialized] private Spinner spinner;
         [NonSerialized] private IProgress repositoryProgress;
         [NonSerialized] private IProgress appManagerProgress;
-        [NonSerialized] private bool firstOnGUI = true;
+        [NonSerialized] private bool firstForThisView = true;
 
         [SerializeField] private double progressMessageClearTime = -1;
         [SerializeField] private double notificationClearTime = -1;
@@ -143,13 +143,16 @@ namespace GitHub.Unity
                 ActiveView.OnDisable();
         }
 
-        public override void OnDataUpdate()
+        public override void OnDataUpdate(bool first)
         {
-            base.OnDataUpdate();
-            MaybeUpdateData();
+            base.OnDataUpdate(first);
+            MaybeUpdateData(first);
 
             if (ActiveView != null)
-                ActiveView.OnDataUpdate();
+            {
+                ActiveView.OnDataUpdate(first || firstForThisView);
+                firstForThisView = false;
+            }
         }
 
         public override void OnFocusChanged()
@@ -193,11 +196,10 @@ namespace GitHub.Unity
         public override void Refresh()
         {
             SetProgressMessage(Localization.MessageRefreshing, 0);
-            base.Refresh();
             if (ActiveView != null)
                 ActiveView.Refresh();
             Refresh(CacheType.GitLocks);
-            Redraw();
+            base.Refresh();
         }
 
         public override void DoneRefreshing()
@@ -211,13 +213,12 @@ namespace GitHub.Unity
             repository.CheckAndRaiseEventsIfCacheNewer(CacheType.RepositoryInfo, lastCurrentBranchAndRemoteChangedEvent);
         }
 
-        private void MaybeUpdateData()
+        private void MaybeUpdateData(bool first)
         {
-            if (firstOnGUI)
+            if (first)
             {
                 titleContent = new GUIContent(Title, Styles.SmallLogo);
             }
-            firstOnGUI = false;
 
             if (HasRepository && !string.IsNullOrEmpty(Repository.CloneUrl))
             {
@@ -540,7 +541,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override void DoProgressGUI()
+        public override void DoProgressUI()
         {
             Rect rect1 = GUILayoutUtility.GetRect(position.width, 20);
             if (Event.current.GetTypeForControl(GUIUtility.GetControlID("ghu_ProgressBar".GetHashCode(), FocusType.Keyboard, position)) == EventType.Repaint)
@@ -720,7 +721,7 @@ namespace GitHub.Unity
             // GUI for the active tab
             if (ActiveView != null)
             {
-                ActiveView.OnGUI();
+                ActiveView.OnUI();
             }
 
             if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.Repaint)
@@ -749,7 +750,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override void DoEmptyGUI()
+        public override void DoEmptyUI()
         {
             GUILayout.BeginVertical();
             GUILayout.FlexibleSpace();
@@ -867,7 +868,7 @@ namespace GitHub.Unity
                 fromView.OnDisable();
 
             toView.OnEnable();
-            toView.OnDataUpdate();
+            firstForThisView = true;
 
             // this triggers a repaint
             Redraw();
@@ -1026,7 +1027,7 @@ namespace GitHub.Unity
 
         public override bool IsBusy
         {
-            get { return Manager.IsBusy; }
+            get { return base.IsBusy || Manager.IsBusy || (Repository != null && Repository.IsBusy); }
         }
 
         private enum SubTab
