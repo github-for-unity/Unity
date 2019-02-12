@@ -16,7 +16,7 @@ namespace GitHub.Unity
             arguments = baseArguments;
         }
 
-        public GitLogTask(NPath file,
+        public GitLogTask(string file,
             IGitObjectFactory gitObjectFactory,
             CancellationToken token, BaseOutputListProcessor<GitLogEntry> processor = null)
             : base(token, processor ?? new LogEntryOutputProcessor(gitObjectFactory))
@@ -24,7 +24,7 @@ namespace GitHub.Unity
             Name = TaskName;
             arguments = baseArguments;
             arguments += " -- ";
-            arguments += " \"" + file.ToString(SlashMode.Forward) + "\"";
+            arguments += " \"" + file + "\"";
         }
 
         public override string ProcessArguments

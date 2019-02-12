@@ -6,18 +6,18 @@ namespace GitHub.Unity
     [Serializable]
     public struct GitFileLog
     {
-        public static GitFileLog Default = new GitFileLog(NPath.Default, new List<GitLogEntry>(0));
+        public static GitFileLog Default = new GitFileLog(null, new List<GitLogEntry>(0));
 
-        public NPath path;
+        public string path;
         public List<GitLogEntry> logEntries;
 
-        public GitFileLog(NPath path, List<GitLogEntry> logEntries)
+        public GitFileLog(string path, List<GitLogEntry> logEntries)
         {
             this.path = path;
             this.logEntries = logEntries;
         }
 
-        public NPath Path
+        public string Path
         {
             get { return path; }
             set { path = value; }

@@ -45,7 +45,7 @@ namespace GitHub.Unity
         ITask UpdateLocks();
         ITask UpdateRepositoryInfo();
         ITask UpdateBranches();
-        ITask UpdateFileLog(NPath path);
+        ITask UpdateFileLog(string path);
 
 
         int WaitForEvents();
@@ -366,7 +366,7 @@ namespace GitHub.Unity
             return HookupHandlers(task, false);
         }
 
-        public ITask UpdateFileLog(NPath path)
+        public ITask UpdateFileLog(string path)
         {
             var task = GitClient.LogFile(path)
                                 .Then((success, logEntries) =>

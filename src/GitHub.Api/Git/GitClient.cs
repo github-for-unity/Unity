@@ -262,9 +262,10 @@ namespace GitHub.Unity
         /// <summary>
         /// Executes `git log -- <file>` to get the history of a specific file.
         /// </summary>
+        /// <param name="file"></param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns><see cref="List&lt;T&gt;"/> of <see cref="GitLogEntry"/> output</returns>
-        ITask<List<GitLogEntry>> LogFile(NPath file, BaseOutputListProcessor<GitLogEntry> processor = null);
+        ITask<List<GitLogEntry>> LogFile(string file, BaseOutputListProcessor<GitLogEntry> processor = null);
 
         /// <summary>
         /// Executes `git --version` to get the git version.
@@ -358,7 +359,7 @@ namespace GitHub.Unity
         }
 
         ///<inheritdoc/>
-        public ITask<List<GitLogEntry>> LogFile(NPath file, BaseOutputListProcessor<GitLogEntry> processor = null)
+        public ITask<List<GitLogEntry>> LogFile(string file, BaseOutputListProcessor<GitLogEntry> processor = null)
         {
             if (file == NPath.Default)
             {

@@ -38,25 +38,28 @@ namespace GitHub.Unity
         [SerializeField] private bool locked;
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
         [SerializeField] private UnityEngine.Object selectedObject;
-        [SerializeField] private NPath selectedObjectAssetPath;
+        [SerializeField] private string selectedObjectAssetPath;
+        [SerializeField] private string selectedObjectRepositoryPath;
 
-        public void SetSelectedPath(NPath assetPath)
+        public void SetSelectedPath(string assetPath)
         {
-            NPath repositoryPath = NPath.Default;
-
-            selectedObjectAssetPath = assetPath;
             selectedObject = null;
+            selectedObjectAssetPath = null;
+            selectedObjectRepositoryPath = null;
 
             if (selectedObjectAssetPath != NPath.Default)
             {
-                selectedObject = AssetDatabase.LoadMainAssetAtPath(selectedObjectAssetPath.ToString());
+                selectedObjectAssetPath = assetPath;
+                selectedObject = AssetDatabase.LoadMainAssetAtPath(selectedObjectAssetPath);
 
-                repositoryPath = Environment.GetRepositoryPath(assetPath);
+                selectedObjectRepositoryPath =
+                    Environment.GetRepositoryPath(assetPath.ToNPath())
+                               .ToString(SlashMode.Forward);
             }
 
             LoadSelectedIcon();
 
-            Repository.UpdateFileLog(repositoryPath)
+            Repository.UpdateFileLog(selectedObjectRepositoryPath)
                       .Start();
         }
 
@@ -124,14 +127,14 @@ namespace GitHub.Unity
             if (!locked)
             {
                 selectedObject = Selection.activeObject;
-                selectedObjectAssetPath = NPath.Default;
+
+                string assetPath = null;
                 if (selectedObject != null)
                 {
-                    selectedObjectAssetPath = AssetDatabase.GetAssetPath(selectedObject)
-                                             .ToNPath();
-
-                    SetSelectedPath(selectedObjectAssetPath);
+                    assetPath = AssetDatabase.GetAssetPath(selectedObject);
                 }
+
+                SetSelectedPath(assetPath);
             }
         }
 
@@ -185,15 +188,15 @@ namespace GitHub.Unity
         {
             Texture nodeIcon = null;
 
-            if (selectedObjectAssetPath != NPath.Default)
+            if (!string.IsNullOrEmpty(selectedObjectAssetPath))
             {
-                if (selectedObjectAssetPath.DirectoryExists())
+                if (selectedObjectAssetPath.ToNPath().DirectoryExists())
                 {
                     nodeIcon = Styles.FolderIcon;
                 }
                 else
                 {
-                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectAssetPath.ToString());
+                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectAssetPath);
                 }
 
                 nodeIcon.hideFlags = HideFlags.HideAndDontSave;

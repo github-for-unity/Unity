@@ -25,7 +25,7 @@ namespace GitHub.Unity
         private HashSet<CacheType> cacheInvalidationRequests = new HashSet<CacheType>();
         private Dictionary<CacheType, Action<CacheUpdateEvent>> cacheUpdateEvents;
         private ProgressReporter progressReporter = new ProgressReporter();
-        private NPath lastFileLog = NPath.Default;
+        private string lastFileLog;
 
         public event Action<CacheUpdateEvent> LogChanged;
         public event Action<CacheUpdateEvent> FileLogChanged;
@@ -148,7 +148,7 @@ namespace GitHub.Unity
         public ITask DeleteBranch(string branch, bool force) => repositoryManager.DeleteBranch(branch, force);
         public ITask CreateBranch(string branch, string baseBranch) => repositoryManager.CreateBranch(branch, baseBranch);
         public ITask SwitchBranch(string branch) => repositoryManager.SwitchBranch(branch);
-        public ITask UpdateFileLog(NPath path)
+        public ITask UpdateFileLog(string path)
         {
             lastFileLog = path;
             return repositoryManager.UpdateFileLog(path);
