@@ -658,8 +658,15 @@ namespace GitHub.Unity
         [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
         [SerializeField] private Vector2 detailsScroll;
+        [SerializeField] private NPath fullPath;
 
         [SerializeField] private CacheUpdateEvent lastFileLogChangedEvent;
+
+        public void SetFullPath(NPath inFullPath)
+        {
+            this.fullPath = inFullPath;
+
+        }
 
         public override void Refresh()
         {
@@ -723,7 +730,14 @@ namespace GitHub.Unity
 
         public override void OnGUI()
         {
-            DoHistoryGui(Rect.zero);
+            var lastRect = GUILayoutUtility.GetLastRect();
+            DoHistoryGui(lastRect, entry => {
+                GenericMenu menu = new GenericMenu();
+                string checkoutPrompt = string.Format("Checkout revision {0}", entry.ShortID);
+                menu.AddItem(new GUIContent(checkoutPrompt), false, () => { Checkout(entry); });
+                menu.ShowAsContext();
+            }, node => {
+            });
         }
 
         protected override HistoryControl HistoryControl
@@ -748,6 +762,43 @@ namespace GitHub.Unity
         {
             get { return detailsScroll; }
             set { detailsScroll = value; }
+        }
+
+        private const string ConfirmCheckoutTitle = "Discard Changes?";
+        private const string ConfirmCheckoutMessage = "You've made changes to file '{0}'.  Overwrite these changes with the historical version?";
+        private const string ConfirmCheckoutOK = "Overwrite";
+        private const string ConfirmCheckoutCancel = "Cancel";
+
+        protected void Checkout(GitLogEntry entry)
+        {
+            GitClient.Status().ThenInUI((success, status) =>
+            {
+                if (success)
+                {
+                    bool promptUser = false;
+
+                    foreach (var e in status.Entries)
+                    {
+                        if (e.FullPath == this.fullPath)
+                        {
+                            // locally modified file; prompt user
+                            promptUser = true;
+                            break;
+                        }
+                    }
+
+                    if (!promptUser || EditorUtility.DisplayDialog(ConfirmCheckoutTitle, string.Format(ConfirmCheckoutMessage, this.fullPath), ConfirmCheckoutOK, ConfirmCheckoutCancel))
+                    {
+                        GitClient.CheckoutVersion(entry.commitID, new string[] { this.fullPath }).ThenInUI((checkoutSuccess, result) => {
+                            AssetDatabase.Refresh();
+                        }).Start();
+                    }
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Oops", "There was an error checking out this version of the file.  Try again!", "OK");
+                }
+            }).Start();
         }
     }
 }

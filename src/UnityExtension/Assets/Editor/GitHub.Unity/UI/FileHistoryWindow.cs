@@ -38,35 +38,52 @@ namespace GitHub.Unity
         [SerializeField] private bool locked;
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
         [SerializeField] private UnityEngine.Object selectedObject;
-        [SerializeField] private NPath selectedObjectPath;
+        [SerializeField] private NPath selectedObjectAssetPath;
+        [SerializeField] private string selectedObjectAssetPathStr;
 
-        public void SetSelectedPath(NPath path)
+        public void SetSelectedPath(NPath assetPath)
         {
-            selectedObjectPath = path;
+            var fullPath = Application.dataPath.ToNPath().Parent.Combine(assetPath);
+            this.fileHistoryView.SetFullPath(fullPath);
+
+            selectedObjectAssetPathStr = assetPath;
+            selectedObjectAssetPath = assetPath;
             selectedObject = null;
 
+            if (selectedObjectAssetPath != NPath.Default)
+            {
+                selectedObject = AssetDatabase.LoadMainAssetAtPath(selectedObjectAssetPath.ToString());
+            }
+
+            InitializeAssetIcon();
+
+            // If we use selectedObjectAssetPath then this will break if the Unity project isn't located at the root
+            // of the git repository. 
+            Repository.UpdateFileLog(fullPath)
+                      .Start();
+        }
+
+        private void InitializeAssetIcon()
+        {
             Texture nodeIcon = null;
 
-            if (selectedObjectPath != NPath.Default)
+            if (selectedObjectAssetPath != NPath.Default)
             {
-                selectedObject = AssetDatabase.LoadMainAssetAtPath(path.ToString());
+                selectedObject = AssetDatabase.LoadMainAssetAtPath(selectedObjectAssetPath.ToString());
 
-                if (selectedObjectPath.DirectoryExists())
+                if (selectedObjectAssetPath.DirectoryExists())
                 {
                     nodeIcon = Styles.FolderIcon;
                 }
                 else
                 {
-                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectPath.ToString());
+                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectAssetPath.ToString());
                 }
 
                 nodeIcon.hideFlags = HideFlags.HideAndDontSave;
             }
 
             selectedIcon = nodeIcon;
-
-            Repository.UpdateFileLog(selectedObjectPath)
-                      .Start();
         }
 
         public override void Initialize(IApplicationManager applicationManager)
@@ -131,14 +148,14 @@ namespace GitHub.Unity
             if (!locked)
             {
                 selectedObject = Selection.activeObject;
-                selectedObjectPath = NPath.Default;
+                selectedObjectAssetPath = NPath.Default;
                 if (selectedObject != null)
                 {
-                    selectedObjectPath = AssetDatabase.GetAssetPath(selectedObject)
+                    selectedObjectAssetPath = AssetDatabase.GetAssetPath(selectedObject)
                                              .ToNPath();
                 }
 
-                SetSelectedPath(selectedObjectPath);
+                SetSelectedPath(selectedObjectAssetPath);
             }
         }
 
@@ -151,9 +168,20 @@ namespace GitHub.Unity
             Redraw();
         }
 
+        // Ideally we'd just call this in 'Initialize()' but that is too early in the domain reload and causes exceptions
+        private void RestoreFromDomainReload()
+        {
+            if (selectedObjectAssetPathStr != selectedObjectAssetPath && !string.IsNullOrEmpty(selectedObjectAssetPathStr))
+            {
+                this.SetSelectedPath(selectedObjectAssetPathStr.ToNPath());
+            }            
+        }
+
         public override void OnUI()
         {
             base.OnUI();
+
+            RestoreFromDomainReload();
 
             if (selectedObject != null)
             {
@@ -209,7 +237,7 @@ namespace GitHub.Unity
 
                 GUILayout.Label(selectedIcon, GUILayout.Height(iconWidth), GUILayout.Width(iconHeight));
 
-                GUILayout.Label(selectedObjectPath, Styles.FileHistoryLogTitleStyle);
+                GUILayout.Label(selectedObjectAssetPath, Styles.FileHistoryLogTitleStyle);
 
                 GUILayout.FlexibleSpace();
 
