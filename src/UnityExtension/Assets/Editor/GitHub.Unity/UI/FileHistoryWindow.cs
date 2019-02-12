@@ -39,51 +39,25 @@ namespace GitHub.Unity
         [SerializeField] private FileHistoryView fileHistoryView = new FileHistoryView();
         [SerializeField] private UnityEngine.Object selectedObject;
         [SerializeField] private NPath selectedObjectAssetPath;
-        [SerializeField] private string selectedObjectAssetPathStr;
 
         public void SetSelectedPath(NPath assetPath)
         {
-            var fullPath = Application.dataPath.ToNPath().Parent.Combine(assetPath);
-            this.fileHistoryView.SetFullPath(fullPath);
+            NPath repositoryPath = NPath.Default;
 
-            selectedObjectAssetPathStr = assetPath;
             selectedObjectAssetPath = assetPath;
             selectedObject = null;
 
             if (selectedObjectAssetPath != NPath.Default)
             {
                 selectedObject = AssetDatabase.LoadMainAssetAtPath(selectedObjectAssetPath.ToString());
+
+                repositoryPath = Environment.GetRepositoryPath(assetPath);
             }
 
-            InitializeAssetIcon();
+            LoadSelectedIcon();
 
-            // If we use selectedObjectAssetPath then this will break if the Unity project isn't located at the root
-            // of the git repository. 
-            Repository.UpdateFileLog(fullPath)
+            Repository.UpdateFileLog(repositoryPath)
                       .Start();
-        }
-
-        private void InitializeAssetIcon()
-        {
-            Texture nodeIcon = null;
-
-            if (selectedObjectAssetPath != NPath.Default)
-            {
-                selectedObject = AssetDatabase.LoadMainAssetAtPath(selectedObjectAssetPath.ToString());
-
-                if (selectedObjectAssetPath.DirectoryExists())
-                {
-                    nodeIcon = Styles.FolderIcon;
-                }
-                else
-                {
-                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectAssetPath.ToString());
-                }
-
-                nodeIcon.hideFlags = HideFlags.HideAndDontSave;
-            }
-
-            selectedIcon = nodeIcon;
         }
 
         public override void Initialize(IApplicationManager applicationManager)
@@ -101,6 +75,8 @@ namespace GitHub.Unity
         public override void OnEnable()
         {
             base.OnEnable();
+
+            LoadSelectedIcon();
 
             if (fileHistoryView != null)
                 fileHistoryView.OnEnable();
@@ -153,9 +129,9 @@ namespace GitHub.Unity
                 {
                     selectedObjectAssetPath = AssetDatabase.GetAssetPath(selectedObject)
                                              .ToNPath();
-                }
 
-                SetSelectedPath(selectedObjectAssetPath);
+                    SetSelectedPath(selectedObjectAssetPath);
+                }
             }
         }
 
@@ -168,20 +144,9 @@ namespace GitHub.Unity
             Redraw();
         }
 
-        // Ideally we'd just call this in 'Initialize()' but that is too early in the domain reload and causes exceptions
-        private void RestoreFromDomainReload()
-        {
-            if (selectedObjectAssetPathStr != selectedObjectAssetPath && !string.IsNullOrEmpty(selectedObjectAssetPathStr))
-            {
-                this.SetSelectedPath(selectedObjectAssetPathStr.ToNPath());
-            }            
-        }
-
         public override void OnUI()
         {
             base.OnUI();
-
-            RestoreFromDomainReload();
 
             if (selectedObject != null)
             {
@@ -214,6 +179,27 @@ namespace GitHub.Unity
         {
             if (repository == null)
                 return;
+        }
+
+        private void LoadSelectedIcon()
+        {
+            Texture nodeIcon = null;
+
+            if (selectedObjectAssetPath != NPath.Default)
+            {
+                if (selectedObjectAssetPath.DirectoryExists())
+                {
+                    nodeIcon = Styles.FolderIcon;
+                }
+                else
+                {
+                    nodeIcon = UnityEditorInternal.InternalEditorUtility.GetIconForFile(selectedObjectAssetPath.ToString());
+                }
+
+                nodeIcon.hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            selectedIcon = nodeIcon;
         }
 
         private void ShowButton(Rect rect)

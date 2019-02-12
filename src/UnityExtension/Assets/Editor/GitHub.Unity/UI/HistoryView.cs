@@ -651,6 +651,7 @@ namespace GitHub.Unity
     class FileHistoryView : HistoryBase
     {
         [SerializeField] private bool currentFileLogHasUpdate;
+        [SerializeField] private bool currentStatusEntriesHasUpdate;
 
         [SerializeField] private GitFileLog gitFileLog;
 
@@ -658,15 +659,10 @@ namespace GitHub.Unity
         [SerializeField] private GitLogEntry selectedEntry = GitLogEntry.Default;
         [SerializeField] private ChangesTree treeChanges = new ChangesTree { DisplayRootNode = false };
         [SerializeField] private Vector2 detailsScroll;
-        [SerializeField] private NPath fullPath;
+        [SerializeField] private List<GitStatusEntry> gitStatusEntries = new List<GitStatusEntry>();
 
+        [SerializeField] private CacheUpdateEvent lastStatusEntriesChangedEvent;
         [SerializeField] private CacheUpdateEvent lastFileLogChangedEvent;
-
-        public void SetFullPath(NPath inFullPath)
-        {
-            this.fullPath = inFullPath;
-
-        }
 
         public override void Refresh()
         {
@@ -686,6 +682,17 @@ namespace GitHub.Unity
             }
         }
 
+        private void RepositoryOnStatusEntriesChanged(CacheUpdateEvent cacheUpdateEvent)
+        {
+            if (!lastStatusEntriesChangedEvent.Equals(cacheUpdateEvent))
+            {
+                ReceivedEvent(cacheUpdateEvent.cacheType);
+                lastStatusEntriesChangedEvent = cacheUpdateEvent;
+                currentStatusEntriesHasUpdate = true;
+                Redraw();
+            }
+        }
+
         protected override void AttachHandlers(IRepository repository)
         {
             if (repository == null)
@@ -694,6 +701,7 @@ namespace GitHub.Unity
             }
 
             repository.FileLogChanged += RepositoryOnFileLogChanged;
+            repository.StatusEntriesChanged += RepositoryOnStatusEntriesChanged;
         }
 
         protected override void DetachHandlers(IRepository repository)
@@ -704,6 +712,7 @@ namespace GitHub.Unity
             }
 
             repository.FileLogChanged -= RepositoryOnFileLogChanged;
+            repository.FileLogChanged -= RepositoryOnStatusEntriesChanged;
         }
 
         protected override void ValidateCachedData(IRepository repository)
@@ -726,6 +735,13 @@ namespace GitHub.Unity
 
                 BuildHistoryControl(0, gitFileLog.LogEntries);
             }
+
+            if (currentStatusEntriesHasUpdate)
+            {
+                currentStatusEntriesHasUpdate = false;
+
+                gitStatusEntries = Repository.CurrentChanges;
+            }
         }
 
         public override void OnGUI()
@@ -734,7 +750,7 @@ namespace GitHub.Unity
             DoHistoryGui(lastRect, entry => {
                 GenericMenu menu = new GenericMenu();
                 string checkoutPrompt = string.Format("Checkout revision {0}", entry.ShortID);
-                menu.AddItem(new GUIContent(checkoutPrompt), false, () => { Checkout(entry); });
+                menu.AddItem(new GUIContent(checkoutPrompt), false, () => Checkout(entry.commitID));
                 menu.ShowAsContext();
             }, node => {
             });
@@ -769,36 +785,16 @@ namespace GitHub.Unity
         private const string ConfirmCheckoutOK = "Overwrite";
         private const string ConfirmCheckoutCancel = "Cancel";
 
-        protected void Checkout(GitLogEntry entry)
+        protected void Checkout(string commitId)
         {
-            GitClient.Status().ThenInUI((success, status) =>
+            var promptUser = gitStatusEntries.Count > 0 && gitStatusEntries.Any(statusEntry => gitFileLog.Path.Equals(statusEntry.Path.ToNPath()));
+
+            if (!promptUser || EditorUtility.DisplayDialog(ConfirmCheckoutTitle, string.Format(ConfirmCheckoutMessage, gitFileLog.Path), ConfirmCheckoutOK, ConfirmCheckoutCancel))
             {
-                if (success)
-                {
-                    bool promptUser = false;
-
-                    foreach (var e in status.Entries)
-                    {
-                        if (e.FullPath == this.fullPath)
-                        {
-                            // locally modified file; prompt user
-                            promptUser = true;
-                            break;
-                        }
-                    }
-
-                    if (!promptUser || EditorUtility.DisplayDialog(ConfirmCheckoutTitle, string.Format(ConfirmCheckoutMessage, this.fullPath), ConfirmCheckoutOK, ConfirmCheckoutCancel))
-                    {
-                        Repository.CheckoutVersion(entry.commitID, new string[] { fullPath })
-                                  .ThenInUI(AssetDatabase.Refresh)
-                                  .Start();
-                    }
-                }
-                else
-                {
-                    EditorUtility.DisplayDialog("Oops", "There was an error checking out this version of the file.  Try again!", "OK");
-                }
-            }).Start();
+                Repository.CheckoutVersion(commitId, new string[] { gitFileLog.Path })
+                          .ThenInUI(AssetDatabase.Refresh)
+                          .Start();
+            }
         }
     }
 }
