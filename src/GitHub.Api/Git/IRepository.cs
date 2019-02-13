@@ -21,6 +21,7 @@ namespace GitHub.Unity
         ITask RequestLock(NPath file);
         ITask ReleaseLock(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] discardEntries);
+        ITask CheckoutVersion(string changeset, IList<string> files);
 
         /// <summary>
         /// Gets the name of the repository.
@@ -61,8 +62,10 @@ namespace GitHub.Unity
         List<GitLogEntry> CurrentLog { get; }
         bool IsBusy { get; }
         string CurrentHead { get; }
+        GitFileLog CurrentFileLog { get; }
 
         event Action<CacheUpdateEvent> LogChanged;
+        event Action<CacheUpdateEvent> FileLogChanged;
         event Action<CacheUpdateEvent> TrackingStatusChanged;
         event Action<CacheUpdateEvent> StatusEntriesChanged;
         event Action<CacheUpdateEvent> CurrentBranchChanged;
@@ -78,6 +81,7 @@ namespace GitHub.Unity
         ITask DeleteBranch(string branch, bool force);
         ITask CreateBranch(string branch, string baseBranch);
         ITask SwitchBranch(string branch);
+        ITask UpdateFileLog(string path);
         void Refresh(CacheType cacheType);
         event Action<IProgress> OnProgress;
     }

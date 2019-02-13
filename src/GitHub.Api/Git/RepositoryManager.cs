@@ -13,6 +13,7 @@ namespace GitHub.Unity
         event Action<GitStatus> GitStatusUpdated;
         event Action<List<GitLock>> GitLocksUpdated;
         event Action<List<GitLogEntry>> GitLogUpdated;
+        event Action<GitFileLog> GitFileLogUpdated;
         event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
         event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
         event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
@@ -37,12 +38,15 @@ namespace GitHub.Unity
         ITask LockFile(NPath file);
         ITask UnlockFile(NPath file, bool force);
         ITask DiscardChanges(GitStatusEntry[] gitStatusEntries);
+        ITask CheckoutVersion(string changeset, IList<string> files);
         ITask UpdateGitLog();
         ITask UpdateGitStatus();
         ITask UpdateGitAheadBehindStatus();
         ITask UpdateLocks();
         ITask UpdateRepositoryInfo();
         ITask UpdateBranches();
+        ITask UpdateFileLog(string path);
+
 
         int WaitForEvents();
 
@@ -136,6 +140,7 @@ namespace GitHub.Unity
         public event Action<GitAheadBehindStatus> GitAheadBehindStatusUpdated;
         public event Action<List<GitLock>> GitLocksUpdated;
         public event Action<List<GitLogEntry>> GitLogUpdated;
+        public event Action<GitFileLog> GitFileLogUpdated;
         public event Action<Dictionary<string, ConfigBranch>> LocalBranchesUpdated;
         public event Action<Dictionary<string, ConfigRemote>, Dictionary<string, Dictionary<string, ConfigBranch>>> RemoteBranchesUpdated;
 
@@ -341,6 +346,13 @@ namespace GitHub.Unity
             return HookupHandlers(task, true);
         }
 
+        public ITask CheckoutVersion(string changeset, IList<string> files)
+        {
+            var task = GitClient.CheckoutVersion(changeset, files)
+                                .Then(() => DataNeedsRefreshing?.Invoke(CacheType.GitStatus));
+            return HookupHandlers(task, false);
+        }
+
         public ITask UpdateGitLog()
         {
             var task = GitClient.Log()
@@ -351,6 +363,20 @@ namespace GitHub.Unity
                         GitLogUpdated?.Invoke(logEntries);
                     }
                 });
+            return HookupHandlers(task, false);
+        }
+
+        public ITask UpdateFileLog(string path)
+        {
+            var task = GitClient.LogFile(path)
+                                .Then((success, logEntries) =>
+                                {
+                                    if (success)
+                                    {
+                                        var gitFileLog = new GitFileLog(path, logEntries);
+                                        GitFileLogUpdated?.Invoke(gitFileLog);
+                                    }
+                                });
             return HookupHandlers(task, false);
         }
 
@@ -644,6 +670,7 @@ namespace GitHub.Unity
                 GitStatusUpdated = null;
                 GitAheadBehindStatusUpdated = null;
                 GitLogUpdated = null;
+                GitFileLogUpdated = null;
                 GitLocksUpdated = null;
                 LocalBranchesUpdated = null;
                 RemoteBranchesUpdated = null;

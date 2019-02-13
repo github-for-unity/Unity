@@ -7,7 +7,7 @@ using UnityEngine;
 namespace GitHub.Unity
 {
     [Serializable]
-    class PopupWindow : BaseWindow
+    public class PopupWindow : BaseWindow
     {
         public enum PopupViewType
         {

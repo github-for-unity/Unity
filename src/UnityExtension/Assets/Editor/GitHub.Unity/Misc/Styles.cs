@@ -65,6 +65,7 @@ namespace GitHub.Unity
                                 headerBranchLabelStyle,
                                 headerUrlLabelStyle,
                                 headerRepoLabelStyle,
+                                fileHistoryLogTitleStyle,
                                 headerTitleStyle,
                                 headerDescriptionStyle,
                                 toolbarButtonStyle,
@@ -472,14 +473,14 @@ namespace GitHub.Unity
             }
         }
 
-        public static GUIStyle HistoryLockStyle
+        public static GUIStyle LockButtonStyle
         {
             get
             {
                 if (historyLockStyle == null)
                 {
                     historyLockStyle = new GUIStyle(GUI.skin.FindStyle("IN LockButton"));
-                    historyLockStyle.name = "HistoryLockStyle";
+                    historyLockStyle.name = "LockStyle";
                 }
                 historyLockStyle.margin = new RectOffset(3, 3, 2, 2);
                 return historyLockStyle;
@@ -734,8 +735,7 @@ namespace GitHub.Unity
                 return boldCenteredLabel;
             }
         }
-
-
+        
         public static GUIStyle CommitDescriptionFieldStyle
         {
             get
@@ -799,6 +799,20 @@ namespace GitHub.Unity
                     hyperlinkStyle.normal.textColor = new Color(0, 0, 0xEE);
                 }
                 return hyperlinkStyle;
+            }
+        }
+
+        public static GUIStyle FileHistoryLogTitleStyle
+        {
+            get
+            {
+                if (fileHistoryLogTitleStyle == null)
+                {
+                    fileHistoryLogTitleStyle = new GUIStyle(EditorStyles.largeLabel);
+                    fileHistoryLogTitleStyle.name = "FileHistoryLogTitleStyle";
+                    fileHistoryLogTitleStyle.margin = new RectOffset(0, 0, 0, 0);
+                }
+                return fileHistoryLogTitleStyle;
             }
         }
 

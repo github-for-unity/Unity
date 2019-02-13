@@ -469,20 +469,20 @@ namespace GitHub.Unity
         }
     }
 
-    class GitHubHostMeta
+    public class GitHubHostMeta
     {
         public bool VerifiablePasswordAuthentication { get; set; }
         public string GithubServicesSha { get; set; }
         public string InstalledVersion { get; set; }
     }
 
-    class GitHubUser
+    public class GitHubUser
     {
         public string Name { get; set; }
         public string Login { get; set; }
     }
 
-    class GitHubRepository
+    public class GitHubRepository
     {
         public string Name { get; set; }
         public string CloneUrl { get; set; }

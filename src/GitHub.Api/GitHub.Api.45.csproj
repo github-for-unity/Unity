@@ -79,6 +79,7 @@
     <Compile Include="Cache\CachingClasses.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Git\GitFileLog.cs" />
     <Compile Include="Git\Tasks\GitCheckoutTask.cs" />
     <Compile Include="Git\GitAheadBehindStatus.cs" />
     <Compile Include="Git\Tasks\GitAheadBehindStatusTask.cs" />
