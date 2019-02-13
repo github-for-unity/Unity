@@ -107,15 +107,6 @@ namespace GitHub.Unity
 
             DetachHandlers(oldRepository);
             AttachHandlers(Repository);
-
-            if (HasRepository)
-            {
-                
-            }
-            else
-            {
-               
-            }
         }
 
         public override void OnSelectionChange()
