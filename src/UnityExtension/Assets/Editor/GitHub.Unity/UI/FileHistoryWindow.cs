@@ -225,19 +225,22 @@ namespace GitHub.Unity
                 var iconHeight = 32;
 
                 GUILayout.Label(selectedIcon, GUILayout.Height(iconWidth), GUILayout.Width(iconHeight));
-
-                GUILayout.Label(selectedObjectAssetPath, Styles.FileHistoryLogTitleStyle);
-
-                GUILayout.FlexibleSpace();
+                GUILayout.Space(16);
 
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Space(16);
+                    GUILayout.Label(selectedObjectAssetPath, Styles.FileHistoryLogTitleStyle);
 
-                    if (GUILayout.Button("Show in Project"))
+                    GUILayout.BeginHorizontal();
                     {
-                        EditorGUIUtility.PingObject(selectedObject);
+                        GUILayout.FlexibleSpace();
+
+                        if (GUILayout.Button("Show in Project"))
+                        {
+                            EditorGUIUtility.PingObject(selectedObject);
+                        }
                     }
+                    GUILayout.EndHorizontal();
                 }
                 GUILayout.EndVertical();
             }
