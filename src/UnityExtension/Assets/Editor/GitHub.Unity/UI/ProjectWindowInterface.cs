@@ -291,7 +291,7 @@ namespace GitHub.Unity
                 guids.Add(guid);
             }
 
-            EditorApplication.RepaintProjectWindow();
+            AssetDatabase.Refresh();
         }
 
         private static void OnProjectWindowItemGUI(string guid, Rect itemRect)

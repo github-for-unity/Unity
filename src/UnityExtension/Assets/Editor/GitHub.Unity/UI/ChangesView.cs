@@ -244,6 +244,7 @@ namespace GitHub.Unity
                 }
 
                 Repository.DiscardChanges(discardEntries)
+                          .ThenInUI(AssetDatabase.Refresh)
                           .Start();
             });
 
