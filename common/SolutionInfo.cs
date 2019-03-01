@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 namespace System
 {
     internal static class AssemblyVersionInformation {
-        private const string GitHubForUnityVersion = "1.2.2";
+        private const string GitHubForUnityVersion = "1.3.0";
         internal const string VersionForAssembly = GitHubForUnityVersion;
 
         // If this is an alpha, beta or other pre-release, mark it as such as shown below
