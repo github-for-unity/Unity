@@ -35,8 +35,6 @@ install:
     git submodule update
 
     nuget restore GitHub.Unity.sln
-- if %BUILD_TYPE%==full cd submodules\packaging\unitypackage && node .\yarn.js install --prefer-offline
-- ps: >-
 
     Set-Location $env:appveyor_build_folder
 
@@ -75,20 +73,24 @@ test:
     - DoNotRunOnAppVeyor
 on_success:
 - ps: |
-    Set-Location $env:appveyor_build_folder
     if ($package) {
-      $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
-      Get-ChildItem -Recurse "$($sourcedir)\*.pdb" | foreach { $_.fullname.substring(0, $_.fullname.length - $_.extension.length) } | foreach { Write-Output "Generating $($_).mdb"; & 'lib\pdb2mdb.exe' "$($_).dll" }
-    }
-- if %BUILD_TYPE%==full cd %appveyor_build_folder%\submodules\packaging\unitypackage && node yarn.js start --path %appveyor_build_folder%\unity\PackageProject --out %appveyor_build_folder% --file github-for-unity-%package_version%
-- ps: |
-    Set-Location $env:appveyor_build_folder
-    if ($package) {
-      $sourcedir="$($env:appveyor_build_folder)\unity\PackageProject"
-      $zipfile="$($env:appveyor_build_folder)\PackageProject-$($env:package_version).zip"
-      $packagefile="$($env:appveyor_build_folder)\github-for-unity-$($env:package_version).unitypackage"
+      $rootdir=$env:appveyor_build_folder
+      Set-Location $rootdir
+      $sourcedir="$rootdir\unity\PackageProject"
+      $packagename="github-for-unity-$($env:package_version)"
+      $packagefile="$rootdir\$($packagename).unitypackage"
       $commitfile="$sourcedir\commit"
+      $zipfile="$rootdir\PackageProject-$($env:package_version).zip"
 
+      # generate mdb files
+      Write-Output "Generating mdb files"
+      Get-ChildItem -Recurse "$($sourcedir)\*.pdb" | foreach { $_.fullname.substring(0, $_.fullname.length - $_.extension.length) } | foreach { Write-Output "Generating $($_).mdb"; & 'lib\pdb2mdb.exe' "$($_).dll" }
+
+      # generate unitypackage
+      Write-Output "Generating $packagefile"
+      submodules\packaging\unitypackage\run.ps1 -PathToPackage:$sourcedir -OutputFolder:$rootdir -PackageName:$packagename
+
+      # save commit
       Add-Content $commitfile $appveyor_repo_commit
 
       Write-Output "Zipping $sourcedir to $zipfile"
