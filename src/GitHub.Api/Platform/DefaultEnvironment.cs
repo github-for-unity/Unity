@@ -135,7 +135,7 @@ namespace GitHub.Unity
         private static string GetEnvironmentVariableKeyInternal(string name)
         {
             return Environment.GetEnvironmentVariables().Keys.Cast<string>()
-                                 .FirstOrDefault(k => string.Compare(name, k, true, CultureInfo.InvariantCulture) == 0);
+                                 .FirstOrDefault(k => string.Compare(name, k, true, CultureInfo.InvariantCulture) == 0) ?? name;
         }
 
         public NPath LogPath { get; }

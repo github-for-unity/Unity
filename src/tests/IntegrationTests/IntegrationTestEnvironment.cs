@@ -77,13 +77,13 @@ namespace IntegrationTests
 
         public string GetEnvironmentVariableKey(string name)
         {
-            return GetEnvironmentVariableKeyInternal(name);
+            return defaultEnvironment.GetEnvironmentVariableKey(name);
         }
 
         private static string GetEnvironmentVariableKeyInternal(string name)
         {
             return Environment.GetEnvironmentVariables().Keys.Cast<string>()
-                              .FirstOrDefault(k => string.Compare(name, k, true, CultureInfo.InvariantCulture) == 0);
+                              .FirstOrDefault(k => string.Compare(name, k, true, CultureInfo.InvariantCulture) == 0) ?? name;
         }
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
