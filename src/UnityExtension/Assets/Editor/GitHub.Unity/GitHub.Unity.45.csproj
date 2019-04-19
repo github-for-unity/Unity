@@ -170,8 +170,8 @@
     <EmbeddedResource Include="IconsAndLogos\locked.png" />
     <EmbeddedResource Include="IconsAndLogos\modified%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\modified.png" />
-    <EmbeddedResource Include="IconsAndLogos\moved%402x.png" />
-    <EmbeddedResource Include="IconsAndLogos\moved.png" />
+    <EmbeddedResource Include="IconsAndLogos\renamed%402x.png" />
+    <EmbeddedResource Include="IconsAndLogos\renamed.png" />
     <EmbeddedResource Include="IconsAndLogos\removed%402x.png" />
     <EmbeddedResource Include="IconsAndLogos\removed.png" />
     <EmbeddedResource Include="IconsAndLogos\repo%402x.png" />
