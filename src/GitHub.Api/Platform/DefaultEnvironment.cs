@@ -1,5 +1,6 @@
 using GitHub.Logging;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -116,12 +117,25 @@ namespace GitHub.Unity
 
         public string ExpandEnvironmentVariables(string name)
         {
-            return Environment.ExpandEnvironmentVariables(name);
+            var key = GetEnvironmentVariableKey(name);
+            return Environment.ExpandEnvironmentVariables(key);
         }
 
-        public string GetEnvironmentVariable(string variable)
+        public string GetEnvironmentVariable(string name)
         {
-            return Environment.GetEnvironmentVariable(variable);
+            var key = GetEnvironmentVariableKey(name);
+            return Environment.GetEnvironmentVariable(key);
+        }
+
+        public string GetEnvironmentVariableKey(string name)
+        {
+            return GetEnvironmentVariableKeyInternal(name);
+        }
+
+        private static string GetEnvironmentVariableKeyInternal(string name)
+        {
+            return Environment.GetEnvironmentVariables().Keys.Cast<string>()
+                                 .FirstOrDefault(k => string.Compare(name, k, true, CultureInfo.InvariantCulture) == 0) ?? name;
         }
 
         public NPath LogPath { get; }
@@ -134,7 +148,7 @@ namespace GitHub.Unity
         public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }
-        public string Path { get; set; } = Environment.GetEnvironmentVariable("PATH");
+        public string Path { get; set; } = Environment.GetEnvironmentVariable(GetEnvironmentVariableKeyInternal("PATH"));
 
         public string NewLine => Environment.NewLine;
         public NPath OctorunScriptPath

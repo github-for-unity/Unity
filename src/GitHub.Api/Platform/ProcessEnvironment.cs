@@ -1,5 +1,4 @@
 using GitHub.Logging;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -24,11 +23,12 @@ namespace GitHub.Unity
 
             var path = Environment.Path;
             psi.EnvironmentVariables["GHU_WORKINGDIR"] = workingDirectory;
+            var pathEnvVarKey = Environment.GetEnvironmentVariableKey("PATH");
 
             if (dontSetupGit)
             {
                 psi.EnvironmentVariables["GHU_FULLPATH"] = path;
-                psi.EnvironmentVariables["PATH"] = path;
+                psi.EnvironmentVariables[pathEnvVarKey] = path;
                 return;
             }
 
@@ -87,10 +87,10 @@ namespace GitHub.Unity
 
             pathEntries.Add("END");
 
-            path = String.Join(separator, pathEntries.ToArray()) + separator + path;
+            path = string.Join(separator, pathEntries.ToArray()) + separator + path;
 
             psi.EnvironmentVariables["GHU_FULLPATH"] = path;
-            psi.EnvironmentVariables["PATH"] = path;
+            psi.EnvironmentVariables[pathEnvVarKey] = path;
 
             //TODO: Remove with Git LFS Locking becomes standard
             psi.EnvironmentVariables["GITLFSLOCKSENABLED"] = "1";
@@ -102,11 +102,11 @@ namespace GitHub.Unity
             }
 
             var httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY");
-            if (!String.IsNullOrEmpty(httpProxy))
+            if (!string.IsNullOrEmpty(httpProxy))
                 psi.EnvironmentVariables["HTTP_PROXY"] = httpProxy;
 
             var httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY");
-            if (!String.IsNullOrEmpty(httpsProxy))
+            if (!string.IsNullOrEmpty(httpsProxy))
                 psi.EnvironmentVariables["HTTPS_PROXY"] = httpsProxy;
             psi.EnvironmentVariables["DISPLAY"] = "0";
         }

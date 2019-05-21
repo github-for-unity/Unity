@@ -41,5 +41,6 @@ namespace GitHub.Unity
         ISettings LocalSettings { get; }
         ISettings SystemSettings { get; }
         ISettings UserSettings { get; }
+        string GetEnvironmentVariableKey(string name);
     }
 }

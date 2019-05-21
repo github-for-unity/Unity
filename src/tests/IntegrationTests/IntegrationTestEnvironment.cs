@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using GitHub.Unity;
 using GitHub.Logging;
 
@@ -60,7 +61,7 @@ namespace IntegrationTests
 
         public string ExpandEnvironmentVariables(string name)
         {
-            return name;
+            return defaultEnvironment.ExpandEnvironmentVariables(name);
         }
 
         public string GetEnvironmentVariable(string v)
@@ -71,6 +72,18 @@ namespace IntegrationTests
                 logger.Trace("GetEnvironmentVariable: {0}={1}", v, environmentVariable);
             }
             return environmentVariable;
+        }
+
+
+        public string GetEnvironmentVariableKey(string name)
+        {
+            return defaultEnvironment.GetEnvironmentVariableKey(name);
+        }
+
+        private static string GetEnvironmentVariableKeyInternal(string name)
+        {
+            return Environment.GetEnvironmentVariables().Keys.Cast<string>()
+                              .FirstOrDefault(k => string.Compare(name, k, true, CultureInfo.InvariantCulture) == 0) ?? name;
         }
 
         public string GetSpecialFolder(Environment.SpecialFolder folder)
@@ -88,7 +101,7 @@ namespace IntegrationTests
 
         public string UserProfilePath => UserCachePath.Parent.CreateDirectory("user profile path");
 
-        public string Path { get; set; } = Environment.GetEnvironmentVariable("PATH").ToNPath();
+        public string Path { get; set; } = Environment.GetEnvironmentVariable(GetEnvironmentVariableKeyInternal("PATH"));
 
         public string NewLine => Environment.NewLine;
         public string UnityVersion => "5.6";
