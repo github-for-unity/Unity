@@ -8,7 +8,7 @@ using GitHub.Logging;
 
 namespace GitHub.Unity
 {
-    interface IRepositoryWatcher : IDisposable
+    public interface IRepositoryWatcher : IDisposable
     {
         void Start();
         void Stop();
@@ -23,7 +23,7 @@ namespace GitHub.Unity
         int CheckAndProcessEvents();
     }
 
-    class RepositoryWatcher : IRepositoryWatcher
+    public class RepositoryWatcher : IRepositoryWatcher
     {
         private readonly RepositoryPathConfiguration paths;
         private readonly CancellationToken cancellationToken;
