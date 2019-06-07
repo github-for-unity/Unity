@@ -113,7 +113,7 @@
     <Compile Include="Installer\OctorunInstaller.cs" />
     <Compile Include="Installer\UnzipTask.cs" />
     <Compile Include="IO\FileSystem.cs" />
-    <Compile Include="Managers\Downloader.cs" />
+    <Compile Include="Tasks\Downloader.cs" />
     <Compile Include="OutputProcessors\GitAheadBehindStatusOutputProcessor.cs" />
     <Compile Include="OutputProcessors\GitCountObjectsProcessor.cs" />
     <Compile Include="OutputProcessors\LfsVersionOutputProcessor.cs" />
@@ -180,15 +180,17 @@
     <Compile Include="Installer\ZipHelper.cs" />
     <Compile Include="Extensions\AsyncExtensions.cs" />
     <Compile Include="Platform\Settings.cs" />
+    <Compile Include="Process\IProcessEnvironment.cs" />
+    <Compile Include="Process\ProcessEnvironment.cs" />
+    <Compile Include="Process\IProcessManager.cs" />
+    <Compile Include="Process\ProcessManager.cs" />
     <Compile Include="OutputProcessors\BranchListOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LocksOutputProcessor.cs" />
     <Compile Include="OutputProcessors\LogEntryOutputProcessor.cs" />
-    <Compile Include="OutputProcessors\ProcessManager.cs" />
     <Compile Include="OutputProcessors\StatusOutputProcessor.cs" />
     <Compile Include="Git\GitConfig.cs" />
     <Compile Include="OutputProcessors\LineProcessor.cs" />
     <Compile Include="Git\GitRemote.cs" />
-    <Compile Include="OutputProcessors\IProcessManager.cs" />
     <Compile Include="IO\NiceIO.cs" />
     <Compile Include="OutputProcessors\RemoteListOutputProcessor.cs" />
     <Compile Include="Git\IRepository.cs" />
@@ -198,8 +200,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
-    <Compile Include="Platform\ProcessEnvironment.cs" />
-    <Compile Include="Platform\IProcessEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Git\Repository.cs" />
     <Compile Include="Git\RepositoryManager.cs" />
