@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyInformationalVersion(System.AssemblyVersionInformation.Version)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyCompany("GitHub, Inc.")]
-[assembly: AssemblyCopyright("Copyright GitHub, Inc. 2017-2018")]
+[assembly: AssemblyCopyright("Copyright GitHub, Inc. 2016-2019")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
