@@ -2,9 +2,9 @@ using System;
 using System.Text;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitPullTask : ProcessTask<string>
+    public class GitPullTask : ProcessTask<string>
     {
         private const string TaskName = "git pull";
         private readonly string arguments;

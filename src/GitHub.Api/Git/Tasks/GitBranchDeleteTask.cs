@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitBranchDeleteTask : ProcessTask<string>
+    public class GitBranchDeleteTask : ProcessTask<string>
     {
         private const string TaskName = "git branch -d";
         private readonly string arguments;

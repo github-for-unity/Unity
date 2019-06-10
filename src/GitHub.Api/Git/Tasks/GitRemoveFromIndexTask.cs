@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRemoveFromIndexTask : ProcessTask<string>
+    public class GitRemoveFromIndexTask : ProcessTask<string>
     {
         private const string TaskName = "git reset HEAD";
         private readonly string arguments;

@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRemoteRemoveTask : ProcessTask<string>
+    public class GitRemoteRemoveTask : ProcessTask<string>
     {
         private const string TaskName = "git remote rm";
         private readonly string arguments;

@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitListLocksTask : ProcessTaskWithListOutput<GitLock>
+    public class GitListLocksTask : ProcessTaskWithListOutput<GitLock>
     {
         private const string TaskName = "git lfs locks";
         private readonly string args;

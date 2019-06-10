@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRemoteListTask : ProcessTaskWithListOutput<GitRemote>
+    public class GitRemoteListTask : ProcessTaskWithListOutput<GitRemote>
     {
         private const string TaskName = "git remote";
 

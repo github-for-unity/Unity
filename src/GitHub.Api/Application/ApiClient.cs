@@ -11,7 +11,7 @@ using GitHub.Unity.Json;
 
 namespace GitHub.Unity
 {
-    class ApiClient : IApiClient
+    public class ApiClient : IApiClient
     {
         private static readonly ILogging logger = LogHelper.GetLogger<ApiClient>();
         private static readonly Regex httpStatusErrorRegex = new Regex("(?<=[a-z])([A-Z])", RegexOptions.Compiled);
@@ -505,7 +505,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class TokenUsernameMismatchException : ApiClientException
+    public class TokenUsernameMismatchException : ApiClientException
     {
         public string CachedUsername { get; }
         public string CurrentUsername { get; }
@@ -520,7 +520,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class KeychainEmptyException : ApiClientException
+    public class KeychainEmptyException : ApiClientException
     {
         public KeychainEmptyException()
         {

@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitConfigGetAllTask : ProcessTaskWithListOutput<string>
+    public class GitConfigGetAllTask : ProcessTaskWithListOutput<string>
     {
         private const string TaskName = "git config get";
         private readonly string arguments;

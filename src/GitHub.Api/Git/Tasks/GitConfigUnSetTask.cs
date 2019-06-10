@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitConfigUnSetTask : ProcessTask<string>
+    public class GitConfigUnSetTask : ProcessTask<string>
     {
         private readonly string arguments;
 

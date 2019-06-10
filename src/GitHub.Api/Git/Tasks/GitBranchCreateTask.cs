@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitBranchCreateTask : ProcessTask<string>
+    public class GitBranchCreateTask : ProcessTask<string>
     {
         private const string TaskName = "git branch";
         private readonly string arguments;

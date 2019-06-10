@@ -2,10 +2,11 @@ using GitHub.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GitHub.Unity.Git.Tasks;
 
 namespace GitHub.Unity
 {
-    class GitCredentialManager : ICredentialManager
+    public class GitCredentialManager : ICredentialManager
     {
         private static ILogging Logger { get; } = LogHelper.GetLogger<GitCredentialManager>();
 

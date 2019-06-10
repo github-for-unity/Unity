@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitStatusTask : ProcessTask<GitStatus>
+    public class GitStatusTask : ProcessTask<GitStatus>
     {
         private const string TaskName = "git status";
 

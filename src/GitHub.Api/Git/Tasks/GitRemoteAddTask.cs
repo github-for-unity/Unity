@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRemoteAddTask : ProcessTask<string>
+    public class GitRemoteAddTask : ProcessTask<string>
     {
         private const string TaskName = "git remote add";
         private readonly string arguments;

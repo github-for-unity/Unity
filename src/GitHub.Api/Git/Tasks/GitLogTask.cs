@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitLogTask : ProcessTaskWithListOutput<GitLogEntry>
+    public class GitLogTask : ProcessTaskWithListOutput<GitLogEntry>
     {
         private const string TaskName = "git log";
         private const string baseArguments = @"-c i18n.logoutputencoding=utf8 -c core.quotepath=false log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status";

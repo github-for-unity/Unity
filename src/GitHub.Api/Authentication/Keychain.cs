@@ -67,7 +67,7 @@ namespace GitHub.Unity
         }
     }
 
-    class Keychain : IKeychain
+    public class Keychain : IKeychain
     {
         const string ConnectionFile = "connections.json";
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using GitHub.Logging;
+using GitHub.Unity.Git.Tasks;
 
 namespace GitHub.Unity
 {

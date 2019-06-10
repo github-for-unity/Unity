@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitListLocalBranchesTask : ProcessTaskWithListOutput<GitBranch>
+    public class GitListLocalBranchesTask : ProcessTaskWithListOutput<GitBranch>
     {
         private const string TaskName = "git list local branches";
         private const string Arguments = "branch -vv";

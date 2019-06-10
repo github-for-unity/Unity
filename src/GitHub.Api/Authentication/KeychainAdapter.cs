@@ -1,6 +1,6 @@
 ﻿namespace GitHub.Unity
 {
-    class KeychainAdapter : IKeychainAdapter
+    public class KeychainAdapter : IKeychainAdapter
     {
         public ICredential Credential { get; private set; }
 

@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRevertTask : ProcessTask<string>
+    public class GitRevertTask : ProcessTask<string>
     {
         private const string TaskName = "git revert";
         private readonly string arguments;

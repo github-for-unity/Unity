@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitAheadBehindStatusTask : ProcessTask<GitAheadBehindStatus>
+    public class GitAheadBehindStatusTask : ProcessTask<GitAheadBehindStatus>
     {
         private const string TaskName = "git rev-list";
         private readonly string arguments;

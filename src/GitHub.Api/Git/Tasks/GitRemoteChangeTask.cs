@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRemoteChangeTask : ProcessTask<string>
+    public class GitRemoteChangeTask : ProcessTask<string>
     {
         private const string TaskName = "git remote set-url";
         private readonly string arguments;

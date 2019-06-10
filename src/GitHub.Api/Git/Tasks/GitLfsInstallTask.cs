@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitLfsInstallTask : ProcessTask<string>
+    public class GitLfsInstallTask : ProcessTask<string>
     {
         private const string TaskName = "git lsf install";
 

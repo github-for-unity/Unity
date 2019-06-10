@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitPushTask : ProcessTask<string>
+    public class GitPushTask : ProcessTask<string>
     {
         private const string TaskName = "git push";
         private readonly string arguments;

@@ -167,7 +167,7 @@ namespace GitHub.Unity
         void SetInt(string section, string key, int value);
     }
 
-    class GitConfig : IGitConfig
+    public class GitConfig : IGitConfig
     {
         private readonly ConfigFileManager manager;
         private SectionParser sectionParser;
@@ -296,7 +296,7 @@ namespace GitHub.Unity
             manager.Save(sb.ToString());
         }
 
-        class Section : Dictionary<string, List<string>>
+        public class Section : Dictionary<string, List<string>>
         {
             public Section(string name, string description = null)
             {
@@ -364,7 +364,7 @@ namespace GitHub.Unity
             public string Description { get; private set; }
         }
 
-        class SectionParser
+        public class SectionParser
         {
             private static readonly Regex CommentPattern = new Regex(@"^[;#].*", RegexOptions.Compiled);
             private static readonly Regex SectionPattern = new Regex(@"^\[(.*)\]$", RegexOptions.Compiled);
@@ -463,7 +463,7 @@ namespace GitHub.Unity
             public Dictionary<string, Dictionary<string, Section>> GroupSections { get; private set; }
         }
 
-        class ConfigFileManager
+        public class ConfigFileManager
         {
             private static readonly string[] emptyContents = new string[0];
 

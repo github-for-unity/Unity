@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitSwitchBranchesTask : ProcessTask<string>
+    public class GitSwitchBranchesTask : ProcessTask<string>
     {
         private const string TaskName = "git checkout";
         private readonly string arguments;

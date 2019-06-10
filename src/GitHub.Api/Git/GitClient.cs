@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using GitHub.Unity.Git.Tasks;
 using static GitHub.Unity.GitInstaller;
 
 namespace GitHub.Unity

@@ -1,9 +1,9 @@
 using System.Text;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitUnlockTask : ProcessTask<string>
+    public class GitUnlockTask : ProcessTask<string>
     {
         private const string TaskName = "git lfs unlock";
         private readonly string arguments;
