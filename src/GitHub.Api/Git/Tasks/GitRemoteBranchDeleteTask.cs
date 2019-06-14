@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitRemoteBranchDeleteTask : ProcessTask<string>
+    public class GitRemoteBranchDeleteTask : ProcessTask<string>
     {
         private const string TaskName = "git push --delete";
         private readonly string arguments;

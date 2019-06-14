@@ -12,7 +12,7 @@ namespace GitHub.Unity
         IKeychain Keychain { get; }
     }
 
-    class Platform : IPlatform
+    public class Platform : IPlatform
     {
         public Platform(IEnvironment environment)
         {

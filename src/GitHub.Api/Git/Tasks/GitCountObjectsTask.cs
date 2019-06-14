@@ -1,8 +1,8 @@
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitCountObjectsTask : ProcessTask<int>
+    public class GitCountObjectsTask : ProcessTask<int>
     {
         private const string TaskName = "git count-objects";
 

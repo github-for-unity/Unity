@@ -3,7 +3,7 @@ using GitHub.Unity;
 
 namespace GitHub.Unity
 {
-    class GitObjectFactory : IGitObjectFactory
+    public class GitObjectFactory : IGitObjectFactory
     {
         private readonly IEnvironment environment;
 

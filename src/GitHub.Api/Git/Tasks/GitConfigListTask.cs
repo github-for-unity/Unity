@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitConfigListTask : ProcessTaskWithListOutput<KeyValuePair<string, string>>
+    public class GitConfigListTask : ProcessTaskWithListOutput<KeyValuePair<string, string>>
     {
         private const string TaskName = "git config list";
         private readonly string arguments;

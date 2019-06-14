@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitFetchTask : ProcessTask<string>
+    public class GitFetchTask : ProcessTask<string>
     {
         private const string TaskName = "git fetch";
         private readonly string arguments;

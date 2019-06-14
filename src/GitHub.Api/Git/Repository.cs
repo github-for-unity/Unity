@@ -13,7 +13,7 @@ namespace GitHub.Unity
     }
 
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    sealed class Repository : IEquatable<Repository>, IRepository
+    public class Repository : IEquatable<Repository>, IRepository
     {
         private static ILogging Logger = LogHelper.GetLogger<Repository>();
 

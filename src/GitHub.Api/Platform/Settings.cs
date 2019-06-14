@@ -7,7 +7,7 @@ using System.Text;
 
 namespace GitHub.Unity
 {
-    abstract class BaseSettings : ISettings
+    public abstract class BaseSettings : ISettings
     {
         public abstract bool Exists(string key);
         public abstract string Get(string key, string fallback = "");
@@ -21,7 +21,7 @@ namespace GitHub.Unity
         protected virtual string SettingsFileName { get; set; }
     }
 
-    class JsonBackedSettings : BaseSettings
+    public class JsonBackedSettings : BaseSettings
     {
         private string cachePath;
         protected Dictionary<string, object> cacheData;
@@ -225,7 +225,7 @@ namespace GitHub.Unity
         }
     }
 
-    class LocalSettings : JsonBackedSettings
+    public class LocalSettings : JsonBackedSettings
     {
         private const string RelativeSettingsPath = "ProjectSettings";
         private const string settingsFileName = "GitHub.local.json";
@@ -238,7 +238,7 @@ namespace GitHub.Unity
         protected override string SettingsFileName { get { return settingsFileName; } }
     }
 
-    class UserSettings : JsonBackedSettings
+    public class UserSettings : JsonBackedSettings
     {
         private const string settingsFileName = "usersettings.json";
         private const string oldSettingsFileName = "settings.json";
@@ -263,7 +263,7 @@ namespace GitHub.Unity
         protected override string SettingsFileName { get { return settingsFileName; } }
     }
 
-    class SystemSettings : JsonBackedSettings
+    public class SystemSettings : JsonBackedSettings
     {
         private const string settingsFileName = "systemsettings.json";
         private const string oldSettingsFileName = "settings.json";

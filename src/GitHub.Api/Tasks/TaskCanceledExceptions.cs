@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace GitHub.Unity
 {
     [Serializable]
-    class DependentTaskFailedException : TaskCanceledException
+    public class DependentTaskFailedException : TaskCanceledException
     {
         protected DependentTaskFailedException() : base()
         { }
@@ -21,7 +21,7 @@ namespace GitHub.Unity
     }
 
     [Serializable]
-    class ProcessException : TaskCanceledException
+    public class ProcessException : TaskCanceledException
     {
         public int ErrorCode { get; }
 

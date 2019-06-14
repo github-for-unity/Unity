@@ -16,7 +16,7 @@ namespace GitHub.Unity
     /// <summary>
     /// Provides services for logging into a GitHub server.
     /// </summary>
-    class LoginManager : ILoginManager
+    public class LoginManager : ILoginManager
     {
         private readonly ILogging logger = LogHelper.GetLogger<LoginManager>();
 
@@ -233,7 +233,7 @@ namespace GitHub.Unity
         }
     }
 
-    class LoginResultData
+    public class LoginResultData
     {
         public LoginResultCodes Code;
         public string Message;

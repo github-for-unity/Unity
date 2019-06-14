@@ -55,7 +55,7 @@ namespace GitHub.Unity
         bool IsBusy { get; }
     }
 
-    interface IRepositoryPathConfiguration
+    public interface IRepositoryPathConfiguration
     {
         NPath RepositoryPath { get; }
         NPath DotGitPath { get; }
@@ -68,7 +68,7 @@ namespace GitHub.Unity
         bool IsWorktree { get; }
     }
 
-    class RepositoryPathConfiguration : IRepositoryPathConfiguration
+    public class RepositoryPathConfiguration : IRepositoryPathConfiguration
     {
         public RepositoryPathConfiguration(NPath repositoryPath)
         {
@@ -124,7 +124,7 @@ namespace GitHub.Unity
         public NPath DotGitCommitEditMsg { get; }
     }
 
-    class RepositoryManager : IRepositoryManager
+    public class RepositoryManager : IRepositoryManager
     {
         private readonly IGitConfig config;
         private readonly IGitClient gitClient;

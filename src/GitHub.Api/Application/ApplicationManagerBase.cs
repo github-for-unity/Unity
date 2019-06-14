@@ -7,7 +7,7 @@ using static GitHub.Unity.GitInstaller;
 
 namespace GitHub.Unity
 {
-    class ApplicationManagerBase : IApplicationManager
+    public class ApplicationManagerBase : IApplicationManager
     {
         protected static ILogging Logger { get; } = LogHelper.GetLogger<IApplicationManager>();
 

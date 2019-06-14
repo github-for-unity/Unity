@@ -1,9 +1,8 @@
-using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitVersionTask : ProcessTask<TheVersion>
+    public class GitVersionTask : ProcessTask<TheVersion>
     {
         private const string TaskName = "git --version";
 

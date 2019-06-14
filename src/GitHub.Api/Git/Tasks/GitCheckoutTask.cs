@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitCheckoutTask : ProcessTask<string>
+    public class GitCheckoutTask : ProcessTask<string>
     {
         private const string TaskName = "git checkout";
         private readonly string arguments;

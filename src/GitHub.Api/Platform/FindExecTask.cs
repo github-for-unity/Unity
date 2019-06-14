@@ -2,7 +2,7 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class FindExecTask : ProcessTask<NPath>
+    public class FindExecTask : ProcessTask<NPath>
     {
         private readonly string arguments;
 

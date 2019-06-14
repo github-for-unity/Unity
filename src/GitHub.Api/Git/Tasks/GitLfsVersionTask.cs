@@ -1,9 +1,8 @@
-using System;
 using System.Threading;
 
-namespace GitHub.Unity
+namespace GitHub.Unity.Git.Tasks
 {
-    class GitLfsVersionTask : ProcessTask<TheVersion>
+    public class GitLfsVersionTask : ProcessTask<TheVersion>
     {
         private const string TaskName = "git lfs version";
 
