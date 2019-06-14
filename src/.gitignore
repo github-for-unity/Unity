@@ -313,3 +313,4 @@ sysinfo.txt
 *.apk
 *.unitypackage
 UnityExtension/**/manifest.json
+tests/IntegrationTests/IOTestsRepo/

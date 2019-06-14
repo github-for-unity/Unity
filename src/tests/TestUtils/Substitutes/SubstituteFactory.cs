@@ -310,15 +310,14 @@ namespace TestUtils
         {
             var gitObjectFactory = Substitute.For<IGitObjectFactory>();
 
-            gitObjectFactory.CreateGitStatusEntry(Args.String, Args.GitFileStatus, Args.String, Args.Bool)
+            gitObjectFactory.CreateGitStatusEntry(Args.String, Args.GitFileStatus, Args.GitFileStatus, Args.String)
                             .Returns(info => {
                                 var path = (string)info[0];
-                                var status = (GitFileStatus)info[1];
-                                var originalPath = (string)info[2];
-                                var staged = (bool)info[3];
+                                var indexStatus = (GitFileStatus)info[1];
+                                var workTreeStatus = (GitFileStatus)info[2];
+                                var originalPath = (string)info[3];
 
-                                return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, status, originalPath,
-                                    staged);
+                                return new GitStatusEntry(path, gitRepoPath + @"\" + path, null, indexStatus, workTreeStatus, originalPath);
                             });
 
             return gitObjectFactory;

@@ -13,19 +13,19 @@ namespace UnitTests
             var gitStatusEntry1 = new[]
             {
                 new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Added, "SomeOriginalPath"),
+                    GitFileStatus.None, GitFileStatus.Added, "SomeOriginalPath"),
 
                 new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Modified)
+                    GitFileStatus.None, GitFileStatus.Modified)
             };
 
             var gitStatusEntry2 = new[]
             {
                 new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Added, "SomeOriginalPath"),
+                    GitFileStatus.None, GitFileStatus.Added, "SomeOriginalPath"),
 
                 new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Modified)
+                    GitFileStatus.None, GitFileStatus.Modified)
             };
 
             gitStatusEntry1.AssertEqual(gitStatusEntry2);
@@ -37,19 +37,19 @@ namespace UnitTests
             var gitStatusEntry1 = new[]
             {
                 new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Modified),
+                    GitFileStatus.None, GitFileStatus.Modified),
 
                 new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Added, "SomeOriginalPath")
+                    GitFileStatus.None, GitFileStatus.Added, "SomeOriginalPath")
             };
 
             var gitStatusEntry2 = new[]
             {
                 new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Added, "SomeOriginalPath"),
+                    GitFileStatus.None, GitFileStatus.Added, "SomeOriginalPath"),
 
                 new GitStatusEntry("ASDFSomePath", "SomeFullPath", "SomeProjectPath",
-                    GitFileStatus.Modified)
+                    GitFileStatus.None, GitFileStatus.Modified)
             };
 
             gitStatusEntry1.AssertNotEqual(gitStatusEntry2);

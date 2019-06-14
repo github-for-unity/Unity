@@ -11,21 +11,22 @@ namespace GitHub.Unity
         public string fullPath;
         public string projectPath;
         public string originalPath;
-        public GitFileStatus status;
-        public bool staged;
+        public GitFileStatus indexStatus;
+        public GitFileStatus workTreeStatus;
 
-        public GitStatusEntry(string path, string fullPath, string projectPath, GitFileStatus status,
-            string originalPath = null, bool staged = false)
+        public GitStatusEntry(string path, string fullPath, string projectPath,
+            GitFileStatus indexStatus, GitFileStatus workTreeStatus,
+            string originalPath = null)
         {
             Guard.ArgumentNotNullOrWhiteSpace(path, "path");
             Guard.ArgumentNotNullOrWhiteSpace(fullPath, "fullPath");
 
             this.path = path;
-            this.status = status;
+            this.indexStatus = indexStatus;
+            this.workTreeStatus = workTreeStatus;
             this.fullPath = fullPath;
             this.projectPath = projectPath;
             this.originalPath = originalPath;
-            this.staged = staged;
         }
 
         public override int GetHashCode()
@@ -35,8 +36,8 @@ namespace GitHub.Unity
             hash = hash * 23 + (fullPath?.GetHashCode() ?? 0);
             hash = hash * 23 + (projectPath?.GetHashCode() ?? 0);
             hash = hash * 23 + (originalPath?.GetHashCode() ?? 0);
-            hash = hash * 23 + status.GetHashCode();
-            hash = hash * 23 + staged.GetHashCode();
+            hash = hash * 23 + indexStatus.GetHashCode();
+            hash = hash * 23 + workTreeStatus.GetHashCode();
             return hash;
         }
 
@@ -54,8 +55,8 @@ namespace GitHub.Unity
                 String.Equals(fullPath, other.fullPath) &&
                 String.Equals(projectPath, other.projectPath) &&
                 String.Equals(originalPath, other.originalPath) &&
-                status == other.status &&
-                staged == other.staged
+                indexStatus == other.indexStatus &&
+                workTreeStatus == other.workTreeStatus
                 ;
         }
 
@@ -78,6 +79,49 @@ namespace GitHub.Unity
             return !(lhs == rhs);
         }
 
+        public static GitFileStatus ParseStatusMarker(char changeFlag)
+        {
+            GitFileStatus status = GitFileStatus.None;
+            switch (changeFlag)
+            {
+                case 'M':
+                    status = GitFileStatus.Modified;
+                    break;
+                case 'A':
+                    status = GitFileStatus.Added;
+                    break;
+                case 'D':
+                    status = GitFileStatus.Deleted;
+                    break;
+                case 'R':
+                    status = GitFileStatus.Renamed;
+                    break;
+                case 'C':
+                    status = GitFileStatus.Copied;
+                    break;
+                case 'U':
+                    status = GitFileStatus.Unmerged;
+                    break;
+                case 'T':
+                    status = GitFileStatus.TypeChange;
+                    break;
+                case 'X':
+                    status = GitFileStatus.Unknown;
+                    break;
+                case 'B':
+                    status = GitFileStatus.Broken;
+                    break;
+                case '?':
+                    status = GitFileStatus.Untracked;
+                    break;
+                case '!':
+                    status = GitFileStatus.Ignored;
+                    break;
+                default: break;
+            }
+            return status;
+        }
+
         public string Path => path;
 
         public string FullPath => fullPath;
@@ -86,13 +130,18 @@ namespace GitHub.Unity
 
         public string OriginalPath => originalPath;
 
-        public GitFileStatus Status => status;
+        public GitFileStatus Status => workTreeStatus != GitFileStatus.None ? workTreeStatus : indexStatus;
+        public GitFileStatus IndexStatus => indexStatus;
+        public GitFileStatus WorkTreeStatus => workTreeStatus;
 
-        public bool Staged => staged;
+        public bool Staged => indexStatus != GitFileStatus.None;
+
+        public bool Unmerged => (indexStatus == workTreeStatus && (indexStatus == GitFileStatus.Added || indexStatus == GitFileStatus.Deleted)) ||
+                                 indexStatus == GitFileStatus.Unmerged || workTreeStatus == GitFileStatus.Unmerged;
 
         public override string ToString()
         {
-            return $"Path:'{Path}' Status:'{Status}' FullPath:'{FullPath}' ProjectPath:'{ProjectPath}' OriginalPath:'{OriginalPath}' Staged:'{Staged}'";
+            return $"Path:'{Path}' Status:'{Status}' FullPath:'{FullPath}' ProjectPath:'{ProjectPath}' OriginalPath:'{OriginalPath}' Staged:'{Staged}' Unmerged:'{Unmerged}' Status:'{IndexStatus}'  Status:'{WorkTreeStatus}' ";
         }
     }
 }

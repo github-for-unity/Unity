@@ -317,7 +317,7 @@ namespace GitHub.Unity
 
                     foreach (var gitStatusEntry in gitStatusEntries)
                     {
-                        if (gitStatusEntry.status == GitFileStatus.Added || gitStatusEntry.status == GitFileStatus.Untracked)
+                        if (gitStatusEntry.WorkTreeStatus == GitFileStatus.Added || gitStatusEntry.WorkTreeStatus == GitFileStatus.Untracked)
                         {
                             itemsToDelete.Add(gitStatusEntry.path.ToNPath().MakeAbsolute());
                         }

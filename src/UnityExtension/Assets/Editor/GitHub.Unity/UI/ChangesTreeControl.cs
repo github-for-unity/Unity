@@ -29,7 +29,7 @@ namespace GitHub.Unity
         }
 
         public string ProjectPath { get { return GitStatusEntry.projectPath; } }
-        public GitFileStatus GitFileStatus { get { return GitStatusEntry.status; } }
+        public GitFileStatus GitFileStatus { get { return GitStatusEntry.Status; } }
     }
 
     [Serializable]

@@ -1,13 +1,16 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
 {
-    public class WindowsDiskUsageOutputProcessor : BaseOutputProcessor<int>
+    public class WindowsDiskUsageOutputProcessor : BaseOutputProcessor<long>
     {
         private int index = -1;
         private int lineCount = 0;
         private string[] buffer = new string[2];
-
+        //           199854 File(s) 25,835,841,045 bytes
+        private static readonly Regex totalFileCount = new Regex(@"[\s]*[\d]+[\s]+File\(s\)[\s]+(?<bytes>[^\s]+)",
+            RegexOptions.Compiled);
         public override void LineReceived(string line)
         {
             lineCount++;
@@ -24,14 +27,14 @@ namespace GitHub.Unity
 
                 Logger.Trace("Processing: {0}", output);
 
-                var proc = new LineParser(output);
-                proc.SkipWhitespace();
-                proc.ReadUntilWhitespace();
-                proc.ReadUntilWhitespace();
-                proc.SkipWhitespace();
+                var match = totalFileCount.Match(output);
+                long kilobytes = 0;
+                if (match.Success)
+                {
+                    var bytes = long.Parse(match.Groups["bytes"].Value.Replace(",", String.Empty).Replace(".", String.Empty));
+                    kilobytes = bytes / 1024;
+                }
 
-                var bytes = int.Parse(proc.ReadUntilWhitespace().Replace(",", string.Empty));
-                var kilobytes = bytes / 1024;
                 RaiseOnEntry(kilobytes);
             }
             else

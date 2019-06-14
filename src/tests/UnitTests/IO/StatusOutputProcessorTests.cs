@@ -1,5 +1,6 @@
 using TestUtils;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using GitHub.Unity;
 
@@ -28,12 +29,12 @@ namespace UnitTests
                 LocalBranch = "master",
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
-                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
-                }
+                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.None, GitFileStatus.Modified),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, GitFileStatus.None, "README.md"),
+                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.None, GitFileStatus.Deleted),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, GitFileStatus.None),
+                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                }.OrderBy(entry => entry.Path, GitStatusOutputProcessor.StatusOutputPathComparer.Instance).ToList()
             });
         }
 
@@ -58,14 +59,14 @@ namespace UnitTests
                 LocalBranch = "master",
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("something1.txt", TestRootPath + @"\something1.txt", null, GitFileStatus.Unmerged),
-                    new GitStatusEntry("something2.txt", TestRootPath + @"\something2.txt", null, GitFileStatus.Unmerged),
-                    new GitStatusEntry("something3.txt", TestRootPath + @"\something3.txt", null, GitFileStatus.Unmerged),
-                    new GitStatusEntry("something4.txt", TestRootPath + @"\something4.txt", null, GitFileStatus.Unmerged),
-                    new GitStatusEntry("something5.txt", TestRootPath + @"\something5.txt", null, GitFileStatus.Unmerged),
-                    new GitStatusEntry("something6.txt", TestRootPath + @"\something6.txt", null, GitFileStatus.Unmerged),
-                    new GitStatusEntry("something7.txt", TestRootPath + @"\something7.txt", null, GitFileStatus.Unmerged),
-                }
+                    new GitStatusEntry("something1.txt", TestRootPath + @"\something1.txt", null, GitFileStatus.Deleted, GitFileStatus.Deleted),
+                    new GitStatusEntry("something2.txt", TestRootPath + @"\something2.txt", null, GitFileStatus.Added, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something3.txt", TestRootPath + @"\something3.txt", null, GitFileStatus.Unmerged, GitFileStatus.Deleted),
+                    new GitStatusEntry("something4.txt", TestRootPath + @"\something4.txt", null, GitFileStatus.Unmerged, GitFileStatus.Added),
+                    new GitStatusEntry("something5.txt", TestRootPath + @"\something5.txt", null, GitFileStatus.Deleted, GitFileStatus.Unmerged),
+                    new GitStatusEntry("something6.txt", TestRootPath + @"\something6.txt", null, GitFileStatus.Added, GitFileStatus.Added),
+                    new GitStatusEntry("something7.txt", TestRootPath + @"\something7.txt", null, GitFileStatus.Unmerged, GitFileStatus.Unmerged),
+                }.OrderBy(entry => entry.Path, GitStatusOutputProcessor.StatusOutputPathComparer.Instance).ToList()
             });
         }
 
@@ -91,12 +92,12 @@ namespace UnitTests
                 Behind = 1,
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
-                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
-                }
+                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.None, GitFileStatus.Modified),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, GitFileStatus.None, "README.md"),
+                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.None, GitFileStatus.Deleted),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, GitFileStatus.None),
+                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                }.OrderBy(entry => entry.Path, GitStatusOutputProcessor.StatusOutputPathComparer.Instance).ToList()
             });
         }
 
@@ -121,12 +122,12 @@ namespace UnitTests
                 Ahead = 1,
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
-                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
-                }
+                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.None, GitFileStatus.Modified),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, GitFileStatus.None, "README.md"),
+                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.None, GitFileStatus.Deleted),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, GitFileStatus.None),
+                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                }.OrderBy(entry => entry.Path, GitStatusOutputProcessor.StatusOutputPathComparer.Instance).ToList()
             });
         }
 
@@ -151,12 +152,12 @@ namespace UnitTests
                 Behind = 1,
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
-                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
-                }
+                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.None, GitFileStatus.Modified),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, GitFileStatus.None, "README.md"),
+                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.None, GitFileStatus.Deleted),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, GitFileStatus.None),
+                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                }.OrderBy(entry => entry.Path, GitStatusOutputProcessor.StatusOutputPathComparer.Instance).ToList()
             });
         }
 
@@ -180,12 +181,12 @@ namespace UnitTests
                 RemoteBranch = "origin/master",
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.Deleted),
-                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.Modified),
-                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, "README.md", true),
-                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, staged: true),
-                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked),
-                }
+                    new GitStatusEntry("GitHubVS.sln", TestRootPath + @"\GitHubVS.sln", null, GitFileStatus.None, GitFileStatus.Modified),
+                    new GitStatusEntry("README2.md", TestRootPath + @"\README2.md", null, GitFileStatus.Renamed, GitFileStatus.None, "README.md"),
+                    new GitStatusEntry("deploy.cmd", TestRootPath + @"\deploy.cmd", null, GitFileStatus.None, GitFileStatus.Deleted),
+                    new GitStatusEntry("something added.txt", TestRootPath + @"\something added.txt", null, GitFileStatus.Added, GitFileStatus.None),
+                    new GitStatusEntry("something.txt", TestRootPath + @"\something.txt", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                }.OrderBy(entry => entry.Path, GitStatusOutputProcessor.StatusOutputPathComparer.Instance).ToList()
             });
         }
 
@@ -302,17 +303,17 @@ namespace UnitTests
                 LocalBranch = "master",
                 Entries = new List<GitStatusEntry>
                 {
-                    new GitStatusEntry(@"Assets/Assets.Test.dll", TestRootPath + @"\Assets/Assets.Test.dll", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Assets/Assets.Test.dll.meta", TestRootPath + @"\Assets/Assets.Test.dll.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"blah.txt", TestRootPath + @"\blah.txt", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll", TestRootPath + @"\Plugins/GitHub.Unity.dll", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll", TestRootPath + @"\Plugins/GitHub.Unity2.dll", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity2.dll.meta", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity2.dll.mdb", null, GitFileStatus.Untracked),
-                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity2.dll.mdb.meta", null, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Assets/Assets.Test.dll", TestRootPath + @"\Assets/Assets.Test.dll", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Assets/Assets.Test.dll.meta", TestRootPath + @"\Assets/Assets.Test.dll.meta", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"blah.txt", TestRootPath + @"\blah.txt", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll", TestRootPath + @"\Plugins/GitHub.Unity.dll", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.meta", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity.dll.mdb.meta", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll", TestRootPath + @"\Plugins/GitHub.Unity2.dll", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.meta", TestRootPath + @"\Plugins/GitHub.Unity2.dll.meta", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.mdb", TestRootPath + @"\Plugins/GitHub.Unity2.dll.mdb", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
+                    new GitStatusEntry(@"Plugins/GitHub.Unity2.dll.mdb.meta", TestRootPath + @"\Plugins/GitHub.Unity2.dll.mdb.meta", null, GitFileStatus.Untracked, GitFileStatus.Untracked),
                 }
             });
         }

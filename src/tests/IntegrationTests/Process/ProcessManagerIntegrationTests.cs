@@ -35,7 +35,7 @@ namespace IntegrationTests
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
-                .GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, GitEnvironment, 2)
+                .GetGitLogEntries(TestRepoMasterCleanUnsynchronized, Environment, 2)
                 .StartAsAsync();
 
             var firstCommitTime = new DateTimeOffset(2017, 1, 27, 17, 19, 32, TimeSpan.FromHours(-5));
@@ -53,7 +53,7 @@ namespace IntegrationTests
                     {
                         new GitStatusEntry("Assets/TestDocument.txt".ToNPath(),
                             TestRepoMasterCleanUnsynchronized + "/Assets/TestDocument.txt".ToNPath(), "Assets/TestDocument.txt".ToNPath(),
-                            GitFileStatus.Renamed, "TestDocument.txt")
+                            GitFileStatus.Renamed, GitFileStatus.None, "TestDocument.txt")
                     }),
 
                 new GitLogEntry("03939ffb3eb8486dba0259b43db00842bbe6eca1", 
@@ -66,7 +66,7 @@ namespace IntegrationTests
                     {
                         new GitStatusEntry("TestDocument.txt".ToNPath(),
                             TestRepoMasterCleanUnsynchronized + "/TestDocument.txt".ToNPath(), "TestDocument.txt".ToNPath(),
-                            GitFileStatus.Added),
+                            GitFileStatus.Added, GitFileStatus.None),
                     }),
             });
         }
@@ -78,7 +78,7 @@ namespace IntegrationTests
 
             List<GitLogEntry> logEntries = null;
             logEntries = await ProcessManager
-                .GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, GitEnvironment, 1)
+                .GetGitLogEntries(TestRepoMasterCleanUnsynchronizedRussianLanguage, Environment, 1)
                 .StartAsAsync();
 
             var commitTime = new DateTimeOffset(2017, 4, 20, 11, 47, 18, TimeSpan.FromHours(-4));
@@ -95,7 +95,7 @@ namespace IntegrationTests
                     {
                         new GitStatusEntry(@"Assets\A new file.txt".ToNPath(),
                             TestRepoMasterCleanUnsynchronizedRussianLanguage + "/Assets/A new file.txt".ToNPath(), "Assets/A new file.txt".ToNPath(),
-                            GitFileStatus.Added),
+                            GitFileStatus.Added, GitFileStatus.None),
                     }),
             });
         }
@@ -120,7 +120,7 @@ namespace IntegrationTests
 
             GitStatus? gitStatus = null;
             gitStatus = await ProcessManager
-                .GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment, GitEnvironment)
+                .GetGitStatus(TestRepoMasterDirtyUnsynchronized, Environment)
                 .StartAsAsync();
 
             gitStatus.Value.AssertEqual(new GitStatus()
@@ -133,17 +133,17 @@ namespace IntegrationTests
                     new GitStatusEntry("Assets/Added Document.txt".ToNPath(),
                         TestRepoMasterDirtyUnsynchronized.Combine("Assets/Added Document.txt"),
                         "Assets/Added Document.txt".ToNPath(),
-                        GitFileStatus.Added, staged: true),
+                        GitFileStatus.Added, GitFileStatus.None),
 
                     new GitStatusEntry("Assets/Renamed TestDocument.txt".ToNPath(),
                         TestRepoMasterDirtyUnsynchronized.Combine("Assets/Renamed TestDocument.txt"),
                         "Assets/Renamed TestDocument.txt".ToNPath(),
-                        GitFileStatus.Renamed, "Assets/TestDocument.txt".ToNPath(), true),
+                        GitFileStatus.Renamed,  GitFileStatus.None, "Assets/TestDocument.txt".ToNPath()),
 
                     new GitStatusEntry("Assets/Untracked Document.txt".ToNPath(),
                         TestRepoMasterDirtyUnsynchronized.Combine("Assets/Untracked Document.txt"),
                         "Assets/Untracked Document.txt".ToNPath(),
-                        GitFileStatus.Untracked),
+                        GitFileStatus.Untracked, GitFileStatus.Untracked),
                 }
             });
         }
@@ -154,7 +154,7 @@ namespace IntegrationTests
             InitializePlatformAndEnvironment(TestRepoMasterCleanSynchronized);
 
             await ProcessManager
-                .GetGitCreds(TestRepoMasterCleanSynchronized, Environment, GitEnvironment)
+                .GetGitCreds(TestRepoMasterCleanSynchronized)
                 .StartAsAsync();
         }
     }

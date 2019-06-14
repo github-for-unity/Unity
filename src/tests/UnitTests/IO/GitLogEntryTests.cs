@@ -89,7 +89,7 @@ namespace UnitTests
                 commitTime, commitTime, 
                 new List<GitStatusEntry>(new[]
                 {
-                    new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added, "SomeOriginalPath"),
+                    new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added, GitFileStatus.None, "SomeOriginalPath"),
                 }),
                 "MergeA", "MergeB");
 
@@ -101,8 +101,7 @@ namespace UnitTests
                 commitTime, commitTime, 
                 new List<GitStatusEntry>(new[]
                 {
-                    new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
-                        "SomeOriginalPath")
+                    new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,GitFileStatus.None, "SomeOriginalPath")
                 }),
                 "MergeA", "MergeB");
 
@@ -122,8 +121,7 @@ namespace UnitTests
                 commitTime, commitTime, 
                 new List<GitStatusEntry>(new[]
                 {
-                    new GitStatusEntry("ASDFASDF", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
-                        "SomeOriginalPath"),
+                    new GitStatusEntry("ASDFASDF", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,GitFileStatus.None, "SomeOriginalPath"),
                 }), 
                 "MergeA", "MergeB");
 
@@ -135,8 +133,7 @@ namespace UnitTests
                 commitTime, commitTime,
                 new List<GitStatusEntry>(new[]
                 {
-                    new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added,
-                        "SomeOriginalPath")
+                    new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath", GitFileStatus.Added, GitFileStatus.None, "SomeOriginalPath")
                 }), 
                 "MergeA", "MergeB");
 
