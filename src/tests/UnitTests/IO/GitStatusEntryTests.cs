@@ -141,6 +141,18 @@ namespace UnitTests
             gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
                 GitFileStatus.None, GitFileStatus.Renamed, "SomeOriginalPath");
             gitStatusEntry.Staged.Should().BeFalse();
+
+            gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Untracked, GitFileStatus.Untracked, "SomeOriginalPath");
+            gitStatusEntry.Staged.Should().BeFalse();
+
+            gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Ignored, GitFileStatus.Ignored, "SomeOriginalPath");
+            gitStatusEntry.Staged.Should().BeFalse();
+
+            gitStatusEntry = new GitStatusEntry("SomePath", "SomeFullPath", "SomeProjectPath",
+                GitFileStatus.Unmerged, GitFileStatus.Added, "SomeOriginalPath");
+            gitStatusEntry.Staged.Should().BeFalse();
         }
 
         [Test]
