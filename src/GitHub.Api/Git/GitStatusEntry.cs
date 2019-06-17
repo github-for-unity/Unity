@@ -134,10 +134,13 @@ namespace GitHub.Unity
         public GitFileStatus IndexStatus => indexStatus;
         public GitFileStatus WorkTreeStatus => workTreeStatus;
 
-        public bool Staged => indexStatus != GitFileStatus.None;
+        public bool Staged => indexStatus != GitFileStatus.None && !Unmerged && !Untracked && !Ignored;
 
         public bool Unmerged => (indexStatus == workTreeStatus && (indexStatus == GitFileStatus.Added || indexStatus == GitFileStatus.Deleted)) ||
                                  indexStatus == GitFileStatus.Unmerged || workTreeStatus == GitFileStatus.Unmerged;
+
+        public bool Untracked => workTreeStatus == GitFileStatus.Untracked;
+        public bool Ignored => workTreeStatus == GitFileStatus.Ignored;
 
         public override string ToString()
         {
