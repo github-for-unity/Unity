@@ -23,7 +23,7 @@ namespace UnitTests
             environment.UnityProjectPath.Returns(@"c:\Projects\UnityProject".ToNPath());
 
             var gitObjectFactory = new GitObjectFactory(environment);
-            var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry("hello.txt", GitFileStatus.Deleted);
+            var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry("hello.txt", GitFileStatus.None, GitFileStatus.Deleted);
 
             Assert.AreEqual(@"c:\Projects\UnityProject\hello.txt", gitStatusEntry.FullPath);
         }
@@ -42,7 +42,7 @@ namespace UnitTests
             environment.UnityProjectPath.Returns(@"c:\Projects\UnityProject".ToNPath());
 
             var gitObjectFactory = new GitObjectFactory(environment);
-            var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry("c:UsersOculusGoVideo.mp4", GitFileStatus.Deleted);
+            var gitStatusEntry = gitObjectFactory.CreateGitStatusEntry("c:UsersOculusGoVideo.mp4", GitFileStatus.None, GitFileStatus.Deleted);
 
             Assert.AreEqual(@"c:\Projects\UnityProject\c:UsersOculusGoVideo.mp4", gitStatusEntry.FullPath);
         }

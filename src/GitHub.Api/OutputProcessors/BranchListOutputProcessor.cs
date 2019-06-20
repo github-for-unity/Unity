@@ -1,4 +1,5 @@
 using System;
+using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 
 namespace GitHub.Unity
@@ -18,23 +19,24 @@ namespace GitHub.Unity
 
             try
             {
-                proc.Matches('*');
+                string name;
+                string trackingName = null;
+
+                if (proc.Matches('*'))
+                    proc.MoveNext();
                 proc.SkipWhitespace();
-                var detached = proc.Matches("(HEAD ");
-                var name = "detached";
-                if (detached)
+                if (proc.Matches("(HEAD "))
                 {
+                    name = "detached";
                     proc.MoveToAfter(')');
                 }
                 else
                 {
                     name = proc.ReadUntilWhitespace();
                 }
-                proc.SkipWhitespace();
-                proc.ReadUntilWhitespace();
-                var tracking = proc.Matches(trackingBranchRegex);
-                var trackingName = "";
-                if (tracking)
+
+                proc.ReadUntilWhitespaceTrim();
+                if (proc.Matches(trackingBranchRegex))
                 {
                     trackingName = proc.ReadChunk('[', ']');
                     var indexOf = trackingName.IndexOf(':');
@@ -45,7 +47,6 @@ namespace GitHub.Unity
                 }
 
                 var branch = new GitBranch(name, trackingName);
-
                 RaiseOnEntry(branch);
             }
             catch(Exception ex)

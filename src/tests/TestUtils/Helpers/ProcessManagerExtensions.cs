@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitHub.Unity.Git.Tasks;
 
-namespace IntegrationTests
+namespace TestUtils
 {
     static class ProcessManagerExtensions
     {
@@ -15,47 +16,35 @@ namespace IntegrationTests
             NPath? gitPath = null)
         {
             var processor = new BranchListOutputProcessor();
-            NPath path = gitPath ?? defaultGitPath;
 
-            return new ProcessTaskWithListOutput<GitBranch>(CancellationToken.None, processor)
-                .Configure(processManager, path, "branch -vv", workingDirectory, false);
+            return new GitListLocalBranchesTask(CancellationToken.None, processor)
+                .Configure(processManager, gitPath ?? defaultGitPath, workingDirectory: workingDirectory);
         }
 
         public static ITask<List<GitLogEntry>> GetGitLogEntries(this IProcessManager processManager,
             NPath workingDirectory,
-            IEnvironment environment, IProcessEnvironment gitEnvironment,
-            int? logCount = null,
+            IEnvironment environment,
+            int logCount = 0,
             NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
             var processor = new LogEntryOutputProcessor(gitStatusEntryFactory);
 
-            var logNameStatus = @"log --pretty=format:""%H%n%P%n%aN%n%aE%n%aI%n%cN%n%cE%n%cI%n%B---GHUBODYEND---"" --name-status";
-
-            if (logCount.HasValue)
-            {
-                logNameStatus = logNameStatus + " -" + logCount.Value;
-            }
-
-            NPath path = gitPath ?? defaultGitPath;
-
-            return new ProcessTaskWithListOutput<GitLogEntry>(CancellationToken.None, processor)
-                .Configure(processManager, path, logNameStatus, workingDirectory, false);
+            return new GitLogTask(logCount, null, CancellationToken.None, processor)
+                .Configure(processManager, gitPath ?? defaultGitPath, workingDirectory: workingDirectory);
         }
 
         public static ITask<GitStatus> GetGitStatus(this IProcessManager processManager,
             NPath workingDirectory,
-            IEnvironment environment, IProcessEnvironment gitEnvironment,
+            IEnvironment environment,
             NPath? gitPath = null)
         {
             var gitStatusEntryFactory = new GitObjectFactory(environment);
             var processor = new GitStatusOutputProcessor(gitStatusEntryFactory);
 
-            NPath path = gitPath ?? defaultGitPath;
-
-            return new ProcessTask<GitStatus>(CancellationToken.None, processor)
-                .Configure(processManager, path, "status -b -u --porcelain", workingDirectory, false);
+            return new GitStatusTask(null, CancellationToken.None, processor)
+                .Configure(processManager, workingDirectory: workingDirectory);
         }
 
         public static ITask<List<GitRemote>> GetGitRemoteEntries(this IProcessManager processManager,
@@ -64,15 +53,12 @@ namespace IntegrationTests
         {
             var processor = new RemoteListOutputProcessor();
 
-            NPath path = gitPath ?? defaultGitPath;
-
-            return new ProcessTaskWithListOutput<GitRemote>(CancellationToken.None, processor)
-                .Configure(processManager, path, "remote -v", workingDirectory, false);
+            return new GitRemoteListTask(CancellationToken.None, processor)
+                .Configure(processManager, gitPath ?? defaultGitPath, workingDirectory: workingDirectory);
         }
 
         public static ITask<string> GetGitCreds(this IProcessManager processManager,
             NPath workingDirectory,
-            IEnvironment environment, IProcessEnvironment gitEnvironment,
             NPath? gitPath = null)
         {
             var processor = new FirstNonNullLineOutputProcessor();

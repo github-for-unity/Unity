@@ -54,7 +54,7 @@ namespace UnitTests
                     {
                         new GitStatusEntry("src/GitHub.App/Models/RemoteRepositoryModel.cs",
                             TestRootPath + @"\src/GitHub.App/Models/RemoteRepositoryModel.cs", null,
-                            GitFileStatus.Modified),
+                            GitFileStatus.Modified, GitFileStatus.None),
                     })
             };
 
@@ -97,7 +97,7 @@ namespace UnitTests
                     {
                         new GitStatusEntry("src/GitHub.App/Models/RemoteRepositoryModel.cs",
                             TestRootPath + @"\src/GitHub.App/Models/RemoteRepositoryModel.cs", null,
-                            GitFileStatus.Modified),
+                            GitFileStatus.Modified, GitFileStatus.None),
                     })
             };
 
@@ -142,7 +142,7 @@ namespace UnitTests
                     {
                         new GitStatusEntry("src/GitHub.App/Models/RemoteRepositoryModel.cs",
                             TestRootPath + @"\src/GitHub.App/Models/RemoteRepositoryModel.cs", null,
-                            GitFileStatus.Modified),
+                            GitFileStatus.Modified, GitFileStatus.None),
                     })
             };
 

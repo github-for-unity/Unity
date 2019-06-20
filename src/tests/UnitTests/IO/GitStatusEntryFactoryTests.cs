@@ -39,11 +39,11 @@ namespace UnitTests
             var expectedFullPath = repositoryPath.Combine(inputPath);
             var expectedProjectPath = expectedFullPath.RelativeTo(unityProjectPath);
 
-            var expected = new GitStatusEntry(inputPath, expectedFullPath, expectedProjectPath, inputStatus);
+            var expected = new GitStatusEntry(inputPath, expectedFullPath, expectedProjectPath, GitFileStatus.None, inputStatus);
 
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
-            var result = gitStatusEntryFactory.CreateGitStatusEntry(inputPath, inputStatus);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(inputPath, GitFileStatus.None, inputStatus);
 
             result.Should().Be(expected);
         }
@@ -69,11 +69,11 @@ namespace UnitTests
             var expectedFullPath = repositoryPath.Combine(inputPath);
             const string expectedProjectPath = "Something.sln";
 
-            var expected = new GitStatusEntry(inputPath, expectedFullPath, expectedProjectPath, inputStatus);
+            var expected = new GitStatusEntry(inputPath, expectedFullPath, expectedProjectPath, GitFileStatus.None, inputStatus);
 
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
-            var result = gitStatusEntryFactory.CreateGitStatusEntry(inputPath, inputStatus);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(inputPath, GitFileStatus.None, inputStatus);
 
             result.Should().Be(expected);
         }
@@ -99,11 +99,11 @@ namespace UnitTests
             var expectedFullPath = repositoryPath.Combine(inputPath);
             const string expectedProjectPath = inputPath;
 
-            var expected = new GitStatusEntry(inputPath, expectedFullPath, expectedProjectPath, inputStatus);
+            var expected = new GitStatusEntry(inputPath, expectedFullPath, expectedProjectPath, GitFileStatus.None, inputStatus);
 
             var gitStatusEntryFactory = new GitObjectFactory(environment);
 
-            var result = gitStatusEntryFactory.CreateGitStatusEntry(inputPath, inputStatus);
+            var result = gitStatusEntryFactory.CreateGitStatusEntry(inputPath, GitFileStatus.None, inputStatus);
 
             result.Should().Be(expected);
         }

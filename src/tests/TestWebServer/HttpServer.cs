@@ -83,7 +83,7 @@ namespace TestWebServer
                         var thread = new Thread(p => Process((HttpListenerContext)p));
                         thread.Start(context);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         break;
                     }

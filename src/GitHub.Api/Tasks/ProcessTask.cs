@@ -117,15 +117,22 @@ namespace GitHub.Unity
             {
                 Process.OutputDataReceived += (s, e) =>
                 {
-                    lastOutput = DateTimeOffset.UtcNow;
-                    gotOutput.Set();
-                    if (e.Data != null)
+                    try
                     {
-                        var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
-                        outputProcessor.LineReceived(line.TrimEnd('\r','\n'));
+                        lastOutput = DateTimeOffset.UtcNow;
+                        gotOutput.Set();
+                        if (e.Data != null)
+                        {
+                            var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
+                            outputProcessor.LineReceived(line.TrimEnd('\r', '\n'));
+                        }
+                        else
+                            outputProcessor.LineReceived(null);
                     }
-                    else
-                        outputProcessor.LineReceived(null);
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex);
+                    }
                 };
             }
 

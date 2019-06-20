@@ -15,9 +15,8 @@ namespace GitHub.Unity
             {
                 var proc = new LineParser(line);
 
-                proc.ReadUntil(',');
-                proc.SkipWhitespace();
-                var kilobytes = int.Parse(proc.ReadUntilWhitespace());
+                proc.MoveToAfter(',');
+                var kilobytes = int.Parse(proc.ReadUntilWhitespaceTrim());
 
                 RaiseOnEntry(kilobytes);
             }

@@ -98,7 +98,6 @@
     <Compile Include="IO\WindowsGitEnvironmentTests.cs" />
     <Compile Include="Primitives\SerializationTests.cs" />
     <Compile Include="Primitives\UriStringTests.cs" />
-    <Compile Include="ProcessManagerExtensions.cs" />
     <Compile Include="SetUpFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\TreeBaseTests.cs" />

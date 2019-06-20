@@ -48,7 +48,7 @@ namespace UnitTests
 
         private void AssertProcessOutput(IEnumerable<string> lines, int expected)
         {
-            int? result = null;
+            long? result = null;
             var outputProcessor = new WindowsDiskUsageOutputProcessor();
             outputProcessor.OnEntry += status => { result = status; };
 

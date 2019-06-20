@@ -61,19 +61,30 @@ namespace GitHub.Unity
             if (IsAtEnd)
                 throw new InvalidOperationException("Reached end of line");
 
-            while (!Char.IsWhiteSpace(line[current]) && current < line.Length)
-                current++;
-            while (Char.IsWhiteSpace(line[current]) && current < line.Length)
+            while (current < line.Length && char.IsWhiteSpace(line[current]))
                 current++;
         }
 
-        public string ReadUntil(char separator)
+        /// <summary>
+        /// Reads until it finds the separator and returns what it read.
+        /// </summary>
+        /// <param name="separator"></param>
+        /// <param name="skipCurrentIfMatch">If the current character matches the
+        /// separator and you actually want to read the next match, set this to true (if you're tokenizing, for instance)</param>
+        /// <returns></returns>
+        public string ReadUntil(char separator, bool skipCurrentIfMatch = false)
         {
             if (IsAtEnd)
                 throw new InvalidOperationException("Reached end of line");
 
-            if (line[current] == separator)
-                current++;
+            if (Matches(separator))
+            {
+                if (skipCurrentIfMatch)
+                    MoveNext();
+                else
+                    return null;
+            }
+
             var end = line.IndexOf(separator, current);
             if (end == -1)
                 return null;
@@ -82,23 +93,30 @@ namespace GitHub.Unity
             return LastSubstring;
         }
 
+
+        public string ReadUntilWhitespaceTrim()
+        {
+            SkipWhitespace();
+            if (IsAtEnd)
+                return null;
+            return ReadUntilWhitespace();
+        }
+
         public string ReadUntilWhitespace()
         {
             if (IsAtEnd)
                 throw new InvalidOperationException("Reached end of line");
 
-            if (Char.IsWhiteSpace(line[current]))
-                SkipWhitespace();
+            if (char.IsWhiteSpace(line[current]))
+                return null;
 
-            int end = line.Length;
-            for (var i = current; i < end; i++)
-            {
-                if (Char.IsWhiteSpace(line[i]))
-                {
-                    end = i;
-                    break;
-                }
-            }
+            var end = current;
+            while (end < line.Length && !char.IsWhiteSpace(line[end]))
+                end++;
+
+            if (end == current) // current character is a whitespace, read nothing
+                return null;
+
             LastSubstring = line.Substring(current, end - current);
             current = end;
             return LastSubstring;
@@ -125,6 +143,30 @@ namespace GitHub.Unity
             return LastSubstring;
         }
 
+        public string Read(int howMany)
+        {
+            if (IsAtEnd)
+                throw new InvalidOperationException("Reached end of line");
+
+            if (current + howMany > line.Length)
+                return null;
+
+            LastSubstring = line.Substring(current, howMany);
+            current += howMany;
+            return LastSubstring;
+        }
+
+        public char ReadChar()
+        {
+            if (IsAtEnd)
+                throw new InvalidOperationException("Reached end of line");
+
+            var ret = line[current];
+            LastSubstring = ret.ToString();
+            MoveNext();
+            return ret;
+        }
+
         public string ReadUntilLast(string str)
         {
             if (IsAtEnd)
@@ -138,10 +180,10 @@ namespace GitHub.Unity
             return LastSubstring;
         }
 
-        public bool IsAtEnd { get { return line != null ? line.Length == current : true; } }
-        public bool IsAtWhitespace { get { return line != null && Char.IsWhiteSpace(line[current]); } }
-        public bool IsAtDigit { get { return line != null && Char.IsDigit(line[current]); } }
-        public bool IsAtLetter { get { return line != null && Char.IsLetter(line[current]); } }
+        public bool IsAtEnd => line == null || line.Length == current;
+        public bool IsAtWhitespace => line != null && Char.IsWhiteSpace(line[current]);
+        public bool IsAtDigit => line != null && Char.IsDigit(line[current]);
+        public bool IsAtLetter => line != null && Char.IsLetter(line[current]);
         public string LastSubstring { get; private set; }
     }
 }

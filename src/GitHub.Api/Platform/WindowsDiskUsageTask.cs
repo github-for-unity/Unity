@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace GitHub.Unity
 {
-    class WindowsDiskUsageTask : ProcessTask<int>
+    class WindowsDiskUsageTask : ProcessTask<long>
     {
         private readonly string arguments;
 
