@@ -7,6 +7,7 @@ namespace GitHub.Unity
     {
         string Path { get; }
         bool IsActive { get; }
+        bool IsChecked { get; }
     }
 
     [Serializable]
@@ -64,6 +65,7 @@ namespace GitHub.Unity
 
         public string Path => GitBranch.Name;
         public bool IsActive => isActive;
+        public bool IsChecked => false;
     }
 
     [Serializable]
@@ -73,11 +75,13 @@ namespace GitHub.Unity
 
         public GitStatusEntry gitStatusEntry;
         public bool isLocked;
+        public bool isChecked;
 
         public GitStatusEntryTreeData(GitStatusEntry gitStatusEntry, bool isLocked = false)
         {
             this.isLocked = isLocked;
             this.gitStatusEntry = gitStatusEntry;
+            isChecked = gitStatusEntry.Staged;
         }
 
         public override int GetHashCode()
@@ -127,5 +131,6 @@ namespace GitHub.Unity
         public GitStatusEntry GitStatusEntry => gitStatusEntry;
         public GitFileStatus FileStatus => gitStatusEntry.Status;
         public bool IsLocked => isLocked;
+        public bool IsChecked => isChecked;
     }
 }

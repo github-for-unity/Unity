@@ -118,7 +118,7 @@ namespace GitHub.Unity
                         {
                             isActive = treeData.IsActive;
                             treeNodeTreeData = treeData;
-                            isChecked = isCheckable && checkedFiles.Contains(nodePath);
+                            isChecked = isCheckable && (checkedFiles.Contains(nodePath) || treeData.IsChecked);
                         }
 
                         isSelected = selectedNodePath != null && nodePath == selectedNodePath;

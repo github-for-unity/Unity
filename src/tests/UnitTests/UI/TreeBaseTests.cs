@@ -35,6 +35,7 @@ namespace UnitTests
 
         public string Path { get; set; }
         public bool IsActive { get; set; }
+        public bool IsChecked { get; set; }
 
         public override string ToString()
         {
