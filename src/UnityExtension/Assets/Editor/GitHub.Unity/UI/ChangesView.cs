@@ -478,7 +478,7 @@ namespace GitHub.Unity
         {
             isBusy = true;
             var files = treeChanges.GetCheckedFiles().ToList();
-            ITask addTask;
+            ITask addTask = null;
 
             if (files.Count == gitStatusEntries.Count)
             {
@@ -486,11 +486,18 @@ namespace GitHub.Unity
             }
             else
             {
-                addTask = Repository.CommitFiles(files, commitMessage, commitBody);
+                ITask commit = Repository.CommitFiles(files, commitMessage, commitBody);
+
+                // if there are files that have been staged outside of Unity, but they aren't selected for commit, remove them
+                // from the index before commiting, otherwise the commit will take them along.
+                var filesStagedButNotChecked = gitStatusEntries.Where(x => x.Staged).Select(x => x.Path).Except(files).ToList();
+                if (filesStagedButNotChecked.Count > 0)
+                    addTask = GitClient.Remove(filesStagedButNotChecked);
+                addTask = addTask == null ? commit : addTask.Then(commit);
             }
 
             addTask
-                .FinallyInUI((success, exception) => 
+                .FinallyInUI((success, exception) =>
                     {
                         if (success)
                         {
