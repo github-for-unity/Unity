@@ -1,6 +1,8 @@
 {
     "name": "ExtensionLoader",
-    "references": [],
+    "references": [
+        "UnityShim"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"

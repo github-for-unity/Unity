@@ -14,11 +14,11 @@ namespace GitHub.Unity.UI
     {
 #if DEVELOPER_BUILD
 
-        private const string Menu_Window_Git = "Window/Git/Open";
-        private const string Menu_Window_Git_Command_Line = "Window/Git/Command Line";
+        private const string Menu_Window_Git = "Window/GitHub";
+        private const string Menu_Window_Git_Command_Line = "Window/GitHub Command Line";
 #else
-        private const string Menu_Window_Git = "Window/Git";
-        private const string Menu_Window_Git_Command_Line = "Window/Git Command Line";
+        private const string Menu_Window_Git = "Window/GitHub";
+        private const string Menu_Window_Git_Command_Line = "Window/GitHub Command Line";
 #endif
 
         [MenuItem(Menu_Window_Git)]
@@ -36,14 +36,14 @@ namespace GitHub.Unity.UI
 
 #if DEVELOPER_BUILD
 
-        [MenuItem("Git/Select Window")]
+        [MenuItem("GitHub/Select Window")]
         public static void Git_SelectWindow()
         {
             var window = Resources.FindObjectsOfTypeAll(typeof(Window)).FirstOrDefault() as Window;
             Selection.activeObject = window;
         }
 
-        [MenuItem("Git/Restart")]
+        [MenuItem("GitHub/Restart")]
         public static void Git_Restart()
         {
             EntryPoint.Restart();
