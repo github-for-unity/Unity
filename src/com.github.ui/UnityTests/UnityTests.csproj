@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\</SolutionDir>
+    <RootNamespace>UnityTests</RootNamespace>
+    <AssemblyName>UnityTests</AssemblyName>
+    <OutputPath>$(SolutionDir)\build\tests\</OutputPath>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\common\properties.props" />
+  <Import Project="$(SolutionDir)\common\libraries.props" />
+  <Import Project="$(SolutionDir)\common\tests.props" />  
+  <Import Project="$(SolutionDir)\common\unityreferences.targets" />
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.12.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="SolutionInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(SolutionDir)\common\build.targets" />
+</Project>

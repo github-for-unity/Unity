@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFrameworks>net35;net471</TargetFrameworks>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..</SolutionDir>
+    <ProjectGuid>{ADD7A18B-DD2A-4C22-A2C1-488964EFF30C}</ProjectGuid>
+    <AssemblyName>GitHub.Unity</AssemblyName>
+    <RootNamespace>GitHub.Unity</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\common\properties.props" />
+  <Import Project="$(SolutionDir)\common\libraries.props" />
+  <Import Project="$(SolutionDir)\common\unityreferences.targets" />
+
+  <!-- ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <PackageReference Include="AsyncBridge.Net35" version="0.2.3333.0" />
+    <PackageReference Include="ReadOnlyCollectionInterfaces" version="1.0.0" />
+    <PackageReference Include="TaskParallelLibrary" version="1.0.3333.0" targetFramework="net35" />
+    <PackageReference Include="ValueTupleBridge" Version="0.1.5" targetFramework="net35" />
+    <Reference Include="System.Web" />
+  </ItemGroup -->
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="SolutionInfo.cs" />
+    <EmbeddedResource Include="IconsAndLogos\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\git-for-unity\src\api\Api\Api.csproj" />
+    <ProjectReference Include="..\..\git-for-unity\src\api\Logging\Logging.csproj" />
+    <ProjectReference Include="..\UnityShim\UnityShim.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(SolutionDir)\common\build.targets" />
+</Project>

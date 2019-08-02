@@ -2,15 +2,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Build flags -->
   <PropertyGroup>
-    <BuildType Condition="Exists('$(SolutionDir)script\src\MetricsService.cs')">Internal</BuildType>
-    <BuildDefs Condition="$(BuildType) == 'Internal'">ENABLE_METRICS</BuildDefs>
+    <BuildType Condition="Exists('$(SolutionDir)script\src\ApplicationInfo_Local.cs')">Internal</BuildType>
     <BuildDefs>$(BuildDefs);ENABLE_MONO</BuildDefs>
-
-    <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\script\lib\Managed\UnityEditor.dll')">$(SolutionDir)script\lib\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\lib\Managed\UnityEditor.dll')">$(SolutionDir)lib\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files\Unity\Editor\Data\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files (x86)\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files (x86)\Unity\Editor\Data\Managed\</UnityDir>
-    <UnityDir Condition="$(UnityDir) == '' and Exists('\Applications\Unity\Unity.app\Contents\Managed\UnityEditor.dll')">\Applications\Unity\Unity.app\Contents\</UnityDir>
     <BuildConfig Condition=" '$(Configuration)' == 'dev'">Debug</BuildConfig>
     <BuildConfig Condition=" '$(Configuration)' != 'dev'">$(Configuration)</BuildConfig>
   </PropertyGroup>

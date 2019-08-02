@@ -1,0 +1,12 @@
+{
+    "name": "UnityShim",
+    "references": [
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "autoReferenced": false,
+    "allowUnsafeCode": false
+}

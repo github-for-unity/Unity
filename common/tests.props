@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <LangVersion>latest</LangVersion>
+    <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(SolutionDir)\build\obj\tests\$(Configuration)</IntermediateOutputPath>
+    <OutputPath Condition="$(OutputPath) == ''">$(SolutionDir)\build\tests</OutputPath>
+  </PropertyGroup>
+</Project>

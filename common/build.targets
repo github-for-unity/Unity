@@ -13,18 +13,7 @@
     </None>
   </ItemGroup>
 
-  <!-- Common includes and references -->
-  <Target Name="BeforeBuild">
-    <PropertyGroup>
-      <UnityDLLsMissingErrorText>The location of Unity dlls is not set. You'll need to install Unity in a known location (the default installation directory for your system), or:
-        - Copy UnityEngine.dll and UnityEditor.dll to the {0}lib\Managed folder
-        - Copy UnityEngine.TestRunner.dll to the {0}lib\UnityExtensions/Unity/TestRunner folder
-        - Copy UnityEditor.TestRunner.dll to the {0}lib\UnityExtensions/Unity/TestRunner/Editor folder
-      </UnityDLLsMissingErrorText>
-      <MissingOctokitProject>To build the OctokitDebugging solution you need to have https://github.com/github-for-unity/octokit.net checked out in {0}</MissingOctokitProject>
-      <MissingHttpProject>To build the OctokitDebugging solution you need to have https://github.com/github-for-unity/dotnet-httpclient35 checked out in {0}</MissingHttpProject>
-    </PropertyGroup>
-    <Error Condition="'$(UnityDir)' == ''" Text="$([System.String]::Format('$(UnityDLLsMissingErrorText)', '$(SolutionDir)'))" />
-    <Error Condition="$(SolutionType) == 'OctokitDebugging' and !Exists('$(SolutionDir)..\dotnet-httpclient35\System.Net.Http\System.Net.Http-net_3_5.csproj')" Text="$([System.String]::Format('$(MissingOctokitProject)', '$(SolutionDir)..\dotnet-httpclient35'))" />
-  </Target>
+  <!-- ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <PackageReference Include="Unity.NETFramework.ReferenceAssemblies.net35" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup -->
 </Project>

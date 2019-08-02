@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="FindUnityTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
+    <ParameterGroup>
+      <BasePath ParameterType="System.String" Required="true" />
+      <Versions ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Found ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System"/>
+      <Using Namespace="System.IO"/>
+      <Code Type="Fragment" Language="cs">
+<![CDATA[
+        string basePath = @"Editor\Data\";
+        string dll = @"Managed\UnityEditor.dll";
+        Found = Versions
+          .Select(v => {
+            var path = Path.Combine(Path.Combine(BasePath, v.ToString()), basePath);
+            Log.LogMessage(MessageImportance.Normal, "Trying {0}", path);
+            return path;
+          })
+          .FirstOrDefault(path => File.Exists(Path.Combine(path, dll)));
+        if (Found != null)
+          Log.LogMessage(MessageImportance.Normal, "Found {0}", Found);
+        return true;
+]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <ItemGroup>
+    <UnityVersions Include="2018.4.4f1;2018.4.3f1;2018.4.2f1;2019.1.10f1;2019.1.9f1;2019.1.8f1;2019.1.7f1;2019.1.6f1;2019.1.5f1;2019.1.4f1;2019.1.3f1;2019.1.2f1;2019.1.1f1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <WhatOS Condition="Exists('\Applications') and !Exists('c:\Windows')">mac</WhatOS>
+    <WhatOS Condition="'$(WhatOS)' != 'mac'">win</WhatOS>
+    <HubInstallDir Condition="'$(HubInstallDir)' == '' and '$(WhatOS)' == 'win'">C:\Program Files\Unity\Hub\Editor</HubInstallDir>
+    <HubInstallDir Condition="'$(HubInstallDir)' == '' and '$(WhatOS)' == 'mac'">\Applications\Unity\Hub\Editor</HubInstallDir>
+    <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\script\lib\Managed\UnityEditor.dll')">$(SolutionDir)script\lib\</UnityDir>
+    <UnityDir Condition="$(UnityDir) == '' and Exists('$(SolutionDir)\lib\Managed\UnityEditor.dll')">$(SolutionDir)lib\</UnityDir>
+    <UnityDir Condition="$(UnityDir) == '' and Exists('\Applications\Unity\Unity.app\Contents\Managed\UnityEditor.dll')">\Applications\Unity\Unity.app\Contents\</UnityDir>
+    <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files\Unity\Editor\Data\</UnityDir>
+    <UnityDir Condition="$(UnityDir) == '' and Exists('C:\Program Files (x86)\Unity\Editor\Data\Managed\UnityEditor.dll')">C:\Program Files (x86)\Unity\Editor\Data\</UnityDir>
+  </PropertyGroup>
+
+  <Target Name="FindUnityDesignTime" BeforeTargets="ResolveAssemblyReferences;ResolveAssemblyReferencesDesignTime">
+    <CallTarget Targets="FindUnity"/>
+  </Target>
+
+  <Target Name="FindUnityBuildTime" BeforeTargets="BeforeResolveReferences">
+    <CallTarget Targets="FindUnity"/>
+  </Target>
+
+  <!-- Common includes and references -->
+  <Target Name="FindUnity">
+    <FindUnityTask 
+      Condition="$(UnityDir) == ''"
+      BasePath="$(HubInstallDir)" Versions="@(UnityVersions)">
+      <Output TaskParameter="Found" PropertyName="UnityDir" />
+    </FindUnityTask>
+
+    <Message Importance="High" Text="UnityDir: $(UnityDir)" />
+
+    <ItemGroup Condition="'$(UnityDir)' != ''">
+      <Reference Remove="UnityEditor;UnityEngine" />
+      <Reference Condition="$(MSBuildProjectName.EndsWith('Tests'))" Remove="UnityEditor.TestRunner;UnityEngine.TestRunner" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(UnityDir)' != ''">
+      <Reference Include="UnityEditor">
+        <HintPath>$(UnityDir)Managed\UnityEditor.dll</HintPath>
+        <Private>False</Private>
+      </Reference>
+      <Reference Include="UnityEngine">
+        <HintPath>$(UnityDir)Managed\UnityEngine.dll</HintPath>
+        <Private>False</Private>
+      </Reference>
+
+      <Reference Condition="$(MSBuildProjectName.EndsWith('Tests'))" Include="UnityEditor.TestRunner">
+        <HintPath>$(UnityDir)UnityExtensions\Unity\TestRunner\Editor\UnityEditor.TestRunner.dll</HintPath>
+      </Reference>
+      <Reference Condition="$(MSBuildProjectName.EndsWith('Tests'))" Include="UnityEngine.TestRunner">
+        <HintPath>$(UnityDir)UnityExtensions\Unity\TestRunner\UnityEngine.TestRunner.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <Message Importance="High" Text="project: $(MSBuildProjectName)" />
+
+    <PropertyGroup>
+      <UnityDLLsMissingErrorText>The location of Unity dlls is not set. You'll need to either:
+        - Install Unity in a known location (currently set to $(HubInstallDir)), OR
+        - Set the msbuild configuration property 'HubInstallDir' to the location where you have Unity installed, OR
+        - Copy the following files:
+          1. UnityEngine.dll and UnityEditor.dll to the {0}lib\Managed folder
+          2. UnityEngine.TestRunner.dll to the {0}lib\UnityExtensions/Unity/TestRunner folder
+          3. UnityEditor.TestRunner.dll to the {0}lib\UnityExtensions/Unity/TestRunner/Editor folder
+      </UnityDLLsMissingErrorText>
+    </PropertyGroup>
+    <Error Condition="'$(UnityDir)' == ''" Text="$([System.String]::Format('$(UnityDLLsMissingErrorText)', '$(SolutionDir)'))" />
+
+  </Target>
+</Project>
