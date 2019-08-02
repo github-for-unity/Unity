@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\git-for-unity\src\api\Api\Api.csproj" />
-    <ProjectReference Include="..\..\git-for-unity\src\api\Logging\Logging.csproj" />
+    <ProjectReference Include="..\..\git-for-unity\src\com.unity.git.api\Api\Api.csproj" />
+    <ProjectReference Include="..\..\git-for-unity\src\com.unity.git.api\Logging\Logging.csproj" />
     <ProjectReference Include="..\UnityShim\UnityShim.csproj" />
   </ItemGroup>
 
