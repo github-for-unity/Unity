@@ -10,8 +10,21 @@
   <Import Project="$(SolutionDir)\common\libraries.props" />
   <Import Project="$(SolutionDir)\common\tests.props" />  
   <Import Project="$(SolutionDir)\common\unityreferences.targets" />
+  <PropertyGroup>
+    <GlobalOutputPath>$(OutputPath)\$(TargetFramework)</GlobalOutputPath>
+    <OutputPath>$(SolutionDir)\build\$(MSBuildProjectName)</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="SolutionInfo.cs" />
+    <Sources Include="**\*.cs" Exclude="SolutionInfo.cs" />
   </ItemGroup>
-  <Import Project="$(SolutionDir)\common\build.targets" />
+
+  <Target Name="CopySourcesToBuild" 
+    AfterTargets="AfterBuild"
+    Inputs="@(Sources)"
+    Outputs="@(Sources->'$(GlobalOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+  >
+    <Message Importance="High" Text="@(Sources->'$(GlobalOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(Sources)" DestinationFiles="@(Sources->'$(GlobalOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

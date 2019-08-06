@@ -22,6 +22,7 @@ namespace GitHub.Unity
         private const string EnableTraceLoggingLabel = "Enable Trace Logging";
         private const string MetricsOptInLabel = "Help us improve by sending anonymous usage data";
         private const string DefaultRepositoryRemoteName = "origin";
+        private const string VersionLabel = "GitHub for Unity version";
 
         [NonSerialized] private bool currentRemoteHasUpdate;
         [NonSerialized] private bool isBusy;
@@ -86,11 +87,11 @@ namespace GitHub.Unity
             Refresh(CacheType.RepositoryInfo);
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             scroll = GUILayout.BeginScrollView(scroll);
             {
-                userSettingsView.OnGUI();
+                userSettingsView.OnUI();
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
@@ -100,7 +101,7 @@ namespace GitHub.Unity
                     GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
                 }
 
-                gitPathView.OnGUI();
+                gitPathView.OnUI();
                 OnPrivacyGui();
                 OnGeneralSettingsGui();
                 OnLoggingSettingsGui();
@@ -267,6 +268,8 @@ namespace GitHub.Unity
                 ApplicationConfiguration.GitTimeout = gitTimeout;
                 Manager.UserSettings.Set(Constants.GitTimeoutKey, gitTimeout);
             }
+
+            EditorGUILayout.LabelField(VersionLabel, ApplicationInfo.Version);
         }
 
         public override bool IsBusy

@@ -18,4 +18,18 @@
     <CodeAnalysisRuleSet>$(SolutionDir)\common\codeanalysis-debug.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="$(SolutionDir)common\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+    <None Include="$(SolutionDir)common\codeanalysis-release.ruleset">
+      <Link>Properties\codeanalysis-release.ruleset</Link>
+    </None>
+    <None Include="$(SolutionDir)common\codeanalysis-debug.ruleset">
+      <Link>Properties\codeanalysis-debug.ruleset</Link>
+    </None>
+    <None Remove="**\*.meta;*.DotSettings;*.ncrunch*;*.asmdef;SolutionInfo.cs;obj\**" />
+  </ItemGroup>
+
+
 </Project>

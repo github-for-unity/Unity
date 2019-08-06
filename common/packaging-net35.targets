@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <PackageReference Include="Unity.NETFramework.ReferenceAssemblies.net35" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup -->
+
+  <PropertyGroup>
+    <PackageProjectPath Condition="'$(PackageProjectPath)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Plugins\GitHub\Editor</PackageProjectPath>
+  </PropertyGroup>
+
+  <Target Name="EnumerateBuildOutputs"
+    Returns="@(BuiltFiles)">
+
+    <!-- ItemGroup>
+      <DebugFiles Include="$(OutputPath)\$(AssemblyName).pdb" />
+    </ItemGroup>
+
+    <Exec Command="$(SolutionDir)lib\pdb2mdb.exe %(DebugFiles.RelativeDir)%(DebugFiles.Filename).dll"/ -->
+
+    <ItemGroup>
+      <BuiltFiles Include="$(OutputPath)\*.dll;$(OutputPath)\*.mdb;$(OutputPath)\*.cs" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyToPackageProject" 
+    AfterTargets="AfterBuild"
+    DependsOnTargets="EnumerateBuildOutputs"
+    Inputs="@(BuiltFiles)"
+    Outputs="@(BuiltFiles->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+    Condition="'$(TargetFramework)' == 'net35' and '$(Configuration)' == 'Release'"
+  >
+
+    <Copy SourceFiles="@(BuiltFiles)" DestinationFiles="@(BuiltFiles->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Import Project="$(SolutionDir)\common\nativelibraries.props" />
+
+  <!-- copy native libraries to unity package project folder -->
+  <Target
+    Name="CopyNativeLibrariesToUnityPackageProject"
+    AfterTargets="AfterBuild"
+    Inputs="@(NativeLibraries"
+    Outputs="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+  >
+
+    <Message Importance="High" Text="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <Copy SourceFiles="@(NativeLibraries)" DestinationFiles="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+
+  </Target>
+
+</Project>

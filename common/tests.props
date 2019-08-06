@@ -8,4 +8,9 @@
     <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(SolutionDir)\build\obj\tests\$(Configuration)</IntermediateOutputPath>
     <OutputPath Condition="$(OutputPath) == ''">$(SolutionDir)\build\tests</OutputPath>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="@(NativeLibraries)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

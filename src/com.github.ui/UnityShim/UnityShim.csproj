@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net35;net471</TargetFrameworks>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..\</SolutionDir>
-    <AssemblyName>UnityShim</AssemblyName>
+    <AssemblyName>GitHub.UnityShim</AssemblyName>
     <RootNamespace>GitHub.Unity</RootNamespace>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\common\properties.props" />
@@ -11,5 +11,4 @@
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="SolutionInfo.cs" />
   </ItemGroup>
-  <Import Project="$(SolutionDir)\common\build.targets" />
 </Project>

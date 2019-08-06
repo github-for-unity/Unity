@@ -40,7 +40,7 @@ namespace GitHub.Unity
             DetachHandlers();
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             GUILayout.BeginVertical(Styles.GenericBoxStyle);
             {

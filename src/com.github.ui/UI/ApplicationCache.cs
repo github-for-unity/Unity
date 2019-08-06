@@ -133,8 +133,34 @@ namespace GitHub.Unity
             var script = MonoScript.FromScriptableObject(shim);
             var scriptPath = Application.dataPath.ToNPath().Parent.Combine(AssetDatabase.GetAssetPath(script).ToNPath());
             DestroyImmediate(shim);
-            return scriptPath.Parent;
+            var potentialBasePath = scriptPath.Parent;
+            try
+            {
+                if (!potentialBasePath.DirectoryExists())
+                {
+                    // we might be in a package fake folder, look for the real one in the manifest
+                    var packageRoot = potentialBasePath.RecursiveParents.FirstOrDefault(p => p.FileName == "Packages" && p.Combine("manifest.json").FileExists());
+                    if (packageRoot.IsInitialized)
+                    {
+                        var packageList = packageRoot.Combine("manifest.json").ReadAllText().FromJson<ManifestJson>(true);
+                        if (packageList.dependencies.TryGetValue("com.github.ui", out string relpath))
+                        {
+                            potentialBasePath = packageRoot.Combine(relpath, potentialBasePath.FileName).MakeAbsolute();
+                        }
+                    }
+                }
+            }
+            catch
+            { }
+            return potentialBasePath;
         }
+
+#pragma warning disable 649
+        class ManifestJson
+        {
+            public Dictionary<string, string> dependencies;
+        }
+#pragma warning restore 649
 
         public IEnvironment Environment
         {

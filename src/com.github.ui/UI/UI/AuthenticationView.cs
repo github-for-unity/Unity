@@ -58,10 +58,10 @@ namespace GitHub.Unity
 
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             DoToolbarGUI();
-            ActiveView.OnGUI();
+            ActiveView.OnUI();
         }
 
         public override bool IsBusy

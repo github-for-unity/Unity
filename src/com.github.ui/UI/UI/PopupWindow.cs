@@ -73,7 +73,7 @@ namespace GitHub.Unity
         public override void OnUI()
         {
             base.OnUI();
-            ActiveView.OnGUI();
+            ActiveView.OnUI();
         }
 
         public override void Refresh()

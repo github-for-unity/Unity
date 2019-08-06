@@ -1,49 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SfwDir>$(SolutionDir)\src\com.unity.git.api\sfw</SfwDir>
+  </PropertyGroup>
   <ItemGroup>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\linux\libsfw.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\linux\libsfw.so.meta">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\mac\libsfw.bundle">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\mac\libsfw.bundle.meta">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x64\sfw_x64.dll">
-      <Link>x64\sfw_x64.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x64\sfw_x64.dll.meta">
-      <Link>x64\sfw_x64.dll.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x64\pthreadVC2.dll">
-      <Link>x64\pthreadVC2.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x64\pthreadVC2.dll.meta">
-      <Link>x64\pthreadVC2.dll.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x86\sfw_x86.dll">
-      <Link>x86\sfw_x86.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x86\sfw_x86.dll.meta">
-      <Link>x86\sfw_x86.dll.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x86\pthreadVC2.dll">
-      <Link>x86\pthreadVC2.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(SolutionDir)\src\com.unity.git.api\sfw\win\x86\pthreadVC2.dll.meta">
-      <Link>x86\pthreadVC2.dll.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <NativeLibraries Include="$(SfwDir)\**\*.so*;$(SfwDir)\**\*.bundle*;$(SfwDir)\**\*.dll*" />
   </ItemGroup>
 </Project>

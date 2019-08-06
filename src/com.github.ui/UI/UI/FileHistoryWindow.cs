@@ -93,6 +93,13 @@ namespace GitHub.Unity
                 fileHistoryView.OnDisable();
         }
 
+        public override void OnBeforeFirstDraw()
+        {
+            base.OnBeforeFirstDraw();
+            if (fileHistoryView != null)
+                fileHistoryView.OnBeforeFirstDraw();
+        }
+
         public override void OnDataUpdate()
         {
             base.OnDataUpdate();
@@ -149,7 +156,7 @@ namespace GitHub.Unity
                 {
                     DoHeaderGUI();
 
-                    fileHistoryView.OnGUI();
+                    fileHistoryView.OnUI();
                 }
                 GUILayout.EndVertical();
             }

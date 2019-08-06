@@ -66,10 +66,8 @@ namespace GitHub.Unity
             targetMode = mode;
         }
 
-        public override void OnEnable()
+        public override void OnBeforeFirstDraw()
         {
-            base.OnEnable();
-
             var hasFocus = HasFocus;
             if (treeLocals != null)
             {
@@ -174,7 +172,7 @@ namespace GitHub.Unity
             disableCreate = treeLocals.SelectedNode == null || treeLocals.SelectedNode.IsFolder || treeLocals.SelectedNode.Level == 0;
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             Render();
         }

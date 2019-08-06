@@ -127,7 +127,7 @@ namespace GitHub.Unity
             });
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             GUILayout.BeginHorizontal(Styles.AuthHeaderBoxStyle);
             {

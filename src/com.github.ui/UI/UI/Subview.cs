@@ -24,11 +24,13 @@ namespace GitHub.Unity
 
         public virtual void OnDisable()
         {}
+        public virtual void OnBeforeFirstDraw()
+        {}
 
         public virtual void OnDataUpdate()
         {}
 
-        public virtual void OnGUI()
+        public virtual void OnUI()
         {}
 
         public virtual void OnSelectionChange()

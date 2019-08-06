@@ -682,7 +682,7 @@ namespace GitHub.Unity
             // GUI for the active tab
             if (ActiveView != null)
             {
-                ActiveView.OnGUI();
+                ActiveView.OnUI();
             }
 
             if (IsBusy && activeTab != SubTab.Settings && Event.current.type == EventType.Repaint)

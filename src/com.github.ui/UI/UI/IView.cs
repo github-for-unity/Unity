@@ -9,6 +9,8 @@ namespace GitHub.Unity
     {
         void OnEnable();
         void OnDisable();
+        void OnBeforeFirstDraw();
+        void OnUI();
         void Refresh();
         void Redraw();
         void Refresh(CacheType type);

@@ -66,7 +66,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             // Install path
             GUILayout.Label(GitInstallTitle, EditorStyles.boldLabel);

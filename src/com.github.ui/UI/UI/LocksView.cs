@@ -402,11 +402,6 @@ namespace GitHub.Unity
         {
             base.OnEnable();
 
-            if (locksControl != null)
-            {
-                locksControl.LoadIcons();
-            }
-
             AttachHandlers(Repository);
             ValidateCachedData(Repository);
             KeychainConnectionsChanged();
@@ -416,6 +411,14 @@ namespace GitHub.Unity
         {
             base.OnDisable();
             DetachHandlers(Repository);
+        }
+
+        public override void OnBeforeFirstDraw()
+        {
+            if (locksControl != null)
+            {
+                locksControl.LoadIcons();
+            }
         }
 
         public override void Refresh()
@@ -431,7 +434,7 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             var rect = GUILayoutUtility.GetLastRect();
 

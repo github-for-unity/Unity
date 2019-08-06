@@ -14,6 +14,7 @@ namespace GitHub.Unity
         [NonSerialized] private IRepository cachedRepository;
         [NonSerialized] private bool initializeWasCalled;
         [NonSerialized] protected bool inLayout;
+        [NonSerialized] private bool firstDrawCalled = false;
 
         public BaseWindow()
         {
@@ -56,12 +57,25 @@ namespace GitHub.Unity
 
         public virtual void OnEnable()
         {
+            firstDrawCalled = false;
             if (!initialized)
                 InitializeWindow(EntryPoint.ApplicationManager, false);
         }
 
         public virtual void OnDisable()
         {}
+
+        public virtual void OnBeforeFirstDraw()
+        {}
+
+        private void MaybeRaiseFirstDraw()
+        {
+            if (!firstDrawCalled)
+            {
+                firstDrawCalled = true;
+                OnBeforeFirstDraw();
+            }
+        }
 
         public virtual void Update()
         {}
@@ -80,6 +94,8 @@ namespace GitHub.Unity
         {
             if (Event.current.type == EventType.Layout)
             {
+                MaybeRaiseFirstDraw();
+
                 if (cachedRepository != Environment.Repository || initializeWasCalled)
                 {
                     initializeWasCalled = false;

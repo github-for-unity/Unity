@@ -601,7 +601,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             var lastRect = GUILayoutUtility.GetLastRect();
             DoHistoryGui(lastRect, entry => {
@@ -745,7 +745,7 @@ namespace GitHub.Unity
             }
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             var lastRect = GUILayoutUtility.GetLastRect();
             DoHistoryGui(lastRect, entry => {

@@ -76,7 +76,7 @@ namespace GitHub.Unity
             MaybeUpdateData();
         }
 
-        public override void OnGUI()
+        public override void OnUI()
         {
             DoButtonBarGUI();
             if (gitStatusEntries.Count == 0)
