@@ -4,6 +4,20 @@
     <PackageProjectPath>$(SolutionDir)\unity\GHfU-$(TargetFramework)\Assets\Plugins\GitHub\Editor</PackageProjectPath>
   </PropertyGroup>
 
+  <Import Project="$(SolutionDir)\common\nativelibraries.props" />
+
+  <!-- copy native libraries to unity package project folder -->
+  <Target Name="CopyNativeLibrariesToUnityPackageProject"
+    AfterTargets="AfterBuild"
+    Inputs="@(NativeLibraries"
+    Outputs="@(NativeLibraries->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+  >
+
+    <Copy SourceFiles="@(NativeLibraries)" DestinationFiles="@(NativeLibraries->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+
+  </Target>
+
+
   <Target Name="EnumerateBuildOutputs"
     Returns="@(BuiltFiles)">
 
@@ -14,12 +28,12 @@
     <Exec Command="$(SolutionDir)lib\pdb2mdb.exe %(DebugFiles.RelativeDir)%(DebugFiles.Filename).dll"/ -->
 
     <ItemGroup>
-      <BuiltFiles Include="$(OutputPath)\*.dll;$(OutputPath)\*.mdb;$(OutputPath)\*.cs" />
+      <BuiltFiles Include="$(OutputPath)\**\*" Exclude="$(OutputPath)\**\*.pdb" />
     </ItemGroup>
+
   </Target>
 
   <Target Name="CopyToPackageProject" 
-    Condition="'$(Configuration)' == 'Release'"
     AfterTargets="AfterBuild"
     DependsOnTargets="EnumerateBuildOutputs"
     Inputs="@(BuiltFiles)"
@@ -27,12 +41,12 @@
   >
 
     <Copy SourceFiles="@(BuiltFiles)" DestinationFiles="@(BuiltFiles->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+
   </Target>
 
-  <Import Project="$(SolutionDir)\common\nativelibraries.props" />
 
   <!-- copy native libraries to unity package project folder -->
-  <Target Name="CopyNativeLibrariesToUnityPackageProject"
+  <!-- Target Name="CopyNativeLibrariesToUnityPackageProject"
     Condition="'$(Configuration)' == 'Release'"
     AfterTargets="AfterBuild"
     Inputs="@(NativeLibraries"
@@ -41,6 +55,6 @@
 
     <Copy SourceFiles="@(NativeLibraries)" DestinationFiles="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
-  </Target>
+  </Target -->
 
 </Project>

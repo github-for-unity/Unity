@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>net35;net471</TargetFrameworks>
-    <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..</SolutionDir>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..\</SolutionDir>
     <RootNamespace>GitHub.Unity</RootNamespace>
     <AssemblyName>ExtensionLoader</AssemblyName>
   </PropertyGroup>
@@ -11,7 +11,7 @@
   <Import Project="$(SolutionDir)\common\tests.props" />  
   <Import Project="$(SolutionDir)\common\unityreferences.targets" />
   <PropertyGroup>
-    <GlobalOutputPath>$(OutputPath)\$(TargetFramework)</GlobalOutputPath>
+    <GlobalOutputPath>$(OutputPath)</GlobalOutputPath>
     <OutputPath>$(SolutionDir)\build\$(MSBuildProjectName)</OutputPath>
   </PropertyGroup>
   <ItemGroup>
@@ -22,9 +22,10 @@
   <Target Name="CopySourcesToBuild" 
     AfterTargets="AfterBuild"
     Inputs="@(Sources)"
-    Outputs="@(Sources->'$(GlobalOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+    Outputs="@(Sources->'$(GlobalOutputPath)\net35\%(RecursiveDir)%(Filename)%(Extension)');@(Sources->'$(GlobalOutputPath)\net471\%(RecursiveDir)%(Filename)%(Extension)')"
   >
-    <Message Importance="High" Text="@(Sources->'$(GlobalOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Sources)" DestinationFiles="@(Sources->'$(GlobalOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Message Importance="High" Text="@(Sources->'$(GlobalOutputPath)\net35\%(RecursiveDir)%(Filename)%(Extension)') @(Sources->'$(GlobalOutputPath)\net471\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(Sources)" DestinationFiles="@(Sources->'$(GlobalOutputPath)\net35\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(Sources)" DestinationFiles="@(Sources->'$(GlobalOutputPath)\net471\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 </Project>

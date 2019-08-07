@@ -19,6 +19,8 @@ if ($Trace) {
 
 . $PSScriptRoot\scripts\modules.ps1 | out-null
 
+nuget restore
+
 $uiVersionData = %{ & "$rootDirectory\packages\Nerdbank.GitVersioning.3.0.24\tools\Get-Version.ps1" -ProjectDirectory "$rootDirectory\src\com.github.ui\UI\" }
 $apiVersionData = %{ & "$rootDirectory\packages\Nerdbank.GitVersioning.3.0.24\tools\Get-Version.ps1" -ProjectDirectory "$rootDirectory\src\git-for-unity\src\com.unity.git.api\Api\" }
 $uiVersion = $uiVersionData.AssemblyInformationalVersion

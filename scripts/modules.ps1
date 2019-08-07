@@ -1,4 +1,5 @@
 Add-Type -AssemblyName "System.Core"
+try {
 Add-Type -TypeDefinition @"
 public class ScriptException : System.Exception
 {
@@ -9,6 +10,7 @@ public class ScriptException : System.Exception
     }
 }
 "@
+} catch {}
 
 New-Module -ScriptBlock {
     $rootDirectory = Split-Path ($PSScriptRoot)

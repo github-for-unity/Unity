@@ -30,7 +30,7 @@ PluginImporter:
       second:
         enabled: 0
         settings:
-          CPU: AnyCPU
+          CPU: x86_64
           OS: Windows
     data:
       first:

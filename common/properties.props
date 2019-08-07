@@ -4,8 +4,6 @@
   <PropertyGroup>
     <BuildType Condition="Exists('$(SolutionDir)script\src\ApplicationInfo_Local.cs')">Internal</BuildType>
     <BuildDefs>$(BuildDefs);ENABLE_MONO</BuildDefs>
-    <BuildConfig Condition=" '$(Configuration)' == 'dev'">Debug</BuildConfig>
-    <BuildConfig Condition=" '$(Configuration)' != 'dev'">$(Configuration)</BuildConfig>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
