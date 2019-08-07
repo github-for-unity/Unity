@@ -24,9 +24,24 @@ $apiVersionData = %{ & "$rootDirectory\packages\Nerdbank.GitVersioning.3.0.24\to
 $uiVersion = $uiVersionData.AssemblyInformationalVersion
 $apiVersion = $apiVersionData.AssemblyInformationalVersion
 
-Run-Command -Fatal { & "$rootDirectory\submodules\packaging\unitypackage\run.ps1" -PathToPackage "$rootDirectory\unity\GHfU-net35" -OutputFolder "$rootDirectory" -PackageName "github-for-unity-net20-$uiVersion" }
-Run-Command -Fatal { & "$rootDirectory\submodules\packaging\unitypackage\run.ps1" -PathToPackage "$rootDirectory\unity\GHfU-net471" -OutputFolder "$rootDirectory" -PackageName "github-for-unity-$uiVersion" }
+$PackageName = "github-for-unity"
 
-Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\run.ps1" -PathToPackage "$rootDirectory\packages\com.github.ui" -OutputFolder "$rootDirectory" -PackageName com.github.ui -Version "$uiVersion" -Ignores "$rootDirectory\packages\com.github.ui\.npmignore" }
-Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\run.ps1" -PathToPackage "$rootDirectory\packages\com.unity.git.api" -OutputFolder "$rootDirectory" -PackageName com.unity.git.api -Version "$apiVersion" -Ignores "$rootDirectory\packages\com.unity.git.api\.npmignore" }
+$name1 = "com.github.ui"
+$path1 = "$rootDirectory\build\packages\$name1"
+$extras1 = "$rootDirectory\src\extras\$name1"
+$ignores1 = "$rootDirectory\build\packages\$name1\.npmignore"
+$version1 = "$uiVersion"
 
+$name2 = "com.unity.git.api"
+$path2 = "$rootDirectory\build\packages\$name2"
+$extras2 = "$rootDirectory\src\git-for-unity\src\extras\$name2"
+$ignores2 = "$rootDirectory\build\packages\$name2\.npmignore" 
+$version2 = "$apiVersion"
+
+Run-Command -Fatal { & "$rootDirectory\submodules\packaging\unitypackage\run.ps1" -PathToPackage "$rootDirectory\unity\GHfU-net35" -OutputFolder "$rootDirectory" -PackageName "$PackageName-net20-$uiVersion" }
+Run-Command -Fatal { & "$rootDirectory\submodules\packaging\unitypackage\run.ps1" -PathToPackage "$rootDirectory\unity\GHfU-net471" -OutputFolder "$rootDirectory" -PackageName "$PackageName-$uiVersion" }
+
+Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\run.ps1" -PathToPackage "$path1" -OutputFolder "$rootDirectory" -PackageName "$name1" -Version "$version1" -Ignores "$ignores1" }
+Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\run.ps1" -PathToPackage "$path2" -OutputFolder "$rootDirectory" -PackageName "$name2" -Version "$version2" -Ignores "$ignores2" }
+
+Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\multipackage.ps1" -OutputFolder "$rootDirectory" -PackageName "$PackageName-packman" -Version "$uiVersion" -Path1 "$path1" -Extras1 "$extras1"  -Ignores1 "$ignores1" -Path2 "$path2" -Extras2 "$extras2"  -Ignores2 "$ignores2" }

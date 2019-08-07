@@ -3,12 +3,27 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 outdir="$DIR/artifacts"
 
-version35=$(sed -En 's,.*AssemblyInformationalVersion = "(.*)".*,\1,p' build/obj/Release/net35/GitHub.Unity.Version.cs)
-version471=$(sed -En 's,.*AssemblyInformationalVersion = "(.*)".*,\1,p' build/obj/Release/net471/GitHub.Unity.Version.cs)
-versiongitapi=$(sed -En 's,.*AssemblyInformationalVersion = "(.*)".*,\1,p' build/obj/Release/net471/Unity.VersionControl.Git.Version.cs)
+uiVersion=$(sed -En 's,.*AssemblyInformationalVersion = "(.*)".*,\1,p' build/obj/Release/net471/GitHub.Unity.Version.cs)
+apiVersion=$(sed -En 's,.*AssemblyInformationalVersion = "(.*)".*,\1,p' build/obj/Release/net471/Unity.VersionControl.Git.Version.cs)
 
-#$DIR/submodules/packaging/unitypackage/run.sh --path "$DIR/unity/GHfU-net35" --out "$outdir" --file github-for-unity-net20-$version35
-#$DIR/submodules/packaging/unitypackage/run.sh --path "$DIR/unity/GHfU-net471" --out "$outdir" --file github-for-unity-$version471
+packageName = "github-for-unity"
 
-$DIR/src/git-for-unity/packaging/create-unity-packages/run.sh --path "$DIR/build/packages/com.github.ui" --out "$outdir" --name com.github.ui --version $version471 --ignores "$DIR/build/packages/com.github.ui/.npmignore"
-$DIR/src/git-for-unity/packaging/create-unity-packages/run.sh --path "$DIR/build/packages/com.unity.git.api" --out "$outdir" --name com.unity.git.api --version "$versiongitapi" --ignores "$DIR/build/packages/com.unity.git.api/.npmignore"
+name1 = "com.github.ui"
+path1 = "$rootDirectory/build/packages/$name1"
+extras1 = "$rootDirectory/src/extras/$name1"
+ignores1 = "$rootDirectory/build/packages/$name1/.npmignore"
+version1 = "$uiVersion"
+
+name2 = "com.unity.git.api"
+path2 = "$rootDirectory/build/packages/$name2"
+extras2 = "$rootDirectory/src/git-for-unity/src/extras/$name2"
+ignores2 = "$rootDirectory/build/packages/$name2/.npmignore" 
+version2 = "$apiVersion"
+
+$DIR/submodules/packaging/unitypackage/run.sh --path "$DIR/unity/GHfU-net35" --out "$outdir" --file $packageName-net20-$uiVersion
+$DIR/submodules/packaging/unitypackage/run.sh --path "$DIR/unity/GHfU-net471" --out "$outdir" --file $packageName-$uiVersion
+
+$DIR/src/git-for-unity/packaging/create-unity-packages/run.sh --out "$outdir" --name "$name1" --version "$version1" --path "$path1" --extras "$extras1" --ignores "$ignores1"
+$DIR/src/git-for-unity/packaging/create-unity-packages/run.sh --out "$outdir" --name "$name2" --version "$version2" --path "$path2" --extras "$extras2" --ignores "$ignores2"
+
+$DIR/src/git-for-unity/packaging/create-unity-packages/multipackage.sh --out "$outdir" --name "$packageName" --version "$uiVersion" --path1 "$path1" --extras1 "$extras1" --ignores1 "$ignores1" --path2 "$path2" --extras2 "$extras2" --ignores2 "$ignores2"
