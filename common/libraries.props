@@ -10,4 +10,9 @@
     <OutputPath Condition="$(OutputPath) == ''">$(SolutionDir)\build\$(Configuration)</OutputPath>
     <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(SolutionDir)\build\obj\$(Configuration)</IntermediateOutputPath>
   </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <PackageReference Include="Unity.NETFramework.ReferenceAssemblies.net35" Version="1.0.0" IncludeAssets="runtime; build; native; contentfiles; analyzers" PrivateAssets="All" />
+  </ItemGroup>
+
 </Project>

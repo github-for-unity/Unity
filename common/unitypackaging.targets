@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
-    <PackageReference Include="Unity.NETFramework.ReferenceAssemblies.net35" Version="1.0.0" PrivateAssets="All" />
-  </ItemGroup -->
-
   <PropertyGroup>
     <PackageProjectPath>$(SolutionDir)\unity\GHfU-$(TargetFramework)\Assets\Plugins\GitHub\Editor</PackageProjectPath>
   </PropertyGroup>
@@ -42,8 +38,6 @@
     Inputs="@(NativeLibraries"
     Outputs="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')"
   >
-
-    <Message Importance="High" Text="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
     <Copy SourceFiles="@(NativeLibraries)" DestinationFiles="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 

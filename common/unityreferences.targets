@@ -1,34 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="FindUnityTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
-    <ParameterGroup>
-      <BasePath ParameterType="System.String" Required="true" />
-      <Versions ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
-      <Found ParameterType="System.String" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Using Namespace="System"/>
-      <Using Namespace="System.IO"/>
-      <Code Type="Fragment" Language="cs">
-<![CDATA[
-        string basePath = @"Editor\Data\";
-        string dll = @"Managed\UnityEditor.dll";
-        Found = Versions
-          .Select(v => {
-            var path = Path.Combine(Path.Combine(BasePath, v.ToString()), basePath);
-            Log.LogMessage(MessageImportance.Normal, "Trying {0}", path);
-            return path;
-          })
-          .FirstOrDefault(path => File.Exists(Path.Combine(path, dll)));
-        if (Found != null)
-          Log.LogMessage(MessageImportance.Normal, "Found {0}", Found);
-        return true;
-]]>
-      </Code>
-    </Task>
-  </UsingTask>
-
   <ItemGroup>
     <UnityVersions Include="2018.4.4f1;2018.4.3f1;2018.4.2f1;2019.1.10f1;2019.1.9f1;2019.1.8f1;2019.1.7f1;2019.1.6f1;2019.1.5f1;2019.1.4f1;2019.1.3f1;2019.1.2f1;2019.1.1f1" />
   </ItemGroup>
@@ -55,13 +27,16 @@
 
   <!-- Common includes and references -->
   <Target Name="FindUnity">
-    <FindUnityTask 
-      Condition="$(UnityDir) == ''"
-      BasePath="$(HubInstallDir)" Versions="@(UnityVersions)">
-      <Output TaskParameter="Found" PropertyName="UnityDir" />
-    </FindUnityTask>
 
-    <Message Importance="High" Text="UnityDir: $(UnityDir)" />
+    <ItemGroup>
+      <Locations Include="@(UnityVersions->'%(Identity)\Editor\Data\Managed\UnityEditor.dll')" />
+      <FilesFoundInPath Include="$(HubInstallDir)\*\Editor\Data\Managed\UnityEditor.dll" />
+      <BaseDirs Include="@(FilesFoundInPath->Replace('Managed\UnityEditor.dll', ''))" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <UnityDir Condition="$(UnityDir) == ''">%(BaseDirs.Identity)</UnityDir>
+    </PropertyGroup>
 
     <ItemGroup Condition="'$(UnityDir)' != ''">
       <Reference Remove="UnityEditor;UnityEngine" />
@@ -86,7 +61,7 @@
       </Reference>
     </ItemGroup>
 
-    <Message Importance="High" Text="project: $(MSBuildProjectName)" />
+    <!-- Message Importance="High" Text="project: $(MSBuildProjectName)" / -->
 
     <PropertyGroup>
       <UnityDLLsMissingErrorText>The location of Unity dlls is not set. You'll need to either:
