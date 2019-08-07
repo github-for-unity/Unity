@@ -53,8 +53,7 @@ test:
 on_success:
 - ps: |
     if ($package) {
-      # generate [ackages]
-      $($env:appveyor_build_folder)\Create-Packages.ps1
+      .\Create-Packages.ps1
     }
 on_finish:
 - ps: |
