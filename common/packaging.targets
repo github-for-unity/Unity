@@ -6,7 +6,7 @@
 
   <Target Name="EnumeratePackageFiles" Returns="$(PackageName);@(FilesToCopy);@(ExtraFiles)">
 
-    <CreateItem Include="$(PackageSourceDir)\**\*.*" Exclude="$(PackageSourceDir)\**\*.csproj*;$(PackageSourceDir)\**\*.ncrunch*;$(PackageSourceDir)\**\obj\**">
+    <CreateItem Include="$(PackageSourceDir)\**\*.*;$(IntermediateOutputPath)\$(AssemblyName).Version.cs" Exclude="$(PackageSourceDir)\**\*.csproj*;$(PackageSourceDir)\**\*.ncrunch*;$(PackageSourceDir)\**\obj\**">
       <Output TaskParameter="Include" ItemName="FilesToCopy" />
     </CreateItem>
 
