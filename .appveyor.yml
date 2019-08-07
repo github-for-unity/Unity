@@ -33,11 +33,10 @@ install:
     git submodule update
     Set-Location $env:appveyor_build_folder
 
+    nuget restore
+
     $patchNumber = $env:APPVEYOR_BUILD_NUMBER
     scripts\Set-Version.ps1 $patchNumber
-
-    nuget restore
-    $($env:appveyor_build_folder)\hMSBuild.bat /t:restore
 
 configuration: Release
 build:
