@@ -6,7 +6,10 @@
     "^refs/heads/v\\d+(?:.\\d+)?$"
   ],
   "cloudBuild": {
-    "setVersionVariables": true
+    "setVersionVariables": true,
+    "buildNumber": {
+      "enabled": true
+    }    
   },
   "inherit": false
 }
