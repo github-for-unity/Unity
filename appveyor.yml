@@ -31,11 +31,13 @@ install:
     }
 
     git submodule update
-    nuget restore GitHub.Unity.sln
     Set-Location $env:appveyor_build_folder
 
     $patchNumber = $env:APPVEYOR_BUILD_NUMBER
     scripts\Set-Version.ps1 $patchNumber
+
+    nuget restore
+    $($env:appveyor_build_folder)\hMSBuild.bat /t:restore
 
 configuration: Release
 build:
@@ -51,34 +53,13 @@ test:
     - DoNotRunOnAppVeyor
 on_success:
 - ps: |
-    $longVersion = $GitAssemblyInformationalVersion
-    $shortVersion = $GitBuildVersion
-
     if ($package) {
-      $rootdir=$env:appveyor_build_folder
-      Set-Location $rootdir
-      $sourcedir="$rootdir\unity\PackageProject"
-      $packagename="github-for-unity-$longVersion"
-      $packagefile="$rootdir\$($packagename).unitypackage"
-      $commitfile="$sourcedir\commit"
-      $zipfile="$rootdir\PackageProject-$longVersion.zip"
-
-      # generate unitypackage
-      Write-Output "Generating $packagefile"
-      submodules\packaging\unitypackage\run.ps1 -PathToPackage:$sourcedir -OutputFolder:$rootdir -PackageName:$packagename
-
-      # save commit
-      Add-Content $commitfile $appveyor_repo_commit
-
-      Write-Output "Zipping $sourcedir to $zipfile"
-      7z a $zipfile $sourcedir
-
-      Write-Output "Uploading $zipfile"
-      Push-AppveyorArtifact $zipfile -DeploymentName source
-      Push-AppveyorArtifact $packagefile -DeploymentName package
-      Push-AppveyorArtifact "$($packagefile).md5" -DeploymentName package
+      # generate [ackages]
+      $($env:appveyor_build_folder)\Create-Packages.ps1
     }
 on_finish:
 - ps: |
     Set-Location $env:appveyor_build_folder
     Get-ChildItem $env:appveyor_build_folder\build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name -DeploymentName logs }
+artifacts:
+  - path: 'artifacts\*'
