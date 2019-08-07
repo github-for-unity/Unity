@@ -46,7 +46,7 @@ test:
   assemblies:
     except:
       - '**\*.TestRunner.dll'
-      - '**\*.TestUtils.dll'
+      - '**\TestUtils.dll'
   categories:
     except:
     - DoNotRunOnAppVeyor
