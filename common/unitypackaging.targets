@@ -5,7 +5,7 @@
   </ItemGroup -->
 
   <PropertyGroup>
-    <PackageProjectPath Condition="'$(PackageProjectPath)' == '' ">$(SolutionDir)\unity\PackageProject\Assets\Plugins\GitHub\Editor</PackageProjectPath>
+    <PackageProjectPath>$(SolutionDir)\unity\GHfU-$(TargetFramework)\Assets\Plugins\GitHub\Editor</PackageProjectPath>
   </PropertyGroup>
 
   <Target Name="EnumerateBuildOutputs"
@@ -23,11 +23,11 @@
   </Target>
 
   <Target Name="CopyToPackageProject" 
+    Condition="'$(Configuration)' == 'Release'"
     AfterTargets="AfterBuild"
     DependsOnTargets="EnumerateBuildOutputs"
     Inputs="@(BuiltFiles)"
     Outputs="@(BuiltFiles->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')"
-    Condition="'$(TargetFramework)' == 'net35' and '$(Configuration)' == 'Release'"
   >
 
     <Copy SourceFiles="@(BuiltFiles)" DestinationFiles="@(BuiltFiles->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
@@ -36,8 +36,8 @@
   <Import Project="$(SolutionDir)\common\nativelibraries.props" />
 
   <!-- copy native libraries to unity package project folder -->
-  <Target
-    Name="CopyNativeLibrariesToUnityPackageProject"
+  <Target Name="CopyNativeLibrariesToUnityPackageProject"
+    Condition="'$(Configuration)' == 'Release'"
     AfterTargets="AfterBuild"
     Inputs="@(NativeLibraries"
     Outputs="@(NativeLibraries->'$(PackageProjectPath)\%(RecursiveDir)%(Filename)%(Extension)')"

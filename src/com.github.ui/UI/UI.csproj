@@ -36,6 +36,8 @@
   </PropertyGroup>
 
   <Import Project="$(SolutionDir)\common\packaging.targets" Condition=" '$(TargetFramework)' == 'net471' " />
-  <Import Project="$(SolutionDir)\common\packaging-net35.targets" Condition=" '$(TargetFramework)' == 'net35' " />
+
+  <!-- copy files to package project folders to be turned into .unitypackage archives -->
+  <Import Project="$(SolutionDir)\common\unitypackaging.targets" />
 
 </Project>

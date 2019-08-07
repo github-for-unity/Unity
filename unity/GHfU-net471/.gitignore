@@ -1,0 +1,21 @@
+*.dll
+*.pdb
+*.pdb.meta
+*.mdb
+*.xml
+*.local.json
+*.zip
+*.md5
+*.dylib
+*.so
+*.bundle
+*.cs
+ProjectVersion.txt
+
+Library/
+
+// These files come from lib/
+Assets/Plugins/GitHub/Editor/x64/
+Assets/Plugins/GitHub/Editor/x86/
+Assets/Plugins/GitHub/Editor/libsfw.bundle.meta
+Assets/Plugins/GitHub/Editor/libsfw.so.meta
