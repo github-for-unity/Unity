@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestWebServer", "src\git-fo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnityShim", "src\com.github.ui\UnityShim\UnityShim.csproj", "{A3BC8077-CD48-4E8D-A7BA-6242268A0378}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnityTests", "src\com.github.ui\UnityTests\UnityTests.csproj", "{D387A063-FC95-4095-A4E8-2D15710F7F73}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -110,6 +112,12 @@ Global
 		{A3BC8077-CD48-4E8D-A7BA-6242268A0378}.dev|Any CPU.Build.0 = Debug|Any CPU
 		{A3BC8077-CD48-4E8D-A7BA-6242268A0378}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3BC8077-CD48-4E8D-A7BA-6242268A0378}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D387A063-FC95-4095-A4E8-2D15710F7F73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D387A063-FC95-4095-A4E8-2D15710F7F73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D387A063-FC95-4095-A4E8-2D15710F7F73}.dev|Any CPU.ActiveCfg = Debug|Any CPU
+		{D387A063-FC95-4095-A4E8-2D15710F7F73}.dev|Any CPU.Build.0 = Debug|Any CPU
+		{D387A063-FC95-4095-A4E8-2D15710F7F73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D387A063-FC95-4095-A4E8-2D15710F7F73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -124,6 +132,7 @@ Global
 		{1A382F40-FD9E-43E1-89C1-320073F35CE9} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
 		{08B87D2A-8CF1-4211-B7AA-5209F00F72F8} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
 		{3DD3451C-30FA-4294-A3A9-1E080342F867} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
+		{D387A063-FC95-4095-A4E8-2D15710F7F73} = {D17F1B4C-42DC-4E78-BCEF-9F239A084C4D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {66BD4D50-3779-4912-9596-2C838BF24911}

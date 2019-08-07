@@ -17,4 +17,7 @@
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="SolutionInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UI\UI.csproj" />
+  </ItemGroup>
 </Project>
