@@ -1,7 +1,7 @@
 Param(
 	[Parameter(Mandatory=$true)]
 	[int]
-	$Value,
+	$PatchVersion,
 	[switch]
 	$Trace = $false
 )
@@ -9,20 +9,34 @@ Param(
 Set-StrictMode -Version Latest
 if ($Trace) { Set-PSDebug -Trace 1 }
 
-. $PSScriptRoot\modules.ps1 | out-null
+. $PSScriptRoot\helpers.ps1 | out-null
 
-$source = Get-Content -Raw $PSScriptRoot\TheVersion.cs
-Add-Type -TypeDefinition "$source"
+& {
+    Trap {
+        Write-Output "Setting version failed"
+        Write-Output "Error: $_"
+        exit 0
+    }
 
-$versionFile = "$rootDirectory\src\com.github.ui\version.json"
-$versionjson = Get-Content $versionFile | ConvertFrom-Json
+	$source = Get-Content -Raw $PSScriptRoot\TheVersion.cs
+	Add-Type -TypeDefinition "$source"
 
-$version = $versionjson.version
+	function PatchVersionFile([string]$versionFile, [int]$newPatchValue) {
+		$versionjson = Get-Content $versionFile | ConvertFrom-Json
+		$version = $versionjson.version
+		$parsed = [TheVersion]::Parse("$version")
+		$newVersion = $parsed.SetPatch($newPatchValue)
+		$versionjson.version = $newVersion.Version
+		ConvertTo-Json $versionjson | Set-Content $versionFile
+	}
 
-$parsed = [TheVersion]::Parse("$version")
-Write-Output $parsed.Version
-$newVersion = $parsed.SetPatch($Value)
-Write-Output $newVersion.Version
+	$versionFile = "$rootDirectory\src\com.github.ui\version.json"
+	PatchVersionFile $versionFile $PatchVersion
 
-$versionjson.version = $newVersion.Version
-ConvertTo-Json $versionjson | Set-Content $versionFile
+	$versionFile = "$rootDirectory\src\git-for-unity\src\com.unity.git.ui\version.json"
+	PatchVersionFile $versionFile $PatchVersion
+
+	$versionFile = "$rootDirectory\src\git-for-unity\src\com.unity.git.api\version.json"
+	PatchVersionFile $versionFile $PatchVersion
+
+}
