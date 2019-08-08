@@ -53,11 +53,12 @@ test:
 on_success:
 - ps: |
     if ($package) {
+      # make real damn sure the gitversioning package is installed into the packages folder
+      common/nuget.exe restore
       .\Create-Packages.ps1
     }
 on_finish:
 - ps: |
     Set-Location $env:appveyor_build_folder
     Get-ChildItem $env:appveyor_build_folder\build\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name -DeploymentName logs }
-artifacts:
-  - path: 'artifacts\*'
+    Get-ChildItem $env:appveyor_build_folder\artifacts\* | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name -DeploymentName package }

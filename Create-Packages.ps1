@@ -17,7 +17,7 @@ if ($Trace) {
     Set-PSDebug -Trace 1
 }
 
-. $PSScriptRoot\scripts\modules.ps1 | out-null
+. $PSScriptRoot\scripts\helpers.ps1 | out-null
 
 nuget restore
 
