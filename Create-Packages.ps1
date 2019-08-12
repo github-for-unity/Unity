@@ -8,6 +8,8 @@
 [CmdletBinding()]
 
 Param(
+    [string]
+    $Version,
     [switch]
     $Trace = $false
 )
@@ -19,32 +21,50 @@ if ($Trace) {
 
 . $PSScriptRoot\scripts\helpers.ps1 | out-null
 
-nuget restore
+$artifactDir="$rootDirectory\artifacts"
+$tmpDir="$rootDirectory\tmp"
+$packageDir="$rootDirectory\build\packages"
+$srcDir="$rootDirectory\src"
+$originalSrcDir="$srcDir\git-for-unity\src"
+$packagingScriptsDir="$srcDir\git-for-unity\packaging\create-unity-packages"
 
-$uiVersionData = %{ & "$rootDirectory\packages\Nerdbank.GitVersioning.3.0.24\tools\Get-Version.ps1" -ProjectDirectory "$rootDirectory\src\com.github.ui\UI\" }
-$apiVersionData = %{ & "$rootDirectory\packages\Nerdbank.GitVersioning.3.0.24\tools\Get-Version.ps1" -ProjectDirectory "$rootDirectory\src\git-for-unity\src\com.unity.git.api\Api\" }
-$uiVersion = $uiVersionData.AssemblyInformationalVersion
-$apiVersion = $apiVersionData.AssemblyInformationalVersion
+$pkgName="com.unity.git.api"
+$pkgSrcDir="$packageDir\$pkgName"
+$extrasDir="$originalSrcDir\extras\$pkgName"
+$ignorefile="$originalSrcDir\$pkgName\.npmignore"
+$baseInstall="Packages\$pkgName"
 
-$PackageName = "github-for-unity"
-$outdir="$rootDirectory\artifacts"
+Run-Command -Fatal { & $packagingScriptsDir\run.ps1 $pkgSrcDir $tmpDir $pkgName $Version $extrasDir $ignorefile $baseInstall -Skip }
 
-$name1 = "com.github.ui"
-$path1 = "$rootDirectory\build\packages\$name1"
-$extras1 = "$rootDirectory\src\extras\$name1"
-$ignores1 = "$rootDirectory\build\packages\$name1\.npmignore"
-$version1 = "$uiVersion"
+$pkgName="com.github.ui"
+$pkgSrcDir="$packageDir\$pkgName"
+$extrasDir="$srcDir\extras\$pkgName"
+$ignorefile="$srcDir\$pkgName\.npmignore"
+$baseInstall="Packages\$pkgName"
 
-$name2 = "com.unity.git.api"
-$path2 = "$rootDirectory\build\packages\$name2"
-$extras2 = "$rootDirectory\src\git-for-unity\src\extras\$name2"
-$ignores2 = "$rootDirectory\build\packages\$name2\.npmignore" 
-$version2 = "$apiVersion"
+Run-Command -Fatal { & $packagingScriptsDir\run.ps1 $pkgSrcDir $tmpDir $pkgName $Version $extrasDir $ignorefile $baseInstall -Skip }
 
-Run-Command -Fatal { & "$rootDirectory\submodules\packaging\unitypackage\run.ps1" -PathToPackage "$rootDirectory\unity\GHfU-net35" -OutputFolder "$outdir" -PackageName "$PackageName-net20-$uiVersion" }
-Run-Command -Fatal { & "$rootDirectory\submodules\packaging\unitypackage\run.ps1" -PathToPackage "$rootDirectory\unity\GHfU-net471" -OutputFolder "$outdir" -PackageName "$PackageName-$uiVersion" }
+$pkgName="github-for-unity-source-package"
+$pkgSrcDir="$tmpDir\unitypackage"
 
-Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\run.ps1" -PathToPackage "$path1" -OutputFolder "$outdir" -PackageName "$name1" -Version "$version1" -Ignores "$ignores1" }
-Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\run.ps1" -PathToPackage "$path2" -OutputFolder "$outdir" -PackageName "$name2" -Version "$version2" -Ignores "$ignores2" }
+Run-Command -Fatal { & $packagingScriptsDir\zip.ps1 $pkgSrcDir $artifactDir $pkgName $Version -Unity }
 
-Run-Command -Fatal { & "$rootDirectory\src\git-for-unity\packaging\create-unity-packages\multipackage.ps1" -OutputFolder "$outdir" -PackageName "$PackageName-packman" -Version "$uiVersion" -Path1 "$path1" -Extras1 "$extras1" -Ignores1 "$ignores1" -Path2 "$path2" -Extras2 "$extras2"  -Ignores2 "$ignores2" }
+$pkgName="github-for-unity-net20"
+$pkgSrcDir="$rootDirectory\unity\GHfU-net35\Assets"
+$baseInstall="Assets"
+
+Run-Command -Fatal { & $packagingScriptsDir\run.ps1 $pkgSrcDir $artifactDir $pkgName $Version -BaseInstall $baseInstall -SkipPackman }
+
+$pkgName="github-for-unity-net471"
+$pkgSrcDir="$rootDirectory\unity\GHfU-net471\Assets"
+$baseInstall="Assets"
+
+Run-Command -Fatal { & $packagingScriptsDir\run.ps1 $pkgSrcDir $artifactDir $pkgName $Version -BaseInstall $baseInstall -SkipPackman }
+
+$pkgName="github-for-unity-binary-package"
+$pkgSrcDir="$rootDirectory\unity\GHfU-net471\Assets\Plugins\GitHub\Editor"
+$baseInstall="Packages\com.github.ui"
+
+Run-Command -Fatal { & $packagingScriptsDir\run.ps1 $pkgSrcDir $artifactDir $pkgName $Version -BaseInstall $baseInstall -SkipPackman }
+
+Run-Command -Quiet { Remove-Item "$tmpDir" -Recurse -Force }

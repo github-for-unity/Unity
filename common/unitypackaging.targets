@@ -6,7 +6,7 @@
 
   <Import Project="$(SolutionDir)\common\nativelibraries.props" />
 
-  <!-- copy native libraries to unity package project folder -->
+  <!-- copy native libraries to output path  -->
   <Target Name="CopyNativeLibrariesToUnityPackageProject"
     AfterTargets="AfterBuild"
     Inputs="@(NativeLibraries"

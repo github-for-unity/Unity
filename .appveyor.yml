@@ -22,9 +22,9 @@ install:
     } else {
       $env:BUILD_TYPE="partial"
       git submodule deinit script
-      $destdir = Join-Path $env:appveyor_build_folder 'lib'
-      $destfile = Join-Path $destdir 'deps.zip'
-      Set-Location $destdir
+      $destDir = Join-Path $env:appveyor_build_folder 'lib'
+      $destfile = Join-Path $destDir 'deps.zip'
+      Set-Location $destDir
       Invoke-WebRequest "https://ghfvs-installer.github.com/dependencies/deps.zip" -OutFile $destfile
       &'7z' -bb3 x 'deps.zip'
       Set-Location $env:appveyor_build_folder
@@ -53,9 +53,7 @@ test:
 on_success:
 - ps: |
     if ($package) {
-      # make real damn sure the gitversioning package is installed into the packages folder
-      common/nuget.exe restore
-      .\Create-Packages.ps1
+      $($env:appveyor_build_folder)\Create-Packages.ps1 $env:APPVEYOR_BUILD_VERSION
     }
 on_finish:
 - ps: |
