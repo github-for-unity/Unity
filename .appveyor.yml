@@ -35,8 +35,8 @@ install:
 
     nuget restore
 
-    $patchNumber = $env:APPVEYOR_BUILD_NUMBER
-    scripts\Set-Version.ps1 $patchNumber
+    scripts\Set-Version.ps1 -BumpBuild -NewVersion $env:APPVEYOR_BUILD_NUMBER
+    
 - ps: Install-Product node 8 x64
 
 configuration: Release
