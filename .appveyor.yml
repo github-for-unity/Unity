@@ -53,7 +53,7 @@ test:
 on_success:
 - ps: |
     if ($package) {
-      $($env:appveyor_build_folder)\Create-Packages.ps1 $env:APPVEYOR_BUILD_VERSION
+      .\Create-Packages.ps1 $env:APPVEYOR_BUILD_VERSION
     }
 on_finish:
 - ps: |
