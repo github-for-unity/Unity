@@ -6,6 +6,7 @@ environment:
     - node_version: '8'
 
 install:
+- ps: Install-Product node 8 x64
 - ps: |
     $full_build = Test-Path env:GHFU_KEY
     $package = $full_build
