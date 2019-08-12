@@ -6,7 +6,6 @@ environment:
     - node_version: '8'
 
 install:
-- ps: Install-Product node 8 x64
 - ps: |
     $full_build = Test-Path env:GHFU_KEY
     $package = $full_build
@@ -38,6 +37,7 @@ install:
 
     $patchNumber = $env:APPVEYOR_BUILD_NUMBER
     scripts\Set-Version.ps1 $patchNumber
+- ps: Install-Product node 8 x64
 
 configuration: Release
 build:
