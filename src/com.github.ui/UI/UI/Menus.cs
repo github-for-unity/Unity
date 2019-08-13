@@ -12,7 +12,7 @@ namespace GitHub.Unity.UI
     [InitializeOnLoad]
     class Menus : ScriptableObject
     {
-#if DEVELOPER_BUILD
+#if GFU_DEBUG_BUILD
 
         private const string Menu_Window_Git = "Window/GitHub";
         private const string Menu_Window_Git_Command_Line = "Window/GitHub Command Line";
@@ -34,7 +34,7 @@ namespace GitHub.Unity.UI
             EntryPoint.ApplicationManager.UsageTracker.IncrementApplicationMenuMenuItemCommandLine();
         }
 
-#if DEVELOPER_BUILD
+#if GFU_DEBUG_BUILD
 
         [MenuItem("GitHub/Select Window")]
         public static void Git_SelectWindow()

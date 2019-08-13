@@ -4,9 +4,9 @@
     <PublishTo Condition="'$(PublishTo)' == '' ">$(SolutionDir)\build\packages</PublishTo>
   </PropertyGroup>
 
-  <Target Name="EnumeratePackageFiles" Returns="$(PackageName);@(FilesToCopy);@(ExtraFiles)">
+  <Target Name="EnumeratePackageFiles" Returns="$(PackageName);@(FilesToCopy)">
 
-    <CreateItem Include="$(PackageSourceDir)\**\*.*;$(IntermediateOutputPath)\$(AssemblyName).Version.cs" Exclude="$(PackageSourceDir)\**\*.csproj*;$(PackageSourceDir)\**\*.ncrunch*;$(PackageSourceDir)\**\obj\**">
+    <CreateItem Include="$(PackageSourceDir)\$(PackageName)\**\*.*;$(PackageSourceDir)\extras\$(PackageName)\**\*.*" Exclude="$(PackageSourceDir)\$(PackageName)\**\*.csproj*;$(PackageSourceDir)\$(PackageName)\**\*.ncrunch*;$(PackageSourceDir)\$(PackageName)\**\obj\**">
       <Output TaskParameter="Include" ItemName="FilesToCopy" />
     </CreateItem>
 
@@ -15,12 +15,14 @@
   <Target Name="CopySourcesToPackmanPackage"
     DependsOnTargets="EnumeratePackageFiles"
     AfterTargets="AfterBuild"
-    Inputs="@(FilesToCopy)"
-    Outputs="@(FilesToCopy->'$(PublishTo)\$(PackageName)\%(RecursiveDir)%(Filename)%(Extension)')"
+    Inputs="@(FilesToCopy);@(VersionFiles)"
+    Outputs="@(FilesToCopy->'$(PublishTo)\$(PackageName)\%(RecursiveDir)%(Filename)%(Extension)');@(VersionFiles->'$(PublishTo)\$(PackageName)\%(Project)\%(Filename)%(Extension)')"
     >
+
     <MakeDir Directories="$(PublishTo)\$(PackageName)" />
 
     <Copy SourceFiles="@(FilesToCopy)" DestinationFiles="@(FilesToCopy->'$(PublishTo)\$(PackageName)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(VersionFiles)" DestinationFiles="@(VersionFiles->'$(PublishTo)\$(PackageName)\%(Project)\%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
   </Target>
 </Project>

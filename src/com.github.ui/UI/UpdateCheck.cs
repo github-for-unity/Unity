@@ -51,7 +51,7 @@ namespace GitHub.Unity
     class UpdateCheckWindow : BaseWindow
     {
         public const string UpdateFeedUrl =
-#if DEVELOPER_BUILD
+#if GFU_DEBUG_BUILD
         "http://localhost:50000/unity/latest.json"
 #else
         "http://github-vs.s3.amazonaws.com/unity/latest.json"

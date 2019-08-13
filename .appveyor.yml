@@ -22,12 +22,7 @@ install:
     } else {
       $env:BUILD_TYPE="partial"
       git submodule deinit script
-      $destDir = Join-Path $env:appveyor_build_folder 'lib'
-      $destfile = Join-Path $destDir 'deps.zip'
-      Set-Location $destDir
-      Invoke-WebRequest "https://ghfvs-installer.github.com/dependencies/deps.zip" -OutFile $destfile
-      &'7z' -bb3 x 'deps.zip'
-      Set-Location $env:appveyor_build_folder
+      scripts\Get-Deps.ps1
     }
 
     git submodule update
@@ -35,8 +30,8 @@ install:
 
     nuget restore
 
-    scripts\Set-Version.ps1 -BumpBuild -NewVersion $env:APPVEYOR_BUILD_NUMBER
-    
+    scripts\Set-Version.ps1 -BumpPatch -NewVersion $env:APPVEYOR_BUILD_NUMBER
+
 - ps: Install-Product node 8 x64
 
 configuration: Release
@@ -54,7 +49,7 @@ test:
 on_success:
 - ps: |
     if ($package) {
-      .\Create-Packages.ps1 $env:APPVEYOR_BUILD_VERSION
+      scripts\Create-Packages.ps1 $env:APPVEYOR_BUILD_VERSION
     }
 on_finish:
 - ps: |

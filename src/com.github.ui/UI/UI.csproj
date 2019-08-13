@@ -36,9 +36,14 @@
 
   <!-- copy source files to packman package folder -->
   <PropertyGroup>
-    <PackageSourceDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</PackageSourceDir>
+    <PackageSourceDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</PackageSourceDir>
     <PackageName>com.github.ui</PackageName>
   </PropertyGroup>
+  <ItemGroup>
+    <VersionFiles Include="$(IntermediateOutputPath)\$(AssemblyName).Version.cs">
+      <Project>UI</Project>
+    </VersionFiles>
+  </ItemGroup>
 
   <Import Project="$(SolutionDir)\common\packaging.targets" Condition=" '$(TargetFramework)' == 'net471' " />
 

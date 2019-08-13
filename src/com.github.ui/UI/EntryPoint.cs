@@ -38,7 +38,7 @@ namespace GitHub.Unity
                 try
                 {
                     var shouldRotate = true;
-#if DEVELOPER_BUILD
+#if GFU_DEBUG_BUILD
                     shouldRotate = new FileInfo(logPath).Length > 10 * 1024 * 1024;
 #endif
                     if (shouldRotate)
@@ -59,7 +59,7 @@ namespace GitHub.Unity
             }
 
             LogHelper.LogAdapter = new MultipleLogAdapter(new FileLogAdapter(logPath)
-#if DEVELOPER_BUILD
+#if GFU_DEBUG_BUILD
                 , new UnityLogAdapter()
 #endif
                 );
