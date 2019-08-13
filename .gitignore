@@ -9,3 +9,6 @@ build/
 TestResult.xml
 *.stackdump
 *.lastcodeanalysissucceeded
+/artifacts/
+lib/deps.zip
+/obj/

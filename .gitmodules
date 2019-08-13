@@ -4,3 +4,6 @@
 [submodule "submodules/packaging"]
 	path = submodules/packaging
 	url = https://github.com/github-for-unity/packaging
+[submodule "src/git-for-unity"]
+	path = src/git-for-unity
+	url = https://github.com/spoiledcat/git-for-unity

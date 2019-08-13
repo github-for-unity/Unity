@@ -1,7 +1,0 @@
-*.csproj
-UnityPackageManager
-JetBrains
-UnityExtension.sln
-Assets/**/*.zip
-Assets/**/*.md5
-Assets/**/*.json
