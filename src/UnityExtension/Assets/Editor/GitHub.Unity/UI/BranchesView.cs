@@ -519,7 +519,7 @@ namespace GitHub.Unity
                         else
                         {
                             EditorUtility.DisplayDialog(Localization.SwitchBranchTitle,
-                                String.Format(Localization.SwitchBranchFailedDescription, branch), Localization.Ok);
+                                String.Format(Localization.SwitchBranchFailedDescription, branch, e.Message), Localization.Ok);
                         }
                     }).Start();
             }
