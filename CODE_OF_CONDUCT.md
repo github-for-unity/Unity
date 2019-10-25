@@ -30,7 +30,7 @@ advances
   address, without explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
-
+* Racial discrimination
 ## Our Responsibilities
 
 Project maintainers are responsible for clarifying the standards of acceptable
