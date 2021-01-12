@@ -9,7 +9,7 @@ All changes made to a repository will show up under the **Changes** view.
 3. Click the button `Commit to [branch name]`.
 <img src="images/changes-view.png" alt="Changes view"/>
 
-The commit will not be shown under the **History** view. On the top bar the button `Push (1)` indicates that there is 1 commit to push.
+The commit will now be shown under the **History** view. On the top bar the button `Push (1)` indicates that there is 1 commit to push.
 
 <img src="images/post-commit-view.png" alt="Post commit view"/>
 
