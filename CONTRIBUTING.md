@@ -50,7 +50,7 @@ section below to understand how to contribute your feedback.
 
 This repository is LFS-enabled. To clone it, you should use a git client that supports git LFS 2.x and submodules.
 
-Please read the [How to Build](https://raw.githubusercontent.com/github-for-unity/Unity/master/docs/contributing/how-to-build.md) document for information on how to build GitHub for Unity.
+Please read the [How to Build](./docs/contributing/how-to-build.md) document for information on how to build GitHub for Unity.
 
 ### Reporting Bugs
 
