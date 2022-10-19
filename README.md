@@ -1,5 +1,11 @@
 # [GitHub for Unity](https://unity.github.com)
 
+## NOTICE OF DEPRECATION
+
+This project is dead y'all! Remove GitHub for Unity from your project, then go to https://github.com/spoiledcat/git-for-unity and install Git for Unity from the instructions there.
+
+# What is it
+
 The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.
 
 You can reach the team right here by opening a [new issue](https://github.com/github-for-unity/Unity/issues/new). You can also tweet at [@GitHubUnity](https://twitter.com/GitHubUnity)
