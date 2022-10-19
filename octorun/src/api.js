@@ -13,7 +13,7 @@ function ApiWrapper(host) {
     this.octokit = octokitWrapper.createOctokit(config.appName, host);
 
     this.octokit.authenticate({
-        type: "oauth",
+        type: "token",
         token: config.token
     });
 }
