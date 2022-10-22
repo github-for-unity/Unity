@@ -1,0 +1,12 @@
+{
+	"name": "com.github.ui",
+	"displayName": "GitHub for Unity",
+	"version": "2.0.0-preview",
+	"unity": "2018.4",
+	"description": "The GitHub for Unity extension brings [Git](https://git-scm.com/) and GitHub into [Unity](https://unity3d.com/), integrating source control into your work with friendly and accessible tools and workflows.",
+	"dependencies": {
+		"com.unity.git.api": "file:../git-for-unity/src/api"
+	},
+	"devDependencies": {
+	}
+}

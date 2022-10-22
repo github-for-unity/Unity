@@ -1,0 +1,15 @@
+git*.zip*
+*.csproj*
+*.ncrunch*
+.npmignore
+.npmignore-net35
+
+# some directories we don't want
+obj/
+obj.meta
+node_modules/
+node_modules.meta
+UnityTests/
+UnityTests.meta
+Third Party Notices.md
+Third Party Notices.md.meta

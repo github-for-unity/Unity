@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFrameworks>net35;net471</TargetFrameworks>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..</SolutionDir>
+    <ProjectGuid>{ADD7A18B-DD2A-4C22-A2C1-488964EFF30C}</ProjectGuid>
+    <AssemblyName>GitHub.Unity</AssemblyName>
+    <RootNamespace>GitHub.Unity</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\common\properties.props" />
+  <Import Project="$(SolutionDir)\common\libraries.props" />
+  <Import Project="$(SolutionDir)\common\unityreferences.targets" />
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <PackageReference Include="AsyncBridge.Net35" version="0.2.3333.0" />
+    <PackageReference Include="ReadOnlyCollectionInterfaces" version="1.0.0" />
+    <PackageReference Include="TaskParallelLibrary" version="1.0.3333.0" targetFramework="net35" />
+    <PackageReference Include="ValueTupleBridge" Version="0.1.5" targetFramework="net35" />
+    <Reference Include="System.Web" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\git-for-unity\src\com.unity.git.api\Api\Api.csproj" />
+    <ProjectReference Include="..\..\git-for-unity\src\com.unity.git.api\Logging\Logging.csproj" />
+    <ProjectReference Include="..\UnityShim\UnityShim.csproj" />
+    <ProjectReference Include="..\..\git-for-unity\src\Localization\Localization.csproj" Condition="'$(MSBuildRuntimeType)' != 'Core'"/>
+    <Reference Include="Unity.VersionControl.Git.Localization.dll" Condition="'$(MSBuildRuntimeType)' == 'Core'">
+      <HintPath>..\..\git-for-unity\src\com.unity.git.api\Localization\Unity.VersionControl.Git.Localization.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="SolutionInfo.cs" />
+    <EmbeddedResource Include="IconsAndLogos\*.png" />
+  </ItemGroup>
+
+  <!-- copy source files to packman package folder -->
+  <PropertyGroup>
+    <PackageSourceDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</PackageSourceDir>
+    <PackageName>com.github.ui</PackageName>
+  </PropertyGroup>
+  <ItemGroup>
+    <VersionFiles Include="$(IntermediateOutputPath)\$(AssemblyName).Version.cs">
+      <Project>UI</Project>
+    </VersionFiles>
+  </ItemGroup>
+
+  <Import Project="$(SolutionDir)\common\packaging.targets" Condition=" '$(TargetFramework)' == 'net471' " />
+
+  <!-- copy files to package project folders to be turned into .unitypackage archives -->
+  <Import Project="$(SolutionDir)\common\unitypackaging.targets" />
+
+</Project>

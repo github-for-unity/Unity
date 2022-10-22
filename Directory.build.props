@@ -1,0 +1,33 @@
+<Project>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</RepoRoot>
+    <RepoBinPath>$(RepoRoot)build\$(Configuration)</RepoBinPath>
+    <RepoObjPath>$(RepoRoot)build\obj\$(Configuration)</RepoObjPath>
+    <BaseIntermediateOutputPath>$(RepoObjPath)\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(RepoBinPath)</BaseOutputPath>
+    <PackageOutputPath>$(RepoBinPath)nuget\$(Configuration)\</PackageOutputPath>
+
+    <LangVersion>7.3</LangVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Authors>Andreia Gaita, Unity Technologies, GitHub</Authors>
+    <Owners>Andreia Gaita, Unity Technologies, GitHub</Owners>
+    <Copyright>© Andreia Gaita, © Unity Technologies, @ GitHub. All rights reserved.</Copyright>
+    <PackageProjectUrl>https://github.com/github-for-unity/unity</PackageProjectUrl>
+    <PackageIconUrl>https://aka.ms/VsExtensibilityIcon</PackageIconUrl>
+
+    <MicroBuildPackageVersion>2.0.55</MicroBuildPackageVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.0.24" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

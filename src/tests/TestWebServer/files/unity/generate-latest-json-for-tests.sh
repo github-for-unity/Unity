@@ -1,2 +1,0 @@
-#!/bin/sh -eu
-../../../../../generate-package.sh ghu 99.2.0-beta1 releases/github-for-unity-99.2.0-beta1.unitypackage http://localhost:50000 releases/releasenotes.txt releases/message.txt > latest.json

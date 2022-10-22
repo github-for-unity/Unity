@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFrameworks>net35;net471</TargetFrameworks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <LangVersion>latest</LangVersion>
+    <OutputPath Condition="$(OutputPath) == ''">$(SolutionDir)\build\$(Configuration)</OutputPath>
+    <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(SolutionDir)\build\obj\$(Configuration)</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <PackageReference Include="Unity.NETFramework.ReferenceAssemblies.net35" Version="1.0.0" IncludeAssets="runtime; build; native; contentfiles; analyzers" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
