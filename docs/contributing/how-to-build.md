@@ -10,6 +10,11 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
   - If you've installed Unity in the default location of `C:\Program Files\Unity` or `C:\Program Files (x86)\Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]\Unity\Editor\Data\Managed` into the `lib` directory in order for the build to work
+  
+#### For Tests: 
+ 
+- `UnityEngine.TestRunner.dll` and `UnityEditor.TestRunner.dll`.
+  - These are found at `[Unity installation path]\Unity\Editor\Data\UnityExtensions\Unity\TestRunner` and in `TestRunner\Editor` folder, you'll need to copy `UnityEngine.TestRunner.dll` into `lib\UnityExtensions\Unity\TestRunner` and the `UnityEditor.TestRunner.dll` to `TestRunner\Editor`
 
 ### MacOS
 
@@ -17,6 +22,11 @@ This repository is LFS-enabled. To clone it, you should use a git client that su
   - Mono 5.x will not work
 - `UnityEngine.dll` and `UnityEditor.dll`.
   - If you've installed Unity in the default location of `/Applications/Unity`, the build will be able to reference these DLLs automatically. Otherwise, you'll need to copy these DLLs from `[Unity installation path]/Unity.app/Contents/Managed` into the `lib` directory in order for the build to work
+  
+#### For Tests: 
+
+- `UnityEngine.TestRunner.dll` and `UnityEditor.TestRunner.dll`.
+  - These are found at `[Unity installation path]/Unity.app/Contents\UnityExtensions\Unity\TestRunner` and in `TestRunner\Editor` folder, you'll need to copy `UnityEngine.TestRunner.dll` into `lib\UnityExtensions\Unity\TestRunner` and the `UnityEditor.TestRunner.dll` to `TestRunner\Editor`
 
 ## How to Build
 
