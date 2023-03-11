@@ -1189,5 +1189,390 @@ namespace UnitTests
                 }
             });
         }
+
+        [Test]
+        public void ShouldLoadCollapsedTreeNode()
+        {
+            var testTree = new TestTree(true);
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new[] { "BFolder" });
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new string[0]);
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(false);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "AFile.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\SubFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "CFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "DFile.txt"
+                },
+            };
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true,
+                    Level = -1
+                },
+                new TestTreeNode {
+                    Path = "AFile.txt",
+                    Label = "AFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[0]
+                },
+                new TestTreeNode {
+                    Path = "BFolder",
+                    Label = "BFolder",
+                    Level = 0,
+                    IsCollapsed = true,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[1],
+                    IsHidden = true
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder",
+                    Label = "SubFolder",
+                    Level = 1,
+                    IsFolder = true,
+                    IsHidden = true
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 2,
+                    TreeData = testTreeData[2],
+                    IsHidden = true
+                },
+                new TestTreeNode {
+                    Path = "CFolder",
+                    Label = "CFolder",
+                    Level = 0,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "CFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[3]
+                },
+                new TestTreeNode {
+                    Path = "DFile.txt",
+                    Label = "DFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[4]
+                }
+            });
+        }
+
+        [Test]
+        public void ShouldLoadTreeWithCheckedNode()
+        {
+            var testTree = new TestTree(true) {
+                IsCheckable = true
+            };
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new[] { "AFile.txt" });
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(false);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "AFile.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\SubFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "CFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "DFile.txt"
+                },
+            };
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true,
+                    Level = -1
+                },
+                new TestTreeNode {
+                    Path = "AFile.txt",
+                    Label = "AFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[0],
+                    CheckState = CheckState.Checked
+                },
+                new TestTreeNode {
+                    Path = "BFolder",
+                    Label = "BFolder",
+                    Level = 0,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[1]
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder",
+                    Label = "SubFolder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 2,
+                    TreeData = testTreeData[2]
+                },
+                new TestTreeNode {
+                    Path = "CFolder",
+                    Label = "CFolder",
+                    Level = 0,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "CFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[3]
+                },
+                new TestTreeNode {
+                    Path = "DFile.txt",
+                    Label = "DFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[4]
+                }
+            });
+        }
+
+        [Test]
+        public void ShouldLoadTreeWithCheckedFolderNode()
+        {
+            var testTree = new TestTree(true) {
+                IsCheckable = true
+            };
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new[] { "BFolder\\test.txt" });
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(false);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "AFile.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\SubFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "CFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "DFile.txt"
+                },
+            };
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true,
+                    Level = -1
+                },
+                new TestTreeNode {
+                    Path = "AFile.txt",
+                    Label = "AFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[0]
+                },
+                new TestTreeNode {
+                    Path = "BFolder",
+                    Label = "BFolder",
+                    Level = 0,
+                    IsFolder = true,
+                    CheckState = CheckState.Mixed
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[1],
+                    CheckState = CheckState.Checked
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder",
+                    Label = "SubFolder",
+                    Level = 1,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 2,
+                    TreeData = testTreeData[2]
+                },
+                new TestTreeNode {
+                    Path = "CFolder",
+                    Label = "CFolder",
+                    Level = 0,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "CFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[3]
+                },
+                new TestTreeNode {
+                    Path = "DFile.txt",
+                    Label = "DFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[4]
+                }
+            });
+        }
+
+        [Test]
+        public void ShouldLoadTreeWithCheckedFolderNode2()
+        {
+            var testTree = new TestTree(true)
+            {
+                IsCheckable = true
+            };
+            var testTreeListener = testTree.TestTreeListener;
+
+            testTreeListener.GetCollapsedFolders().Returns(new string[0]);
+            testTreeListener.SelectedNode.Returns((TestTreeNode)null);
+            testTreeListener.GetCheckedFiles().Returns(new[] { "BFolder\\SubFolder\\test.txt" });
+            testTreeListener.Nodes.Returns(new List<TestTreeNode>());
+            testTreeListener.PathSeparator.Returns(@"\");
+            testTreeListener.DisplayRootNode.Returns(false);
+            testTreeListener.IsSelectable.Returns(false);
+            testTreeListener.Title.Returns("Test Tree");
+
+            var testTreeData = new[] {
+                new TestTreeData {
+                    Path = "AFile.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "BFolder\\SubFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "CFolder\\test.txt"
+                },
+                new TestTreeData {
+                    Path = "DFile.txt"
+                },
+            };
+            testTree.Load(testTreeData);
+
+            testTree.CreatedTreeNodes.ShouldAllBeEquivalentTo(new[] {
+                new TestTreeNode {
+                    Path = "Test Tree",
+                    Label = "Test Tree",
+                    IsFolder = true,
+                    Level = -1
+                },
+                new TestTreeNode {
+                    Path = "AFile.txt",
+                    Label = "AFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[0]
+                },
+                new TestTreeNode {
+                    Path = "BFolder",
+                    Label = "BFolder",
+                    Level = 0,
+                    IsFolder = true,
+                    CheckState = CheckState.Mixed
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[1]
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder",
+                    Label = "SubFolder",
+                    Level = 1,
+                    IsFolder = true,
+                    CheckState = CheckState.Checked
+                },
+                new TestTreeNode {
+                    Path = "BFolder\\SubFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 2,
+                    TreeData = testTreeData[2],
+                    CheckState = CheckState.Checked
+                },
+                new TestTreeNode {
+                    Path = "CFolder",
+                    Label = "CFolder",
+                    Level = 0,
+                    IsFolder = true
+                },
+                new TestTreeNode {
+                    Path = "CFolder\\test.txt",
+                    Label = "test.txt",
+                    Level = 1,
+                    TreeData = testTreeData[3]
+                },
+                new TestTreeNode {
+                    Path = "DFile.txt",
+                    Label = "DFile.txt",
+                    Level = 0,
+                    TreeData = testTreeData[4]
+                }
+            });
+        }
     }
 }
