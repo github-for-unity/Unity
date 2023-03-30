@@ -286,7 +286,7 @@
     <value>Switch branch</value>
   </data>
   <data name="SwitchBranchFailedDescription" xml:space="preserve">
-    <value>Could not switch to branch {0}</value>
+    <value>Could not switch to branch {0}, reason: {1}</value>
   </data>
   <data name="GitLFSNotFound" xml:space="preserve">
     <value>We could not find Git in the system.</value>
